@@ -120,6 +120,15 @@ const AcademicSetup = () => {
   // fix #6: auto-detect step only once on initial load
   const hasAutoDetected = useRef(false);
 
+  // ── Published state helpers ───────────────────────────────────────────────
+  // Persisted in localStorage keyed by AY id so re-visits show the Complete step
+  const getPublishedAYId = () => {
+    try { return localStorage.getItem('academicSetup_publishedAYId'); } catch { return null; }
+  };
+  const setPublishedAYId = (id) => {
+    try { localStorage.setItem('academicSetup_publishedAYId', String(id)); } catch { /* ignore */ }
+  };
+
   // ── Derived ───────────────────────────────────────────────────────────────
   const activeAY       = useMemo(() => academicYears.find(y => y.is_active), [academicYears]);
   const availGrades    = useMemo(() => educationLevel === 'jhs' ? JHS_GRADES : educationLevel === 'shs' ? SHS_GRADES : ALL_GRADES, [educationLevel]);
@@ -232,11 +241,14 @@ const AcademicSetup = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   // fix #6: auto-detect step only once on first successful load
+  // fix: if this AY was already published (stored in localStorage), go straight to Complete
   useEffect(() => {
     if (loading || fetchError || hasAutoDetected.current) return;
     hasAutoDetected.current = true;
     const ay = academicYears.find(y => y.is_active);
     if (!ay)                            { setCurrentStep(0); return; }
+    // If we previously published this exact AY, jump straight to Complete
+    if (getPublishedAYId() === String(ay.id)) { setCurrentStep(8); return; }
     if (!educationLevel)                { setCurrentStep(1); return; }
     if (semesters.length === 0)         { setCurrentStep(2); return; }
     if (classrooms.length === 0)        { setCurrentStep(3); return; }
@@ -445,6 +457,8 @@ const AcademicSetup = () => {
         console.warn('[AcademicSetup] current_quarter patch failed (non-critical):', patchErr);
         toast('Note: Could not set current quarter to 1 — set it manually in Settings.', { icon: '⚠️' });
       }
+      // Persist published state so re-visits go straight to Complete step
+      setPublishedAYId(activeAY.id);
       toast.success('Academic setup published — SY ' + activeAY.name + ' is now active');
       goToNextStep();
     } catch (err) { toast.error(parseBackendErrors(err)); }
@@ -455,6 +469,13 @@ const AcademicSetup = () => {
   const goToPrevStep = () => { if (currentStep > 0) setCurrentStep(s => s - 1); };
   const openModal    = (type) => { setModalType(type); setShowModal(true); };
   const getStepStatus = (idx) => idx < currentStep ? 'completed' : idx === currentStep ? 'current' : 'upcoming';
+
+  // Clear published flag and reset to step 0 for a new school year setup
+  const handleStartNewYear = () => {
+    try { localStorage.removeItem('academicSetup_publishedAYId'); } catch { /* ignore */ }
+    hasAutoDetected.current = false;
+    setCurrentStep(0);
+  };
 
   // fix #17: retry button on fetch failure
   if (loading) return (
@@ -574,6 +595,7 @@ const AcademicSetup = () => {
                 onDeleteSemester={handleDeleteSemester}
                 onRemoveAssignment={handleRemoveAssignment}
                 onPublish={handlePublish} onNavigate={navigate}
+                onStartNewYear={handleStartNewYear}
               />
             </CardBody>
           </Card>
@@ -1060,7 +1082,7 @@ function StepPublish({ publishChecks, publishReady, savingPublish, onPublish }) 
 
 // ── Step: Complete ────────────────────────────────────────────────────────────
 
-function StepComplete({ activeAY, classrooms, subjects, activeTeachers, onNavigate }) {
+function StepComplete({ activeAY, classrooms, subjects, activeTeachers, onNavigate, onStartNewYear }) {
   return (
     <div className="space-y-6 text-center py-4">
       <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center mx-auto shadow-lg shadow-emerald-200">
@@ -1068,7 +1090,7 @@ function StepComplete({ activeAY, classrooms, subjects, activeTeachers, onNaviga
       </div>
       <div>
         <h3 className="text-2xl font-extrabold text-slate-900 mb-2">Academic Setup Complete!</h3>
-        <p className="text-sm text-slate-500 max-w-md mx-auto"><span className="font-bold text-violet-700">SY {activeAY?.name}</span> is now active and published.</p>
+        <p className="text-sm text-slate-500 max-w-md mx-auto"><span className="font-bold text-violet-700">SY {activeAY?.name}</span> is active and published.</p>
       </div>
       <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
         <div className="p-4 bg-violet-50 rounded-xl border border-violet-200"><p className="text-2xl font-extrabold text-violet-700">{classrooms.length}</p><p className="text-xs font-semibold text-violet-600 mt-1">Sections</p></div>
@@ -1079,6 +1101,11 @@ function StepComplete({ activeAY, classrooms, subjects, activeTeachers, onNaviga
         <Button variant="primary" onClick={() => onNavigate('/dashboard')}>Go to Dashboard</Button>
         <Button variant="secondary" onClick={() => onNavigate('/classes')}>Manage Classes</Button>
         <Button variant="secondary" onClick={() => onNavigate('/subjects')}>Manage Subjects</Button>
+      </div>
+      <div className="pt-2 border-t border-slate-100">
+        <button onClick={onStartNewYear} className="text-xs text-slate-400 hover:text-violet-600 font-semibold transition-colors">
+          Setting up a new school year? Start fresh →
+        </button>
       </div>
     </div>
   );
