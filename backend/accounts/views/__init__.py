@@ -130,3 +130,5 @@ from .fcm import (
     fcm_token_delete,
     test_push_notification,
 )
+
+from .school_forms import SchoolForm1ViewSet

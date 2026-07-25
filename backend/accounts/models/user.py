@@ -171,6 +171,10 @@ class Profile(models.Model):
     father_name = models.CharField(max_length=100, blank=True, null=True)
     mother_name = models.CharField(max_length=100, blank=True, null=True)
     contact_information = models.TextField(blank=True, null=True, help_text="Additional contact details")
+    mother_tongue = models.CharField(max_length=100, blank=True, null=True, help_text="Mother tongue / primary language")
+    indigenous_people = models.CharField(max_length=100, blank=True, null=True, help_text="Indigenous People affiliation, if any")
+    religion = models.CharField(max_length=100, blank=True, null=True)
+    extension_name = models.CharField(max_length=20, blank=True, null=True, help_text="Name extension (e.g., Jr., Sr., III)")
 
     mute_until = models.DateTimeField(null=True, blank=True)
     is_suspended = models.BooleanField(default=False)

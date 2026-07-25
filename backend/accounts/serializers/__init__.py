@@ -42,6 +42,10 @@ from .records import (
     TransferCertificateSerializer, CharacterCertificateSerializer,
     AchievementRecordSerializer, RecordRequestSerializer,
 )
+from .school_forms import (
+    SchoolForm1ListSerializer, SchoolForm1DetailSerializer,
+    SchoolForm1StudentSerializer, GenerateSF1Serializer,
+)
 from .departments import DepartmentSerializer, StaffPerformanceSerializer
 from .parent import ParentChildSummarySerializer
 
@@ -76,4 +80,6 @@ __all__ = [
     'AchievementRecordSerializer', 'RecordRequestSerializer',
     'DepartmentSerializer', 'StaffPerformanceSerializer',
     'ParentChildSummarySerializer',
+    'SchoolForm1ListSerializer', 'SchoolForm1DetailSerializer',
+    'SchoolForm1StudentSerializer', 'GenerateSF1Serializer',
 ]
