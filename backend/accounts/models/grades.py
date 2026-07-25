@@ -53,8 +53,47 @@ class GradeReport(models.Model):
         )
 
         if grades.exists():
-            scores = [float(g.raw_score) for g in grades if g.raw_score is not None]
-            self.total_subjects = grades.count()
+            # Group grades by subject, handling MAPEH components
+            subject_finals = {}
+            for g in grades:
+                if g.subject.has_components:
+                    # MAPEH parent — skip, we'll compute from components
+                    continue
+                if g.component:
+                    # This is a component grade (music_arts or pe_health)
+                    key = g.subject_id
+                    if key not in subject_finals:
+                        subject_finals[key] = []
+                    if g.raw_score is not None:
+                        subject_finals[key].append(float(g.raw_score))
+                else:
+                    # Normal subject — use directly
+                    key = g.subject_id
+                    if g.raw_score is not None:
+                        subject_finals[key] = [float(g.raw_score)]
+
+            # Now handle MAPEH: find parent subjects and compute from components
+            parent_subjects = Subject.objects.filter(
+                has_components=True,
+                grade_level=self.classroom.grade_level if self.classroom else '',
+            )
+            for parent in parent_subjects:
+                component_grades = grades.filter(
+                    subject__grade_level=parent.grade_level,
+                    subject__component__in=['music_arts', 'pe_health'],
+                    component__isnull=False,
+                ).exclude(component='')
+                if component_grades.exists():
+                    scores = [float(g.raw_score) for g in component_grades if g.raw_score is not None]
+                    if scores:
+                        subject_finals[parent.id] = [sum(scores) / len(scores)]
+
+            scores = []
+            for subj_id, s_scores in subject_finals.items():
+                if s_scores:
+                    scores.append(sum(s_scores) / len(s_scores))
+
+            self.total_subjects = len(subject_finals)
             if scores:
                 self.general_average = round(sum(scores) / len(scores), 2)
                 self.passed_subjects = sum(1 for s in scores if s >= float(SystemSetting.get_settings().passing_grade))

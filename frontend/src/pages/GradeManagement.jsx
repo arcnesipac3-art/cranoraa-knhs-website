@@ -670,6 +670,16 @@ const SubjectGradeTable = ({
 }) => {
   const navigate = useNavigate();
 
+  // Check if this subject has components (MAPEH)
+  const hasComponents = useMemo(() => {
+    for (const student of Object.values(subject.students)) {
+      for (const grade of Object.values(student.quarters)) {
+        if (grade?.has_components) return true;
+      }
+    }
+    return false;
+  }, [subject.students]);
+
   // Sort students: Male first, then Female, then by name
   const sortedStudents = useMemo(() => {
     return Object.values(subject.students).sort((a, b) => {
@@ -696,6 +706,7 @@ const SubjectGradeTable = ({
         </h3>
         <p className="text-xs font-semibold text-violet-700 mt-0.5">
           {subject.code} • {sortedStudents.length} Students
+          {hasComponents && <span className="ml-2 text-violet-500">(Music & Arts / PE & Health)</span>}
         </p>
       </div>
 
@@ -709,14 +720,26 @@ const SubjectGradeTable = ({
               <th className="px-4 py-3 text-left text-xs font-extrabold text-slate-700 uppercase tracking-wider min-w-[180px]">
                 Student Name
               </th>
-              {periodShortLabels.map((label) => (
-                <th
-                  key={label}
-                  className="px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider"
-                >
-                  {label}
-                </th>
-              ))}
+              {hasComponents ? (
+                <>
+                  {periodShortLabels.map((label) => (
+                    <th key={`ma-${label}`} className="px-2 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider bg-rose-50">
+                      {label}<br/><span className="text-[9px] font-bold text-rose-500">MA</span>
+                    </th>
+                  ))}
+                  {periodShortLabels.map((label) => (
+                    <th key={`peh-${label}`} className="px-2 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider bg-blue-50">
+                      {label}<br/><span className="text-[9px] font-bold text-blue-500">PEH</span>
+                    </th>
+                  ))}
+                </>
+              ) : (
+                periodShortLabels.map((label) => (
+                  <th key={label} className="px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                    {label}
+                  </th>
+                ))
+              )}
               <th className="px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider bg-violet-50">
                 Final
               </th>
@@ -739,8 +762,27 @@ const SubjectGradeTable = ({
               const displayIdx =
                 currentSex === 'male' ? maleIdx : currentSex === 'female' ? femaleIdx : idx + 1;
 
-              const final = calculateFinal(student.quarters);
-              const rounded = final != null ? Math.round(parseFloat(final)) : null;
+              // For subjects with components, calculate combined final from component grades
+              let final = null;
+              let rounded = null;
+              if (hasComponents) {
+                // Collect component final grades across all quarters
+                const componentScores = [];
+                for (const q of periodValues) {
+                  const grade = student.quarters[q];
+                  if (grade?.component && grade.raw_score != null) {
+                    componentScores.push(parseFloat(grade.raw_score));
+                  }
+                }
+                // Average the component finals for the combined MAPEH grade
+                if (componentScores.length > 0) {
+                  final = (componentScores.reduce((a, b) => a + b, 0) / componentScores.length).toFixed(2);
+                  rounded = Math.round(parseFloat(final));
+                }
+              } else {
+                final = calculateFinal(student.quarters);
+                rounded = final != null ? Math.round(parseFloat(final)) : null;
+              }
               const performance = getPerformanceLevel(rounded);
 
               return (
@@ -769,21 +811,44 @@ const SubjectGradeTable = ({
                   </td>
 
                   {/* Grading Period Grades */}
-                  {periodValues.map((quarter) => {
-                    const grade = student.quarters[quarter];
-                    return (
-                      <td key={quarter} className="px-4 py-3 text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <ScoreBadge score={grade?.raw_score} size="sm" />
-                          {grade?.is_locked && (
-                            <span className="text-xs" title="Locked">
-                              🔒
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    );
-                  })}
+                  {hasComponents ? (
+                    <>
+                      {periodValues.map((quarter) => {
+                        const grade = student.quarters[quarter];
+                        const maScore = grade?.component === 'music_arts' ? grade.raw_score : null;
+                        return (
+                          <td key={`ma-${quarter}`} className="px-2 py-3 text-center bg-rose-50/30">
+                            <ScoreBadge score={maScore} size="sm" />
+                          </td>
+                        );
+                      })}
+                      {periodValues.map((quarter) => {
+                        const grade = student.quarters[quarter];
+                        const pehScore = grade?.component === 'pe_health' ? grade.raw_score : null;
+                        return (
+                          <td key={`peh-${quarter}`} className="px-2 py-3 text-center bg-blue-50/30">
+                            <ScoreBadge score={pehScore} size="sm" />
+                          </td>
+                        );
+                      })}
+                    </>
+                  ) : (
+                    periodValues.map((quarter) => {
+                      const grade = student.quarters[quarter];
+                      return (
+                        <td key={quarter} className="px-4 py-3 text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <ScoreBadge score={grade?.raw_score} size="sm" />
+                            {grade?.is_locked && (
+                              <span className="text-xs" title="Locked">
+                                🔒
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      );
+                    })
+                  )}
 
                   {/* Final Grade */}
                   <td className="px-4 py-3 text-center bg-violet-50">

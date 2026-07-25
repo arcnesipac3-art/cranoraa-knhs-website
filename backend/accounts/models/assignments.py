@@ -99,6 +99,12 @@ class Grade(models.Model):
         ('final_grade', 'Final Grade'),
     ]
 
+    COMPONENT_CHOICES = [
+        ('', 'None'),
+        ('music_arts', 'Music and Arts'),
+        ('pe_health', 'Physical Education and Health'),
+    ]
+
     TERM_CHOICES = [
         (1, 'Term 1'),
         (2, 'Term 2'),
@@ -112,6 +118,8 @@ class Grade(models.Model):
     teacher = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_subject_grades')
 
     grade_type = models.CharField(max_length=30, choices=GRADE_TYPE_CHOICES, default='written_work')
+    component = models.CharField(max_length=20, choices=COMPONENT_CHOICES, blank=True, default='',
+        help_text="Sub-component for composite subjects like MAPEH (music_arts or pe_health)")
     quarter = models.IntegerField(choices=TERM_CHOICES)
 
     raw_score = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
@@ -128,11 +136,12 @@ class Grade(models.Model):
     is_locked = models.BooleanField(default=False, help_text="Prevents further edits after submission")
 
     class Meta:
-        unique_together = ['student', 'subject', 'grade_type', 'quarter', 'academic_year']
+        unique_together = ['student', 'subject', 'component', 'grade_type', 'quarter', 'academic_year']
         ordering = ['-academic_year', '-quarter', 'subject__name', 'grade_type']
 
     def __str__(self):
-        return f"{self.student.username} - {self.subject.code} - Q{self.quarter} ({self.academic_year})"
+        comp = f" ({self.get_component_display()})" if self.component else ''
+        return f"{self.student.username} - {self.subject.code}{comp} - Q{self.quarter} ({self.academic_year})"
 
     def save(self, *args, **kwargs):
         if self.raw_score is not None:

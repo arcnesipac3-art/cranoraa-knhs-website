@@ -36,6 +36,7 @@ const GradeInput = () => {
     embeddedClassroom || location.state?.classroomId || ''
   );
   const [selSubject, setSelSubject] = useState(location.state?.subjectId || '');
+  const [selComponent, setSelComponent] = useState('');
   const [selQuarter, setSelQuarter] = useState(() => {
     const q = Number(currentQuarter) || 1;
     const maxPeriods = periodValues.length;
@@ -87,6 +88,14 @@ const GradeInput = () => {
       .catch(() => toast.error('Failed to load subjects'));
   }, [selClassroom]);
 
+  // Get selected subject data (including has_components)
+  const selectedSubjectData = subjects.find(s => String(s.subject) === String(selSubject));
+
+  // Reset component when subject changes
+  useEffect(() => {
+    setSelComponent('');
+  }, [selSubject]);
+
   // Load students
   const loadStudents = useCallback(async () => {
     if (!selClassroom) return;
@@ -125,7 +134,9 @@ const GradeInput = () => {
       return;
     }
     try {
-      const res = await api.get(`/grades/?classroom=${selClassroom}&subject=${selSubject}&quarter=${selQuarter}&academic_year=${academicYear}&grade_type=final_grade`);
+      let url = `/grades/?classroom=${selClassroom}&subject=${selSubject}&quarter=${selQuarter}&academic_year=${academicYear}&grade_type=final_grade`;
+      if (selComponent) url += `&component=${selComponent}`;
+      const res = await api.get(url);
       const map = {};
       res.data.forEach(g => {
         map[g.student] = g;
@@ -134,7 +145,7 @@ const GradeInput = () => {
     } catch (err) {
       console.error('Failed to fetch existing grades', err);
     }
-  }, [selClassroom, selSubject, selQuarter, academicYear]);
+  }, [selClassroom, selSubject, selQuarter, academicYear, selComponent]);
 
   useEffect(() => { loadStudents(); }, [loadStudents]);
   useEffect(() => { fetchExistingGrades(); }, [fetchExistingGrades]);
@@ -189,6 +200,7 @@ const GradeInput = () => {
   // Submit grades
   const handleSubmit = async () => {
     if (!selSubject) return toast.error('Please select a subject');
+    if (selectedSubjectData?.has_components && !selComponent) return toast.error('Please select a component (Music & Arts or PE & Health)');
     const toSubmit = students.filter(s => cells[s.student] !== '');
     if (!toSubmit.length) return toast.error('Enter at least one grade');
 
@@ -255,6 +267,7 @@ const GradeInput = () => {
         classroom: selClassroom,
         teacher: cs.teacher,
         grade_type: 'final_grade',
+        component: selComponent || '',
         quarter: selQuarter,
         academic_year: academicYear,
         raw_score: finalScore,
@@ -347,7 +360,7 @@ const GradeInput = () => {
             <Button
               variant="primary"
               onClick={handleSubmit}
-              disabled={!selSubject || !students.length || filled.length === 0}
+              disabled={!selSubject || (selectedSubjectData?.has_components && !selComponent) || !students.length || filled.length === 0}
               loading={submitting}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -376,6 +389,7 @@ const GradeInput = () => {
                 onChange={e => {
                   setSelClassroom(e.target.value);
                   setSelSubject('');
+                  setSelComponent('');
                 }}
                 className="w-full px-3 py-2.5 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 text-sm font-semibold shadow-sm transition-all"
               >
@@ -404,6 +418,33 @@ const GradeInput = () => {
               ))}
             </select>
           </div>
+
+          {/* MAPEH Component Tabs */}
+          {selectedSubjectData?.has_components && (
+            <div className="md:col-span-2">
+              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                Component
+              </label>
+              <div className="flex rounded-lg border border-slate-300 overflow-hidden shadow-sm">
+                {[
+                  { value: 'music_arts', label: 'Music & Arts' },
+                  { value: 'pe_health', label: 'PE & Health' },
+                ].map(comp => (
+                  <button
+                    key={comp.value}
+                    onClick={() => setSelComponent(comp.value)}
+                    className={`flex-1 px-3 py-3 text-xs font-extrabold uppercase tracking-wide transition-all ${
+                      selComponent === comp.value
+                        ? 'bg-violet-600 text-white'
+                        : 'bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {comp.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Grading Period */}
           <div>
@@ -479,6 +520,14 @@ const GradeInput = () => {
             <span className="text-slate-700">
               {subjects.find(s => String(s.subject) === String(selSubject))?.subject_name}
             </span>
+            {selComponent && (
+              <>
+                <span className="text-slate-400">/</span>
+                <Badge variant="violet" size="sm">
+                  {selComponent === 'music_arts' ? 'Music & Arts' : 'PE & Health'}
+                </Badge>
+              </>
+            )}
             <span className="text-slate-400">/</span>
             <Badge variant="blue" size="sm">{periodLabel} {selQuarter}</Badge>
           </div>

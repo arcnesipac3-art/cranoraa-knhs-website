@@ -43,10 +43,18 @@ class Classroom(models.Model):
 
 
 class Subject(models.Model):
+    COMPONENT_CHOICES = [
+        ('', 'None'),
+        ('music_arts', 'Music and Arts'),
+        ('pe_health', 'Physical Education and Health'),
+    ]
+
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20, unique=True)
     description = models.TextField(blank=True, null=True)
     grade_level = models.CharField(max_length=20, help_text="Grade level this subject is for")
+    component = models.CharField(max_length=20, choices=COMPONENT_CHOICES, blank=True, default='',
+        help_text="For composite subjects like MAPEH. Set to 'music_arts' or 'pe_health' for sub-components.")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -55,6 +63,19 @@ class Subject(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
+
+    @property
+    def has_components(self):
+        return self.component == ''
+
+    def get_components(self):
+        if not self.has_components:
+            return []
+        return list(Subject.objects.filter(
+            grade_level=self.grade_level,
+            component__in=['music_arts', 'pe_health'],
+            name__icontains=self.name.split()[0] if self.name else '',
+        ).order_by('component'))
 
 
 class ClassroomSubject(models.Model):

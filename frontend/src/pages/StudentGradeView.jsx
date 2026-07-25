@@ -82,16 +82,37 @@ const StudentGradeView = () => {
     return matchQ && matchS;
   });
 
-  // Group by subject
+  // Group by subject — handle MAPEH components
   const bySubject = filtered.reduce((acc, g) => {
     if (!acc[g.subject]) {
       acc[g.subject] = {
         subject_name: g.subject_name,
         subject_code: g.subject_code,
+        has_components: g.has_components || false,
         quarters: {},
       };
     }
-    acc[g.subject].quarters[g.quarter] = g;
+
+    const entry = acc[g.subject];
+
+    if (g.component) {
+      // Component grade (music_arts or pe_health)
+      if (!entry.quarters[g.quarter]) {
+        entry.quarters[g.quarter] = { components: {} };
+      }
+      entry.quarters[g.quarter].components[g.component] = g;
+      // Compute combined score from components
+      const comps = entry.quarters[g.quarter].components;
+      const scores = Object.values(comps).map(c => parseFloat(c.raw_score)).filter(s => !isNaN(s));
+      if (scores.length > 0) {
+        entry.quarters[g.quarter].raw_score = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
+        entry.quarters[g.quarter].has_components = true;
+      }
+    } else {
+      // Normal grade
+      entry.quarters[g.quarter] = g;
+    }
+
     return acc;
   }, {});
 
@@ -579,6 +600,7 @@ const StudentGradeView = () => {
                     const performance = getPerformanceLevel(finalAvg);
 
                     return (
+                      <>
                       <tr key={entry.subject_name} className="hover:bg-slate-50 transition-colors">
                     <td className="px-3 py-2.5 sm:px-4 sm:py-3">
                       <div>
@@ -589,6 +611,9 @@ const StudentGradeView = () => {
                           <Badge variant="slate" size="sm" className="mt-1">
                             {entry.subject_code}
                           </Badge>
+                        )}
+                        {entry.has_components && (
+                          <span className="block text-[10px] text-slate-500 mt-0.5">Combined</span>
                         )}
                       </div>
                     </td>
@@ -610,6 +635,30 @@ const StudentGradeView = () => {
                           )}
                         </td>
                       </tr>
+                      {/* MAPEH component sub-rows */}
+                      {entry.has_components && Object.keys(entry.quarters[periodValues[0]]?.components || {}).map(compKey => {
+                        const compLabel = compKey === 'music_arts' ? 'Music & Arts' : 'PE & Health';
+                        const compScores = periodValues.map(q => entry.quarters[q]?.components?.[compKey]?.raw_score);
+                        const compNums = compScores.map(s => parseFloat(s)).filter(s => !isNaN(s));
+                        const compAvg = compNums.length ? (compNums.reduce((a, b) => a + b, 0) / compNums.length).toFixed(0) : null;
+                        return (
+                          <tr key={`${entry.subject_name}-${compKey}`} className="bg-slate-25 hover:bg-slate-50/50">
+                            <td className="pl-8 pr-3 py-1.5 sm:pl-12 sm:pr-4 sm:py-2">
+                              <p className="text-xs text-slate-600 font-medium">{compLabel}</p>
+                            </td>
+                            {compScores.map((score, idx) => (
+                              <td key={idx} className="px-2 py-1.5 sm:px-4 sm:py-2 text-center">
+                                <ScoreBadge score={score} size="sm" />
+                              </td>
+                            ))}
+                            <td className="px-2 py-1.5 sm:px-4 sm:py-2 text-center bg-violet-50">
+                              <ScoreBadge score={compAvg} size="sm" />
+                            </td>
+                            <td className="px-2 py-1.5 sm:px-4 sm:py-2 text-center" />
+                          </tr>
+                        );
+                      })}
+                      </>
                     );
                   })}
                 </tbody>

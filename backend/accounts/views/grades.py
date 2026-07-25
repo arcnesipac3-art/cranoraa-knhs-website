@@ -353,12 +353,14 @@ class GradeViewSet(viewsets.ModelViewSet):
         grade_type = request.data.get('grade_type')
         quarter = request.data.get('quarter')
         academic_year = request.data.get('academic_year')
+        component = request.data.get('component', '')
 
         if all([student_id, subject_id, grade_type, quarter, academic_year]):
             try:
                 grade = Grade.objects.get(
                     student_id=student_id,
                     subject_id=subject_id,
+                    component=component or '',
                     grade_type=grade_type,
                     quarter=quarter,
                     academic_year=academic_year
@@ -794,7 +796,10 @@ class GradeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def calculate_final(self, request):
-        """Calculate final grade for a student in a subject"""
+        """Calculate final grade for a student in a subject.
+        For composite subjects (MAPEH): averages the component final grades.
+        For normal subjects: weighted WW/PT/QA calculation.
+        """
         if request.user.role not in ['admin', 'staff']:
             return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -805,9 +810,52 @@ class GradeViewSet(viewsets.ModelViewSet):
         if not all([student_id, subject_id, quarter]):
             return Response({'error': 'student_id, subject_id, and quarter are required'}, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            subject = Subject.objects.get(id=subject_id)
+        except Subject.DoesNotExist:
+            return Response({'error': 'Subject not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Composite subject (MAPEH): average the component final grades
+        if subject.has_components:
+            component_finals = Grade.objects.filter(
+                student_id=student_id,
+                subject__grade_level=subject.grade_level,
+                subject__component__in=['music_arts', 'pe_health'],
+                quarter=quarter,
+                grade_type='final_grade',
+            ).exclude(component='').exclude(raw_score__isnull=True)
+
+            if not component_finals.exists():
+                return Response({'error': 'No component final grades found. Enter final grades for Music & Arts and PE & Health first.'}, status=status.HTTP_404_NOT_FOUND)
+
+            scores = [float(g.raw_score) for g in component_finals]
+            final_score = round(sum(scores) / len(scores), 2)
+
+            # Determine classroom from component grades
+            classroom = component_finals.first().classroom
+
+            final_grade, created = Grade.objects.update_or_create(
+                student_id=student_id,
+                subject_id=subject_id,
+                component='',
+                quarter=quarter,
+                grade_type='final_grade',
+                defaults={
+                    'raw_score': final_score,
+                    'total_score': 100,
+                    'teacher': request.user,
+                    'classroom': classroom,
+                }
+            )
+
+            serializer = self.get_serializer(final_grade)
+            return Response(serializer.data)
+
+        # Normal subject: weighted WW/PT/QA calculation
         component_grades = Grade.objects.filter(
             student_id=student_id,
             subject_id=subject_id,
+            component='',
             quarter=quarter,
             grade_type__in=['written_work', 'performance_task', 'quarterly_assessment']
         )
@@ -845,6 +893,7 @@ class GradeViewSet(viewsets.ModelViewSet):
             final_grade, created = Grade.objects.update_or_create(
                 student_id=student_id,
                 subject_id=subject_id,
+                component='',
                 quarter=quarter,
                 grade_type='final_grade',
                 defaults={

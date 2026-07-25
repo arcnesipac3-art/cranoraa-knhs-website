@@ -118,6 +118,8 @@ class ClassroomSubjectSerializer(serializers.ModelSerializer):
     classroom_name = serializers.CharField(source='classroom.name', read_only=True)
     subject_name = serializers.CharField(source='subject.name', read_only=True)
     subject_code = serializers.CharField(source='subject.code', read_only=True)
+    subject_component = serializers.CharField(source='subject.component', read_only=True)
+    has_components = serializers.SerializerMethodField()
     teacher_name = serializers.SerializerMethodField()
     teacher_email = serializers.CharField(source='teacher.email', read_only=True)
     students = serializers.SerializerMethodField()
@@ -125,11 +127,15 @@ class ClassroomSubjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClassroomSubject
         fields = ['id', 'classroom', 'classroom_name', 'subject', 'subject_name',
-                  'subject_code', 'teacher', 'teacher_name', 'teacher_email',
+                  'subject_code', 'subject_component', 'has_components',
+                  'teacher', 'teacher_name', 'teacher_email',
                   'ww_weight', 'pt_weight', 'qa_weight', 'assigned_at', 'students']
         read_only_fields = ['assigned_at']
 
     def get_teacher_name(self, obj): return full_name(obj.teacher)
+
+    def get_has_components(self, obj):
+        return obj.subject.has_components if obj.subject else False
 
     def get_students(self, obj):
         enrollments = obj.classroom.enrollments.all().select_related('student')

@@ -15,7 +15,9 @@ class GradeSerializer(serializers.ModelSerializer):
     teacher_name = serializers.SerializerMethodField()
     grade_type_display = serializers.CharField(source='get_grade_type_display', read_only=True)
     quarter_display = serializers.CharField(source='get_quarter_display', read_only=True)
+    component_display = serializers.CharField(source='get_component_display', read_only=True)
     percentage = serializers.SerializerMethodField()
+    has_components = serializers.SerializerMethodField()
 
     class Meta:
         model = Grade
@@ -23,6 +25,7 @@ class GradeSerializer(serializers.ModelSerializer):
             'id', 'student', 'student_name', 'student_email', 'student_sex', 'student_profile_picture', 'subject',
             'subject_name', 'subject_code', 'classroom', 'classroom_name',
             'teacher', 'teacher_name', 'grade_type', 'grade_type_display',
+            'component', 'component_display', 'has_components',
             'quarter', 'quarter_display', 'academic_year', 'raw_score', 'total_score',
             'final_grade', 'remarks', 'computed_remarks',
             'percentage', 'submitted_at', 'updated_at', 'is_locked'
@@ -32,6 +35,8 @@ class GradeSerializer(serializers.ModelSerializer):
     def get_student_name(self, obj): return full_name(obj.student)
     def get_teacher_name(self, obj): return full_name(obj.teacher)
     def get_percentage(self, obj): return obj.get_percentage()
+    def get_has_components(self, obj):
+        return hasattr(obj.subject, 'has_components') and obj.subject.has_components
     def get_student_profile_picture(self, obj):
         profile = getattr(obj.student, 'profile', None)
         return profile.profile_picture if profile else None
