@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -11,38 +11,54 @@ import { LoadingSpinner, Badge, Button, Modal, ModalHeader, ModalBody, ModalFoot
 import toast from 'react-hot-toast';
 
 const STATUS_STYLES = {
-  draft: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: AlertTriangle },
-  final: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle2 },
-  archived: { bg: 'bg-slate-50', text: 'text-slate-500', border: 'border-slate-200', icon: Archive },
+  draft:    { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   icon: AlertTriangle },
+  final:    { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle2 },
+  archived: { bg: 'bg-slate-50',   text: 'text-slate-500',   border: 'border-slate-200',   icon: Archive },
 };
+
+// Revoke all object URLs created during exports to prevent memory leaks
+function revokeUrlSafe(url) {
+  try { window.URL.revokeObjectURL(url); } catch { /* ignore */ }
+}
 
 export default function SF1Dashboard() {
   const navigate = useNavigate();
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({ school_year: '', grade_level: '', status: '' });
+  const [records, setRecords]       = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [search, setSearch]         = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [filters, setFilters]       = useState({ school_year: '', grade_level: '', status: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [actionMenu, setActionMenu] = useState(null);
   const [deleteModal, setDeleteModal] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Debounce search input — only fires fetch after 400ms of no typing
+  const debounceRef = useRef(null);
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearch(val);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(val), 400);
+  };
+
   const fetchRecords = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
       if (filters.school_year) params.school_year = filters.school_year;
       if (filters.grade_level) params.grade_level = filters.grade_level;
       if (filters.status) params.status = filters.status;
       const res = await api.get('/sf1/', { params });
-      setRecords(res.data.results || res.data);
-    } catch {
+      setRecords(Array.isArray(res.data) ? res.data : res.data?.results || []);
+    } catch (err) {
+      console.error('[SF1Dashboard] fetchRecords error:', err);
       toast.error('Failed to load SF1 records');
     } finally {
       setLoading(false);
     }
-  }, [search, filters]);
+  }, [debouncedSearch, filters]);
 
   useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
@@ -62,33 +78,46 @@ export default function SF1Dashboard() {
   };
 
   const handleExport = async (id, type) => {
+    setActionMenu(null);
+    let url = null;
     try {
       const res = await api.get(`/sf1/${id}/export_${type}/`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const mimeType = type === 'excel'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf';
+      const ext = type === 'excel' ? 'xlsx' : 'pdf';
+      url = window.URL.createObjectURL(new Blob([res.data], { type: mimeType }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `SF1_${type}_${id}.pdf`;
+      a.download = `SF1_${type}_${id}.${ext}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success(`${type.toUpperCase()} exported successfully`);
-    } catch {
-      toast.error(`Failed to export ${type.toUpperCase()}`);
+      toast.success(`${type === 'excel' ? 'Excel' : 'PDF'} exported successfully`);
+    } catch (err) {
+      console.error('[SF1Dashboard] export error:', err);
+      toast.error(`Failed to export ${type === 'excel' ? 'Excel' : 'PDF'}`);
+    } finally {
+      if (url) revokeUrlSafe(url);
     }
-    setActionMenu(null);
   };
 
   const handlePrint = async (id) => {
+    setActionMenu(null);
+    let url = null;
     try {
       const res = await api.get(`/sf1/${id}/print_view/`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      window.open(url, '_blank');
-      toast.success('Print view opened');
-    } catch {
+      url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const win = window.open(url, '_blank');
+      if (!win) toast.error('Popup blocked — allow popups for this site to print.');
+      else toast.success('Print view opened');
+    } catch (err) {
+      console.error('[SF1Dashboard] print error:', err);
       toast.error('Failed to open print view');
+    } finally {
+      // Delay revoke so the new tab has time to load the blob
+      if (url) setTimeout(() => revokeUrlSafe(url), 30000);
     }
-    setActionMenu(null);
   };
 
   const handleRegenerate = async (id) => {
@@ -155,7 +184,7 @@ export default function SF1Dashboard() {
               type="text"
               placeholder="Search by LRN, student name, section, school year..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
               className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
             />
           </div>
@@ -257,7 +286,7 @@ export default function SF1Dashboard() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-500 text-xs">
-                        {new Date(record.generated_at).toLocaleDateString()}
+                        {record.generated_at ? new Date(record.generated_at).toLocaleDateString() : '—'}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${st.bg} ${st.text} ${st.border}`}>

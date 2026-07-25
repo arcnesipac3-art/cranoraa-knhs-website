@@ -1,354 +1,260 @@
 /**
- * SF10-JHS PDF Export
- * 
- * Generates a PDF that exactly replicates the official SF10-JHS template design.
- * Uses jsPDF with precise positioning to match the paper form layout.
+ * SF10-JHS / SF10-SHS PDF Export
+ *
+ * Generates a multi-page PDF replicating the official SF10 template.
+ * One page per student (or continuation pages for long forms).
+ *
+ * Fixes applied:
+ *  - Was only exporting studentData[0] — now iterates ALL students
+ *  - Imports shared mapToLearningArea / calcFinalGrade / depedRound / buildGradeIndex
+ *    from sf10Export.js to eliminate duplication
+ *  - JHS now uses 4 quarter columns (Q1-Q4)
+ *  - SHS uses 2 semester columns (1st Sem / 2nd Sem)
+ *  - Added SHS learning areas support
  */
 
 import { jsPDF } from 'jspdf';
+import {
+  JHS_LEARNING_AREAS, SHS_LEARNING_AREAS,
+  mapToLearningArea, depedRound, calcFinalGrade, gradeRemarks,
+  buildGradeIndex, buildStudentData,
+} from './sf10Export';
 
-// ═══ CONSTANTS ═══════════════════════════════════════════════════════════════
+// ─── Layout constants ─────────────────────────────────────────────────────────
 
-const JHS_AREAS = [
-  'Filipino',
-  'English',
-  'Mathematics',
-  'Science',
-  'Araling Panlipunan (AP)',
-  'Edukasyon sa Pagpapakatao (EsP)',
-  'Technology and Livelihood Education (TLE)',
-  'MAPEH',
-  'Music and Arts',
-  'Physical Education and Health',
-  'Homeroom Guidance',
-];
+const PAGE_W  = 210;  // A4 mm
+const MARGIN  = 10;
+const COL_W   = PAGE_W - MARGIN * 2;
 
-// PDF dimensions (A4 size in mm)
-const PAGE_WIDTH = 210;
-const PAGE_HEIGHT = 297;
-const MARGIN = 10;
+// ─── Single-student PDF page builder ─────────────────────────────────────────
 
-// ═══ HELPER FUNCTIONS ════════════════════════════════════════════════════════
+function addStudentPage(doc, student, schoolInfo, isFirstPage) {
+  if (!isFirstPage) doc.addPage();
 
-/** Map API subject_name to official SF10 learning area label */
-function mapToLearningArea(subjectName) {
-  if (!subjectName) return null;
-  const s = subjectName.trim().toLowerCase();
-  if (s.includes('filipino')) return 'Filipino';
-  if (s.includes('english')) return 'English';
-  if (s.includes('math')) return 'Mathematics';
-  if (s.includes('science')) return 'Science';
-  if (s.includes('araling') || s === 'ap') return 'Araling Panlipunan (AP)';
-  if (s.includes('pagpapakatao') || s === 'esp') return 'Edukasyon sa Pagpapakatao (EsP)';
-  if (s.includes('tle') || s.includes('livelihood') || s.includes('technology')) return 'Technology and Livelihood Education (TLE)';
-  if (s === 'mapeh') return 'MAPEH';
-  if (s.includes('music') || s.includes('arts')) return 'Music and Arts';
-  if (s.includes('physical') || s === 'pe' || s.includes('health')) return 'Physical Education and Health';
-  if (s.includes('homeroom') || s.includes('guidance')) return 'Homeroom Guidance';
-  return null;
-}
-
-/** DepEd rounding */
-function depedRound(v) {
-  if (v === null || v === undefined || v === '' || isNaN(Number(v))) return '';
-  return Math.round(Number(v)).toString();
-}
-
-/** Compute term average */
-function calcFinalGrade(terms) {
-  const vals = ['q1', 'q2', 'q3']
-    .map(k => terms[k])
-    .filter(v => v !== null && v !== undefined && v !== '' && !isNaN(Number(v)))
-    .map(Number);
-  if (!vals.length) return '';
-  return depedRound(vals.reduce((a, b) => a + b, 0) / vals.length);
-}
-
-/** Generate SF10 PDF for one student */
-function generateSF10PDF(student, schoolInfo) {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
+  const isSHS = /grade\s*1[12]/i.test(schoolInfo.gradeLevel || '');
   let y = MARGIN;
 
-  // ─── TITLE BLOCK ─────────────────────────────────────────────────────────
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('SF 10-JHS', PAGE_WIDTH / 2, y, { align: 'center' });
-  y += 5;
-
+  // ── Title block ────────────────────────────────────────────────────────────
+  doc.setFontSize(10); doc.setFont('helvetica', 'bold');
+  doc.text(`SF 10-${isSHS ? 'SHS' : 'JHS'}`, PAGE_W / 2, y, { align: 'center' }); y += 5;
   doc.setFontSize(9);
-  doc.text('Republic of the Philippines', PAGE_WIDTH / 2, y, { align: 'center' });
+  doc.text('Republic of the Philippines', PAGE_W / 2, y, { align: 'center' }); y += 4;
+  doc.text('Department of Education', PAGE_W / 2, y, { align: 'center' }); y += 4;
+  doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+  const titleText = isSHS
+    ? "Learner's Permanent Academic Record for Senior High School (SF10-SHS)"
+    : "Learner's Permanent Academic Record for Junior High School (SF10-JHS)";
+  doc.text(titleText, PAGE_W / 2, y, { align: 'center' }); y += 4;
+  if (!isSHS) { doc.text('(Formerly Form 137)', PAGE_W / 2, y, { align: 'center' }); y += 4; }
   y += 4;
-  doc.text('Department of Education', PAGE_WIDTH / 2, y, { align: 'center' });
-  y += 4;
-  doc.setFontSize(8);
-  doc.text("Learner's Permanent Academic Record for Junior High School (SF10-JHS)", PAGE_WIDTH / 2, y, { align: 'center' });
-  y += 4;
-  doc.setFont('helvetica', 'normal');
-  doc.text('(Formerly Form 137)', PAGE_WIDTH / 2, y, { align: 'center' });
-  y += 8;
 
-  // ─── LEARNER'S INFORMATION ───────────────────────────────────────────────
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.text("LEARNER'S INFORMATION", MARGIN, y);
-  y += 5;
+  // ── Learner's Information ──────────────────────────────────────────────────
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text("LEARNER'S INFORMATION", MARGIN, y); y += 5;
 
-  // Parse name
-  const fullName = student.name || '';
-  const nameParts = fullName.split(',').map(p => p.trim());
-  const lastName = nameParts[0] || fullName;
-  const restParts = (nameParts[1] || '').split(' ').filter(Boolean);
-  const firstName = restParts[0] || '';
-  const middleName = restParts.slice(1).join(' ') || '';
+  const nameParts = (student.name || '').split(',').map(p => p.trim());
+  const lastName   = nameParts[0] || '';
+  const rest       = (nameParts[1] || '').split(' ').filter(Boolean);
+  const firstName  = rest[0] || '';
+  const middleName = rest.slice(1).join(' ');
 
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  
-  // Row 1: Name fields
-  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold');
   doc.text('LAST NAME:', MARGIN, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(lastName, MARGIN + 25, y);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('FIRST NAME:', MARGIN + 70, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(firstName, MARGIN + 95, y);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('MIDDLE NAME:', MARGIN + 135, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(middleName, MARGIN + 165, y);
-  y += 5;
+  doc.setFont('helvetica', 'normal'); doc.text(lastName, MARGIN + 25, y);
+  doc.setFont('helvetica', 'bold');   doc.text('FIRST NAME:', MARGIN + 75, y);
+  doc.setFont('helvetica', 'normal'); doc.text(firstName, MARGIN + 97, y);
+  doc.setFont('helvetica', 'bold');   doc.text('MIDDLE NAME:', MARGIN + 140, y);
+  doc.setFont('helvetica', 'normal'); doc.text(middleName, MARGIN + 163, y); y += 5;
 
-  // Row 2: LRN, Birthdate, Sex
-  doc.setFont('helvetica', 'bold');
-  doc.text('Learner Reference Number (LRN):', MARGIN, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(student.lrn || '', MARGIN + 60, y);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('Birthdate:', MARGIN + 90, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(student.birthdate || '', MARGIN + 110, y);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('Sex:', MARGIN + 145, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(student.sex || '', MARGIN + 155, y);
-  y += 8;
+  doc.setFont('helvetica', 'bold');   doc.text('LRN:', MARGIN, y);
+  doc.setFont('helvetica', 'normal'); doc.text(student.lrn || '', MARGIN + 10, y);
+  doc.setFont('helvetica', 'bold');   doc.text('Birthdate:', MARGIN + 90, y);
+  doc.setFont('helvetica', 'normal'); doc.text(student.birthdate || '', MARGIN + 110, y);
+  doc.setFont('helvetica', 'bold');   doc.text('Sex:', MARGIN + 150, y);
+  doc.setFont('helvetica', 'normal'); doc.text(student.sex || '', MARGIN + 160, y); y += 7;
 
-  // ─── ELIGIBILITY BLOCK ───────────────────────────────────────────────────
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.text('ELIGIBILITY FOR JHS ENROLMENT', MARGIN, y);
-  y += 5;
-  
-  doc.setFontSize(8);
-  doc.text('Elementary School Completer:', MARGIN, y);
-  doc.text('General Average:', MARGIN + 80, y);
-  doc.text('Citation (if any):', MARGIN + 135, y);
-  y += 5;
-  
-  doc.text('Name of Elementary School:', MARGIN, y);
-  doc.text('School ID:', MARGIN + 110, y);
-  doc.text('Address:', MARGIN + 145, y);
-  y += 8;
+  // ── Eligibility / SHS track block ─────────────────────────────────────────
+  if (!isSHS) {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.text('ELIGIBILITY FOR JHS ENROLMENT', MARGIN, y); y += 4;
+    doc.setFontSize(8);
+    doc.text('Elementary School Completer:', MARGIN, y);
+    doc.text('General Average:', MARGIN + 80, y);
+    doc.text('Citation (if any):', MARGIN + 135, y); y += 4;
+    doc.text('Name of Elementary School:', MARGIN, y);
+    doc.text('School ID:', MARGIN + 110, y);
+    doc.text('Address:', MARGIN + 145, y); y += 7;
+  } else {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    doc.text(`Track / Strand: ${schoolInfo.strand || ''}`, MARGIN, y); y += 5;
+  }
 
-  // ─── SCHOLASTIC RECORD ───────────────────────────────────────────────────
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.text('SCHOLASTIC RECORD', MARGIN, y);
-  y += 5;
+  // ── Scholastic record header ───────────────────────────────────────────────
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('SCHOLASTIC RECORD', MARGIN, y); y += 5;
 
   doc.setFontSize(8);
-  doc.text('School:', MARGIN, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(schoolInfo.schoolName, MARGIN + 15, y);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('School ID:', MARGIN + 90, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(schoolInfo.schoolId, MARGIN + 107, y);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('District:', MARGIN + 135, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(schoolInfo.district, MARGIN + 150, y);
-  y += 5;
+  doc.text('School:', MARGIN, y);            doc.setFont('helvetica', 'normal'); doc.text(schoolInfo.schoolName, MARGIN + 15, y);
+  doc.setFont('helvetica', 'bold');          doc.text('School ID:', MARGIN + 90, y);
+  doc.setFont('helvetica', 'normal');        doc.text(schoolInfo.schoolId, MARGIN + 108, y);
+  doc.setFont('helvetica', 'bold');          doc.text('District:', MARGIN + 140, y);
+  doc.setFont('helvetica', 'normal');        doc.text(schoolInfo.district, MARGIN + 155, y); y += 5;
+
+  doc.setFont('helvetica', 'bold');          doc.text('Division:', MARGIN, y);
+  doc.setFont('helvetica', 'normal');        doc.text(schoolInfo.division, MARGIN + 18, y);
+  doc.setFont('helvetica', 'bold');          doc.text('Region:', MARGIN + 90, y);
+  doc.setFont('helvetica', 'normal');        doc.text(schoolInfo.region, MARGIN + 104, y); y += 5;
 
   doc.setFont('helvetica', 'bold');
-  doc.text('Division:', MARGIN, y);
+  doc.text(`Grade: ${schoolInfo.gradeLevel}`, MARGIN, y);
+  doc.text(`Section: ${schoolInfo.section}`, MARGIN + 55, y);
+  doc.text(`School Year: ${schoolInfo.schoolYear}`, MARGIN + 120, y); y += 5;
+
+  doc.text('Adviser: '); doc.setFont('helvetica', 'normal');
+  doc.text(`Adviser: ${schoolInfo.adviser}`, MARGIN, y);
+  doc.setFont('helvetica', 'bold'); doc.text('Signature: ___________', MARGIN + 130, y); y += 7;
+
+  // ── Grades table ───────────────────────────────────────────────────────────
+  const colX = isSHS
+    ? { area: MARGIN, s1: MARGIN + 95, s2: MARGIN + 112, final: MARGIN + 130, remarks: MARGIN + 158 }
+    : { area: MARGIN, q1: MARGIN + 85, q2: MARGIN + 100, q3: MARGIN + 115, q4: MARGIN + 130, final: MARGIN + 146, remarks: MARGIN + 165 };
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+  doc.text('LEARNING AREAS / SUBJECTS', colX.area, y);
+  if (isSHS) {
+    doc.text('1st Sem', colX.s1, y); doc.text('2nd Sem', colX.s2, y);
+  } else {
+    doc.text('Q1', colX.q1, y); doc.text('Q2', colX.q2, y);
+    doc.text('Q3', colX.q3, y); doc.text('Q4', colX.q4, y);
+  }
+  doc.text('FINAL', colX.final, y); doc.text('REMARKS', colX.remarks, y); y += 2;
+  doc.line(MARGIN, y, PAGE_W - MARGIN, y); y += 4;
+
   doc.setFont('helvetica', 'normal');
-  doc.text(schoolInfo.division, MARGIN + 18, y);
-  
-  doc.setFont('helvetica', 'bold');
-  doc.text('Region:', MARGIN + 90, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(schoolInfo.region, MARGIN + 103, y);
-  y += 5;
-
-  doc.setFont('helvetica', 'bold');
-  doc.text(`Classified as Grade: ${schoolInfo.gradeLevel}`, MARGIN, y);
-  doc.text(`Section: ${schoolInfo.section}`, MARGIN + 70, y);
-  doc.text(`School Year: ${schoolInfo.schoolYear}`, MARGIN + 130, y);
-  y += 5;
-
-  doc.text('Name of Adviser/Teacher:', MARGIN, y);
-  doc.setFont('helvetica', 'normal');
-  doc.text(schoolInfo.adviser, MARGIN + 45, y);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Signature: ___________', MARGIN + 135, y);
-  y += 8;
-
-  // ─── GRADES TABLE ────────────────────────────────────────────────────────
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  
-  // Table header
-  const colX = {
-    area: MARGIN,
-    q1: MARGIN + 85,
-    q2: MARGIN + 100,
-    q3: MARGIN + 115,
-    final: MARGIN + 130,
-    remarks: MARGIN + 155
-  };
-
-  // Draw header
-  doc.text('LEARNING AREAS', colX.area, y);
-  doc.text('Term Rating', colX.q1 + 20, y);
-  doc.text('FINAL', colX.final, y);
-  doc.text('REMARKS', colX.remarks, y);
-  y += 4;
-
-  doc.text('1', colX.q1, y);
-  doc.text('2', colX.q2, y);
-  doc.text('3', colX.q3, y);
-  doc.text('RATING', colX.final, y);
-  y += 1;
-
-  // Draw horizontal line
-  doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
-  y += 4;
-
-  // Draw grades
-  doc.setFont('helvetica', 'normal');
+  const areas = isSHS ? SHS_LEARNING_AREAS : JHS_LEARNING_AREAS;
   const areaGrades = student.areaGrades || {};
-  
-  JHS_AREAS.forEach(area => {
-    const aq = areaGrades[area] || {};
-    const finalGrade = calcFinalGrade(aq);
-    const remarkText = finalGrade && parseInt(finalGrade) >= 75 ? 'Passed' : (finalGrade ? 'Failed' : '');
+  const finalsForAvg = [];
 
-    doc.text(area, colX.area, y);
-    doc.text(depedRound(aq.q1) || '', colX.q1, y);
-    doc.text(depedRound(aq.q2) || '', colX.q2, y);
-    doc.text(depedRound(aq.q3) || '', colX.q3, y);
-    doc.text(finalGrade || '', colX.final, y);
-    doc.text(remarkText, colX.remarks, y);
+  areas.forEach(area => {
+    const aq = areaGrades[area] || {};
+    const finalGrade = calcFinalGrade(aq, isSHS);
+    if (finalGrade !== '') finalsForAvg.push(Number(finalGrade));
+    const rem = gradeRemarks(finalGrade);
+
+    // Truncate long area names so they don't overflow
+    const areaLabel = doc.splitTextToSize(area, colX.area + 80)[0];
+    doc.text(areaLabel, colX.area, y);
+    if (isSHS) {
+      doc.text(String(depedRound(aq.s1) || ''), colX.s1, y);
+      doc.text(String(depedRound(aq.s2) || ''), colX.s2, y);
+    } else {
+      doc.text(String(depedRound(aq.q1) || ''), colX.q1, y);
+      doc.text(String(depedRound(aq.q2) || ''), colX.q2, y);
+      doc.text(String(depedRound(aq.q3) || ''), colX.q3, y);
+      doc.text(String(depedRound(aq.q4) || ''), colX.q4, y);
+    }
+    doc.text(String(finalGrade), colX.final, y);
+    doc.text(rem, colX.remarks, y);
     y += 4.5;
+
+    // Add new page if running out of space (leave 40mm for footer)
+    if (y > 257) {
+      doc.addPage(); y = MARGIN + 5;
+    }
   });
 
-  // General Average
-  const allFinals = JHS_AREAS
-    .map(area => calcFinalGrade(areaGrades[area] || {}))
-    .filter(f => f !== '')
-    .map(Number);
-  const genAvg = allFinals.length
-    ? depedRound(allFinals.reduce((a, b) => a + b, 0) / allFinals.length)
+  // General average
+  const genAvg = finalsForAvg.length
+    ? depedRound(finalsForAvg.reduce((a, b) => a + b, 0) / finalsForAvg.length)
     : '';
-  const genRemarks = genAvg && parseInt(genAvg) >= 75 ? 'Passed' : (genAvg ? 'Failed' : '');
-
-  doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
-  y += 4;
+  doc.line(MARGIN, y, PAGE_W - MARGIN, y); y += 4;
   doc.setFont('helvetica', 'bold');
   doc.text('General Average', colX.area, y);
-  doc.text(genAvg, colX.final, y);
-  doc.text(genRemarks, colX.remarks, y);
-  y += 8;
+  doc.text(String(genAvg), colX.final, y);
+  doc.text(gradeRemarks(genAvg), colX.remarks, y); y += 8;
 
-  // ─── REMEDIAL SECTION ────────────────────────────────────────────────────
-  doc.setFontSize(8);
-  doc.text('Remedial Classes  Conducted from (mm/dd/yyyy) _______ to (mm/dd/yyyy) _______', MARGIN, y);
-  y += 5;
-
-  doc.text('Learning Areas', MARGIN, y);
-  doc.text('Final Rating', MARGIN + 60, y);
-  doc.text('Remedial Class Mark', MARGIN + 90, y);
-  doc.text('Recomputed Final Grade', MARGIN + 130, y);
-  doc.text('Remarks', MARGIN + 175, y);
-  y += 1;
-  doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
-
-  return doc;
+  // Remedial section (JHS only)
+  if (!isSHS) {
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.text('Remedial Classes  Conducted from _______ to _______', MARGIN, y); y += 5;
+    doc.text('Learning Areas', MARGIN, y);
+    doc.text('Final Rating', MARGIN + 60, y);
+    doc.text('Remedial Class Mark', MARGIN + 90, y);
+    doc.text('Recomputed Final Grade', MARGIN + 130, y);
+    doc.text('Remarks', MARGIN + 175, y); y += 2;
+    doc.line(MARGIN, y, PAGE_W - MARGIN, y);
+  }
 }
 
-// ═══ PUBLIC API ══════════════════════════════════════════════════════════════
+// ─── Grading scale legend ─────────────────────────────────────────────────────
 
+function addLegendPage(doc) {
+  doc.addPage();
+  let y = MARGIN + 5;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('GRADING SCALE / LEGEND', MARGIN, y); y += 6;
+
+  doc.setFontSize(8);
+  [
+    ['Outstanding',               '90-100',   'Passed'],
+    ['Very Satisfactory',         '85-89',    'Passed'],
+    ['Satisfactory',              '80-84',    'Passed'],
+    ['Fairly Satisfactory',       '75-79',    'Passed'],
+    ['Did Not Meet Expectations', 'Below 75', 'Failed'],
+  ].forEach(([desc, scale, rem]) => {
+    doc.setFont('helvetica', 'normal');
+    doc.text(desc, MARGIN, y); doc.text(scale, MARGIN + 80, y); doc.text(rem, MARGIN + 110, y); y += 5;
+  });
+
+  y += 5;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+  doc.text('CERTIFICATION', MARGIN, y); y += 5;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+  doc.text('I CERTIFY that this is a true record of the learner named above with the LRN indicated', MARGIN, y); y += 4;
+  doc.text('and that he/she is eligible for admission to the next grade level.', MARGIN, y); y += 8;
+  doc.text('________________________', MARGIN, y); doc.text('________________________', MARGIN + 100, y); y += 4;
+  doc.text('Date', MARGIN, y); doc.text('Name of Principal/School Head', MARGIN + 100, y); y += 4;
+  doc.text('(Affix School Seal here)', MARGIN + 150, y);
+}
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+/**
+ * Export SF10 PDF for ALL enrolled students (was broken — only exported first student).
+ *
+ * @param {Object}   classroom   - { id, name }
+ * @param {Array}    enrollments - enrollment records
+ * @param {Array}    allGrades   - flat grade records { student, subject_name, quarter, raw_score }
+ * @param {Object}   info        - school metadata
+ */
 export async function exportSF10PDF(classroom, enrollments, allGrades, info = {}) {
-  try {
-    const schoolInfo = {
-      schoolName: info.schoolName || 'Kiwalan National High School',
-      schoolId: info.schoolId || '304147',
-      district: info.district || '',
-      division: info.division || '',
-      region: info.region || 'X',
-      schoolYear: info.schoolYear || '',
-      gradeLevel: info.gradeLevel || '9',
-      section: info.section || classroom.name || '',
-      adviser: info.adviser || '',
-    };
+  const schoolInfo = {
+    schoolName: info.schoolName || 'Kiwalan National High School',
+    schoolId:   info.schoolId   || '304147',
+    district:   info.district   || '',
+    division:   info.division   || '',
+    region:     info.region     || 'X',
+    schoolYear: info.schoolYear || '',
+    gradeLevel: info.gradeLevel || '',
+    section:    info.section    || classroom?.name || '',
+    adviser:    info.adviser    || '',
+    strand:     info.strand     || '',
+  };
 
-    // Build grade index
-    const gradeIndex = {};
-    allGrades.forEach(g => {
-      const sid = String(g.student);
-      const area = mapToLearningArea(g.subject_name);
-      if (!area) return;
-      if (!gradeIndex[sid]) gradeIndex[sid] = {};
-      if (!gradeIndex[sid][area]) gradeIndex[sid][area] = {};
-      gradeIndex[sid][area][`q${g.quarter}`] = g.raw_score;
-    });
+  const gradeIndex  = buildGradeIndex(allGrades, schoolInfo.gradeLevel);
+  const studentData = buildStudentData(enrollments, gradeIndex);
 
-    // Build student data
-    const studentData = enrollments.map(e => {
-      const sid = String(e.student);
-      const lastName = e.student_last_name || '';
-      const firstName = e.student_first_name || '';
-      const fullName = lastName && firstName
-        ? `${lastName}, ${firstName}`
-        : (e.student_name || `Student ${sid}`);
+  if (studentData.length === 0) throw new Error('No students to export');
 
-      return {
-        name: fullName,
-        lrn: e.student_lrn || '',
-        birthdate: e.student_birthdate || '',
-        sex: e.student_sex || e.sex || '',
-        areaGrades: gradeIndex[sid] || {},
-      };
-    });
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-    if (studentData.length === 0) {
-      throw new Error('No students to export');
-    }
+  // Export ALL students — one student per page group
+  studentData.forEach((student, idx) => {
+    addStudentPage(doc, student, schoolInfo, idx === 0);
+    addLegendPage(doc);
+  });
 
-    // Generate PDF for first student
-    const student = studentData[0];
-    const doc = generateSF10PDF(student, schoolInfo);
-
-    // Download
-    const filename = `SF10_${student.name.replace(/[^a-zA-Z0-9]/g, '_')}_${schoolInfo.schoolYear}.pdf`;
-    doc.save(filename);
-
-    console.log('SF10 PDF exported successfully');
-  } catch (error) {
-    console.error('SF10 PDF export error:', error);
-    throw error;
-  }
+  const className = (classroom?.name || 'Class').replace(/[^a-zA-Z0-9]/g, '_');
+  const filename  = `SF10_${className}_${schoolInfo.schoolYear || 'SY'}.pdf`;
+  doc.save(filename);
 }

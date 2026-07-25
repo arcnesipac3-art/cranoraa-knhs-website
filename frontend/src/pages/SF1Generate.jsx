@@ -11,6 +11,9 @@ export default function SF1Generate() {
   const [loading, setLoading] = useState(false);
   const [classrooms, setClassrooms] = useState([]);
   const [fetchingClassrooms, setFetchingClassrooms] = useState(false);
+  // Fetch school years from backend instead of hardcoding
+  const [schoolYears, setSchoolYears] = useState([]);
+  const [fetchingYears, setFetchingYears] = useState(true);
 
   const [form, setForm] = useState({
     academic_year: '',
@@ -20,11 +23,30 @@ export default function SF1Generate() {
 
   const [errors, setErrors] = useState({});
 
+  // Fetch available academic years on mount
+  useEffect(() => {
+    const fetchYears = async () => {
+      setFetchingYears(true);
+      try {
+        const res = await api.get('/admin/academic-years/');
+        const years = Array.isArray(res.data) ? res.data : res.data?.results || [];
+        setSchoolYears(years.map(y => y.name).sort().reverse());
+      } catch {
+        // Fallback to current + next 4 years if endpoint fails
+        const current = new Date().getFullYear();
+        setSchoolYears(Array.from({ length: 5 }, (_, i) => `${current + i}-${current + i + 1}`));
+      } finally {
+        setFetchingYears(false);
+      }
+    };
+    fetchYears();
+  }, []);
+
   // Fetch available classrooms when year and grade are selected
   useEffect(() => {
     if (!form.academic_year || !form.grade_level) {
       setClassrooms([]);
-      setForm(f => ({ ...f, section: '' }));
+      setForm(f => ({ ...f, section: '', classroom_id: '' }));
       return;
     }
 
@@ -32,7 +54,7 @@ export default function SF1Generate() {
       setFetchingClassrooms(true);
       try {
         const res = await api.get('/classrooms/', {
-          params: { academic_year_name: form.academic_year, grade_level: form.grade_level }
+          params: { academic_year: form.academic_year, grade_level: form.grade_level }
         });
         setClassrooms(res.data.results || res.data || []);
       } catch {
@@ -45,19 +67,18 @@ export default function SF1Generate() {
     fetchClassrooms();
   }, [form.academic_year, form.grade_level]);
 
-  const schoolYears = [
-    '2025-2026', '2026-2027', '2027-2028', '2028-2029', '2029-2030',
-  ];
-
   const gradeLevels = [
     'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10',
     'Grade 11', 'Grade 12',
   ];
 
   const handleChange = (field, value) => {
-    setForm(f => ({ ...f, [field]: value }));
     if (field === 'grade_level') {
-      setForm(f => ({ ...f, [field]: value, section: '' }));
+      setForm(f => ({ ...f, grade_level: value, section: '', classroom_id: '' }));
+    } else if (field === 'academic_year') {
+      setForm(f => ({ ...f, academic_year: value, section: '', classroom_id: '' }));
+    } else {
+      setForm(f => ({ ...f, [field]: value }));
     }
     setErrors(e => ({ ...e, [field]: null }));
   };
@@ -66,7 +87,7 @@ export default function SF1Generate() {
     const errs = {};
     if (!form.academic_year) errs.academic_year = 'School year is required';
     if (!form.grade_level) errs.grade_level = 'Grade level is required';
-    if (!form.section) errs.section = 'Section is required';
+    if (!form.classroom_id) errs.section = 'Section is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -80,7 +101,9 @@ export default function SF1Generate() {
       const res = await api.post('/sf1/generate/', {
         academic_year: form.academic_year,
         grade_level: form.grade_level,
+        // Send classroom id for reliable section resolution
         section: form.section,
+        classroom_id: form.classroom_id,
       });
       toast.success('SF1 generated successfully!');
       navigate(`/sf1/${res.data.id}`);
@@ -89,9 +112,11 @@ export default function SF1Generate() {
       if (typeof msg === 'object' && msg !== null) {
         if (msg.non_field_errors) {
           toast.error(msg.non_field_errors[0]);
+        } else if (msg.error) {
+          toast.error(msg.error);
         } else {
           const firstKey = Object.keys(msg)[0];
-          toast.error(`${firstKey}: ${msg[firstKey][0]}`);
+          toast.error(`${firstKey}: ${Array.isArray(msg[firstKey]) ? msg[firstKey][0] : msg[firstKey]}`);
         }
       } else {
         toast.error('Failed to generate SF1');
@@ -145,11 +170,12 @@ export default function SF1Generate() {
           <select
             value={form.academic_year}
             onChange={(e) => handleChange('academic_year', e.target.value)}
+            disabled={fetchingYears}
             className={`w-full px-3 py-2.5 rounded-lg border text-sm font-semibold ${
               errors.academic_year ? 'border-red-300 bg-red-50' : 'border-slate-200'
-            }`}
+            } ${fetchingYears ? 'bg-slate-50 text-slate-400' : ''}`}
           >
-            <option value="">Select School Year</option>
+            <option value="">{fetchingYears ? 'Loading...' : 'Select School Year'}</option>
             {schoolYears.map(sy => <option key={sy} value={sy}>{sy}</option>)}
           </select>
           {errors.academic_year && (
@@ -194,7 +220,15 @@ export default function SF1Generate() {
           ) : (
             <select
               value={form.section}
-              onChange={(e) => handleChange('section', e.target.value)}
+              onChange={(e) => {
+                const selectedClassroom = classrooms.find(c => c.name === e.target.value);
+                setForm(f => ({
+                  ...f,
+                  section: e.target.value,
+                  classroom_id: selectedClassroom ? String(selectedClassroom.id) : '',
+                }));
+                setErrors(err => ({ ...err, section: null }));
+              }}
               disabled={!form.academic_year || !form.grade_level}
               className={`w-full px-3 py-2.5 rounded-lg border text-sm font-semibold ${
                 errors.section ? 'border-red-300 bg-red-50' : 'border-slate-200'
@@ -210,7 +244,7 @@ export default function SF1Generate() {
               </option>
               {classrooms.map(c => (
                 <option key={c.id} value={c.name}>
-                  {c.name} ({c.teacher_name || 'No adviser'}) — {c.enrollment_count || 0} students
+                  {c.name} ({c.teacher_name || 'No adviser'}) — {c.student_count ?? c.enrollment_count ?? 0} students
                 </option>
               ))}
             </select>
@@ -234,7 +268,7 @@ export default function SF1Generate() {
           </Button>
           <Button
             type="submit"
-            disabled={loading || !form.academic_year || !form.grade_level || !form.section}
+            disabled={loading || !form.academic_year || !form.grade_level || !form.classroom_id}
             className="inline-flex items-center gap-2"
           >
             {loading ? (

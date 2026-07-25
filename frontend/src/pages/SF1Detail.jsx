@@ -6,8 +6,13 @@ import {
   BookOpen, Users, User, Calendar, GraduationCap, FileText,
 } from 'lucide-react';
 import api from '../utils/api';
+import Swal from 'sweetalert2';
 import { LoadingSpinner, Badge, Button } from '../components/ui';
 import toast from 'react-hot-toast';
+
+function revokeUrlSafe(url) {
+  try { window.URL.revokeObjectURL(url); } catch { /* ignore */ }
+}
 
 export default function SF1Detail() {
   const { id } = useParams();
@@ -33,46 +38,69 @@ export default function SF1Detail() {
 
   const handleExport = async (type) => {
     setActionLoading(type);
+    let url = null;
     try {
       const res = await api.get(`/sf1/${id}/export_${type}/`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const mimeType = type === 'excel'
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf';
+      const ext = type === 'excel' ? 'xlsx' : 'pdf';
+      url = window.URL.createObjectURL(new Blob([res.data], { type: mimeType }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `SF1_${sf1.school_year}_${sf1.grade_level}_${sf1.section}.${type === 'pdf' ? 'pdf' : 'xlsx'}`;
+      a.download = `SF1_${sf1.school_year}_${sf1.grade_level}_${sf1.section}.${ext}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success(`${type.toUpperCase()} exported successfully`);
-    } catch {
-      toast.error(`Failed to export ${type.toUpperCase()}`);
+      toast.success(`${type === 'excel' ? 'Excel' : 'PDF'} exported successfully`);
+    } catch (err) {
+      console.error('[SF1Detail] export error:', err);
+      toast.error(`Failed to export ${type === 'excel' ? 'Excel' : 'PDF'}`);
     } finally {
       setActionLoading(null);
+      if (url) revokeUrlSafe(url);
     }
   };
 
   const handlePrint = async () => {
     setActionLoading('print');
+    let url = null;
     try {
       const res = await api.get(`/sf1/${id}/print_view/`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-      window.open(url, '_blank');
-    } catch {
+      url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const win = window.open(url, '_blank');
+      if (!win) toast.error('Popup blocked — allow popups for this site to print.');
+    } catch (err) {
+      console.error('[SF1Detail] print error:', err);
       toast.error('Failed to open print view');
     } finally {
       setActionLoading(null);
+      if (url) setTimeout(() => revokeUrlSafe(url), 30000);
     }
   };
 
   const handleRegenerate = async () => {
-    if (!window.confirm('Regenerate this SF1? This will create a new version with current enrollment data.')) return;
+    // Use Swal instead of window.confirm (fix: consistent UX, blocks keyboard trap)
+    const result = await Swal.fire({
+      title: 'Regenerate SF1?',
+      text: 'This will create a new version with the current enrollment data. The existing record will be updated.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Regenerate',
+      confirmButtonColor: '#7c3aed',
+      cancelButtonColor: '#64748b',
+      customClass: { popup: 'rounded-2xl' },
+    });
+    if (!result.isConfirmed) return;
     setActionLoading('regenerate');
     try {
       const res = await api.post(`/sf1/${id}/regenerate/`);
       setSf1(res.data);
       toast.success('SF1 regenerated successfully');
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to regenerate');
+      console.error('[SF1Detail] regenerate error:', err);
+      const msg = err.response?.data?.error || err.response?.data?.detail || 'Failed to regenerate';
+      toast.error(msg, { duration: 6000 });
     } finally {
       setActionLoading(null);
     }
@@ -129,7 +157,7 @@ export default function SF1Detail() {
               {sf1.grade_level} — {sf1.section}
             </h1>
             <p className="text-xs text-slate-500 mt-1 font-semibold">
-              School Year: {sf1.school_year} | Status: {sf1.status}
+              School Year: {sf1.school_year} | Status: {sf1.status ? (sf1.status.charAt(0).toUpperCase() + sf1.status.slice(1)) : '—'}
             </p>
           </div>
         </div>
@@ -277,8 +305,8 @@ export default function SF1Detail() {
                   <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-3 py-2 text-slate-500 text-xs">{idx + 1}</td>
                     <td className="px-3 py-2 text-slate-700 text-xs font-mono">{s.student_lrn || '—'}</td>
-                    <td className="px-3 py-2 text-slate-900 text-xs font-semibold">{s.student_name?.split(',')[0] || '—'}</td>
-                    <td className="px-3 py-2 text-slate-700 text-xs">{s.student_name?.split(',')[1]?.trim() || '—'}</td>
+                    <td className="px-3 py-2 text-slate-900 text-xs font-semibold">{s.last_name || s.student_name?.split(',')[0]?.trim() || '—'}</td>
+                    <td className="px-3 py-2 text-slate-700 text-xs">{s.first_name || s.student_name?.split(',')[1]?.trim() || '—'}</td>
                     <td className="px-3 py-2 text-slate-600 text-xs">{s.middle_name || '—'}</td>
                     <td className="px-3 py-2 text-slate-600 text-xs">{s.extension_name || ''}</td>
                     <td className="px-3 py-2 text-xs">
