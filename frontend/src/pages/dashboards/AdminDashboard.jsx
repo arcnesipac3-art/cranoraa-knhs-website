@@ -176,6 +176,9 @@ const AdminDashboard = () => {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     }), []);
 
+  // Normalise today_rate — backend may return it at top level or nested under attendance
+  const todayRate = data?.today_rate ?? data?.attendance?.today_rate ?? null;
+
   const criticalAlerts = useMemo(() => {
     if (!data) return [];
     const alerts = [];
@@ -198,7 +201,6 @@ const AdminDashboard = () => {
         actionLabel: 'View Applications',
       });
     }
-    const todayRate = data.today_rate ?? data.attendance?.today_rate;
     if (todayRate != null && todayRate < 85) {
       alerts.push({
         type: 'warning',
@@ -209,7 +211,7 @@ const AdminDashboard = () => {
       });
     }
     return alerts;
-  }, [data, navigate]);
+  }, [data, todayRate, navigate]);
 
   // ── Inline stat overlay when refreshing after initial load ───────────────
   const statOverlay = (statsLoading || refreshing) && data;
@@ -380,9 +382,8 @@ const AdminDashboard = () => {
         </div>
 
         <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5">
-          <StatCard
+        <StatCard
             label="Students" value={data?.total_students} sub="Enrolled"
-            delta={<DeltaBadge value={data?.active_users > 0 ? null : null} />}
             icon={<svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
             color="blue" onClick={() => navigate('/people?tab=students')}
           />
@@ -408,7 +409,7 @@ const AdminDashboard = () => {
           />
           <StatCard
             label="Active Now" value={data?.active_users ?? 0}
-            sub={`${data?.today_rate != null ? data.today_rate + '% attend.' : 'No data'}`}
+            sub={`${todayRate != null ? todayRate + '% attend.' : 'No data'}`}
             icon={<svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M9 10a2 2 0 104 0 2 2 0 00-4 0m6.364-3.636a5 5 0 010 7.272M6.636 6.364a5 5 0 000 7.272" /></svg>}
             color="slate" onClick={() => navigate('/analytics')}
           />
@@ -444,7 +445,7 @@ const AdminDashboard = () => {
                 <div className="p-5 rounded-md bg-emerald-50 border border-emerald-200">
                   <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Attendance Rate</p>
                   <p className="text-4xl font-extrabold text-emerald-700">
-                    {data?.today_rate != null ? `${data.today_rate}%` : '—'}
+                    {todayRate != null ? `${todayRate}%` : '—'}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">Today's school-wide rate</p>
                 </div>

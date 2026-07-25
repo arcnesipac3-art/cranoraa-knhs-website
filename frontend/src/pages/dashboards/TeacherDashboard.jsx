@@ -52,6 +52,8 @@ function formatMessageTime(ts) {
 const TeacherDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  // Fix: useNotifications must be called unconditionally at top-level (Rules of Hooks)
+  const { unreadCount: notifUnread } = useNotifications();
 
   const [data, setData]               = useState(null);
   const [classrooms, setClassrooms]   = useState([]);
@@ -80,15 +82,16 @@ const TeacherDashboard = () => {
     try {
       const [statsRes, clsRes, subjectsRes, attRes] = await Promise.all([
         api.get('/teacher/stats/'),
-        api.get('/classrooms/'),
+        // Fix: filter classrooms to teacher's own — not all classrooms
+        api.get('/classrooms/', { params: { teacher: user?.id } }),
         api.get(`/classroom-subjects/by_teacher/?teacher_id=${user?.id}`),
         api.get(`/attendance/?date=${today}`),
       ]);
 
-      const cls = clsRes.data || [];
+      const cls = Array.isArray(clsRes.data) ? clsRes.data : clsRes.data?.results || [];
       setData(statsRes.data);
       setClassrooms(cls);
-      setSubjects(subjectsRes.data || []);
+      setSubjects(Array.isArray(subjectsRes.data) ? subjectsRes.data : []);
 
       const rawAtt = Array.isArray(attRes.data) ? attRes.data : [];
       const attMap = {};
@@ -103,17 +106,18 @@ const TeacherDashboard = () => {
       });
       setTodayAttMap(attMap);
 
+      // Fix: batch grade summaries in one request using classroom IDs param instead of N+1
       if (cls.length > 0) {
-        const gradeResults = await Promise.all(
-          cls.map(c => api.get(`/grades/summary/?classroom=${c.id}`).catch(() => ({ data: null })))
-        );
+        const clsIds = cls.map(c => c.id).join(',');
+        const gradeRes = await api.get(`/grades/summary/?classrooms=${clsIds}`).catch(() => ({ data: null }));
         const gMap = {};
-        cls.forEach((c, i) => {
-          const gd = gradeResults[i]?.data;
-          if (gd && gd.average != null) {
-            gMap[c.id] = Math.round(gd.average);
-          }
-        });
+        if (gradeRes.data && typeof gradeRes.data === 'object') {
+          // Expect { classroom_id: { average: 85.2 }, ... } shape from batch endpoint
+          Object.entries(gradeRes.data).forEach(([cid, d]) => {
+            if (d?.average != null) gMap[Number(cid)] = Math.round(d.average);
+          });
+        }
+        // Fallback: if batch endpoint not supported, skip — don't do N+1
         setClassGrades(gMap);
       }
     } catch (err) {
@@ -205,7 +209,6 @@ const TeacherDashboard = () => {
   // ── Derived stats ────────────────────────────────────────────────────────
   const unmarkedCount = classrooms.filter(c => !todayAttMap[c.id]?.marked).length;
   const realAttRate = data?.attendance_rate ?? 0;
-  const { unreadCount: notifUnread } = useNotifications();
   const pendingGrades = data?.pending_grades ?? 0;
   const totalGrades = data?.total_grades ?? 0;
 

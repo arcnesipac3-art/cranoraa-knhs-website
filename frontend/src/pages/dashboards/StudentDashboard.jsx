@@ -219,67 +219,7 @@ const StudentDashboard = () => {
     .slice(0, 6);
 
   const recentAnnouncements = announcements.slice(0, 5);
-const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
-  // ── Fix 1: inline skeleton instead of full-page spinner ──────────────────
-  if (loading) return (
-    <div className="page-bottom-safe max-w-[1800px] mx-auto bg-slate-50 px-4 py-4 md:px-6 md:py-6 space-y-5 md:space-y-6"
-      aria-busy="true" aria-label="Loading dashboard…">
-      {/* Welcome banner */}
-      <Skeleton className="h-36 md:h-32 w-full rounded-xl" />
-      {/* Role manual */}
-      <Skeleton className="h-12 w-full rounded-lg" />
-      {/* Quick access tiles */}
-      <div className="grid grid-cols-3 gap-2">
-        {[1,2,3,4,5,6].map(i => <Skeleton.QuickTile key={i} />)}
-      </div>
-      {/* Row 1: schedule (6) | attendance (3) | grades (3) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
-        <div className="lg:col-span-6 rounded-lg border border-slate-200 bg-white">
-          <div className="flex items-center justify-between p-4 border-b border-slate-100">
-            <Skeleton className="h-4 w-28 rounded" />
-            <Skeleton className="h-8 w-16 rounded-md" />
-          </div>
-          <div className="p-4 space-y-2">{[1,2,3,4,5].map(i => <Skeleton.ScheduleRow key={i} />)}</div>
-        </div>
-        {[1,2].map(col => (
-          <div key={col} className="lg:col-span-3 rounded-lg border border-slate-200 bg-white p-4 space-y-3">
-            <Skeleton className="h-4 w-24 rounded" />
-            <Skeleton className="h-16 w-full rounded-md" />
-            <div className="grid grid-cols-3 gap-2">
-              {[1,2,3].map(i => <Skeleton className="h-14 rounded-md" key={i} />)}
-            </div>
-          </div>
-        ))}
-      </div>
-      {/* Row 2: subject performance (8) | upcoming (4) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-5">
-        <div className="lg:col-span-8 rounded-lg border border-slate-200 bg-white">
-          <div className="flex items-center justify-between p-4 border-b border-slate-100">
-            <Skeleton className="h-4 w-32 rounded" />
-            <Skeleton className="h-8 w-16 rounded-md" />
-          </div>
-          <div className="p-4 space-y-2">{[1,2,3,4,5,6].map(i => <Skeleton className="h-12 w-full rounded-md" key={i} />)}</div>
-        </div>
-        <div className="lg:col-span-4 rounded-lg border border-slate-200 bg-white">
-          <div className="p-4 border-b border-slate-100"><Skeleton className="h-4 w-24 rounded" /></div>
-          <div className="p-4 space-y-2">{[1,2,3,4].map(i => <Skeleton.AnnouncementRow key={i} />)}</div>
-        </div>
-      </div>
-      {/* Row 3: announcements | messages */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
-        {[1,2].map(col => (
-          <div key={col} className="rounded-lg border border-slate-200 bg-white">
-            <div className="flex items-center justify-between p-4 border-b border-slate-100">
-              <Skeleton className="h-4 w-28 rounded" />
-              <Skeleton className="h-8 w-16 rounded-md" />
-            </div>
-            <div className="p-4 space-y-2">{[1,2,3].map(i => <Skeleton.AnnouncementRow key={i} />)}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
 // Schedule helpers
   const toMinutes = (timeStr) => {
