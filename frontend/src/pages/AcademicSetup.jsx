@@ -220,12 +220,25 @@ const AcademicSetup = () => {
         const [clsRes, semRes, csRes] = await Promise.all([
           api.get(`/classrooms/?academic_year=${encodeURIComponent(ay.name)}`).catch(() => ({ data: [] })),
           api.get(`/admin/semesters/?academic_year=${ay.id}`).catch(() => ({ data: [] })),
-          // fix #4: one request for all classroom-subjects instead of N requests
           api.get(`/classroom-subjects/?academic_year_id=${ay.id}`).catch(() => ({ data: [] })),
         ]);
-        setClassrooms(Array.isArray(clsRes.data) ? clsRes.data : []);
-        setSemesters(Array.isArray(semRes.data) ? semRes.data : []);
-        setClassroomSubjects(Array.isArray(csRes.data) ? csRes.data : []);
+        const cls = Array.isArray(clsRes.data) ? clsRes.data : [];
+        const sems = Array.isArray(semRes.data) ? semRes.data : [];
+        let cs = Array.isArray(csRes.data) ? csRes.data : [];
+
+        // Fallback: if bulk AY fetch returned nothing but classrooms exist,
+        // some classrooms may not have academic_year set — fetch without filter
+        if (cs.length === 0 && cls.length > 0) {
+          const fallbackRes = await api.get('/classroom-subjects/').catch(() => ({ data: [] }));
+          const all = Array.isArray(fallbackRes.data) ? fallbackRes.data : [];
+          // Filter to only classrooms in this AY
+          const clsIds = new Set(cls.map(c => c.id));
+          cs = all.filter(item => clsIds.has(item.classroom));
+        }
+
+        setClassrooms(cls);
+        setSemesters(sems);
+        setClassroomSubjects(cs);
       } else {
         setClassrooms([]); setSemesters([]); setClassroomSubjects([]);
       }
@@ -1232,6 +1245,12 @@ function SubjectModal({ isOpen, onClose, form, setForm, onSubmit, saving, availG
 }
 
 function AssignModal({ isOpen, onClose, form, setForm, onSubmit, saving, classrooms, subjects, activeTeachers }) {
+  // Filter subjects to the grade level of the selected section for easier selection
+  const selectedClassroom = classrooms.find(c => String(c.id) === String(form.classroom));
+  const filteredSubjects = selectedClassroom
+    ? subjects.filter(s => !s.grade_level || s.grade_level === selectedClassroom.grade_level)
+    : subjects;
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <ModalHeader onClose={onClose}><ModalTitle title="Assign Subject to Section" subtitle="Link a subject, section, and teacher" /></ModalHeader>
@@ -1239,21 +1258,36 @@ function AssignModal({ isOpen, onClose, form, setForm, onSubmit, saving, classro
         <ModalBody>
           <div className="space-y-4">
             <ModalField label="Section" required>
-              <select value={form.classroom} onChange={e => setForm({ ...form, classroom: e.target.value })} className={modalSelectCls} required>
+              <select value={form.classroom}
+                onChange={e => setForm({ ...form, classroom: e.target.value, subject: '' })}
+                className={modalSelectCls} required>
                 <option value="">— Select Section —</option>
-                {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {classrooms.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}{c.grade_level ? ` (${c.grade_level})` : ''}</option>
+                ))}
               </select>
             </ModalField>
             <ModalField label="Subject" required>
-              <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} className={modalSelectCls} required>
-                <option value="">— Select Subject —</option>
-                {subjects.map(s => <option key={s.id} value={s.id}>{s.code} – {s.name}</option>)}
+              <select value={form.subject}
+                onChange={e => setForm({ ...form, subject: e.target.value })}
+                className={modalSelectCls} required disabled={!form.classroom}>
+                <option value="">{form.classroom ? '— Select Subject —' : '— Select a section first —'}</option>
+                {filteredSubjects.map(s => (
+                  <option key={s.id} value={s.id}>{s.code} – {s.name}</option>
+                ))}
               </select>
+              {form.classroom && filteredSubjects.length === 0 && (
+                <p className="text-xs text-amber-600 mt-1">No subjects found for this grade level. Add subjects in Step 4.</p>
+              )}
             </ModalField>
             <ModalField label="Teacher" required>
-              <select value={form.teacher} onChange={e => setForm({ ...form, teacher: e.target.value })} className={modalSelectCls} required>
+              <select value={form.teacher}
+                onChange={e => setForm({ ...form, teacher: e.target.value })}
+                className={modalSelectCls} required>
                 <option value="">— Select Teacher —</option>
-                {activeTeachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
+                {activeTeachers.map(t => (
+                  <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
+                ))}
               </select>
             </ModalField>
           </div>
