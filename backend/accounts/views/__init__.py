@@ -131,4 +131,10 @@ from .fcm import (
     test_push_notification,
 )
 
-from .school_forms import SchoolForm1ViewSet
+from .school_forms import (
+    SchoolForm1ViewSet,
+    SF2ViewSet,
+    SchoolForm5ViewSet,
+    SchoolForm9ViewSet,
+    SchoolForm10ViewSet,
+)

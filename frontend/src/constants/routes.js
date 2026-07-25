@@ -55,6 +55,10 @@ const Analytics = lazy(() => retryImport(() => import('../pages/Analytics')));
 const SF1Dashboard = lazy(() => retryImport(() => import('../pages/SF1Dashboard')));
 const SF1Generate = lazy(() => retryImport(() => import('../pages/SF1Generate')));
 const SF1Detail = lazy(() => retryImport(() => import('../pages/SF1Detail')));
+const SF2Dashboard = lazy(() => retryImport(() => import('../pages/SF2Dashboard')));
+const SF5Dashboard = lazy(() => retryImport(() => import('../pages/SF5Dashboard')));
+const SF9Dashboard = lazy(() => retryImport(() => import('../pages/SF9Dashboard')));
+const SF10Dashboard = lazy(() => retryImport(() => import('../pages/SF10Dashboard')));
 
 // ── Route definitions ────────────────────────────────────────────────────────
 
@@ -108,6 +112,10 @@ export const protectedRoutes = [
   { path: 'sf1', element: SF1Dashboard, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'sf1/generate', element: SF1Generate, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'sf1/:id', element: SF1Detail, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'sf2', element: SF2Dashboard, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'sf5', element: SF5Dashboard, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'sf9', element: SF9Dashboard, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'sf10', element: SF10Dashboard, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'my-classes', element: ClassroomHub, roles: [Role.STAFF, Role.STUDENT] },
   { path: 'my-schedule', element: MySchedule, roles: [Role.STAFF, Role.STUDENT] },
 

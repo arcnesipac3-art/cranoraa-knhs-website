@@ -28,7 +28,12 @@ from .records import (
     Transcript, TranscriptLineItem, TransferCertificate,
     CharacterCertificate, AchievementRecord, RecordRequest,
 )
-from .school_forms import SchoolForm1, SchoolForm1Student
+from .school_forms import (
+    SchoolForm1, SchoolForm1Student,
+    SchoolForm5, SchoolForm5Student,
+    SchoolForm9, SchoolForm9Subject,
+    SchoolForm10, SchoolForm10Record, SchoolForm10Subject,
+)
 from .infrastructure import (
     AcademicYear, Semester, AuditLog, APIRequestLog, DatabaseBackup,
 )
@@ -55,5 +60,8 @@ __all__ = [
     'Transcript', 'TranscriptLineItem', 'TransferCertificate',
     'CharacterCertificate', 'AchievementRecord', 'RecordRequest',
     'SchoolForm1', 'SchoolForm1Student',
+    'SchoolForm5', 'SchoolForm5Student',
+    'SchoolForm9', 'SchoolForm9Subject',
+    'SchoolForm10', 'SchoolForm10Record', 'SchoolForm10Subject',
     'AcademicYear', 'Semester', 'AuditLog', 'APIRequestLog', 'DatabaseBackup',
 ]

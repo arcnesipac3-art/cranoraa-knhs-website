@@ -45,6 +45,14 @@ from .records import (
 from .school_forms import (
     SchoolForm1ListSerializer, SchoolForm1DetailSerializer,
     SchoolForm1StudentSerializer, GenerateSF1Serializer,
+    SF2OverviewSerializer, SF2MonthDataSerializer,
+    SchoolForm5ListSerializer, SchoolForm5DetailSerializer,
+    SchoolForm5StudentSerializer, GenerateSF5Serializer,
+    SchoolForm9ListSerializer, SchoolForm9DetailSerializer,
+    SchoolForm9SubjectSerializer, GenerateSF9Serializer,
+    SchoolForm10ListSerializer, SchoolForm10DetailSerializer,
+    SchoolForm10RecordSerializer, SchoolForm10SubjectSerializer,
+    GenerateSF10Serializer,
 )
 from .departments import DepartmentSerializer, StaffPerformanceSerializer
 from .parent import ParentChildSummarySerializer
@@ -82,4 +90,12 @@ __all__ = [
     'ParentChildSummarySerializer',
     'SchoolForm1ListSerializer', 'SchoolForm1DetailSerializer',
     'SchoolForm1StudentSerializer', 'GenerateSF1Serializer',
+    'SF2OverviewSerializer', 'SF2MonthDataSerializer',
+    'SchoolForm5ListSerializer', 'SchoolForm5DetailSerializer',
+    'SchoolForm5StudentSerializer', 'GenerateSF5Serializer',
+    'SchoolForm9ListSerializer', 'SchoolForm9DetailSerializer',
+    'SchoolForm9SubjectSerializer', 'GenerateSF9Serializer',
+    'SchoolForm10ListSerializer', 'SchoolForm10DetailSerializer',
+    'SchoolForm10RecordSerializer', 'SchoolForm10SubjectSerializer',
+    'GenerateSF10Serializer',
 ]

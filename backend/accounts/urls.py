@@ -29,6 +29,10 @@ from .views import (
     admin_attendance_analytics, admin_grade_analytics,
     data_retention_view, run_backup_view_enhanced,
     SchoolForm1ViewSet,
+    SF2ViewSet,
+    SchoolForm5ViewSet,
+    SchoolForm9ViewSet,
+    SchoolForm10ViewSet,
 )
 
 app_name = 'accounts'
@@ -74,6 +78,10 @@ router.register(r'v1/emergency-messages', EmergencyMessageViewSet, basename='eme
 router.register(r'v1/departments', DepartmentViewSet, basename='department')
 router.register(r'v1/staff-performance', StaffPerformanceViewSet, basename='staff-performance')
 router.register(r'v1/sf1', SchoolForm1ViewSet, basename='sf1')
+router.register(r'v1/sf2', SF2ViewSet, basename='sf2')
+router.register(r'v1/sf5', SchoolForm5ViewSet, basename='sf5')
+router.register(r'v1/sf9', SchoolForm9ViewSet, basename='sf9')
+router.register(r'v1/sf10', SchoolForm10ViewSet, basename='sf10')
 
 # NOTE: school_portal/urls.py mounts these under 'api/', so paths here should NOT include 'api/'.
 # Final URL = api/ + path below  e.g. api/v1/login/
