@@ -2055,6 +2055,8 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
         classroom_id = self.request.query_params.get('classroom')
         subject_id = self.request.query_params.get('subject')
         teacher_id = self.request.query_params.get('teacher')
+        # Bulk fetch by academic year — avoids N+1 on academic setup page
+        academic_year_id = self.request.query_params.get('academic_year_id')
 
         if classroom_id:
             queryset = queryset.filter(classroom_id=classroom_id)
@@ -2062,6 +2064,8 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(subject_id=subject_id)
         if teacher_id:
             queryset = queryset.filter(teacher_id=teacher_id)
+        if academic_year_id:
+            queryset = queryset.filter(classroom__academic_year_id=academic_year_id)
 
         return queryset
 
