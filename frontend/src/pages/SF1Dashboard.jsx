@@ -7,7 +7,7 @@ import {
   CheckCircle2, AlertTriangle, XCircle, BookOpen,
 } from 'lucide-react';
 import api from '../utils/api';
-import { LoadingSpinner, Badge, Button, Modal } from '../components/ui';
+import { LoadingSpinner, Badge, Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from '../components/ui';
 import toast from 'react-hot-toast';
 
 const STATUS_STYLES = {
