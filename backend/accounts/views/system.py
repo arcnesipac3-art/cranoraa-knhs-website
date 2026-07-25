@@ -79,87 +79,122 @@ def maintenance_status_view(request):
         }, status=200)  # Return 200 to avoid breaking frontend UI if possible
 
 
+def _format_uptime(seconds):
+    """Format seconds into a human-readable uptime string."""
+    days = int(seconds // 86400)
+    hours = int((seconds % 86400) // 3600)
+    minutes = int((seconds % 3600) // 60)
+    if days > 0:
+        return f"{days}d {hours}h {minutes}m"
+    if hours > 0:
+        return f"{hours}h {minutes}m"
+    return f"{minutes}m"
+
+
 def system_metrics_view(request):
     """Returns system metrics for the System Command Center"""
     from ..models import APIRequestLog
+    from ..apps import AccountsConfig
 
+    now = datetime.datetime.now()
+
+    # Database size
+    storage_used = 0
     try:
-        # Get database size — works for both SQLite and PostgreSQL
         with connection.cursor() as cursor:
             if 'sqlite' in connection.settings_dict['ENGINE']:
                 cursor.execute("SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()")
                 result = cursor.fetchone()
                 db_size_mb = (result[0] / (1024 * 1024)) if result and result[0] else 0
             else:
-                # PostgreSQL
                 cursor.execute("SELECT pg_database_size(current_database())")
                 result = cursor.fetchone()
                 db_size_mb = (result[0] / (1024 * 1024)) if result and result[0] else 0
-        storage_used = min(int((db_size_mb / 10240) * 100), 100)  # Assume 10GB max
+        storage_used = min(int((db_size_mb / 10240) * 100), 100)
     except Exception:
-        storage_used = 0
+        pass
 
-    # Get system uptime (mock for now, would need actual server uptime tracking)
-    uptime = "99.8%"
+    # Real uptime from server start time
+    uptime_seconds = now.timestamp() - AccountsConfig.server_started_at if AccountsConfig.server_started_at else 0
+    uptime = _format_uptime(uptime_seconds)
 
-    # Get real API hits data from the last hour
+    # Last optimization: most recent audit log with 'optimize' or 'backup' or 'maintenance' action
+    last_optimization = None
+    try:
+        from ..models import AuditLog
+        opt_log = AuditLog.objects.filter(
+            action__icontains='optimize'
+        ).order_by('-timestamp').first()
+        if not opt_log:
+            opt_log = AuditLog.objects.filter(
+                action__icontains='backup'
+            ).order_by('-timestamp').first()
+        if opt_log:
+            delta = now - opt_log.timestamp.replace(tzinfo=None)
+            secs = int(delta.total_seconds())
+            if secs < 60:
+                last_optimization = f"{secs}s ago"
+            elif secs < 3600:
+                last_optimization = f"{secs // 60}m ago"
+            elif secs < 86400:
+                last_optimization = f"{secs // 3600}h ago"
+            else:
+                last_optimization = f"{secs // 86400}d ago"
+    except Exception:
+        pass
+
+    # API hits from the last hour (5-minute buckets)
     api_hits = []
-    now = datetime.datetime.now()
     try:
         for i in range(12):
-            time_start = now - datetime.timedelta(minutes=(12-i)*5)
-            time_end = now - datetime.timedelta(minutes=(11-i)*5)
-            time_label = time_start.strftime('%H:%M')
-
-            # Count requests in this 5-minute window
+            time_start = now - datetime.timedelta(minutes=(12 - i) * 5)
+            time_end = now - datetime.timedelta(minutes=(11 - i) * 5)
             hits = APIRequestLog.objects.filter(
                 timestamp__gte=time_start,
                 timestamp__lt=time_end
             ).count()
+            api_hits.append({'time': time_start.strftime('%H:%M'), 'hits': hits})
+    except Exception:
+        api_hits = [{'time': (now - datetime.timedelta(minutes=(11 - i) * 5)).strftime('%H:%M'), 'hits': 0} for i in range(12)]
 
-            api_hits.append({'time': time_label, 'hits': hits})
-    except Exception as e:
-        # Fallback to mock data if query fails
-        for i in range(12):
-            time = (now - datetime.timedelta(minutes=(11-i)*5)).strftime('%H:%M')
-            hits = 45 + (i * 3) % 50
-            api_hits.append({'time': time, 'hits': hits})
-
-    # Get active sessions (count of unique users in last 15 minutes)
-    fifteen_minutes_ago = now - datetime.timedelta(minutes=15)
+    # Active sessions (unique users in last 15 min)
+    active_sessions = 0
     try:
+        fifteen_minutes_ago = now - datetime.timedelta(minutes=15)
         active_sessions = APIRequestLog.objects.filter(
             timestamp__gte=fifteen_minutes_ago,
             user__isnull=False
         ).values('user').distinct().count()
-    except Exception as e:
-        active_sessions = 142  # Fallback
+    except Exception:
+        pass
 
-    # Get mobile vs desktop users (based on user agent)
+    # Mobile vs desktop users
+    mobile_users = 0
     try:
         mobile_users = APIRequestLog.objects.filter(
             timestamp__gte=fifteen_minutes_ago,
             user_agent__icontains='mobile'
         ).values('user').distinct().count()
-    except Exception as e:
-        mobile_users = 45  # Fallback
+    except Exception:
+        pass
 
     desktop_users = max(active_sessions - mobile_users, 0)
 
-    # Get failed logins in last 24 hours
-    twenty_four_hours_ago = now - datetime.timedelta(hours=24)
+    # Failed logins in last 24 hours
+    failed_logins = 0
     try:
+        twenty_four_hours_ago = now - datetime.timedelta(hours=24)
         failed_logins = APIRequestLog.objects.filter(
             timestamp__gte=twenty_four_hours_ago,
             status_code=401
         ).count()
-    except Exception as e:
-        failed_logins = 12  # Fallback
+    except Exception:
+        pass
 
     return Response({
         'storageUsed': storage_used,
         'uptime': uptime,
-        'lastOptimization': '2 hours ago',
+        'lastOptimization': last_optimization or 'Never',
         'apiHits': api_hits,
         'activeSessions': active_sessions,
         'mobileUsers': mobile_users,
@@ -177,7 +212,6 @@ def maintenance_feed_view(request):
     """Returns system maintenance feed for the System Command Center"""
     from ..models import AuditLog
 
-    # Get recent audit logs as maintenance feed
     recent_logs = AuditLog.objects.order_by('-timestamp')[:10]
 
     feed = []
@@ -189,16 +223,6 @@ def maintenance_feed_view(request):
             'status': 'success',
             'time': _get_time_ago(log.timestamp)
         })
-
-    # If no logs, provide mock data
-    if not feed:
-        feed = [
-            {'id': 1, 'action': 'Subject Schema Updated', 'details': 'Added new fields to student_records', 'status': 'success', 'time': '10 min ago'},
-            {'id': 2, 'action': 'Cache Cleared', 'details': 'Redis cache flushed - 2.3GB freed', 'status': 'success', 'time': '25 min ago'},
-            {'id': 3, 'action': 'Backup Verified', 'details': 'Daily backup integrity check passed', 'status': 'success', 'time': '1 hour ago'},
-            {'id': 4, 'action': 'Database Optimization', 'details': 'Index rebuild completed', 'status': 'success', 'time': '2 hours ago'},
-            {'id': 5, 'action': 'SSL Certificate Renewed', 'details': 'Valid until 2027-05-06', 'status': 'success', 'time': '3 hours ago'},
-        ]
 
     return Response(feed)
 
