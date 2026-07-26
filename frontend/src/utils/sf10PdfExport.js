@@ -105,8 +105,10 @@ function addStudentPage(doc, student, schoolInfo, isFirstPage) {
   doc.text(`Section: ${schoolInfo.section}`, MARGIN + 55, y);
   doc.text(`School Year: ${schoolInfo.schoolYear}`, MARGIN + 120, y); y += 5;
 
-  doc.text('Adviser: '); doc.setFont('helvetica', 'normal');
-  doc.text(`Adviser: ${schoolInfo.adviser}`, MARGIN, y);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Adviser:', MARGIN, y);
+  doc.setFont('helvetica', 'normal');
+  doc.text(schoolInfo.adviser || '', MARGIN + 20, y);
   doc.setFont('helvetica', 'bold'); doc.text('Signature: ___________', MARGIN + 130, y); y += 7;
 
   // ── Grades table — 3 terms for both JHS and SHS ──────────────────────────

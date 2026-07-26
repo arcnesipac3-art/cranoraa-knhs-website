@@ -469,7 +469,10 @@ class GenerateSF9Serializer(serializers.Serializer):
                             academic_year=validated_data['academic_year'],
                         ).first()
                         if q_grade and q_grade.raw_score is not None:
-                            setattr(subject_grades_obj := type('obj', (), {'q': None})(), 'q', q_grade.raw_score)
+                            if q == 1: q1 = q_grade.raw_score
+                            elif q == 2: q2 = q_grade.raw_score
+                            elif q == 3: q3 = q_grade.raw_score
+                            elif q == 4: q4 = q_grade.raw_score
 
                 remarks = ''
                 if final is not None:

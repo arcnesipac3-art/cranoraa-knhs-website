@@ -89,7 +89,8 @@ class SchoolForm1ViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         if instance.status == 'final':
-            raise ValueError('Cannot delete a finalized SF1. Archive it instead.')
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('Cannot delete a finalized SF1. Archive it instead.')
         log_audit_action(
             user=self.request.user,
             action='delete',
@@ -1128,6 +1129,34 @@ class SchoolForm9ViewSet(viewsets.ModelViewSet):
     def print_view(self, request, pk=None):
         return self.export_pdf(request, pk=pk)
 
+    @action(detail=True, methods=['put'])
+    def update_status(self, request, pk=None):
+        sf9 = self.get_object()
+        new_status = request.data.get('status')
+        if new_status not in ('draft', 'final', 'archived'):
+            return Response({'error': 'Invalid status'}, status=400)
+        sf9.status = new_status
+        sf9.save(update_fields=['status'])
+        log_audit_action(user=request.user, action='update_status', model_name='SchoolForm9',
+                         object_id=sf9.id, object_repr=str(sf9),
+                         description=f'Changed SF9 status to {new_status}', request=request)
+        return Response(SchoolForm9DetailSerializer(sf9).data)
+
+    @action(detail=True, methods=['post'])
+    def regenerate(self, request, pk=None):
+        sf9 = self.get_object()
+        data = {
+            'academic_year': sf9.school_year,
+            'grade_level': sf9.grade_level,
+            'section': sf9.section,
+        }
+        serializer = GenerateSF9Serializer(data=data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        records = serializer.save()
+        log_audit_action(user=request.user, action='regenerate', model_name='SchoolForm9',
+                         description=f'Regenerated {len(records)} SF9 cards for {sf9.section}', request=request)
+        return Response(SchoolForm9DetailSerializer(records, many=True).data)
+
 
 def _generate_sf9_pdf(sf9):
     from reportlab.lib import colors
@@ -1284,6 +1313,19 @@ class SchoolForm10ViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def print_view(self, request, pk=None):
         return self.export_pdf(request, pk=pk)
+
+    @action(detail=True, methods=['put'])
+    def update_status(self, request, pk=None):
+        sf10 = self.get_object()
+        new_status = request.data.get('status')
+        if new_status not in ('draft', 'final', 'archived'):
+            return Response({'error': 'Invalid status'}, status=400)
+        sf10.status = new_status
+        sf10.save(update_fields=['status'])
+        log_audit_action(user=request.user, action='update_status', model_name='SchoolForm10',
+                         object_id=sf10.id, object_repr=str(sf10),
+                         description=f'Changed SF10 status to {new_status}', request=request)
+        return Response(SchoolForm10DetailSerializer(sf10).data)
 
 
 def _generate_sf10_pdf(sf10):

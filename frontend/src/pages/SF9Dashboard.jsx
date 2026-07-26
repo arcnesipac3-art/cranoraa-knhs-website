@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   FileText, Search, Filter, Download, Printer, RefreshCw,
@@ -22,12 +22,20 @@ export default function SF9Dashboard() {
   const [filters, setFilters] = useState({ school_year: '', grade_level: '', status: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [actionMenu, setActionMenu] = useState(null);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
 
   const fetchRecords = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
       if (filters.school_year) params.school_year = filters.school_year;
       if (filters.grade_level) params.grade_level = filters.grade_level;
       if (filters.status) params.status = filters.status;
@@ -38,7 +46,7 @@ export default function SF9Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [search, filters]);
+  }, [debouncedSearch, filters]);
 
   useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
@@ -52,7 +60,7 @@ export default function SF9Dashboard() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => window.URL.revokeObjectURL(url), 30000);
       toast.success(`${type.toUpperCase()} exported successfully`);
     } catch {
       toast.error(`Failed to export ${type.toUpperCase()}`);

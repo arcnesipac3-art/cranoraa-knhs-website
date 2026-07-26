@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   FileText, Search, Filter, Download, RefreshCw,
   Trash2, ChevronDown, ChevronUp, MoreVertical,
-  CheckCircle2, AlertTriangle, BookOpen,
+  CheckCircle2, AlertTriangle, BookOpen, Archive,
 } from 'lucide-react';
 import api from '../utils/api';
 import { LoadingSpinner, Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from '../components/ui';
@@ -13,16 +13,8 @@ import toast from 'react-hot-toast';
 const STATUS_STYLES = {
   draft: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', icon: AlertTriangle },
   final: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', icon: CheckCircle2 },
-  archived: { bg: 'bg-slate-50', text: 'text-slate-500', border: 'border-slate-200', icon: ArchiveIcon },
+  archived: { bg: 'bg-slate-50', text: 'text-slate-500', border: 'border-slate-200', icon: Archive },
 };
-
-function ArchiveIcon(props) {
-  return (
-    <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-    </svg>
-  );
-}
 
 export default function SF5Dashboard() {
   const navigate = useNavigate();
@@ -35,12 +27,20 @@ export default function SF5Dashboard() {
   const [deleteModal, setDeleteModal] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
 
   const fetchRecords = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
-      if (search) params.search = search;
+      if (debouncedSearch) params.search = debouncedSearch;
       if (filters.school_year) params.school_year = filters.school_year;
       if (filters.grade_level) params.grade_level = filters.grade_level;
       if (filters.status) params.status = filters.status;
@@ -51,7 +51,7 @@ export default function SF5Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [search, filters]);
+  }, [debouncedSearch, filters]);
 
   useEffect(() => { fetchRecords(); }, [fetchRecords]);
 
@@ -80,7 +80,7 @@ export default function SF5Dashboard() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      window.URL.revokeObjectURL(url);
+      setTimeout(() => window.URL.revokeObjectURL(url), 30000);
       toast.success(`${type.toUpperCase()} exported successfully`);
     } catch {
       toast.error(`Failed to export ${type.toUpperCase()}`);

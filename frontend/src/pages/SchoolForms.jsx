@@ -9,11 +9,11 @@ const SF9Dashboard = lazy(() => import('../pages/SF9Dashboard'));
 const SF10Dashboard = lazy(() => import('../pages/SF10Dashboard'));
 
 const TABS = [
-  { id: 'sf1', label: 'SF1', fullLabel: 'School Register', icon: Users, desc: 'Learner enrollment and demographic data per section' },
-  { id: 'sf2', label: 'SF2', fullLabel: 'Attendance', icon: ClipboardList, desc: 'Daily attendance report of learners per month' },
-  { id: 'sf5', label: 'SF5', fullLabel: 'Promotion', icon: BarChart3, desc: 'Report on promotion, retention, and learning progress' },
-  { id: 'sf9', label: 'SF9', fullLabel: 'Report Card', icon: FileText, desc: 'Individual student report card with grades per term' },
-  { id: 'sf10', label: 'SF10', fullLabel: 'Permanent Record', icon: GraduationCap, desc: 'Learner permanent academic record across grade levels' },
+  { id: 'sf1', label: 'SF1', fullLabel: 'School Register', icon: Users, desc: 'Learner enrollment and demographic data per section', Component: SF1Dashboard },
+  { id: 'sf2', label: 'SF2', fullLabel: 'Attendance', icon: ClipboardList, desc: 'Daily attendance report of learners per month', Component: SF2Dashboard },
+  { id: 'sf5', label: 'SF5', fullLabel: 'Promotion', icon: BarChart3, desc: 'Report on promotion, retention, and learning progress', Component: SF5Dashboard },
+  { id: 'sf9', label: 'SF9', fullLabel: 'Report Card', icon: FileText, desc: 'Individual student report card with grades per term', Component: SF9Dashboard },
+  { id: 'sf10', label: 'SF10', fullLabel: 'Permanent Record', icon: GraduationCap, desc: 'Learner permanent academic record across grade levels', Component: SF10Dashboard },
 ];
 
 function TabSpinner() {
@@ -24,14 +24,6 @@ function TabSpinner() {
     </div>
   );
 }
-
-const TAB_CONTENT = {
-  sf1: <SF1Dashboard />,
-  sf2: <SF2Dashboard />,
-  sf5: <SF5Dashboard />,
-  sf9: <SF9Dashboard />,
-  sf10: <SF10Dashboard />,
-};
 
 export default function SchoolForms() {
   const [activeTab, setActiveTab] = useState('sf1');
@@ -90,7 +82,7 @@ export default function SchoolForms() {
               transition={{ duration: 0.15 }}
             >
               <Suspense fallback={<TabSpinner />}>
-                {TAB_CONTENT[activeTab]}
+                {active && <active.Component />}
               </Suspense>
             </motion.div>
           </AnimatePresence>
