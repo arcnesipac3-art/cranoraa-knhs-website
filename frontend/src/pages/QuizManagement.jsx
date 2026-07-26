@@ -45,22 +45,22 @@ const QuestionTypeBadge = ({ type }) => {
 };
 
 const QuizManagement = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
+  useNavigate();
+  useAuth();
 
   const [activeTab, setActiveTab] = useState('My Quizzes');
   const [quizzes, setQuizzes] = useState([]);
   const [questionBanks, setQuestionBanks] = useState([]);
-  const [questions, setQuestions] = useState([]);
+  const [, setQuestions] = useState([]);
   const [classrooms, setClassrooms] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterClassroom, setFilterClassroom] = useState('');
-  const [filterSubject, setFilterSubject] = useState('');
+  const [, setFilterSubject] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [, setShowCreateForm] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [quizResults, setQuizResults] = useState([]);
   const [resultsLoading, setResultsLoading] = useState(false);
@@ -81,6 +81,7 @@ const QuizManagement = () => {
     start_at: '',
     end_at: '',
     grade_component: 'quiz',
+    passing_score: '',
   });
 
   const [editingQuestion, setEditingQuestion] = useState(null);
@@ -98,7 +99,7 @@ const QuizManagement = () => {
     points: 1,
   });
   const [showAddQuestion, setShowAddQuestion] = useState(false);
-  const [essayGrades, setEssayGrades] = useState({});
+  const [, setEssayGrades] = useState({});
   const [gradingAttempt, setGradingAttempt] = useState(null);
 
   const fetchData = useCallback(async () => {
@@ -157,6 +158,7 @@ const QuizManagement = () => {
         ...createForm,
         time_limit: createForm.time_limit ? parseInt(createForm.time_limit) : null,
         max_attempts: parseInt(createForm.max_attempts),
+        passing_score: createForm.passing_score ? parseFloat(createForm.passing_score) : null,
       };
       await api.post('/quizzes/', payload);
       toast.success('Quiz created successfully');
@@ -166,6 +168,7 @@ const QuizManagement = () => {
         quiz_type: 'regular', time_limit: '', max_attempts: 1,
         shuffle_questions: false, show_correct_answers: true,
         start_at: '', end_at: '', grade_component: 'quiz',
+        passing_score: '',
       });
       fetchData();
     } catch (err) {
@@ -180,6 +183,16 @@ const QuizManagement = () => {
       fetchData();
     } catch {
       toast.error('Action failed');
+    }
+  };
+
+  const handleDuplicateQuiz = async (quizId) => {
+    try {
+      await api.post(`/quizzes/${quizId}/duplicate/`);
+      toast.success('Quiz duplicated');
+      fetchData();
+    } catch {
+      toast.error('Failed to duplicate quiz');
     }
   };
 
@@ -222,64 +235,6 @@ const QuizManagement = () => {
       toast.error('Failed to grade essay');
     } finally {
       setGradingAttempt(null);
-    }
-  };
-
-  const handleAddQuestionToQuiz = async (quizId, questionId) => {
-    try {
-      await api.post(`/quizzes/${quizId}/questions/`, { question: questionId });
-      toast.success('Question added to quiz');
-    } catch {
-      toast.error('Failed to add question');
-    }
-  };
-
-  const handleSaveQuestion = async (e) => {
-    e.preventDefault();
-    if (!questionForm.question_text.trim()) {
-      toast.error('Question text is required');
-      return;
-    }
-    const payload = { ...questionForm };
-    if (questionForm.question_type === 'mc') {
-      payload.choices = questionForm.choices.map((c) => ({
-        text: c.text,
-        is_correct: c.is_correct,
-      }));
-      if (!payload.choices.some((c) => c.is_correct)) {
-        toast.error('Select a correct answer');
-        return;
-      }
-    } else if (questionForm.question_type === 'identification') {
-      if (!payload.correct_answer.trim()) {
-        toast.error('Correct answer is required');
-        return;
-      }
-    } else if (questionForm.question_type === 'essay') {
-      if (!payload.model_answer.trim()) {
-        toast.error('Model answer is required');
-        return;
-      }
-    } else if (questionForm.question_type === 'tf') {
-      if (!payload.correct_answer) {
-        toast.error('Select the correct answer');
-        return;
-      }
-    }
-    try {
-      if (editingQuestion) {
-        await api.put(`/questions/${editingQuestion.id}/`, payload);
-        toast.success('Question updated');
-      } else {
-        await api.post('/questions/', payload);
-        toast.success('Question created');
-      }
-      setShowAddQuestion(false);
-      setEditingQuestion(null);
-      resetQuestionForm();
-      if (selectedQuestionBank) loadBankQuestions(selectedQuestionBank);
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to save question');
     }
   };
 
@@ -337,7 +292,8 @@ const QuizManagement = () => {
   const statusBadge = (status) => {
     const map = {
       draft: { variant: 'slate', label: 'Draft', icon: <FileText className="w-3 h-3" /> },
-      published: { variant: 'green', label: 'Published', icon: <CheckCircle className="w-3 h-3" /> },
+      published: { variant: 'blue', label: 'Published', icon: <CheckCircle className="w-3 h-3" /> },
+      active: { variant: 'green', label: 'Active', icon: <CheckCircle className="w-3 h-3" /> },
       closed: { variant: 'red', label: 'Closed', icon: <XCircle className="w-3 h-3" /> },
     };
     const cfg = map[status] || map.draft;
@@ -412,6 +368,7 @@ const QuizManagement = () => {
                   className="px-3 py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
                   <option value="">All Status</option>
                   <option value="draft">Draft</option>
+                  <option value="active">Active</option>
                   <option value="published">Published</option>
                   <option value="closed">Closed</option>
                 </select>
@@ -475,6 +432,7 @@ const QuizManagement = () => {
                           <Badge variant="blue" size="sm">{QUIZ_TYPES.find((t) => t.value === quiz.quiz_type)?.label || quiz.quiz_type}</Badge>
                           {quiz.time_limit && <Badge variant="slate" size="sm"><Clock className="w-3 h-3 mr-1" />{quiz.time_limit} min</Badge>}
                           <Badge variant="slate" size="sm">Max: {quiz.max_attempts} attempt{quiz.max_attempts !== 1 ? 's' : ''}</Badge>
+                          {quiz.passing_score && <Badge variant="amber" size="sm">Pass: {quiz.passing_score}%</Badge>}
                         </div>
                         <div className="text-xs text-slate-500 space-y-1">
                           <p>Classroom: <span className="font-semibold text-slate-700">{quiz.classroom_name || 'N/A'}</span></p>
@@ -487,8 +445,23 @@ const QuizManagement = () => {
                               <Button variant="success" size="sm" onClick={() => handlePublish(quiz.id, true)}>
                                 <CheckCircle className="w-3.5 h-3.5" /> Publish
                               </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDuplicateQuiz(quiz.id)}>
+                                <FileText className="w-3.5 h-3.5" /> Duplicate
+                              </Button>
                               <Button variant="danger" size="sm" onClick={() => handleDeleteQuiz(quiz.id)}>
                                 <Trash2 className="w-3.5 h-3.5" /> Delete
+                              </Button>
+                            </>
+                          ) : quiz.status === 'active' ? (
+                            <>
+                              <Button variant="secondary" size="sm" onClick={() => loadQuizResults(quiz.id)}>
+                                <BarChart3 className="w-3.5 h-3.5" /> Results
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDuplicateQuiz(quiz.id)}>
+                                <FileText className="w-3.5 h-3.5" /> Duplicate
+                              </Button>
+                              <Button variant="danger" size="sm" onClick={() => handlePublish(quiz.id, false)}>
+                                <XCircle className="w-3.5 h-3.5" /> Close
                               </Button>
                             </>
                           ) : (
@@ -496,8 +469,11 @@ const QuizManagement = () => {
                               <Button variant="secondary" size="sm" onClick={() => loadQuizResults(quiz.id)}>
                                 <BarChart3 className="w-3.5 h-3.5" /> Results
                               </Button>
+                              <Button variant="ghost" size="sm" onClick={() => handleDuplicateQuiz(quiz.id)}>
+                                <FileText className="w-3.5 h-3.5" /> Duplicate
+                              </Button>
                               <Button variant="ghost" size="sm" onClick={() => handlePublish(quiz.id, false)}>
-                                <XCircle className="w-3.5 h-3.5" /> Unpublish
+                                <CheckCircle className="w-3.5 h-3.5" /> Reopen
                               </Button>
                             </>
                           )}
@@ -669,6 +645,9 @@ const QuizManagement = () => {
                   placeholder="No limit" />
                 <Input label="Max Attempts" type="number" min="1" value={createForm.max_attempts}
                   onChange={(e) => setCreateForm({ ...createForm, max_attempts: e.target.value })} />
+                <Input label="Passing Score (%)" type="number" min="0" max="100" value={createForm.passing_score || ''}
+                  onChange={(e) => setCreateForm({ ...createForm, passing_score: e.target.value })}
+                  placeholder="No passing score" />
                 <Input label="Start At" type="datetime-local" value={createForm.start_at}
                   onChange={(e) => setCreateForm({ ...createForm, start_at: e.target.value })} />
                 <Input label="End At" type="datetime-local" value={createForm.end_at}

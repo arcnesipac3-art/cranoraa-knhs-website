@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { Card, CardHeader, CardBody, Button, Badge, Skeleton } from '../components/ui'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Clock, ChevronLeft, ChevronRight, CheckCircle, XCircle, Send, AlertTriangle } from 'lucide-react'
+import { Clock, ChevronLeft, ChevronRight, CheckCircle, XCircle, Send, AlertTriangle, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const QUESTION_TYPES = {
@@ -12,7 +12,13 @@ const QUESTION_TYPES = {
   TF: 'True/False',
   ID: 'Identification',
   ES: 'Essay',
+  multiple_choice: 'Multiple Choice',
+  true_false: 'True/False',
+  identification: 'Identification',
+  essay: 'Essay',
 }
+
+const AUTOSAVE_INTERVAL = 15000
 
 const slideVariants = {
   enter: (direction) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
@@ -37,7 +43,7 @@ function LoadingSkeleton() {
   )
 }
 
-function QuizInfoScreen({ quiz, onStart, loading }) {
+function QuizInfoScreen({ quiz, onStart, loading, hasAttempt, attemptsUsed, maxAttempts }) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
       <Button variant="ghost" onClick={() => window.history.back()} className="mb-4">
@@ -47,8 +53,8 @@ function QuizInfoScreen({ quiz, onStart, loading }) {
       <Card>
         <CardHeader>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{quiz.title}</h1>
-          {quiz.category && (
-            <Badge variant="primary" className="mt-1">{quiz.category}</Badge>
+          {quiz.grade_component && (
+            <Badge variant="primary" className="mt-1">{quiz.grade_component}</Badge>
           )}
         </CardHeader>
         <CardBody className="space-y-6">
@@ -60,7 +66,7 @@ function QuizInfoScreen({ quiz, onStart, loading }) {
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400">Questions</p>
               <p className="text-xl font-bold text-gray-900 dark:text-white">
-                {quiz.questions_count ?? quiz.questions?.length ?? 0}
+                {quiz.question_count ?? quiz.questions?.length ?? 0}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
@@ -83,13 +89,13 @@ function QuizInfoScreen({ quiz, onStart, loading }) {
             </div>
           </div>
 
-          {quiz.instructions && (
+          {quiz.description && (
             <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold text-amber-800 dark:text-amber-300 text-sm">Instructions</h3>
-                  <p className="text-amber-700 dark:text-amber-400 text-sm mt-1 whitespace-pre-wrap">{quiz.instructions}</p>
+                  <p className="text-amber-700 dark:text-amber-400 text-sm mt-1 whitespace-pre-wrap">{quiz.description}</p>
                 </div>
               </div>
             </div>
@@ -106,8 +112,19 @@ function QuizInfoScreen({ quiz, onStart, loading }) {
             </div>
           )}
 
+          {hasAttempt && (
+            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <p className="text-green-700 dark:text-green-300 text-sm font-medium">
+                  You have already attempted this quiz. {attemptsUsed}/{maxAttempts} attempts used.
+                </p>
+              </div>
+            </div>
+          )}
+
           <Button onClick={onStart} disabled={loading} className="w-full sm:w-auto" size="lg">
-            {loading ? 'Starting...' : 'Start Quiz'}
+            {loading ? 'Starting...' : hasAttempt ? 'Retake Quiz' : 'Start Quiz'}
           </Button>
         </CardBody>
       </Card>
@@ -167,14 +184,14 @@ function QuestionNavigator({ questions, answers, markedQuestions, currentQuestio
 function QuestionRenderer({ question, answer, onAnswer }) {
   const type = question.question_type || question.type
 
-  if (type === 'MC') {
+  if (type === 'MC' || type === 'multiple_choice') {
     return (
       <div className="space-y-3">
         {question.options?.map((opt, idx) => (
           <label
-            key={opt.id ?? idx}
+            key={opt.label ?? opt.id ?? idx}
             className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-              answer === (opt.id ?? opt.text)
+              answer === opt.label
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
@@ -182,25 +199,29 @@ function QuestionRenderer({ question, answer, onAnswer }) {
             <input
               type="radio"
               name={`q-${question.id}`}
-              checked={answer === (opt.id ?? opt.text)}
-              onChange={() => onAnswer(opt.id ?? opt.text)}
+              checked={answer === opt.label}
+              onChange={() => onAnswer(opt.label)}
               className="mt-1 accent-blue-500"
             />
-            <span className="text-gray-800 dark:text-gray-200">{opt.text}</span>
+            <span className="text-gray-800 dark:text-gray-200">
+              <span className="font-medium">{opt.label}.</span> {opt.text}
+            </span>
           </label>
         ))}
       </div>
     )
   }
 
-  if (type === 'TF') {
+  if (type === 'TF' || type === 'true_false') {
+    const trueLabel = question.options?.find(o => o.text === 'True' || o.label === 'True')?.label || 'True'
+    const falseLabel = question.options?.find(o => o.text === 'False' || o.label === 'False')?.label || 'False'
     return (
       <div className="flex gap-4">
-        {[true, false].map((val) => (
+        {[trueLabel, falseLabel].map((label) => (
           <label
-            key={String(val)}
+            key={label}
             className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-              answer === val
+              answer === label
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
             }`}
@@ -208,18 +229,18 @@ function QuestionRenderer({ question, answer, onAnswer }) {
             <input
               type="radio"
               name={`q-${question.id}`}
-              checked={answer === val}
-              onChange={() => onAnswer(val)}
+              checked={answer === label}
+              onChange={() => onAnswer(label)}
               className="accent-blue-500"
             />
-            <span className="font-medium text-gray-800 dark:text-gray-200">{val ? 'True' : 'False'}</span>
+            <span className="font-medium text-gray-800 dark:text-gray-200">{label}</span>
           </label>
         ))}
       </div>
     )
   }
 
-  if (type === 'ID') {
+  if (type === 'ID' || type === 'identification') {
     return (
       <input
         type="text"
@@ -231,7 +252,7 @@ function QuestionRenderer({ question, answer, onAnswer }) {
     )
   }
 
-  if (type === 'ES') {
+  if (type === 'ES' || type === 'essay') {
     return (
       <textarea
         value={answer ?? ''}
@@ -246,7 +267,7 @@ function QuestionRenderer({ question, answer, onAnswer }) {
   return <p className="text-gray-500">Unsupported question type</p>
 }
 
-function Timer({ timeRemaining, onTimeUp }) {
+function Timer({ timeRemaining }) {
   const hours = Math.floor(timeRemaining / 3600)
   const minutes = Math.floor((timeRemaining % 3600) / 60)
   const seconds = timeRemaining % 60
@@ -273,7 +294,7 @@ function Timer({ timeRemaining, onTimeUp }) {
   )
 }
 
-function ConfirmDialog({ open, onConfirm, onCancel }) {
+function ConfirmDialog({ open, onConfirm, onCancel, unansweredCount, markedCount }) {
   if (!open) return null
 
   return (
@@ -291,12 +312,22 @@ function ConfirmDialog({ open, onConfirm, onCancel }) {
           </div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Submit Quiz?</h3>
         </div>
+        {unansweredCount > 0 && (
+          <p className="text-amber-600 dark:text-amber-400 text-sm font-medium mb-2">
+            You have {unansweredCount} unanswered question{unansweredCount !== 1 ? 's' : ''}.
+          </p>
+        )}
+        {markedCount > 0 && (
+          <p className="text-amber-600 dark:text-amber-400 text-sm font-medium mb-2">
+            You have {markedCount} marked question{markedCount !== 1 ? 's' : ''} for review.
+          </p>
+        )}
         <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
           Are you sure you want to submit your quiz? This action cannot be undone.
         </p>
         <div className="flex gap-3 justify-end">
           <Button variant="outline" onClick={onCancel}>Cancel</Button>
-          <Button onClick={onConfirm} className="bg-blue-600 hover:bg-blue-700 text-white">Submit</Button>
+          <Button onClick={onConfirm} className="bg-green-600 hover:bg-green-700 text-white">Submit</Button>
         </div>
       </motion.div>
     </div>
@@ -304,9 +335,9 @@ function ConfirmDialog({ open, onConfirm, onCancel }) {
 }
 
 function ResultsScreen({ results, quiz, onBack }) {
-  const score = results.score ?? 0
-  const total = results.total_points ?? results.total ?? 0
-  const percentage = total > 0 ? Math.round((score / total) * 100) : 0
+  const score = results.total_score ?? results.score ?? 0
+  const total = results.max_score ?? results.total_points ?? results.total ?? 0
+  const percentage = results.percentage ?? (total > 0 ? Math.round((score / total) * 100) : 0)
   const passed = results.passed ?? (quiz.passing_score != null ? percentage >= quiz.passing_score : null)
 
   return (
@@ -355,54 +386,42 @@ function ResultsScreen({ results, quiz, onBack }) {
         </CardBody>
       </Card>
 
-      {results.details && results.details.length > 0 && (
+      {results.answers && results.answers.length > 0 && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Review Answers</h3>
-          {results.details.map((detail, idx) => {
+          {results.answers.map((detail, idx) => {
             const type = detail.question_type || detail.type
             const isCorrect = detail.is_correct
 
             return (
-              <Card key={detail.question_id ?? idx}>
+              <Card key={detail.question ?? idx}>
                 <CardBody className="p-5">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Q{idx + 1}</span>
-                      <Badge variant={type === 'ES' ? 'warning' : isCorrect ? 'success' : 'danger'} className="text-xs">
-                        {type === 'ES' ? 'Pending Review' : isCorrect ? 'Correct' : 'Incorrect'}
+                      <Badge variant={type === 'essay' ? 'warning' : isCorrect ? 'success' : 'danger'} className="text-xs">
+                        {type === 'essay' ? 'Pending Review' : isCorrect ? 'Correct' : 'Incorrect'}
                       </Badge>
                     </div>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {detail.points_earned ?? 0}/{detail.points ?? 1} pts
+                      {detail.points_earned ?? 0}/{detail.question_points ?? detail.points ?? 1} pts
                     </span>
                   </div>
 
-                  <p className="text-gray-800 dark:text-gray-200 font-medium mb-3">{detail.question_text ?? detail.question}</p>
+                  <p className="text-gray-800 dark:text-gray-200 font-medium mb-3">{detail.question_content ?? detail.question_text ?? detail.question}</p>
 
                   <div className="space-y-2 text-sm">
                     <div>
                       <span className="text-gray-500 dark:text-gray-400">Your answer: </span>
                       <span className={`${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} font-medium`}>
-                        {type === 'ES'
-                          ? (detail.student_answer || 'No answer provided')
-                          : type === 'MC' || type === 'TF'
-                          ? (detail.student_answer_text ?? detail.student_answer ?? 'No answer')
-                          : (detail.student_answer ?? 'No answer')}
+                        {Array.isArray(detail.answer) ? detail.answer.join(', ') : (detail.answer || 'No answer')}
                       </span>
                     </div>
 
-                    {!isCorrect && detail.correct_answer_text != null && (
+                    {!isCorrect && detail.correct_answer_display != null && (
                       <div>
                         <span className="text-gray-500 dark:text-gray-400">Correct answer: </span>
-                        <span className="text-green-600 dark:text-green-400 font-medium">{detail.correct_answer_text}</span>
-                      </div>
-                    )}
-
-                    {detail.explanation && (
-                      <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <p className="text-blue-700 dark:text-blue-300 text-sm">
-                          <span className="font-semibold">Explanation:</span> {detail.explanation}
-                        </p>
+                        <span className="text-green-600 dark:text-green-400 font-medium">{detail.correct_answer_display}</span>
                       </div>
                     )}
                   </div>
@@ -423,7 +442,7 @@ function ResultsScreen({ results, quiz, onBack }) {
 export default function QuizTake() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user: _user } = useAuth()
 
   const [quiz, setQuiz] = useState(null)
   const [attempt, setAttempt] = useState(null)
@@ -437,9 +456,23 @@ export default function QuizTake() {
   const [submitting, setSubmitting] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [direction, setDirection] = useState(1)
+  const [autosaveStatus, setAutosaveStatus] = useState(null)
+  const [lastSaved, setLastSaved] = useState(null)
 
   const timerRef = useRef(null)
+  const autosaveRef = useRef(null)
+  const answersRef = useRef(answers)
+  const attemptRef = useRef(attempt)
+
   const questions = attempt?.questions ?? quiz?.questions ?? []
+
+  useEffect(() => {
+    answersRef.current = answers
+  }, [answers])
+
+  useEffect(() => {
+    attemptRef.current = attempt
+  }, [attempt])
 
   useEffect(() => {
     async function loadQuiz() {
@@ -447,9 +480,9 @@ export default function QuizTake() {
         setLoading(true)
         const res = await api.get(`/quizzes/${id}/`)
         setQuiz(res.data)
-      } catch (err) {
+      } catch {
         toast.error('Failed to load quiz')
-        navigate('/quizzes')
+        navigate('/my-quizzes')
       } finally {
         setLoading(false)
       }
@@ -465,6 +498,8 @@ export default function QuizTake() {
       const end = started + attempt.time_limit_minutes * 60 * 1000
       const remaining = Math.max(0, Math.floor((end - Date.now()) / 1000))
       setTimeRemaining(remaining)
+    } else if (!attempt.time_limit_minutes) {
+      setTimeRemaining(null)
     }
   }, [attempt])
 
@@ -485,12 +520,116 @@ export default function QuizTake() {
     return () => clearInterval(timerRef.current)
   }, [timeRemaining !== null, submitted])
 
+  const logIntegrityEvent = useCallback(async (eventType, details = {}) => {
+    if (!attemptRef.current || submitted) return
+    try {
+      await api.post(`/quizzes/${id}/log_integrity/`, {
+        event_type: eventType,
+        details,
+      })
+    } catch {
+      // Silently fail - don't disrupt the student
+    }
+  }, [id, submitted])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && attemptRef.current && !submitted) {
+        logIntegrityEvent('tab_blur', { timestamp: Date.now() })
+      }
+    }
+
+    const handleBeforeUnload = (e) => {
+      if (attemptRef.current && !submitted) {
+        e.preventDefault()
+        e.returnValue = ''
+        logIntegrityEvent('window_blur', { timestamp: Date.now() })
+      }
+    }
+
+    const handleKeyDown = (e) => {
+      if (attemptRef.current && !submitted) {
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+          logIntegrityEvent('devtools_open', { key: e.key })
+        }
+        if (e.ctrlKey && e.key === 'u') {
+          e.preventDefault()
+          logIntegrityEvent('copy_attempt', { action: 'view_source' })
+        }
+      }
+    }
+
+    const handleContextMenu = () => {
+      if (attemptRef.current && !submitted) {
+        logIntegrityEvent('right_click', { timestamp: Date.now() })
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('contextmenu', handleContextMenu)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('contextmenu', handleContextMenu)
+    }
+  }, [submitted, logIntegrityEvent])
+
+  const performAutosave = useCallback(async () => {
+    if (!attemptRef.current || submitted) return
+
+    const currentAnswers = answersRef.current
+    const answerEntries = Object.entries(currentAnswers).filter(([, v]) => v !== undefined && v !== '')
+
+    if (answerEntries.length === 0) return
+
+    setAutosaveStatus('saving')
+    try {
+      const answersPayload = answerEntries.map(([questionId, value]) => ({
+        question_id: parseInt(questionId),
+        answer: value,
+      }))
+
+      await api.post(`/quizzes/${id}/autosave/`, { answers: answersPayload })
+      setAutosaveStatus('saved')
+      setLastSaved(new Date())
+      setTimeout(() => setAutosaveStatus(null), 2000)
+    } catch {
+      setAutosaveStatus('error')
+      setTimeout(() => setAutosaveStatus(null), 3000)
+    }
+  }, [id, submitted])
+
+  useEffect(() => {
+    if (!attempt || submitted) return
+
+    autosaveRef.current = setInterval(performAutosave, AUTOSAVE_INTERVAL)
+
+    return () => {
+      if (autosaveRef.current) {
+        clearInterval(autosaveRef.current)
+      }
+    }
+  }, [attempt, submitted, performAutosave])
+
   const handleStart = useCallback(async () => {
     try {
       setLoading(true)
       const res = await api.post(`/quizzes/${id}/start/`)
       setAttempt(res.data)
-      setAnswers({})
+
+      const savedAnswers = {}
+      if (res.data.questions) {
+        res.data.questions.forEach(q => {
+          if (q.student_answer !== undefined) {
+            savedAnswers[q.id] = q.student_answer
+          }
+        })
+      }
+      setAnswers(savedAnswers)
       setCurrentQuestion(0)
       setMarkedQuestions(new Set())
       setDirection(1)
@@ -528,6 +667,9 @@ export default function QuizTake() {
     try {
       setSubmitting(true)
       clearInterval(timerRef.current)
+      if (autosaveRef.current) {
+        clearInterval(autosaveRef.current)
+      }
 
       const answersPayload = questions.map((q) => ({
         question_id: q.id,
@@ -551,11 +693,20 @@ export default function QuizTake() {
   if (!quiz) return null
 
   if (submitted && results) {
-    return <ResultsScreen results={results} quiz={quiz} onBack={() => navigate('/quizzes')} />
+    return <ResultsScreen results={results} quiz={quiz} onBack={() => navigate('/my-quizzes')} />
   }
 
   if (!attempt) {
-    return <QuizInfoScreen quiz={quiz} onStart={handleStart} loading={loading} />
+    return (
+      <QuizInfoScreen
+        quiz={quiz}
+        onStart={handleStart}
+        loading={loading}
+        hasAttempt={quiz.student_has_attempted}
+        attemptsUsed={quiz.student_attempts_used ?? 0}
+        maxAttempts={quiz.max_attempts}
+      />
+    )
   }
 
   const q = questions[currentQuestion]
@@ -570,7 +721,25 @@ export default function QuizTake() {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate">{quiz.title}</h1>
           <div className="flex items-center gap-3">
-            <Timer timeRemaining={timeRemaining ?? 0} onTimeUp={handleSubmit} />
+            {autosaveStatus && (
+              <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
+                autosaveStatus === 'saving' ? 'text-amber-600 bg-amber-50' :
+                autosaveStatus === 'saved' ? 'text-green-600 bg-green-50' :
+                'text-red-600 bg-red-50'
+              }`}>
+                <Save className="w-3 h-3" />
+                {autosaveStatus === 'saving' ? 'Saving...' :
+                 autosaveStatus === 'saved' ? 'Saved' : 'Save failed'}
+              </div>
+            )}
+            {lastSaved && !autosaveStatus && (
+              <span className="text-xs text-gray-400">
+                Last saved: {lastSaved.toLocaleTimeString()}
+              </span>
+            )}
+            {timeRemaining !== null && (
+              <Timer timeRemaining={timeRemaining} onTimeUp={handleSubmit} />
+            )}
             <Button
               onClick={() => setShowConfirm(true)}
               disabled={submitting}
@@ -629,7 +798,7 @@ export default function QuizTake() {
                       </div>
 
                       <p className="text-gray-800 dark:text-gray-200 text-lg font-medium mb-6 whitespace-pre-wrap">
-                        {q.question_text ?? q.question}
+                        {q.content ?? q.question_text ?? q.question}
                       </p>
 
                       <QuestionRenderer
@@ -700,6 +869,8 @@ export default function QuizTake() {
           open={showConfirm}
           onConfirm={handleSubmit}
           onCancel={() => setShowConfirm(false)}
+          unansweredCount={questions.length - answeredCount}
+          markedCount={markedCount}
         />
       </AnimatePresence>
     </div>

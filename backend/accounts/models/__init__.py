@@ -13,7 +13,7 @@ from .finance import ScratchCard, Fee
 from .notifications import Notification, NotificationPreference, FCMToken
 from .enrollment import (
     EnrollmentApplication, EnrollmentDocument, EnrollmentStatusHistory,
-    EnrollmentWaitlist, ParentLink,
+    EnrollmentWaitlist, ParentLink, EnrollmentChecklist, EnrollmentDocumentVersion,
 )
 from .communication import ParentTeacherMeeting, BehavioralRecord
 from .events import SchoolEvent, WebsiteContent
@@ -27,9 +27,10 @@ from .departments import Department, StaffPerformance
 from .records import (
     Transcript, TranscriptLineItem, TransferCertificate,
     CharacterCertificate, AchievementRecord, RecordRequest,
+    StudentPromotionRecord,
 )
 from .quiz import (
-    Question, QuestionBank, Quiz, QuizQuestion, QuizAttempt, QuizAnswer,
+    Question, QuestionBank, Quiz, QuizQuestion, QuizAttempt, QuizAnswer, IntegrityLog,
 )
 from .lesson_plan import CurriculumStandard, LessonPlan, WeeklyPlan
 from .school_forms import (
@@ -53,7 +54,7 @@ __all__ = [
     'ScratchCard', 'Fee',
     'Notification', 'NotificationPreference', 'FCMToken',
     'EnrollmentApplication', 'EnrollmentDocument', 'EnrollmentStatusHistory',
-    'EnrollmentWaitlist', 'ParentLink',
+    'EnrollmentWaitlist', 'ParentLink', 'EnrollmentChecklist', 'EnrollmentDocumentVersion',
     'ParentTeacherMeeting', 'BehavioralRecord',
     'SchoolEvent', 'WebsiteContent',
     'Assignment', 'Submission', 'Grade',
@@ -63,7 +64,8 @@ __all__ = [
     'Department', 'StaffPerformance',
     'Transcript', 'TranscriptLineItem', 'TransferCertificate',
     'CharacterCertificate', 'AchievementRecord', 'RecordRequest',
-    'Question', 'QuestionBank', 'Quiz', 'QuizQuestion', 'QuizAttempt', 'QuizAnswer',
+    'StudentPromotionRecord',
+    'Question', 'QuestionBank', 'Quiz', 'QuizQuestion', 'QuizAttempt', 'QuizAnswer', 'IntegrityLog',
     'CurriculumStandard', 'LessonPlan', 'WeeklyPlan',
     'SchoolForm1', 'SchoolForm1Student',
     'SchoolForm5', 'SchoolForm5Student',

@@ -75,6 +75,7 @@ const ParentManagement = lazy(() => retryImport(() => import('../pages/ParentMan
 // Phase 2 - Teacher Productivity
 const QuizManagement = lazy(() => retryImport(() => import('../pages/QuizManagement')));
 const QuizTake = lazy(() => retryImport(() => import('../pages/QuizTake')));
+const StudentQuizzes = lazy(() => retryImport(() => import('../pages/StudentQuizzes')));
 const QuestionBankPage = lazy(() => retryImport(() => import('../pages/QuestionBank')));
 const LessonPlans = lazy(() => retryImport(() => import('../pages/LessonPlans')));
 const GradeAnalyticsPage = lazy(() => retryImport(() => import('../pages/GradeAnalytics')));
@@ -151,6 +152,7 @@ export const protectedRoutes = [
 
   // Phase 2 - Teacher Productivity
   { path: 'quizzes', element: QuizManagement, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'my-quizzes', element: StudentQuizzes, roles: [Role.STUDENT] },
   { path: 'quizzes/take/:id', element: QuizTake, roles: [Role.STUDENT] },
   { path: 'question-bank', element: QuestionBankPage, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'lesson-plans', element: LessonPlans, roles: [Role.ADMIN, Role.STAFF] },
