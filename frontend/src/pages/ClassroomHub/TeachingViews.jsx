@@ -28,9 +28,11 @@ export const QuizManagementView = ({ classroom }) => {
   const [showCreate, setShowCreate] = useState(false);
   const [expandedQuiz, setExpandedQuiz] = useState(null);
   const [subjects, setSubjects] = useState([]);
+  const [createStep, setCreateStep] = useState(1);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [form, setForm] = useState({
     title: '', description: '', subject: '', time_limit_minutes: '',
-    grade_component: 'quiz', max_attempts: 1, shuffle_questions: false,
+    grade_component: 'quiz', max_attempts: 1, shuffle_questions: true,
     show_correct_answers: true,
   });
   const [saving, setSaving] = useState(false);
@@ -53,6 +55,32 @@ export const QuizManagementView = ({ classroom }) => {
       const res = await api.get(`/classroom-subjects/by_classroom/?classroom_id=${classroom.id}`);
       setSubjects(res.data || []);
     } catch { /* silent */ }
+  };
+
+  const QUIZ_TEMPLATES = [
+    { id: 'quick', label: 'Quick Quiz', desc: 'Short check-in, 15 min', icon: '⚡', time: 15, attempts: 1, shuffle: true, showAnswers: true },
+    { id: 'standard', label: 'Standard Quiz', desc: 'Regular quiz, 30 min', icon: '📝', time: 30, attempts: 1, shuffle: true, showAnswers: true },
+    { id: 'exam', label: 'Long Exam', desc: 'Formal exam, 60 min', icon: '📋', time: 60, attempts: 1, shuffle: false, showAnswers: true },
+    { id: 'practice', label: 'Practice Quiz', desc: 'No time limit, retakes OK', icon: '🎯', time: null, attempts: 99, shuffle: true, showAnswers: true },
+    { id: 'custom', label: 'Custom', desc: 'Set everything yourself', icon: '⚙️', time: null, attempts: 1, shuffle: true, showAnswers: true },
+  ];
+
+  const applyTemplate = (tpl) => {
+    setSelectedTemplate(tpl.id);
+    setForm(prev => ({
+      ...prev,
+      time_limit_minutes: tpl.time || '',
+      max_attempts: tpl.attempts,
+      shuffle_questions: tpl.shuffle,
+      show_correct_answers: tpl.showAnswers,
+    }));
+  };
+
+  const openCreateModal = () => {
+    setForm({ title: '', description: '', subject: '', time_limit_minutes: '', grade_component: 'quiz', max_attempts: 1, shuffle_questions: true, show_correct_answers: true });
+    setSelectedTemplate(null);
+    setCreateStep(1);
+    setShowCreate(true);
   };
 
   const filtered = useMemo(() => {
@@ -162,7 +190,7 @@ export const QuizManagementView = ({ classroom }) => {
               }`}>{f.label}</button>
           ))}
         </div>
-        <Button variant="primary" size="sm" className="text-[10px] px-2 py-1 whitespace-nowrap" onClick={() => setShowCreate(true)}>
+        <Button variant="primary" size="sm" className="text-[10px] px-2 py-1 whitespace-nowrap" onClick={openCreateModal}>
           <Plus className="w-3 h-3 mr-1" /> New Quiz
         </Button>
       </div>
@@ -289,75 +317,203 @@ export const QuizManagementView = ({ classroom }) => {
         </div>
       )}
 
-      {/* Create Quiz Modal */}
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} size="md">
-        <ModalBody>
-          <h3 className="text-sm font-bold text-slate-900 mb-3">Create Quiz</h3>
-          <div className="space-y-2">
+      {/* Create Quiz Wizard */}
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} size="lg">
+        <ModalBody className="p-0">
+          {/* Header with step indicator */}
+          <div className="bg-violet-600 px-6 py-4">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="text-base font-bold text-white">Create New Quiz</h2>
+                <p className="text-violet-200 text-xs mt-0.5">
+                  {createStep === 1 ? 'Choose a template and add details' : 'Configure timing and options'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${createStep >= 1 ? 'bg-white text-violet-600' : 'bg-violet-500 text-violet-300'}`}>1</span>
+                <span className={`w-5 h-0.5 ${createStep >= 2 ? 'bg-white' : 'bg-violet-500'}`} />
+                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${createStep >= 2 ? 'bg-white text-violet-600' : 'bg-violet-500 text-violet-300'}`}>2</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="px-6 py-5">
+            {/* STEP 1: Quiz Details + Templates */}
+            {createStep === 1 && (
+              <div className="space-y-5">
+                {/* Template Picker */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-2">Quick Start — Pick a Template</label>
+                  <div className="grid grid-cols-5 gap-2">
+                    {QUIZ_TEMPLATES.map(tpl => (
+                      <button key={tpl.id} onClick={() => applyTemplate(tpl)}
+                        className={`relative p-3 rounded-xl border-2 text-center transition-all ${
+                          selectedTemplate === tpl.id
+                            ? 'border-violet-500 bg-violet-50 shadow-md'
+                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }`}>
+                        <span className="text-xl block mb-1">{tpl.icon}</span>
+                        <p className="text-[11px] font-bold text-slate-800 leading-tight">{tpl.label}</p>
+                        <p className="text-[9px] text-slate-500 mt-0.5 leading-tight">{tpl.desc}</p>
+                        {selectedTemplate === tpl.id && (
+                          <div className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-violet-500 rounded-full flex items-center justify-center">
+                            <CheckCircle className="w-3 h-3 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Quiz Title *</label>
+                  <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                    placeholder="e.g. Chapter 5 Vocabulary Quiz" />
+                  <p className="text-[10px] text-slate-400 mt-1">Give it a clear name students will recognize</p>
+                </div>
+
+                {/* Subject + Component */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Subject *</label>
+                    <select value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm bg-white">
+                      <option value="">Select subject</option>
+                      {subjects.map(s => <option key={s.id} value={s.subject}>{s.subject_name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1">Grade Component</label>
+                    <select value={form.grade_component} onChange={(e) => setForm({ ...form, grade_component: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm bg-white">
+                      <option value="quiz">Quiz</option>
+                      <option value="exam">Exam</option>
+                      <option value="activity">Activity</option>
+                    </select>
+                    <p className="text-[10px] text-slate-400 mt-1">Links to grade calculation</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Description <span className="font-normal text-slate-400">(optional)</span></label>
+                  <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                    rows={2} placeholder="Brief instructions for students (e.g. 'Answer all questions. You have 30 minutes.')" />
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: Settings */}
+            {createStep === 2 && (
+              <div className="space-y-5">
+                {/* Time Limit */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Time Limit</label>
+                  <div className="flex items-center gap-3">
+                    <input type="number" min="1" max="300" value={form.time_limit_minutes}
+                      onChange={(e) => setForm({ ...form, time_limit_minutes: e.target.value })}
+                      className="w-28 px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                      placeholder="—" />
+                    <span className="text-sm text-slate-600">minutes</span>
+                    <button type="button" onClick={() => setForm(prev => ({ ...prev, time_limit_minutes: '' }))}
+                      className="text-xs text-violet-600 hover:text-violet-800 font-medium">No limit</button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">Leave empty or click No limit for untimed quizzes</p>
+                </div>
+
+                {/* Max Attempts */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Attempts Allowed</label>
+                  <div className="flex items-center gap-3">
+                    <input type="number" min="1" max="99" value={form.max_attempts}
+                      onChange={(e) => setForm({ ...form, max_attempts: parseInt(e.target.value) || 1 })}
+                      className="w-28 px-4 py-2.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm" />
+                    <span className="text-sm text-slate-600">attempts</span>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-1">Set to 99 for unlimited practice attempts</p>
+                </div>
+
+                {/* Options */}
+                <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                  <p className="text-xs font-bold text-slate-700">Quiz Behavior</p>
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input type="checkbox" checked={form.shuffle_questions}
+                      onChange={(e) => setForm({ ...form, shuffle_questions: e.target.checked })}
+                      className="mt-0.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-700 group-hover:text-slate-900">Shuffle question order</p>
+                      <p className="text-[10px] text-slate-400">Each student sees questions in a different random order</p>
+                    </div>
+                  </label>
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <input type="checkbox" checked={form.show_correct_answers}
+                      onChange={(e) => setForm({ ...form, show_correct_answers: e.target.checked })}
+                      className="mt-0.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                    <div>
+                      <p className="text-sm font-medium text-slate-700 group-hover:text-slate-900">Show correct answers after submission</p>
+                      <p className="text-[10px] text-slate-400">Students see which answers were right/wrong immediately</p>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Summary Card */}
+                <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+                  <p className="text-xs font-bold text-violet-800 mb-2">Quiz Summary</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                    <div><span className="font-medium">Title:</span> {form.title || '—'}</div>
+                    <div><span className="font-medium">Subject:</span> {subjects.find(s => s.subject == form.subject)?.subject_name || '—'}</div>
+                    <div><span className="font-medium">Time:</span> {form.time_limit_minutes ? `${form.time_limit_minutes} minutes` : 'No limit'}</div>
+                    <div><span className="font-medium">Attempts:</span> {form.max_attempts >= 99 ? 'Unlimited' : form.max_attempts}</div>
+                    <div><span className="font-medium">Shuffle:</span> {form.shuffle_questions ? 'Yes' : 'No'}</div>
+                    <div><span className="font-medium">Show answers:</span> {form.show_correct_answers ? 'Yes' : 'No'}</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
             <div>
-              <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Title *</label>
-              <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className={modalInputCls + ' text-xs py-1.5'} placeholder="Quiz title" />
+              {createStep === 2 && (
+                <button onClick={() => setCreateStep(1)} className="text-sm text-slate-600 hover:text-slate-800 font-medium flex items-center gap-1">
+                  ← Back
+                </button>
+              )}
             </div>
-            <div>
-              <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Description</label>
-              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className={modalInputCls + ' text-xs'} rows={2} placeholder="Brief description" />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Subject *</label>
-                <select value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                  className={modalInputCls + ' text-xs py-1.5'}>
-                  <option value="">Select subject</option>
-                  {subjects.map(s => <option key={s.id} value={s.subject}>{s.subject_name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Component</label>
-                <select value={form.grade_component} onChange={(e) => setForm({ ...form, grade_component: e.target.value })}
-                  className={modalInputCls + ' text-xs py-1.5'}>
-                  <option value="quiz">Quiz</option>
-                  <option value="exam">Exam</option>
-                  <option value="activity">Activity</option>
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Time Limit (minutes)</label>
-                <input type="number" min="1" value={form.time_limit_minutes}
-                  onChange={(e) => setForm({ ...form, time_limit_minutes: e.target.value })}
-                  className={modalInputCls + ' text-xs py-1.5'} placeholder="Optional" />
-              </div>
-              <div>
-                <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Max Attempts</label>
-                <input type="number" min="1" value={form.max_attempts}
-                  onChange={(e) => setForm({ ...form, max_attempts: e.target.value })}
-                  className={modalInputCls + ' text-xs py-1.5'} />
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                <input type="checkbox" checked={form.shuffle_questions}
-                  onChange={(e) => setForm({ ...form, shuffle_questions: e.target.checked })}
-                  className="rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
-                Shuffle questions
-              </label>
-              <label className="flex items-center gap-1.5 text-[10px] text-slate-600">
-                <input type="checkbox" checked={form.show_correct_answers}
-                  onChange={(e) => setForm({ ...form, show_correct_answers: e.target.checked })}
-                  className="rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
-                Show answers after submit
-              </label>
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowCreate(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 rounded-lg hover:bg-slate-200 transition-colors">
+                Cancel
+              </button>
+              {createStep === 1 ? (
+                <button onClick={() => setCreateStep(2)}
+                  disabled={!form.title.trim() || !form.subject}
+                  className="px-5 py-2 text-sm font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                  Next →
+                </button>
+              ) : (
+                <button onClick={handleCreate} disabled={saving}
+                  className="px-5 py-2 text-sm font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
+                  {saving ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      Create Quiz
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </ModalBody>
-        <ModalFooter>
-          <ModalBtnSecondary onClick={() => setShowCreate(false)} className="text-[10px]">Cancel</ModalBtnSecondary>
-          <ModalBtnPrimary onClick={handleCreate} loading={saving} disabled={!form.title.trim() || !form.subject}
-            className="text-[10px]">Create Quiz</ModalBtnPrimary>
-        </ModalFooter>
       </Modal>
     </div>
   );
