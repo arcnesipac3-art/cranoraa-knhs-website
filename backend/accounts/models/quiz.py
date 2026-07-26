@@ -122,7 +122,15 @@ class Quiz(models.Model):
     end_at = models.DateTimeField(null=True, blank=True)
 
     grade_component = models.CharField(max_length=30, blank=True, default='',
-        choices=[('', 'Not linked'), ('written_work', 'Written Work'), ('performance_task', 'Performance Task'), ('quarterly_assessment', 'Quarterly Assessment')])
+        choices=[
+            ('', 'Not linked'),
+            ('quiz', 'Quiz'),
+            ('exam', 'Exam'),
+            ('activity', 'Activity'),
+            ('written_work', 'Written Work'),
+            ('performance_task', 'Performance Task'),
+            ('quarterly_assessment', 'Quarterly Assessment'),
+        ])
 
     total_points = models.IntegerField(default=0)
     question_count = models.IntegerField(default=0)
