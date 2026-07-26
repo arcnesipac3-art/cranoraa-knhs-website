@@ -3,14 +3,16 @@ import { Link } from 'react-router-dom';
 import { 
   BookOpen, Users, Calendar, FileText, MessageSquare, 
   BarChart2, Settings, UserCheck, GraduationCap, ClipboardList,
-  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard
+  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard,
+  HelpCircle, FileCheck, Download, Stethoscope
 } from 'lucide-react';
 
 // Icon mapping
 const iconMap = {
   BookOpen, Users, Calendar, FileText, MessageSquare,
   BarChart2, Settings, UserCheck, GraduationCap, ClipboardList,
-  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard
+  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard,
+  HelpCircle, FileCheck, Download, Stethoscope
 };
 
 // Role-based quick access link configurations
@@ -21,15 +23,21 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Schedule', path: '/my-schedule', icon: 'Calendar', color: 'green' },
     { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
     { label: 'Grades', path: '/my-classes?view=grades', icon: 'Award', color: 'violet' },
-    { label: 'Settings', path: '/settings', icon: 'Settings', color: 'indigo' }
+    { label: 'Settings', path: '/settings', icon: 'Settings', color: 'indigo' },
+    { label: 'Download SF9', path: '/my-classes?view=grades', icon: 'Download', color: 'teal' },
+    { label: 'Certificates', path: '/my-classes?tab=records', icon: 'FileCheck', color: 'orange' },
   ],
   teacher: [
     { label: 'My Classes',    path: '/my-classes',          icon: 'BookOpen',      color: 'violet' },
     { label: 'Schedule',      path: '/my-schedule',          icon: 'Clock',         color: 'green' },
     { label: 'Announcements', path: '/announcements',        icon: 'Bell',          color: 'amber' },
-    { label: 'People',        path: '/people',               icon: 'Users',         color: 'indigo' },
-    { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
-    { label: 'Grades',        path: '/my-classes?view=grades', icon: 'Award',       color: 'violet' }
+    { label: 'Quizzes',       path: '/quizzes',              icon: 'HelpCircle',    color: 'blue' },
+    { label: 'Lesson Plans',  path: '/lesson-plans',         icon: 'FileText',      color: 'emerald' },
+    { label: 'Grade Analytics', path: '/grade-analytics',    icon: 'BarChart2',     color: 'rose' },
+    { label: 'Question Bank', path: '/question-bank',        icon: 'Clipboard',     color: 'indigo' },
+    { label: 'People',        path: '/people',               icon: 'Users',         color: 'cyan' },
+    { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'pink' },
+    { label: 'Grades',        path: '/my-classes?view=grades', icon: 'Award',       color: 'amber' },
   ],
   parent: [
     { label: 'Dashboard',     path: '/parent-dashboard',     icon: 'Award',         color: 'violet' },

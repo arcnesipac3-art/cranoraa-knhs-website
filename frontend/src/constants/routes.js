@@ -68,9 +68,6 @@ const QuestionBankPage = lazy(() => retryImport(() => import('../pages/QuestionB
 const LessonPlans = lazy(() => retryImport(() => import('../pages/LessonPlans')));
 const GradeAnalyticsPage = lazy(() => retryImport(() => import('../pages/GradeAnalytics')));
 
-// Phase 3 - Student Portal
-const StudentPortal = lazy(() => retryImport(() => import('../pages/StudentPortal')));
-
 // ── Route definitions ────────────────────────────────────────────────────────
 
 /**
@@ -137,9 +134,6 @@ export const protectedRoutes = [
   { path: 'question-bank', element: QuestionBankPage, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'lesson-plans', element: LessonPlans, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'grade-analytics', element: GradeAnalyticsPage, roles: [Role.ADMIN, Role.STAFF] },
-
-  // Phase 3 - Student Portal
-  { path: 'student-portal', element: StudentPortal, roles: [Role.STUDENT] },
 
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },

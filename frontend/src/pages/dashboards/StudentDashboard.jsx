@@ -10,6 +10,9 @@ import {
 import QuickAccessLinks from '../../components/dashboard/QuickAccessLinks';
 import GradeRadarChart from '../../components/dashboard/GradeRadarChart';
 import { SchoolHeaderBanner, StatCard, TodayScheduleWidget } from './shared';
+import {
+  Download, FileCheck, TrendingUp, AlertTriangle,
+} from 'lucide-react';
 
 /**
  * Student Dashboard - DepEd Government Education Style
@@ -602,7 +605,55 @@ const StudentDashboard = () => {
       </div>
 
       {/* ══════════════════════════════════════════════════════════════ */}
-      {/* ROW 3: ANNOUNCEMENTS | MESSAGES */}
+      {/* ROW 3: QUICK SERVICES - SF9, Certificates, Progress */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Download SF9 */}
+        <button
+          onClick={() => navigate('/my-classes?view=grades')}
+          className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 hover:border-teal-300 hover:shadow-md transition-all text-left group"
+        >
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 flex items-center justify-center text-white flex-shrink-0">
+            <Download size={18} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-extrabold text-slate-900">Download SF9</p>
+            <p className="text-xs text-slate-500 truncate">Report Card (PDF)</p>
+          </div>
+        </button>
+
+        {/* Request Certificate */}
+        <button
+          onClick={() => navigate('/my-classes?tab=records')}
+          className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 hover:border-orange-300 hover:shadow-md transition-all text-left group"
+        >
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center text-white flex-shrink-0">
+            <FileCheck size={18} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-extrabold text-slate-900">Request Certificate</p>
+            <p className="text-xs text-slate-500 truncate">Character / Transfer Cert</p>
+          </div>
+        </button>
+
+        {/* Academic Progress */}
+        <button
+          onClick={() => navigate('/my-classes?view=grades')}
+          className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 hover:border-violet-300 hover:shadow-md transition-all text-left group"
+        >
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white flex-shrink-0">
+            <TrendingUp size={18} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-extrabold text-slate-900">My Progress</p>
+            <p className="text-xs text-slate-500 truncate">Academic Overview</p>
+          </div>
+        </button>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* ROW 4: ANNOUNCEMENTS | MESSAGES */}
       {/* ══════════════════════════════════════════════════════════════ */}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
