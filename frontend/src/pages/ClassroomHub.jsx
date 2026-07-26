@@ -595,17 +595,11 @@ const ClassroomHub = () => {
           )}
 
           {activeTab === 'quizzes' && isTeacher && (
-            <QuizzesView
-              classroom={selectedClass}
-              onNavigate={(view) => navigate(`/my-classes?classroom=${selectedClass.id}&view=${view}`)}
-            />
+            <QuizzesView classroom={selectedClass} />
           )}
 
           {activeTab === 'lesson-plans' && isTeacher && (
-            <LessonPlansView
-              classroom={selectedClass}
-              onNavigate={(view) => navigate(`/my-classes?classroom=${selectedClass.id}&view=${view}`)}
-            />
+            <LessonPlansView classroom={selectedClass} />
           )}
 
           {activeTab === 'analytics' && isTeacher && (
@@ -613,10 +607,7 @@ const ClassroomHub = () => {
           )}
 
           {activeTab === 'question-bank' && isTeacher && (
-            <QuestionBankView
-              classroom={selectedClass}
-              onNavigate={(view) => navigate(`/my-classes?classroom=${selectedClass.id}&view=${view}`)}
-            />
+            <QuestionBankView classroom={selectedClass} />
           )}
         </AnimatePresence>
       </div>
