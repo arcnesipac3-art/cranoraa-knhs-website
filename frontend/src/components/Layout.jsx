@@ -305,7 +305,6 @@ const Layout = () => {
         { label: 'Quizzes & Exams', path: '/my-classes?view=quizzes', category: 'Teaching', description: 'Manage quizzes and exams' },
         { label: 'Lesson Plans', path: '/my-classes?view=lesson-plans', category: 'Teaching', description: 'Daily and weekly lesson plans' },
         { label: 'Grade Analytics', path: '/my-classes?view=analytics', category: 'Teaching', description: 'Student performance analytics' },
-        { label: 'Question Bank', path: '/my-classes?view=question-bank', category: 'Teaching', description: 'Manage question banks' },
         { label: 'Grades', path: '/grade-input', category: 'Teaching', description: 'Input and manage student grades' },
         { label: 'Students', path: '/people?tab=students', category: 'Directory', description: 'Student directory' },
         { label: 'Announcements', path: '/announcements', category: 'Communication', description: 'Post announcements' },

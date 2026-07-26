@@ -14,10 +14,10 @@ import {
   Upload, Download, Clock, Folder, Trash2, Pencil,
   MessageSquare, Bell, ArrowLeft,
   Search, ChevronRight, BarChart2, X, Calendar,
-  HelpCircle, Clipboard
+  HelpCircle
 } from 'lucide-react';
 import { GradeManagementView, AttendanceView, AnalyticsView } from './ClassroomHub/EmbeddedViews';
-import { QuizzesView, LessonPlansView, ClassroomAnalyticsView, QuestionBankView } from './ClassroomHub/TeachingViews';
+import { QuizManagementView, StudentQuizzesView, LessonPlansView, ClassroomAnalyticsView } from './ClassroomHub/TeachingViews';
 
 /**
  * ClassroomHub - Google Classroom-inspired class management
@@ -63,8 +63,8 @@ const ClassroomHub = () => {
   // Sync activeTab with ?view= URL param
   const isTeacher = user?.role === 'staff' || user?.role === 'admin';
   const viewParam = searchParams.get('view');
-  const validTabs = ['stream', 'materials', 'people', 'grades', 'attendance'];
-  const teacherTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'quizzes', 'lesson-plans', 'analytics', 'question-bank'];
+  const validTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'quizzes'];
+  const teacherTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'quizzes', 'lesson-plans', 'analytics'];
 
   useEffect(() => {
     if (viewParam && (isTeacher ? teacherTabs : validTabs).includes(viewParam)) {
@@ -493,11 +493,10 @@ const ClassroomHub = () => {
               { key: 'people', label: 'People', icon: Users },
               { key: 'attendance', label: isTeacher ? 'Attendance' : 'My Attendance', icon: CheckSquare },
               { key: 'grades', label: isTeacher ? 'Grades' : 'My Grades', icon: Award },
+              { key: 'quizzes', label: isTeacher ? 'Quiz Management' : 'Quizzes', icon: HelpCircle },
               ...(isTeacher ? [
-                { key: 'quizzes', label: 'Quizzes', icon: HelpCircle },
                 { key: 'lesson-plans', label: 'Lesson Plans', icon: FileText },
                 { key: 'analytics', label: 'Analytics', icon: BarChart2 },
-                { key: 'question-bank', label: 'Question Bank', icon: Clipboard },
               ] : []),
             ].map(tab => {
               const Icon = tab.icon;
@@ -595,7 +594,11 @@ const ClassroomHub = () => {
           )}
 
           {activeTab === 'quizzes' && isTeacher && (
-            <QuizzesView classroom={selectedClass} />
+            <QuizManagementView classroom={selectedClass} />
+          )}
+
+          {activeTab === 'quizzes' && !isTeacher && (
+            <StudentQuizzesView classroom={selectedClass} />
           )}
 
           {activeTab === 'lesson-plans' && isTeacher && (
@@ -604,10 +607,6 @@ const ClassroomHub = () => {
 
           {activeTab === 'analytics' && isTeacher && (
             <ClassroomAnalyticsView classroom={selectedClass} />
-          )}
-
-          {activeTab === 'question-bank' && isTeacher && (
-            <QuestionBankView classroom={selectedClass} />
           )}
         </AnimatePresence>
       </div>

@@ -19,6 +19,7 @@ const iconMap = {
 export const QUICK_ACCESS_CONFIGS = {
   student: [
     { label: 'My Classes', path: '/my-classes', icon: 'BookOpen', color: 'blue' },
+    { label: 'Quizzes', path: '/my-classes?view=quizzes', icon: 'HelpCircle', color: 'violet' },
     { label: 'Announcements', path: '/announcements', icon: 'Bell', color: 'amber' },
     { label: 'Schedule', path: '/my-schedule', icon: 'Calendar', color: 'green' },
     { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
@@ -29,10 +30,9 @@ export const QUICK_ACCESS_CONFIGS = {
   ],
   teacher: [
     { label: 'My Classes',    path: '/my-classes',                          icon: 'BookOpen',      color: 'violet' },
-    { label: 'Quizzes',       path: '/my-classes?view=quizzes',             icon: 'HelpCircle',    color: 'blue' },
+    { label: 'Quiz Management', path: '/my-classes?view=quizzes',           icon: 'HelpCircle',    color: 'blue' },
     { label: 'Lesson Plans',  path: '/my-classes?view=lesson-plans',        icon: 'FileText',      color: 'emerald' },
     { label: 'Grade Analytics', path: '/my-classes?view=analytics',         icon: 'BarChart2',     color: 'rose' },
-    { label: 'Question Bank', path: '/my-classes?view=question-bank',       icon: 'Clipboard',     color: 'indigo' },
     { label: 'Grades',        path: '/my-classes?view=grades',              icon: 'Award',         color: 'amber' },
     { label: 'Schedule',      path: '/my-schedule',                          icon: 'Clock',         color: 'green' },
     { label: 'Announcements', path: '/announcements',                        icon: 'Bell',          color: 'pink' },

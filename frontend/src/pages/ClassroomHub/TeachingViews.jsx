@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -8,25 +9,33 @@ import {
 } from '../../components/ui';
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary, modalInputCls } from '../../components/ui/Modal';
 import {
-  Plus, Trash2, Clock, CheckCircle, XCircle,
-  FileText, Users, BarChart3, HelpCircle, Send,
-  Search, Calendar, BookOpen, Clipboard, X,
+  Plus, Trash2, Clock, CheckCircle, XCircle, Pencil,
+  FileText, BarChart3, HelpCircle, Send, Eye,
+  Search, Calendar, BookOpen, Play,
+  ChevronDown, ChevronRight, Trophy, Zap,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
 } from 'recharts';
 
-// ── Quizzes Tab ──────────────────────────────────────────────────────────────
-export const QuizzesView = ({ classroom }) => {
-  const { user } = useAuth();
+// ── Quiz Management (Teacher) ────────────────────────────────────────────────
+export const QuizManagementView = ({ classroom }) => {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
+  const [expandedQuiz, setExpandedQuiz] = useState(null);
   const [subjects, setSubjects] = useState([]);
-  const [form, setForm] = useState({ title: '', description: '', subject: '', time_limit_minutes: '', grade_component: 'quiz' });
+  const [form, setForm] = useState({
+    title: '', description: '', subject: '', time_limit_minutes: '',
+    grade_component: 'quiz', max_attempts: 1, shuffle_questions: false,
+    show_correct_answers: true,
+  });
   const [saving, setSaving] = useState(false);
+  const [quizResults, setQuizResults] = useState(null);
+  const [loadingResults, setLoadingResults] = useState(false);
 
   useEffect(() => { fetchQuizzes(); fetchSubjects(); }, [classroom.id]);
 
@@ -47,10 +56,18 @@ export const QuizzesView = ({ classroom }) => {
   };
 
   const filtered = useMemo(() => {
-    if (!search) return quizzes;
-    const q = search.toLowerCase();
-    return quizzes.filter(z => z.title?.toLowerCase().includes(q));
-  }, [quizzes, search]);
+    let list = quizzes;
+    if (filter !== 'all') list = list.filter(q => q.status === filter);
+    if (search) { const s = search.toLowerCase(); list = list.filter(q => q.title?.toLowerCase().includes(s)); }
+    return list;
+  }, [quizzes, search, filter]);
+
+  const stats = useMemo(() => ({
+    total: quizzes.length,
+    draft: quizzes.filter(q => q.status === 'draft').length,
+    published: quizzes.filter(q => q.status === 'published').length,
+    active: quizzes.filter(q => q.status === 'active').length,
+  }), [quizzes]);
 
   const handleCreate = async () => {
     if (!form.title.trim()) return toast.error('Title is required');
@@ -64,10 +81,13 @@ export const QuizzesView = ({ classroom }) => {
         subject: parseInt(form.subject, 10),
         time_limit_minutes: form.time_limit_minutes ? parseInt(form.time_limit_minutes, 10) : null,
         grade_component: form.grade_component,
+        max_attempts: parseInt(form.max_attempts, 10) || 1,
+        shuffle_questions: form.shuffle_questions,
+        show_correct_answers: form.show_correct_answers,
       };
       await api.post('/quizzes/', payload);
       setShowCreate(false);
-      setForm({ title: '', description: '', subject: '', time_limit_minutes: '', grade_component: 'quiz' });
+      setForm({ title: '', description: '', subject: '', time_limit_minutes: '', grade_component: 'quiz', max_attempts: 1, shuffle_questions: false, show_correct_answers: true });
       fetchQuizzes();
       toast.success('Quiz created');
     } catch (err) {
@@ -75,42 +95,79 @@ export const QuizzesView = ({ classroom }) => {
     } finally { setSaving(false); }
   };
 
-  const handlePublish = async (quizId, publish) => {
+  const handlePublish = async (quizId, status) => {
     try {
-      await api.post(`/quizzes/${quizId}/${publish ? 'publish' : 'unpublish'}/`);
+      await api.post(`/quizzes/${quizId}/publish/`);
       fetchQuizzes();
-      toast.success(publish ? 'Quiz published' : 'Quiz unpublished');
+      toast.success(status === 'draft' ? 'Quiz activated' : 'Quiz updated');
     } catch { toast.error('Failed to update quiz'); }
   };
 
   const handleDelete = async (quizId) => {
-    if (!window.confirm('Delete this quiz?')) return;
+    if (!window.confirm('Delete this quiz and all its data?')) return;
     try {
       await api.delete(`/quizzes/${quizId}/`);
       setQuizzes(prev => prev.filter(q => q.id !== quizId));
+      if (expandedQuiz === quizId) setExpandedQuiz(null);
       toast.success('Quiz deleted');
     } catch { toast.error('Failed to delete'); }
   };
 
-  const statusBadge = (status) => {
-    const cfg = { draft: { v: 'slate', l: 'Draft' }, published: { v: 'green', l: 'Published' }, archived: { v: 'blue', l: 'Archived' } }[status] || { v: 'slate', l: status };
-    return <Badge variant={cfg.v} size="sm">{cfg.l}</Badge>;
+  const loadResults = async (quizId) => {
+    setLoadingResults(true);
+    try {
+      const res = await api.get(`/quizzes/${quizId}/results/`);
+      setQuizResults(res.data?.results || res.data || []);
+    } catch { toast.error('Failed to load results'); }
+    finally { setLoadingResults(false); }
+  };
+
+  const statusConfig = {
+    draft: { v: 'slate', l: 'Draft', icon: Pencil },
+    published: { v: 'green', l: 'Published', icon: CheckCircle },
+    active: { v: 'blue', l: 'Active', icon: Zap },
+    closed: { v: 'red', l: 'Closed', icon: XCircle },
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
+    <div className="space-y-4">
+      {/* Stats Bar */}
+      <div className="grid grid-cols-4 gap-2">
+        {[
+          { label: 'Total', value: stats.total, color: 'text-slate-700 bg-slate-50 border-slate-200' },
+          { label: 'Draft', value: stats.draft, color: 'text-slate-600 bg-slate-50 border-slate-200' },
+          { label: 'Published', value: stats.published, color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+          { label: 'Active', value: stats.active, color: 'text-blue-700 bg-blue-50 border-blue-200' },
+        ].map(s => (
+          <div key={s.label} className={`border rounded-lg p-2 text-center ${s.color}`}>
+            <p className="text-lg font-black">{s.value}</p>
+            <p className="text-[8px] font-bold uppercase tracking-wider">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Controls */}
+      <div className="flex items-center gap-2">
         <div className="flex-1 relative">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
           <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Search quizzes..."
             className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 text-xs" />
         </div>
-        <Button variant="primary" size="sm" className="text-[10px] px-2 py-1" onClick={() => setShowCreate(true)}>
+        <div className="flex items-center gap-0.5 bg-slate-100 rounded-lg p-0.5">
+          {[{ id: 'all', label: 'All' }, { id: 'draft', label: 'Draft' }, { id: 'published', label: 'Published' }, { id: 'active', label: 'Active' }].map(f => (
+            <button key={f.id} onClick={() => setFilter(f.id)}
+              className={`px-2 py-1 text-[9px] font-semibold rounded-md transition-colors ${
+                filter === f.id ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}>{f.label}</button>
+          ))}
+        </div>
+        <Button variant="primary" size="sm" className="text-[10px] px-2 py-1 whitespace-nowrap" onClick={() => setShowCreate(true)}>
           <Plus className="w-3 h-3 mr-1" /> New Quiz
         </Button>
       </div>
 
+      {/* Quiz List */}
       {loading ? (
         <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
       ) : filtered.length === 0 ? (
@@ -119,46 +176,120 @@ export const QuizzesView = ({ classroom }) => {
         </CardBody></Card>
       ) : (
         <div className="space-y-2">
-          {filtered.map(quiz => (
-            <Card key={quiz.id} className="hover:shadow-md transition-shadow">
-              <CardBody className="p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-xs font-bold text-slate-900 truncate">{quiz.title}</h3>
-                      {statusBadge(quiz.status)}
-                    </div>
-                    <p className="text-[10px] text-slate-500 line-clamp-1">{quiz.description}</p>
-                    <div className="flex items-center gap-3 mt-1.5 text-[9px] text-slate-500">
-                      <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{quiz.question_count || 0} Q</span>
-                      <span className="flex items-center gap-0.5"><BarChart3 className="w-2.5 h-2.5" />{quiz.total_points || 0} pts</span>
-                      {quiz.time_limit_minutes && <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{quiz.time_limit_minutes}m</span>}
+          {filtered.map(quiz => {
+            const st = statusConfig[quiz.status] || statusConfig.draft;
+            const isExpanded = expandedQuiz === quiz.id;
+            return (
+              <Card key={quiz.id} className="hover:shadow-md transition-shadow">
+                <CardBody className="p-3">
+                  {/* Quiz Header */}
+                  <div className="flex items-start justify-between gap-2">
+                    <button onClick={() => { setExpandedQuiz(isExpanded ? null : quiz.id); if (!isExpanded) loadResults(quiz.id); }}
+                      className="flex-1 min-w-0 text-left">
+                      <div className="flex items-center gap-2 mb-1">
+                        {isExpanded ? <ChevronDown className="w-3 h-3 text-slate-400 flex-shrink-0" /> : <ChevronRight className="w-3 h-3 text-slate-400 flex-shrink-0" />}
+                        <h3 className="text-xs font-bold text-slate-900 truncate">{quiz.title}</h3>
+                        <Badge variant={st.v} size="sm">{st.l}</Badge>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1 text-[9px] text-slate-500 ml-5">
+                        <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{quiz.question_count || 0} questions</span>
+                        <span className="flex items-center gap-0.5"><BarChart3 className="w-2.5 h-2.5" />{quiz.total_points || 0} pts</span>
+                        {quiz.time_limit_minutes && <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{quiz.time_limit_minutes}m</span>}
+                        {quiz.subject_name && <span className="flex items-center gap-0.5"><BookOpen className="w-2.5 h-2.5" />{quiz.subject_name}</span>}
+                      </div>
+                    </button>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      {quiz.status === 'draft' ? (
+                        <Button variant="ghost" size="sm" className="text-[9px] text-green-600"
+                          onClick={() => handlePublish(quiz.id, 'active')}>
+                          <CheckCircle className="w-3 h-3 mr-0.5" /> Publish
+                        </Button>
+                      ) : (
+                        <Button variant="ghost" size="sm" className="text-[9px] text-amber-600"
+                          onClick={() => handlePublish(quiz.id, 'draft')}>
+                          <XCircle className="w-3 h-3 mr-0.5" /> Unpublish
+                        </Button>
+                      )}
+                      <Button variant="ghost" size="sm" className="text-[9px] text-red-500"
+                        onClick={() => handleDelete(quiz.id)}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    {quiz.status === 'draft' ? (
-                      <Button variant="ghost" size="sm" className="text-[9px] text-green-600"
-                        onClick={() => handlePublish(quiz.id, true)}>
-                        <CheckCircle className="w-3 h-3 mr-0.5" /> Publish
-                      </Button>
-                    ) : (
-                      <Button variant="ghost" size="sm" className="text-[9px] text-amber-600"
-                        onClick={() => handlePublish(quiz.id, false)}>
-                        <XCircle className="w-3 h-3 mr-0.5" /> Unpublish
-                      </Button>
-                    )}
-                    <Button variant="ghost" size="sm" className="text-[9px] text-red-500"
-                      onClick={() => handleDelete(quiz.id)}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
+
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className="mt-3 pt-3 border-t border-slate-100 ml-5 space-y-3">
+                      {/* Quick Stats */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-violet-50 border border-violet-200 rounded-lg p-2 text-center">
+                          <p className="text-sm font-black text-violet-700">{quiz.question_count || 0}</p>
+                          <p className="text-[8px] font-bold text-violet-600">Questions</p>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
+                          <p className="text-sm font-black text-blue-700">{quiz.total_points || 0}</p>
+                          <p className="text-[8px] font-bold text-blue-600">Total Points</p>
+                        </div>
+                        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-center">
+                          <p className="text-sm font-black text-emerald-700">{quiz.time_limit_minutes || '—'}</p>
+                          <p className="text-[8px] font-bold text-emerald-600">Minutes</p>
+                        </div>
+                      </div>
+
+                      {/* Results Table */}
+                      <div>
+                        <h4 className="text-[10px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+                          <Trophy className="w-3 h-3" /> Student Results
+                        </h4>
+                        {loadingResults ? (
+                          <div className="flex justify-center py-4"><LoadingSpinner /></div>
+                        ) : !quizResults || quizResults.length === 0 ? (
+                          <p className="text-[10px] text-slate-400 py-2">No attempts yet</p>
+                        ) : (
+                          <div className="max-h-48 overflow-y-auto">
+                            <table className="w-full text-[9px]">
+                              <thead>
+                                <tr className="text-left text-slate-500 border-b border-slate-100">
+                                  <th className="pb-1 font-semibold">Student</th>
+                                  <th className="pb-1 font-semibold text-center">Score</th>
+                                  <th className="pb-1 font-semibold text-center">%</th>
+                                  <th className="pb-1 font-semibold text-center">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {quizResults.map((r, i) => (
+                                  <tr key={i} className="border-b border-slate-50">
+                                    <td className="py-1.5 font-medium text-slate-700">{r.student_name || r.student?.username}</td>
+                                    <td className="py-1.5 text-center">{r.total_score}/{r.max_score}</td>
+                                    <td className="py-1.5 text-center">
+                                      <span className={`font-bold ${parseFloat(r.percentage) >= 75 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                        {r.percentage}%
+                                      </span>
+                                    </td>
+                                    <td className="py-1.5 text-center">
+                                      {r.is_graded ? (
+                                        <Badge variant="green" size="sm">Graded</Badge>
+                                      ) : (
+                                        <Badge variant="amber" size="sm">Pending</Badge>
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            );
+          })}
         </div>
       )}
 
+      {/* Create Quiz Modal */}
       <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} size="md">
         <ModalBody>
           <h3 className="text-sm font-bold text-slate-900 mb-3">Create Quiz</h3>
@@ -192,20 +323,179 @@ export const QuizzesView = ({ classroom }) => {
                 </select>
               </div>
             </div>
-            <div>
-              <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Time Limit (minutes)</label>
-              <input type="number" min="1" value={form.time_limit_minutes}
-                onChange={(e) => setForm({ ...form, time_limit_minutes: e.target.value })}
-                className={modalInputCls + ' text-xs py-1.5'} placeholder="Optional" />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Time Limit (minutes)</label>
+                <input type="number" min="1" value={form.time_limit_minutes}
+                  onChange={(e) => setForm({ ...form, time_limit_minutes: e.target.value })}
+                  className={modalInputCls + ' text-xs py-1.5'} placeholder="Optional" />
+              </div>
+              <div>
+                <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Max Attempts</label>
+                <input type="number" min="1" value={form.max_attempts}
+                  onChange={(e) => setForm({ ...form, max_attempts: e.target.value })}
+                  className={modalInputCls + ' text-xs py-1.5'} />
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-1.5 text-[10px] text-slate-600">
+                <input type="checkbox" checked={form.shuffle_questions}
+                  onChange={(e) => setForm({ ...form, shuffle_questions: e.target.checked })}
+                  className="rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                Shuffle questions
+              </label>
+              <label className="flex items-center gap-1.5 text-[10px] text-slate-600">
+                <input type="checkbox" checked={form.show_correct_answers}
+                  onChange={(e) => setForm({ ...form, show_correct_answers: e.target.checked })}
+                  className="rounded border-slate-300 text-violet-600 focus:ring-violet-500" />
+                Show answers after submit
+              </label>
             </div>
           </div>
         </ModalBody>
         <ModalFooter>
           <ModalBtnSecondary onClick={() => setShowCreate(false)} className="text-[10px]">Cancel</ModalBtnSecondary>
           <ModalBtnPrimary onClick={handleCreate} loading={saving} disabled={!form.title.trim() || !form.subject}
-            className="text-[10px]">Create</ModalBtnPrimary>
+            className="text-[10px]">Create Quiz</ModalBtnPrimary>
         </ModalFooter>
       </Modal>
+    </div>
+  );
+};
+
+// ── Student Quizzes View ─────────────────────────────────────────────────────
+export const StudentQuizzesView = ({ classroom }) => {
+  const navigate = useNavigate();
+  const [quizzes, setQuizzes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  useEffect(() => { fetchQuizzes(); }, [classroom.id]);
+
+  const fetchQuizzes = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/quizzes/', { params: { classroom: classroom.id } });
+      setQuizzes(res.data?.results || res.data || []);
+    } catch { toast.error('Failed to load quizzes'); }
+    finally { setLoading(false); }
+  };
+
+  const filtered = useMemo(() => {
+    if (!search) return quizzes;
+    const s = search.toLowerCase();
+    return quizzes.filter(q => q.title?.toLowerCase().includes(s));
+  }, [quizzes, search]);
+
+  const available = filtered.filter(q => q.status === 'published' || q.status === 'active');
+  const past = filtered.filter(q => q.status === 'closed' || q.status === 'draft');
+
+  const statusConfig = {
+    draft: { v: 'slate', l: 'Draft' },
+    published: { v: 'green', l: 'Available' },
+    active: { v: 'blue', l: 'In Progress' },
+    closed: { v: 'red', l: 'Closed' },
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+        <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search quizzes..."
+          className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 text-xs" />
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
+      ) : (
+        <>
+          {/* Available Quizzes */}
+          {available.length > 0 && (
+            <div>
+              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <Play className="w-3 h-3" /> Available Quizzes ({available.length})
+              </h3>
+              <div className="space-y-2">
+                {available.map(quiz => {
+                  const st = statusConfig[quiz.status] || statusConfig.draft;
+                  return (
+                    <Card key={quiz.id} className="hover:shadow-md transition-shadow border-l-4 border-l-violet-500">
+                      <CardBody className="p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="text-xs font-bold text-slate-900">{quiz.title}</h3>
+                              <Badge variant={st.v} size="sm">{st.l}</Badge>
+                            </div>
+                            {quiz.description && <p className="text-[10px] text-slate-500 line-clamp-1 mb-1.5">{quiz.description}</p>}
+                            <div className="flex items-center gap-3 text-[9px] text-slate-500">
+                              <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{quiz.question_count || 0} questions</span>
+                              <span className="flex items-center gap-0.5"><BarChart3 className="w-2.5 h-2.5" />{quiz.total_points || 0} points</span>
+                              {quiz.time_limit_minutes && <span className="flex items-center gap-0.5"><Clock className="w-2.5 h-2.5" />{quiz.time_limit_minutes} min</span>}
+                              {quiz.subject_name && <span className="flex items-center gap-0.5"><BookOpen className="w-2.5 h-2.5" />{quiz.subject_name}</span>}
+                            </div>
+                          </div>
+                          <Button variant="primary" size="sm" className="text-[10px] px-3 py-1.5 flex-shrink-0"
+                            onClick={() => navigate(`/quizzes/take/${quiz.id}`)}>
+                            <Play className="w-3 h-3 mr-1" /> Start
+                          </Button>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Past / Closed Quizzes */}
+          {past.length > 0 && (
+            <div>
+              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                <Clock className="w-3 h-3" /> Past Quizzes ({past.length})
+              </h3>
+              <div className="space-y-2">
+                {past.map(quiz => {
+                  const st = statusConfig[quiz.status] || statusConfig.draft;
+                  return (
+                    <Card key={quiz.id} className="opacity-70">
+                      <CardBody className="p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="text-xs font-bold text-slate-900">{quiz.title}</h3>
+                              <Badge variant={st.v} size="sm">{st.l}</Badge>
+                            </div>
+                            <div className="flex items-center gap-3 text-[9px] text-slate-500">
+                              <span className="flex items-center gap-0.5"><FileText className="w-2.5 h-2.5" />{quiz.question_count || 0} questions</span>
+                              <span className="flex items-center gap-0.5"><BarChart3 className="w-2.5 h-2.5" />{quiz.total_points || 0} points</span>
+                            </div>
+                          </div>
+                          {quiz.status === 'closed' && (
+                            <Button variant="ghost" size="sm" className="text-[9px] text-slate-500"
+                              onClick={() => navigate(`/quizzes/take/${quiz.id}`)}>
+                              <Eye className="w-3 h-3 mr-0.5" /> View
+                            </Button>
+                          )}
+                        </div>
+                      </CardBody>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {available.length === 0 && past.length === 0 && (
+            <Card><CardBody className="p-6">
+              <EmptyState title="No Quizzes Yet" description="Your teacher hasn't posted any quizzes for this class" icon={<HelpCircle className="w-6 h-6" />} />
+            </CardBody></Card>
+          )}
+        </>
+      )}
     </div>
   );
 };
@@ -519,125 +809,6 @@ export const ClassroomAnalyticsView = ({ classroom }) => {
           </CardBody>
         </Card>
       )}
-    </div>
-  );
-};
-
-// ── Question Bank Tab ────────────────────────────────────────────────────────
-export const QuestionBankView = ({ classroom }) => {
-  const [banks, setBanks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: '', description: '' });
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => { fetchBanks(); }, [classroom.id]);
-
-  const fetchBanks = async () => {
-    setLoading(true);
-    try {
-      const res = await api.get('/question-banks/');
-      setBanks(res.data?.results || res.data || []);
-    } catch { toast.error('Failed to load question banks'); }
-    finally { setLoading(false); }
-  };
-
-  const filtered = useMemo(() => {
-    if (!search) return banks;
-    const q = search.toLowerCase();
-    return banks.filter(b => b.name?.toLowerCase().includes(q));
-  }, [banks, search]);
-
-  const handleCreate = async () => {
-    if (!form.name.trim()) return toast.error('Name is required');
-    setSaving(true);
-    try {
-      await api.post('/question-banks/', {
-        name: form.name.trim(),
-        description: form.description.trim(),
-      });
-      setShowCreate(false);
-      setForm({ name: '', description: '' });
-      fetchBanks();
-      toast.success('Question bank created');
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to create');
-    } finally { setSaving(false); }
-  };
-
-  const handleDelete = async (bankId) => {
-    if (!window.confirm('Delete this question bank?')) return;
-    try {
-      await api.delete(`/question-banks/${bankId}/`);
-      setBanks(prev => prev.filter(b => b.id !== bankId));
-      toast.success('Deleted');
-    } catch { toast.error('Failed to delete'); }
-  };
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex-1 relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-          <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search banks..."
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 text-xs" />
-        </div>
-        <Button variant="primary" size="sm" className="text-[10px] px-2 py-1" onClick={() => setShowCreate(true)}>
-          <Plus className="w-3 h-3 mr-1" /> New Bank
-        </Button>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
-      ) : filtered.length === 0 ? (
-        <Card><CardBody className="p-6">
-          <EmptyState title="No Question Banks" description="Create a question bank to get started" icon={<Clipboard className="w-6 h-6" />} />
-        </CardBody></Card>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map(bank => (
-            <Card key={bank.id} className="hover:shadow-md transition-shadow">
-              <CardBody className="p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xs font-bold text-slate-900 truncate">{bank.name}</h3>
-                    <p className="text-[10px] text-slate-500">{bank.question_count || 0} questions</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-[9px] text-red-500"
-                    onClick={() => handleDelete(bank.id)}>
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} size="md">
-        <ModalBody>
-          <h3 className="text-sm font-bold text-slate-900 mb-3">Create Question Bank</h3>
-          <div className="space-y-2">
-            <div>
-              <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Name *</label>
-              <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className={modalInputCls + ' text-xs py-1.5'} placeholder="Bank name" />
-            </div>
-            <div>
-              <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Description</label>
-              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className={modalInputCls + ' text-xs'} rows={2} placeholder="Optional description" />
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter>
-          <ModalBtnSecondary onClick={() => setShowCreate(false)} className="text-[10px]">Cancel</ModalBtnSecondary>
-          <ModalBtnPrimary onClick={handleCreate} loading={saving} disabled={!form.name.trim()}
-            className="text-[10px]">Create</ModalBtnPrimary>
-        </ModalFooter>
-      </Modal>
     </div>
   );
 };
