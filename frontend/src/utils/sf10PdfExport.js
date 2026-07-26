@@ -8,8 +8,7 @@
  *  - Was only exporting studentData[0] — now iterates ALL students
  *  - Imports shared mapToLearningArea / calcFinalGrade / depedRound / buildGradeIndex
  *    from sf10Export.js to eliminate duplication
- *  - JHS now uses 4 quarter columns (Q1-Q4)
- *  - SHS uses 2 semester columns (1st Sem / 2nd Sem)
+ *  - Both JHS and SHS now use 3 term columns (T1, T2, T3)
  *  - Added SHS learning areas support
  */
 
@@ -115,18 +114,12 @@ function addStudentPage(doc, student, schoolInfo, isFirstPage) {
   doc.setFont('helvetica', 'bold'); doc.text('Signature: ___________', MARGIN + 130, y); y += 7;
 
   // ── Grades table ───────────────────────────────────────────────────────────
-  const colX = isSHS
-    ? { area: MARGIN, s1: MARGIN + 95, s2: MARGIN + 112, final: MARGIN + 130, remarks: MARGIN + 158 }
-    : { area: MARGIN, q1: MARGIN + 85, q2: MARGIN + 100, q3: MARGIN + 115, q4: MARGIN + 130, final: MARGIN + 146, remarks: MARGIN + 165 };
+  const colX = { area: MARGIN, t1: MARGIN + 85, t2: MARGIN + 100, t3: MARGIN + 115, final: MARGIN + 135, remarks: MARGIN + 155 };
 
   doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
   doc.text('LEARNING AREAS / SUBJECTS', colX.area, y);
-  if (isSHS) {
-    doc.text('1st Sem', colX.s1, y); doc.text('2nd Sem', colX.s2, y);
-  } else {
-    doc.text('Q1', colX.q1, y); doc.text('Q2', colX.q2, y);
-    doc.text('Q3', colX.q3, y); doc.text('Q4', colX.q4, y);
-  }
+  doc.text('T1', colX.t1, y); doc.text('T2', colX.t2, y);
+  doc.text('T3', colX.t3, y);
   doc.text('FINAL', colX.final, y); doc.text('REMARKS', colX.remarks, y); y += 2;
   doc.line(MARGIN, y, PAGE_W - MARGIN, y); y += 4;
 
@@ -144,15 +137,9 @@ function addStudentPage(doc, student, schoolInfo, isFirstPage) {
     // Truncate long area names so they don't overflow
     const areaLabel = doc.splitTextToSize(area, colX.area + 80)[0];
     doc.text(areaLabel, colX.area, y);
-    if (isSHS) {
-      doc.text(String(depedRound(aq.s1) || ''), colX.s1, y);
-      doc.text(String(depedRound(aq.s2) || ''), colX.s2, y);
-    } else {
-      doc.text(String(depedRound(aq.q1) || ''), colX.q1, y);
-      doc.text(String(depedRound(aq.q2) || ''), colX.q2, y);
-      doc.text(String(depedRound(aq.q3) || ''), colX.q3, y);
-      doc.text(String(depedRound(aq.q4) || ''), colX.q4, y);
-    }
+    doc.text(String(depedRound(aq.t1) || ''), colX.t1, y);
+    doc.text(String(depedRound(aq.t2) || ''), colX.t2, y);
+    doc.text(String(depedRound(aq.t3) || ''), colX.t3, y);
     doc.text(String(finalGrade), colX.final, y);
     doc.text(rem, colX.remarks, y);
     y += 4.5;

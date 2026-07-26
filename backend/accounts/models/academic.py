@@ -163,10 +163,10 @@ class StudentClassEnrollment(models.Model):
         return f"{self.student.username} in {self.classroom.name}"
 
     def calculate_general_average(self):
-        quarters = [self.q1, self.q2, self.q3, self.q4]
-        valid_quarters = [q for q in quarters if q is not None]
-        if valid_quarters:
-            return round(sum(valid_quarters) / len(valid_quarters))
+        terms = [self.q1, self.q2, self.q3]
+        valid_terms = [t for t in terms if t is not None]
+        if valid_terms:
+            return round(sum(valid_terms) / len(valid_terms))
         return None
 
     def get_descriptive_equivalent(self):

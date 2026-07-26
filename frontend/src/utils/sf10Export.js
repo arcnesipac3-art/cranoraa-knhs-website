@@ -56,10 +56,10 @@ const GRADE_SCALE = [
   ['Did Not Meet Expectations', 'Below 75', 'Failed'],
 ];
 
-// Column indices: A=Learning Areas, B=Term1, C=Term2, D=Term3, E=Term4/Final, F=FinalRating, G=Remarks
-const COL_JHS = { AREA: 0, Q1: 1, Q2: 2, Q3: 3, Q4: 4, FINAL: 5, REMARKS: 6 };
-const COL_SHS = { AREA: 0, S1: 1, S2: 2, FINAL: 3, REMARKS: 4 };
-const TOTAL_COLS = 7; // max columns used
+// Column indices: A=Learning Areas, B=T1, C=T2, D=T3, E=Final, F=Remarks
+const COL_JHS = { AREA: 0, T1: 1, T2: 2, T3: 3, FINAL: 4, REMARKS: 5 };
+const COL_SHS = { AREA: 0, T1: 1, T2: 2, T3: 3, FINAL: 4, REMARKS: 5 };
+const TOTAL_COLS = 6; // max columns used
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -111,12 +111,11 @@ export function depedRound(v) {
 }
 
 /**
- * Compute final grade from quarter grades.
- * JHS: average of Q1, Q2, Q3, Q4 (all 4 quarters)
- * SHS: average of S1 (1st sem) and S2 (2nd sem)
+ * Compute final grade from term grades.
+ * Both JHS and SHS: average of Term 1, Term 2, Term 3
  */
 export function calcFinalGrade(terms, isSHS = false) {
-  const keys = isSHS ? ['s1', 's2'] : ['q1', 'q2', 'q3', 'q4'];
+  const keys = ['t1', 't2', 't3'];
   const vals = keys
     .map(k => terms[k])
     .filter(v => v !== null && v !== undefined && v !== '' && !isNaN(Number(v)))
@@ -183,10 +182,10 @@ function appendJHSStudentBlock(ws, startRow, student, schoolInfo) {
   setCell(ws, r, 0, `Name of Adviser/Teacher: ${adviser}`);
   setCell(ws, r, 4, 'Signature: _____________'); r++;
 
-  // Column headers — 4 quarter columns for JHS
+  // Column headers — 3 term columns for JHS
   setCell(ws, r, COL_JHS.AREA, 'LEARNING AREAS');
-  setCell(ws, r, COL_JHS.Q1,   'Q1'); setCell(ws, r, COL_JHS.Q2, 'Q2');
-  setCell(ws, r, COL_JHS.Q3,   'Q3'); setCell(ws, r, COL_JHS.Q4, 'Q4');
+  setCell(ws, r, COL_JHS.T1,   'T1'); setCell(ws, r, COL_JHS.T2, 'T2');
+  setCell(ws, r, COL_JHS.T3,   'T3');
   setCell(ws, r, COL_JHS.FINAL, 'FINAL RATING');
   setCell(ws, r, COL_JHS.REMARKS, 'REMARKS'); r++;
 
@@ -198,10 +197,9 @@ function appendJHSStudentBlock(ws, startRow, student, schoolInfo) {
     const finalGrade = calcFinalGrade(aq, false);
     if (finalGrade !== '') finalsForAvg.push(Number(finalGrade));
     setCell(ws, r, COL_JHS.AREA,    area);
-    setCell(ws, r, COL_JHS.Q1,      aq.q1 != null && aq.q1 !== '' ? depedRound(aq.q1) : '');
-    setCell(ws, r, COL_JHS.Q2,      aq.q2 != null && aq.q2 !== '' ? depedRound(aq.q2) : '');
-    setCell(ws, r, COL_JHS.Q3,      aq.q3 != null && aq.q3 !== '' ? depedRound(aq.q3) : '');
-    setCell(ws, r, COL_JHS.Q4,      aq.q4 != null && aq.q4 !== '' ? depedRound(aq.q4) : '');
+    setCell(ws, r, COL_JHS.T1,      aq.t1 != null && aq.t1 !== '' ? depedRound(aq.t1) : '');
+    setCell(ws, r, COL_JHS.T2,      aq.t2 != null && aq.t2 !== '' ? depedRound(aq.t2) : '');
+    setCell(ws, r, COL_JHS.T3,      aq.t3 != null && aq.t3 !== '' ? depedRound(aq.t3) : '');
     setCell(ws, r, COL_JHS.FINAL,   finalGrade);
     setCell(ws, r, COL_JHS.REMARKS, gradeRemarks(finalGrade)); r++;
   });
@@ -255,10 +253,11 @@ function appendSHSStudentBlock(ws, startRow, student, schoolInfo) {
   setCell(ws, r, 0, `Track/Strand: ${schoolInfo.strand || ''}`);
   setCell(ws, r, 3, `Adviser: ${adviser}`); r++;
 
-  // SHS has 1st Semester and 2nd Semester columns
+  // SHS has 3 term columns
   setCell(ws, r, COL_SHS.AREA,    'SUBJECT');
-  setCell(ws, r, COL_SHS.S1,      '1st Sem');
-  setCell(ws, r, COL_SHS.S2,      '2nd Sem');
+  setCell(ws, r, COL_SHS.T1,      'T1');
+  setCell(ws, r, COL_SHS.T2,      'T2');
+  setCell(ws, r, COL_SHS.T3,      'T3');
   setCell(ws, r, COL_SHS.FINAL,   'FINAL GRADE');
   setCell(ws, r, COL_SHS.REMARKS, 'REMARKS'); r++;
 
@@ -269,8 +268,9 @@ function appendSHSStudentBlock(ws, startRow, student, schoolInfo) {
     const finalGrade = calcFinalGrade(aq, true);
     if (finalGrade !== '') finalsForAvg.push(Number(finalGrade));
     setCell(ws, r, COL_SHS.AREA,    area);
-    setCell(ws, r, COL_SHS.S1,      aq.s1 != null && aq.s1 !== '' ? depedRound(aq.s1) : '');
-    setCell(ws, r, COL_SHS.S2,      aq.s2 != null && aq.s2 !== '' ? depedRound(aq.s2) : '');
+    setCell(ws, r, COL_SHS.T1,      aq.t1 != null && aq.t1 !== '' ? depedRound(aq.t1) : '');
+    setCell(ws, r, COL_SHS.T2,      aq.t2 != null && aq.t2 !== '' ? depedRound(aq.t2) : '');
+    setCell(ws, r, COL_SHS.T3,      aq.t3 != null && aq.t3 !== '' ? depedRound(aq.t3) : '');
     setCell(ws, r, COL_SHS.FINAL,   finalGrade);
     setCell(ws, r, COL_SHS.REMARKS, gradeRemarks(finalGrade)); r++;
   });
@@ -349,7 +349,6 @@ function buildWorkbook(studentData, schoolInfo, sheetLabel) {
 // ─── Grade index builder (shared with PDF export) ────────────────────────────
 
 export function buildGradeIndex(allGrades, gradeLevel) {
-  const isSHS = /grade\s*1[12]/i.test(gradeLevel || '');
   const index = {};
   allGrades.forEach(g => {
     const sid  = String(g.student);
@@ -357,10 +356,8 @@ export function buildGradeIndex(allGrades, gradeLevel) {
     if (!area) return;
     if (!index[sid]) index[sid] = {};
     if (!index[sid][area]) index[sid][area] = {};
-    // JHS: quarter 1-4 → q1, q2, q3, q4; SHS: semester 1-2 → s1, s2
-    const key = isSHS
-      ? (g.quarter === 1 || g.semester === 1 ? 's1' : 's2')
-      : `q${g.quarter}`;
+    // Both JHS and SHS: quarter 1-3 → t1, t2, t3
+    const key = `t${g.quarter}`;
     // Keep highest score if duplicates exist (safety)
     const existing = index[sid][area][key];
     if (existing == null || Number(g.raw_score) > Number(existing)) {

@@ -147,10 +147,9 @@ const AcademicSetup = () => {
 
   const getDefaultPeriods = useCallback(() => {
     if (educationLevel === 'jhs') return [
-      { name: '1st Quarter', semester_type: '1st Quarter' },
-      { name: '2nd Quarter', semester_type: '2nd Quarter' },
-      { name: '3rd Quarter', semester_type: '3rd Quarter' },
-      { name: '4th Quarter', semester_type: '4th Quarter' },
+      { name: '1st Term', semester_type: '1st Term' },
+      { name: '2nd Term', semester_type: '2nd Term' },
+      { name: '3rd Term', semester_type: '3rd Term' },
     ];
     if (educationLevel === 'shs') return [
       { name: '1st Term', semester_type: '1st Term' },
@@ -756,7 +755,7 @@ function StepEducationLevel({ educationLevel, setEducationLevel, onSelectEducati
         title="Education Level" desc="Choose the level for this academic year. This auto-selects grade levels and period structure." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto">
         {[
-          { id: 'jhs', label: 'Junior High School', sub: 'Grade 7 – Grade 10', badge: '4 Quarters', color: 'blue',  grades: JHS_GRADES },
+          { id: 'jhs', label: 'Junior High School', sub: 'Grade 7 – Grade 10', badge: '3 Terms',   color: 'blue',  grades: JHS_GRADES },
           { id: 'shs', label: 'Senior High School', sub: 'Grade 11 – Grade 12', badge: '3 Terms',   color: 'pink', grades: SHS_GRADES },
         ].map(opt => {
           const active = educationLevel === opt.id;
@@ -1157,22 +1156,21 @@ function AYModal({ isOpen, onClose, form, setForm, onSubmit, saving }) {
 }
 
 function SemesterModal({ isOpen, onClose, form, setForm, onSubmit, saving, educationLevel, activeAY }) {
-  const isJhs = educationLevel === 'jhs';
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
-      <ModalHeader onClose={onClose}><ModalTitle title={`Add ${isJhs ? 'Quarter' : 'Term'}`} subtitle={`For SY ${activeAY?.name || '—'}`} /></ModalHeader>
+      <ModalHeader onClose={onClose}><ModalTitle title="Add Term" subtitle={`For SY ${activeAY?.name || '—'}`} /></ModalHeader>
       <form onSubmit={onSubmit}>
         <ModalBody>
           <div className="space-y-4">
             <ModalField label="Type" required>
               <select value={form.semester_type} onChange={e => setForm({ ...form, semester_type: e.target.value, name: e.target.value })} className={modalSelectCls} required>
-                {isJhs
-                  ? <><option value="1st Quarter">1st Quarter</option><option value="2nd Quarter">2nd Quarter</option><option value="3rd Quarter">3rd Quarter</option><option value="4th Quarter">4th Quarter</option></>
-                  : <><option value="1st Term">1st Term</option><option value="2nd Term">2nd Term</option><option value="3rd Term">3rd Term</option></>}
+                <option value="1st Term">1st Term</option>
+                <option value="2nd Term">2nd Term</option>
+                <option value="3rd Term">3rd Term</option>
               </select>
             </ModalField>
             <ModalField label="Display Name" required hint="Auto-filled from type; override if needed">
-              <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={isJhs ? '1st Quarter' : '1st Term'} className={modalInputCls} required />
+              <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="1st Term" className={modalInputCls} required />
             </ModalField>
           </div>
         </ModalBody>
