@@ -86,6 +86,7 @@ from .records import (
     CharacterCertificateViewSet,
     AchievementRecordViewSet,
     RecordRequestViewSet,
+    StudentPromotionRecordViewSet,
 )
 
 from .tickets import (

@@ -176,6 +176,21 @@ class Profile(models.Model):
     religion = models.CharField(max_length=100, blank=True, null=True)
     extension_name = models.CharField(max_length=20, blank=True, null=True, help_text="Name extension (e.g., Jr., Sr., III)")
 
+    emergency_contact_name = models.CharField(max_length=200, blank=True, null=True)
+    emergency_contact_phone = models.CharField(max_length=20, blank=True, null=True)
+    emergency_contact_relationship = models.CharField(max_length=50, blank=True, null=True)
+    medical_alerts = models.TextField(blank=True, null=True, help_text="Allergies, medical conditions")
+    special_education_needs = models.BooleanField(default=False)
+
+    enrollment_status = models.CharField(max_length=20, default='active', choices=[
+        ('active', 'Active'),
+        ('graduated', 'Graduated'),
+        ('transferred', 'Transferred'),
+        ('dropped', 'Dropped'),
+        ('inactive', 'Inactive'),
+    ], db_index=True)
+    graduation_date = models.DateField(null=True, blank=True)
+
     mute_until = models.DateTimeField(null=True, blank=True)
     is_suspended = models.BooleanField(default=False)
 

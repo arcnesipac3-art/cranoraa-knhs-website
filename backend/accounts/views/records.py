@@ -3,20 +3,23 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Avg, Count
 
 from ..models import (
     Transcript, TranscriptLineItem, TransferCertificate,
     CharacterCertificate, AchievementRecord, RecordRequest,
-    Notification, Grade,
+    StudentPromotionRecord, Notification, Grade,
+    User, Profile, Classroom, StudentClassEnrollment, SystemSetting,
 )
 from ..serializers import (
     TranscriptSerializer, TranscriptLineItemSerializer,
     TransferCertificateSerializer, CharacterCertificateSerializer,
     AchievementRecordSerializer, RecordRequestSerializer,
+    StudentPromotionRecordSerializer,
     full_name,
 )
 from ..permissions import IsAdmin, IsAdminOrStaff, IsAdminOrReadOnly
+from ..utils import log_audit_action
 
 
 class TranscriptViewSet(viewsets.ModelViewSet):
@@ -276,3 +279,229 @@ class RecordRequestViewSet(viewsets.ModelViewSet):
         )
 
         return Response(RecordRequestSerializer(record_req).data)
+
+
+class StudentPromotionRecordViewSet(viewsets.ModelViewSet):
+    serializer_class = StudentPromotionRecordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = StudentPromotionRecord.objects.select_related('student', 'from_classroom', 'to_classroom', 'decision_by')
+        if user.role == 'student':
+            qs = qs.filter(student=user)
+        elif user.role == 'parent':
+            profile = getattr(user, 'profile', None)
+            linked_ids = profile.linked_students.values_list('id', flat=True) if profile else []
+            qs = qs.filter(student_id__in=linked_ids)
+        elif user.role == 'staff':
+            qs = qs.filter(from_classroom__teacher=user).distinct()
+        from_school_year = self.request.query_params.get('from_school_year')
+        if from_school_year:
+            qs = qs.filter(from_school_year=from_school_year)
+        to_school_year = self.request.query_params.get('to_school_year')
+        if to_school_year:
+            qs = qs.filter(to_school_year=to_school_year)
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        return qs
+
+    @action(detail=False, methods=['post'], url_path='promotion-preview')
+    def promotion_preview(self, request):
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+        from_school_year = request.data.get('from_school_year')
+        to_school_year = request.data.get('to_school_year')
+        if not from_school_year or not to_school_year:
+            return Response({'error': 'from_school_year and to_school_year required'}, status=400)
+        passing = float(SystemSetting.get_settings().passing_grade)
+        enrollments = StudentClassEnrollment.objects.select_related('student', 'classroom').filter(
+            classroom__academic_year__name=from_school_year
+        ) if from_school_year else StudentClassEnrollment.objects.select_related('student', 'classroom').all()
+        preview = []
+        for enrollment in enrollments:
+            grades = Grade.objects.filter(
+                student=enrollment.student,
+                academic_year=from_school_year,
+                grade_type='final_grade',
+                raw_score__isnull=False,
+            )
+            avg = grades.aggregate(avg=Avg('raw_score'))['avg']
+            general_average = round(float(avg), 2) if avg else None
+            if general_average is not None:
+                if general_average >= passing:
+                    predicted_status = 'promoted'
+                    grade_level_num = int(enrollment.classroom.grade_level or '7')
+                    next_grade = str(min(grade_level_num + 1, 12))
+                    next_classroom = Classroom.objects.filter(
+                        grade_level=next_grade
+                    ).annotate(cnt=Count('enrollments')).filter(cnt__lt=40).order_by('cnt').first()
+                else:
+                    predicted_status = 'retained'
+                    next_classroom = enrollment.classroom
+            else:
+                predicted_status = 'retained'
+                next_classroom = enrollment.classroom
+                general_average = None
+            existing = StudentPromotionRecord.objects.filter(
+                student=enrollment.student,
+                from_school_year=from_school_year,
+                is_final=True,
+            ).first()
+            if existing:
+                predicted_status = existing.status
+            preview.append({
+                'student_id': enrollment.student.id,
+                'student_name': full_name(enrollment.student),
+                'username': enrollment.student.username,
+                'lrn': getattr(getattr(enrollment.student, 'profile', None), 'lrn', ''),
+                'from_classroom': enrollment.classroom.name,
+                'from_grade_level': enrollment.classroom.grade_level,
+                'to_classroom': next_classroom.name if next_classroom else None,
+                'to_grade_level': next_classroom.grade_level if next_classroom else None,
+                'general_average': general_average,
+                'predicted_status': predicted_status,
+                'has_final_record': existing is not None,
+            })
+        promoted = sum(1 for p in preview if p['predicted_status'] == 'promoted')
+        retained = sum(1 for p in preview if p['predicted_status'] == 'retained')
+        return Response({
+            'from_school_year': from_school_year,
+            'to_school_year': to_school_year,
+            'total_students': len(preview),
+            'promoted': promoted,
+            'retained': retained,
+            'students': preview,
+        })
+
+    @action(detail=False, methods=['post'], url_path='promote-students')
+    def promote_students(self, request):
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+        from_school_year = request.data.get('from_school_year')
+        to_school_year = request.data.get('to_school_year')
+        overrides = request.data.get('overrides', [])
+        if not from_school_year or not to_school_year:
+            return Response({'error': 'from_school_year and to_school_year required'}, status=400)
+        passing = float(SystemSetting.get_settings().passing_grade)
+        enrollments = StudentClassEnrollment.objects.select_related('student', 'classroom').filter(
+            classroom__academic_year__name=from_school_year
+        ) if from_school_year else StudentClassEnrollment.objects.select_related('student', 'classroom').all()
+        override_map = {o['student_id']: o.get('status', 'promoted') for o in overrides}
+        promoted_count = 0
+        retained_count = 0
+        created_records = []
+        for enrollment in enrollments:
+            grades = Grade.objects.filter(
+                student=enrollment.student,
+                academic_year=from_school_year,
+                grade_type='final_grade',
+                raw_score__isnull=False,
+            )
+            avg = grades.aggregate(avg=Avg('raw_score'))['avg']
+            general_average = round(float(avg), 2) if avg else None
+            student_status = override_map.get(enrollment.student.id)
+            if not student_status:
+                if general_average is not None:
+                    student_status = 'promoted' if general_average >= passing else 'retained'
+                else:
+                    student_status = 'retained'
+            existing = StudentPromotionRecord.objects.filter(
+                student=enrollment.student,
+                from_school_year=from_school_year,
+                is_final=True,
+            ).first()
+            if existing:
+                continue
+            if student_status == 'promoted':
+                grade_level_num = int(enrollment.classroom.grade_level or '7')
+                next_grade = str(min(grade_level_num + 1, 12))
+                next_classroom = Classroom.objects.filter(
+                    grade_level=next_grade
+                ).annotate(cnt=Count('enrollments')).filter(cnt__lt=40).order_by('cnt').first()
+                promoted_count += 1
+            else:
+                next_classroom = enrollment.classroom
+                retained_count += 1
+            record = StudentPromotionRecord.objects.create(
+                student=enrollment.student,
+                from_classroom=enrollment.classroom,
+                to_classroom=next_classroom,
+                from_school_year=from_school_year,
+                to_school_year=to_school_year,
+                status=student_status,
+                general_average=general_average,
+                decision_by=request.user,
+                is_final=True,
+                remarks=f'{"Promoted" if student_status == "promoted" else "Retained"} to {next_classroom.name if next_classroom else "same section"}',
+            )
+            created_records.append(record)
+            if student_status == 'promoted' and next_classroom:
+                StudentClassEnrollment.objects.get_or_create(
+                    student=enrollment.student,
+                    classroom=next_classroom,
+                )
+                profile = getattr(enrollment.student, 'profile', None)
+                if profile:
+                    profile.grade_level = next_classroom.grade_level
+                    profile.save(update_fields=['grade_level'])
+            if student_status == 'retained':
+                profile = getattr(enrollment.student, 'profile', None)
+                if profile:
+                    profile.enrollment_status = 'active'
+                    profile.save(update_fields=['enrollment_status'])
+        try:
+            log_audit_action(user=request.user, action='bulk_promote', model_name='StudentPromotionRecord',
+                object_id=None, object_repr=f'{len(created_records)} records',
+                description=f'Bulk promoted {promoted_count} and retained {retained_count} students ({from_school_year} → {to_school_year})',
+                request=request)
+        except Exception as e:
+            logger.error(f"Audit log failed on promote_students: {e}")
+        return Response({
+            'promoted': promoted_count,
+            'retained': retained_count,
+            'total_processed': len(created_records),
+            'from_school_year': from_school_year,
+            'to_school_year': to_school_year,
+        })
+
+    @action(detail=False, methods=['get'], url_path='promotion-history')
+    def promotion_history(self, request):
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+        from_school_year = request.query_params.get('from_school_year')
+        to_school_year = request.query_params.get('to_school_year')
+        qs = StudentPromotionRecord.objects.filter(is_final=True).select_related('student', 'from_classroom', 'to_classroom', 'decision_by')
+        if from_school_year:
+            qs = qs.filter(from_school_year=from_school_year)
+        if to_school_year:
+            qs = qs.filter(to_school_year=to_school_year)
+        summary = qs.values('status').annotate(count=Count('id'))
+        return Response({
+            'total': qs.count(),
+            'summary': {s['status']: s['count'] for s in summary},
+            'records': StudentPromotionRecordSerializer(qs[:500], many=True).data,
+        })
+
+    @action(detail=True, methods=['post'], url_path='set-override')
+    def set_override(self, request, pk=None):
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+        record = self.get_object()
+        new_status = request.data.get('status')
+        if new_status not in ['promoted', 'retained', 'conditional', 'graduated', 'transferred', 'dropped']:
+            return Response({'error': 'Invalid status'}, status=400)
+        record.status = new_status
+        record.decision_by = request.user
+        remarks = request.data.get('remarks', '')
+        if remarks:
+            record.remarks = remarks
+        to_classroom_id = request.data.get('to_classroom_id')
+        if to_classroom_id:
+            try:
+                record.to_classroom = Classroom.objects.get(id=to_classroom_id)
+            except Classroom.DoesNotExist:
+                pass
+        record.save()
+        return Response(StudentPromotionRecordSerializer(record).data)

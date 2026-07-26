@@ -21,6 +21,7 @@ from .notifications import NotificationSerializer, NotificationPreferenceSeriali
 from .enrollment import (
     EnrollmentDocumentSerializer, EnrollmentStatusHistorySerializer,
     EnrollmentApplicationSerializer, EnrollmentWaitlistSerializer,
+    EnrollmentChecklistSerializer, EnrollmentDocumentVersionSerializer,
 )
 from .communication import ParentTeacherMeetingSerializer, BehavioralRecordSerializer
 from .events import SchoolEventSerializer, WebsiteContentSerializer
@@ -41,6 +42,7 @@ from .records import (
     TranscriptLineItemSerializer, TranscriptSerializer,
     TransferCertificateSerializer, CharacterCertificateSerializer,
     AchievementRecordSerializer, RecordRequestSerializer,
+    StudentPromotionRecordSerializer,
 )
 from .school_forms import (
     SchoolForm1ListSerializer, SchoolForm1DetailSerializer,
@@ -82,6 +84,7 @@ __all__ = [
     'NotificationSerializer', 'NotificationPreferenceSerializer',
     'EnrollmentDocumentSerializer', 'EnrollmentStatusHistorySerializer',
     'EnrollmentApplicationSerializer', 'EnrollmentWaitlistSerializer',
+    'EnrollmentChecklistSerializer', 'EnrollmentDocumentVersionSerializer',
     'ParentTeacherMeetingSerializer', 'BehavioralRecordSerializer',
     'SchoolEventSerializer', 'WebsiteContentSerializer',
     'AssignmentSerializer', 'SubmissionSerializer',
@@ -96,6 +99,7 @@ __all__ = [
     'TranscriptLineItemSerializer', 'TranscriptSerializer',
     'TransferCertificateSerializer', 'CharacterCertificateSerializer',
     'AchievementRecordSerializer', 'RecordRequestSerializer',
+    'StudentPromotionRecordSerializer',
     'DepartmentSerializer', 'StaffPerformanceSerializer',
     'ParentChildSummarySerializer',
     'SchoolForm1ListSerializer', 'SchoolForm1DetailSerializer',

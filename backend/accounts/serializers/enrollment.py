@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from ..models import (
     EnrollmentApplication, EnrollmentDocument, EnrollmentStatusHistory,
-    EnrollmentWaitlist,
+    EnrollmentWaitlist, EnrollmentChecklist, EnrollmentDocumentVersion,
 )
 from ._base import full_name
 
@@ -19,6 +19,13 @@ class EnrollmentDocumentSerializer(serializers.ModelSerializer):
             'admin_notes', 'uploaded_at', 'updated_at',
         ]
         read_only_fields = ['application', 'uploaded_at', 'updated_at']
+
+
+class EnrollmentDocumentVersionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EnrollmentDocumentVersion
+        fields = ['id', 'document', 'file_url', 'file_name', 'file_hash', 'uploaded_by', 'created_at']
+        read_only_fields = ['uploaded_by', 'created_at']
 
 
 class EnrollmentStatusHistorySerializer(serializers.ModelSerializer):
@@ -47,6 +54,19 @@ class EnrollmentStatusHistorySerializer(serializers.ModelSerializer):
         return obj.get_to_status_display()
 
 
+class EnrollmentChecklistSerializer(serializers.ModelSerializer):
+    is_complete = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = EnrollmentChecklist
+        fields = [
+            'id', 'application', 'documents_complete', 'lrn_verified',
+            'parent_linked', 'classroom_assigned', 'profile_complete',
+            'is_complete', 'completed_at', 'completed_by', 'created_at', 'updated_at',
+        ]
+        read_only_fields = ['completed_at', 'completed_by', 'created_at', 'updated_at']
+
+
 class EnrollmentApplicationSerializer(serializers.ModelSerializer):
     documents = EnrollmentDocumentSerializer(many=True, read_only=True)
     status_history = EnrollmentStatusHistorySerializer(many=True, read_only=True)
@@ -55,6 +75,7 @@ class EnrollmentApplicationSerializer(serializers.ModelSerializer):
     assigned_classroom_name = serializers.CharField(source='assigned_classroom.name', read_only=True)
     reviewed_by_name = serializers.SerializerMethodField()
     linked_parent_email = serializers.SerializerMethodField()
+    checklist = EnrollmentChecklistSerializer(read_only=True)
 
     class Meta:
         model = EnrollmentApplication
@@ -76,12 +97,12 @@ class EnrollmentApplicationSerializer(serializers.ModelSerializer):
             'linked_parent', 'linked_parent_email',
             'status', 'remarks', 'reviewed_by', 'reviewed_by_name', 'reviewed_at',
             'temp_password_display',
-            'submitted_at', 'updated_at', 'documents', 'status_history',
+            'submitted_at', 'updated_at', 'documents', 'status_history', 'checklist',
         ]
         read_only_fields = [
             'enrollment_number', 'status', 'submitted_at', 'updated_at',
             'enrolled_student', 'assigned_classroom', 'linked_parent',
-            'reviewed_by', 'reviewed_at', 'documents', 'status_history',
+            'reviewed_by', 'reviewed_at', 'documents', 'status_history', 'checklist',
         ]
 
     def get_full_name(self, obj):

@@ -1,8 +1,8 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import api from '../utils/api';
 import Swal from 'sweetalert2';
 import { useParallelFetch } from '../hooks/useFetch';
-import { LoadingSpinner, Button } from '../components/ui';
+import { LoadingSpinner } from '../components/ui';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 
 const STATUS_CONFIG = {
@@ -15,7 +15,6 @@ const STATUS_CONFIG = {
 };
 
 const GRADE_LEVELS = ['','7','8','9','10','11','12'];
-const ENROLLMENT_TYPES = ['','new','returning','transferee','sh_applicant','parent_assisted'];
 
 const EnrollmentManagement = () => {
   const { data, loading, refetch } = useParallelFetch({
@@ -47,6 +46,8 @@ const EnrollmentManagement = () => {
   const [enrolling, setEnrolling] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignApp, setAssignApp] = useState(null);
+  const [viewMode, setViewMode] = useState('list');
+  const [checklist, setChecklist] = useState(null);
 
   const handleAction = async (id, action, opts = {}) => {
     try {
@@ -83,13 +84,18 @@ const EnrollmentManagement = () => {
 
   const handleView = async (app) => {
     setSelected(app);
+    setChecklist(null);
     if (app.status === 'pending') {
       try {
-        const res = await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
+        await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
         setSelected({ ...app, status: 'under_review' });
         refetch();
-      } catch {}
+      } catch { /* ignore */ }
     }
+    try {
+      const res = await api.get(`/enrollment-applications/${app.id}/checklist/`);
+      setChecklist(res.data);
+    } catch { /* checklist not available */ }
   };
 
   const promptApproveApplication = async (id) => {
@@ -155,7 +161,7 @@ const EnrollmentManagement = () => {
       setEnrollApp(null);
       setEnrollClassroom('');
       setEnrollParentEmail('');
-    } catch (err) {
+    } catch {
       // Error already shown by handleAction
     } finally {
       setEnrolling(false);
@@ -176,7 +182,7 @@ const EnrollmentManagement = () => {
       await handleAction(assignApp.id, 'assign_section', { classroom_id: classroomId });
       setShowAssignModal(false);
       setAssignApp(null);
-    } catch (err) {
+    } catch {
       // Error already handled by handleAction
     }
   };
@@ -252,12 +258,20 @@ const EnrollmentManagement = () => {
     if (!selectedIds.length) { Swal.fire({ icon: 'warning', text: 'Select applications first.' }); return; }
     const confirmed = await Swal.fire({ title: `${action} ${selectedIds.length} application(s)?`, showCancelButton: true, confirmButtonText: 'Confirm', confirmButtonColor: action === 'reject' ? '#EF4444' : '#7C3AED' });
     if (!confirmed.isConfirmed) return;
-    for (const id of selectedIds) {
+    try {
       if (action === 'approve') {
-        await handleAction(id, 'approve_application', { remarks: 'Bulk approved by admin' });
+        await api.post('/enrollment-applications/bulk-approve/', { application_ids: selectedIds, remarks: 'Bulk approved by admin' });
       } else if (action === 'reject') {
-        await handleAction(id, 'reject', { remarks: 'Bulk rejected by admin' });
+        for (const id of selectedIds) {
+          await handleAction(id, 'reject', { remarks: 'Bulk rejected by admin' });
+        }
+      } else if (action === 'enroll') {
+        await api.post('/enrollment-applications/bulk-enroll/', { application_ids: selectedIds });
       }
+      Swal.fire({ icon: 'success', title: 'Done', text: `${action} completed for ${selectedIds.length} application(s)`, timer: 2000, showConfirmButton: false });
+      refetch();
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Error', text: err.response?.data?.error || 'Bulk action failed' });
     }
     setSelectedIds([]);
   };
@@ -349,6 +363,14 @@ const EnrollmentManagement = () => {
             <option value="">All Years</option>
             {schoolYears.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
+          <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden">
+            <button onClick={() => setViewMode('list')} className={`px-3 py-2 text-xs font-bold ${viewMode === 'list' ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+            <button onClick={() => setViewMode('kanban')} className={`px-3 py-2 text-xs font-bold ${viewMode === 'kanban' ? 'bg-violet-600 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7" /></svg>
+            </button>
+          </div>
         </div>
 
         {selectedIds.length > 0 && (
@@ -356,6 +378,7 @@ const EnrollmentManagement = () => {
             <span className="text-xs font-bold text-violet-800">{selectedIds.length} selected</span>
             <button onClick={() => bulkAction('approve')} className="px-3 py-1 rounded-lg bg-emerald-600 text-white text-[10px] font-bold hover:bg-emerald-700">Approve All</button>
             <button onClick={() => bulkAction('reject')} className="px-3 py-1 rounded-lg bg-rose-600 text-white text-[10px] font-bold hover:bg-rose-700">Reject All</button>
+            <button onClick={() => bulkAction('enroll')} className="px-3 py-1 rounded-lg bg-violet-600 text-white text-[10px] font-bold hover:bg-violet-700">Enroll All</button>
             <button onClick={() => setSelectedIds([])} className="text-[10px] font-bold text-slate-500 hover:text-slate-700">Clear</button>
           </div>
         )}
@@ -464,6 +487,36 @@ const EnrollmentManagement = () => {
         </div>
       </div>
 
+      {viewMode === 'kanban' && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+          {['pending', 'under_review', 'approved', 'enrolled'].map(status => {
+            const statusApps = filtered.filter(a => a.status === status);
+            return (
+              <div key={status} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-bold text-slate-700 uppercase">{STATUS_CONFIG[status]?.label || status}</h3>
+                  <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded-full">{statusApps.length}</span>
+                </div>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {statusApps.map(app => (
+                    <div key={app.id} className="bg-white border border-slate-200 rounded-lg p-3 hover:shadow-md transition-all cursor-pointer" onClick={() => handleView(app)}>
+                      <p className="text-sm font-bold text-slate-900">{app.last_name}, {app.first_name}</p>
+                      <p className="text-[10px] text-slate-400 mt-0.5">G{app.grade_level} • {app.enrollment_type?.replace('_', ' ')}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span className={`px-1.5 py-0.5 text-[8px] font-bold rounded ${(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).color}`}>
+                          {app.enrollment_number || '—'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {statusApps.length === 0 && <p className="text-xs text-slate-400 text-center py-4">No applications</p>}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
           <div className="bg-white w-full max-w-3xl border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
@@ -561,6 +614,33 @@ const EnrollmentManagement = () => {
                   <p className="text-sm text-slate-400">No documents uploaded</p>
                 )}
               </div>
+
+              {checklist && (
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Enrollment Checklist</p>
+                  <div className="bg-slate-50 p-4 rounded-xl space-y-2">
+                    {[
+                      { key: 'documents_complete', label: 'All Documents Verified' },
+                      { key: 'lrn_verified', label: 'LRN Verified' },
+                      { key: 'parent_contacted', label: 'Parent Contacted' },
+                      { key: 'classroom_assigned', label: 'Classroom Assigned' },
+                      { key: 'profile_complete', label: 'Profile Complete' },
+                    ].map(item => (
+                      <div key={item.key} className="flex items-center gap-2">
+                        <span className={`w-4 h-4 rounded flex items-center justify-center ${checklist[item.key] ? 'bg-emerald-500 text-white' : 'bg-slate-200'}`}>
+                          {checklist[item.key] && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>}
+                        </span>
+                        <span className={`text-xs font-semibold ${checklist[item.key] ? 'text-emerald-700' : 'text-slate-500'}`}>{item.label}</span>
+                      </div>
+                    ))}
+                    <div className="pt-2 border-t border-slate-200 flex items-center gap-2">
+                      <span className={`text-xs font-bold ${checklist.is_complete ? 'text-emerald-600' : 'text-amber-600'}`}>
+                        {checklist.is_complete ? 'Ready for Enrollment' : 'Incomplete — Action Required'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {selected.status_history && selected.status_history.length > 0 && (
                 <div>

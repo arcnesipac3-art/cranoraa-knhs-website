@@ -119,6 +119,10 @@ class EnrollmentApplication(models.Model):
             models.Index(fields=['enrollment_number']),
             models.Index(fields=['grade_level']),
             models.Index(fields=['school_year']),
+            models.Index(fields=['lrn']),
+            models.Index(fields=['email']),
+            models.Index(fields=['enrollment_type', 'status']),
+            models.Index(fields=['school_year', 'status']),
         ]
 
     def save(self, *args, **kwargs):
@@ -266,3 +270,61 @@ class ParentLink(models.Model):
 
     def __str__(self):
         return f"{self.parent.username} → {self.student.username}"
+
+
+class EnrollmentChecklist(models.Model):
+    application = models.OneToOneField(EnrollmentApplication, on_delete=models.CASCADE, related_name='checklist')
+    documents_complete = models.BooleanField(default=False)
+    lrn_verified = models.BooleanField(default=False)
+    parent_linked = models.BooleanField(default=False)
+    classroom_assigned = models.BooleanField(default=False)
+    profile_complete = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    completed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Enrollment checklists'
+
+    def __str__(self):
+        return f"Checklist for {self.application.enrollment_number}"
+
+    @property
+    def is_complete(self):
+        return all([
+            self.documents_complete,
+            self.lrn_verified,
+            self.parent_linked,
+            self.classroom_assigned,
+            self.profile_complete,
+        ])
+
+    def evaluate(self):
+        app = self.application
+        self.documents_complete = not app.documents.exclude(verification_status='verified').exclude(verification_status='missing').filter(verification_status='submitted').exists()
+        lrn = (app.lrn or '').strip()
+        self.lrn_verified = bool(lrn and len(lrn) == 12 and lrn.isdigit()) or bool(app.lrn_request_reason)
+        self.parent_linked = app.linked_parent is not None
+        self.classroom_assigned = app.assigned_classroom is not None
+        self.profile_complete = bool(app.first_name and app.last_name and app.date_of_birth and app.grade_level)
+        if self.is_complete and not self.completed_at:
+            self.completed_at = timezone.now()
+        self.save()
+        return self.is_complete
+
+
+class EnrollmentDocumentVersion(models.Model):
+    document = models.ForeignKey(EnrollmentDocument, on_delete=models.CASCADE, related_name='versions')
+    file_url = models.URLField(max_length=1000)
+    file_name = models.CharField(max_length=255, blank=True, null=True)
+    file_hash = models.CharField(max_length=64, blank=True, help_text="SHA-256 hash for deduplication")
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Enrollment document versions'
+
+    def __str__(self):
+        return f"Version of {self.document.get_document_type_display()} - {self.document.application.enrollment_number}"

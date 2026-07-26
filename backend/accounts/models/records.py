@@ -264,3 +264,39 @@ class RecordRequest(models.Model):
 
     def __str__(self):
         return f"Request #{self.id} - {self.get_record_type_display()} for {self.student or self.requestor}"
+
+
+class StudentPromotionRecord(models.Model):
+    PROMOTION_STATUS = [
+        ('promoted', 'Promoted'),
+        ('retained', 'Retained'),
+        ('conditional', 'Conditionally Promoted'),
+        ('graduated', 'Graduated'),
+        ('transferred', 'Transferred'),
+        ('dropped', 'Dropped'),
+    ]
+
+    student = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='promotion_records')
+    from_classroom = models.ForeignKey('Classroom', on_delete=models.SET_NULL, null=True, related_name='promotions_from')
+    to_classroom = models.ForeignKey('Classroom', on_delete=models.SET_NULL, null=True, blank=True, related_name='promotions_to')
+    from_school_year = models.CharField(max_length=20)
+    to_school_year = models.CharField(max_length=20)
+    status = models.CharField(max_length=20, choices=PROMOTION_STATUS)
+    general_average = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    decision_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='promotion_decisions')
+    decided_at = models.DateTimeField(auto_now_add=True)
+    remarks = models.TextField(blank=True)
+    is_final = models.BooleanField(default=False, help_text="True after bulk promotion confirmation")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-decided_at']
+        indexes = [
+            models.Index(fields=['student', 'from_school_year']),
+            models.Index(fields=['status']),
+            models.Index(fields=['is_final']),
+        ]
+
+    def __str__(self):
+        return f"{self.student}: {self.get_status_display()} ({self.from_school_year} → {self.to_school_year})"

@@ -11,7 +11,7 @@ from ..models import (
     User, Profile, Classroom, StudentClassEnrollment,
     Notification, EnrollmentApplication, EnrollmentDocument,
     EnrollmentStatusHistory, SystemSetting, EnrollmentWaitlist,
-    ParentLink,
+    ParentLink, EnrollmentChecklist,
 )
 from ..serializers import (
     EnrollmentApplicationSerializer,
@@ -107,12 +107,13 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         if self.action in ('start_review', 'reject', 'enroll_student', 'assign_section',
                            'verify_document', 'reject_document', 'request_requirements',
                            'destroy', 'update', 'partial_update', 'bulk_action',
-                           'approve_application', 'update_classroom_capacity', 'delete_application'):
+                           'approve_application', 'update_classroom_capacity', 'delete_application',
+                           'bulk_approve', 'bulk_enroll', 'bulk_assign'):
             return [IsAdmin()]
         if self.action == 'track':
             return [AllowAny()]
         if self.action in ('list', 'retrieve', 'analytics', 'export_csv',
-                           'export_form_pdf', 'export_summary_pdf'):
+                           'export_form_pdf', 'export_summary_pdf', 'checklist'):
             return [IsAuthenticated()]
         return [IsAuthenticated()]
 
@@ -276,6 +277,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         try:
             number = request.query_params.get('number', '').strip()
             email = request.query_params.get('email', '').strip()
+            school_year = request.query_params.get('school_year', '').strip()
             if not number and not email:
                 return Response({'error': 'Provide enrollment number or email'}, status=400)
             qs = EnrollmentApplication.objects.all()
@@ -283,6 +285,8 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(enrollment_number__iexact=number)
             elif email:
                 qs = qs.filter(email__iexact=email)
+            if school_year:
+                qs = qs.filter(school_year=school_year)
             app = qs.select_related('assigned_classroom').prefetch_related('documents', 'status_history').first()
             if not app:
                 return Response({'error': 'No application found'}, status=404)
@@ -384,6 +388,31 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             logger.error(f"Audit log failed on reject: {audit_err}")
         return Response({'status': 'Application rejected'})
 
+    @action(detail=True, methods=['get', 'post'], url_path='checklist')
+    def checklist(self, request, pk=None):
+        application = self.get_object()
+        checklist_obj, _ = EnrollmentChecklist.objects.get_or_create(application=application)
+        if request.method == 'POST' and request.user.role in ['admin', 'staff']:
+            checklist_obj.evaluate()
+            return Response({
+                'documents_complete': checklist_obj.documents_complete,
+                'lrn_verified': checklist_obj.lrn_verified,
+                'parent_linked': checklist_obj.parent_linked,
+                'classroom_assigned': checklist_obj.classroom_assigned,
+                'profile_complete': checklist_obj.profile_complete,
+                'is_complete': checklist_obj.is_complete,
+                'completed_at': checklist_obj.completed_at.isoformat() if checklist_obj.completed_at else None,
+            })
+        return Response({
+            'documents_complete': checklist_obj.documents_complete,
+            'lrn_verified': checklist_obj.lrn_verified,
+            'parent_linked': checklist_obj.parent_linked,
+            'classroom_assigned': checklist_obj.classroom_assigned,
+            'profile_complete': checklist_obj.profile_complete,
+            'is_complete': checklist_obj.is_complete,
+            'completed_at': checklist_obj.completed_at.isoformat() if checklist_obj.completed_at else None,
+        })
+
     @action(detail=True, methods=['post'])
     def approve_application(self, request, pk=None):
         application = self.get_object()
@@ -427,6 +456,16 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
 
             import re, secrets
             lrn = (application.lrn or '').strip()
+
+            # LRN duplicate detection against existing student accounts
+            if lrn and len(lrn) == 12 and lrn.isdigit():
+                existing_lrn_user = Profile.objects.filter(lrn=lrn).select_related('user').first()
+                if existing_lrn_user and existing_lrn_user.user.role == 'student' and existing_lrn_user.user.account_status == 'active':
+                    return Response({
+                        'error': f'A student account with LRN {lrn} already exists (username: {existing_lrn_user.user.username}). '
+                                 f'Cannot create a duplicate account.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
             if lrn and len(lrn) == 12 and lrn.isdigit():
                 username = lrn
                 existing_user = User.objects.filter(username=username).first()
@@ -471,6 +510,9 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             profile.middle_name = application.middle_name or ''
             profile.father_name = application.father_name or ''; profile.mother_name = application.mother_name or ''
             profile.nationality = application.nationality or 'Filipino'
+            profile.emergency_contact_name = application.emergency_contact_name or ''
+            profile.emergency_contact_phone = application.emergency_contact_phone or ''
+            profile.emergency_contact_relationship = application.emergency_contact_relationship or ''
             if lrn: profile.registration_number = lrn
             profile.save()
 
@@ -533,6 +575,9 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             application.save()
             EnrollmentStatusHistory.objects.create(application=application, from_status=from_status,
                 to_status='enrolled', changed_by=user, notes=f'Student account created. Username: {username}')
+            # Create and complete enrollment checklist
+            checklist, _ = EnrollmentChecklist.objects.get_or_create(application=application)
+            checklist.evaluate()
             self._safe_notify_user(student_user, 'Enrollment Complete',
                 f'Welcome! Enrollment complete. Username: {username}', '/dashboard')
             try:
@@ -677,6 +722,219 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         elif action_type == 'reject': return self.reject(request, pk)
         elif action_type == 'enroll': return self.enroll_student(request, pk)
         return Response({'error': 'Unknown action'}, status=400)
+
+    @action(detail=False, methods=['post'], url_path='bulk-approve')
+    def bulk_approve(self, request):
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+        application_ids = request.data.get('application_ids', [])
+        if not application_ids:
+            return Response({'error': 'application_ids is required'}, status=400)
+        remarks = request.data.get('remarks', 'Bulk approved')
+        approved = []
+        errors = []
+        for app_id in application_ids:
+            try:
+                app = EnrollmentApplication.objects.get(id=app_id)
+                if app.status not in ('under_review', 'pending_requirements', 'pending'):
+                    errors.append({'id': app_id, 'error': f'Cannot approve: status is {app.status}'})
+                    continue
+                from_status = app.status
+                app.status = 'approved'
+                app.remarks = remarks
+                app.reviewed_by = request.user
+                app.reviewed_at = timezone.now()
+                app.save()
+                EnrollmentStatusHistory.objects.create(application=app, from_status=from_status,
+                    to_status='approved', changed_by=request.user, notes=remarks)
+                self._safe_notify_user(app, 'Application Approved', 'Your application has been approved.', '/track-enrollment')
+                approved.append(app_id)
+            except EnrollmentApplication.DoesNotExist:
+                errors.append({'id': app_id, 'error': 'Not found'})
+        try:
+            log_audit_action(user=request.user, action='bulk_approve', model_name='EnrollmentApplication',
+                object_id=None, object_repr=f'{len(approved)} applications',
+                description=f'Bulk approved {len(approved)} applications', request=request)
+        except Exception as e:
+            logger.error(f"Audit log failed on bulk_approve: {e}")
+        return Response({'approved': approved, 'errors': errors})
+
+    @action(detail=False, methods=['post'], url_path='bulk-enroll')
+    def bulk_enroll(self, request):
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+        application_ids = request.data.get('application_ids', [])
+        classroom_id = request.data.get('classroom_id')
+        if not application_ids:
+            return Response({'error': 'application_ids is required'}, status=400)
+        enrolled = []
+        errors = []
+        for app_id in application_ids:
+            try:
+                result = self._enroll_single(app_id, request.user, classroom_id, request)
+                enrolled.append(result)
+            except Exception as e:
+                errors.append({'id': app_id, 'error': str(e)})
+        try:
+            log_audit_action(user=request.user, action='bulk_enroll', model_name='EnrollmentApplication',
+                object_id=None, object_repr=f'{len(enrolled)} students',
+                description=f'Bulk enrolled {len(enrolled)} students', request=request)
+        except Exception as e:
+            logger.error(f"Audit log failed on bulk_enroll: {e}")
+        return Response({'enrolled': enrolled, 'errors': errors})
+
+    def _enroll_single(self, app_id, user, classroom_id, request):
+        import re, secrets
+        application = EnrollmentApplication.objects.get(id=app_id)
+        if application.status != 'approved':
+            raise ValueError(f'Application {app_id} must be approved (current: {application.status})')
+        if application.enrolled_student:
+            raise ValueError(f'Application {app_id} already enrolled')
+
+        lrn = (application.lrn or '').strip()
+        if lrn and len(lrn) == 12 and lrn.isdigit():
+            existing_lrn_user = Profile.objects.filter(lrn=lrn).select_related('user').first()
+            if existing_lrn_user and existing_lrn_user.user.role == 'student' and existing_lrn_user.user.account_status == 'active':
+                raise ValueError(f'LRN {lrn} already exists for student {existing_lrn_user.user.username}')
+
+        if lrn and len(lrn) == 12 and lrn.isdigit():
+            username = lrn
+            existing_user = User.objects.filter(username=username).first()
+            if existing_user:
+                student_user = existing_user
+                student_user.first_name = application.first_name
+                student_user.last_name = application.last_name
+                student_user.email = application.email or student_user.email
+                student_user.role = 'student'
+                student_user.is_verified = True
+                student_user.is_approved = True
+                student_user.must_change_password = True
+                student_user.account_status = 'active'
+                temp_password = secrets.token_urlsafe(12)
+                student_user.set_password(temp_password)
+                student_user.save()
+            else:
+                temp_password = secrets.token_urlsafe(12)
+                student_user = User(username=username, email=application.email or None,
+                    first_name=application.first_name, last_name=application.last_name,
+                    role='student', is_verified=True, is_approved=True, must_change_password=True, account_status='active')
+                student_user.set_password(temp_password)
+                student_user.save()
+        else:
+            username = f"student.{secrets.token_hex(4)}"
+            while User.objects.filter(username=username).exists():
+                username = f"student.{secrets.token_hex(4)}"
+            temp_password = secrets.token_urlsafe(12)
+            student_user = User(username=username, email=application.email or None,
+                first_name=application.first_name, last_name=application.last_name,
+                role='student', is_verified=True, is_approved=True, must_change_password=True, account_status='active')
+            student_user.set_password(temp_password)
+            student_user.save()
+
+        profile, _ = Profile.objects.get_or_create(user=student_user)
+        profile.lrn = lrn; profile.grade_level = application.grade_level
+        profile.phone_number = application.phone_number or ''
+        profile.address = f"{application.street_address}, {application.barangay}, {application.city_municipality}, {application.province}"
+        profile.date_of_birth = application.date_of_birth; profile.sex = application.sex
+        profile.middle_name = application.middle_name or ''
+        profile.father_name = application.father_name or ''; profile.mother_name = application.mother_name or ''
+        profile.nationality = application.nationality or 'Filipino'
+        profile.emergency_contact_name = application.emergency_contact_name or ''
+        profile.emergency_contact_phone = application.emergency_contact_phone or ''
+        profile.emergency_contact_relationship = application.emergency_contact_relationship or ''
+        if lrn: profile.registration_number = lrn
+        profile.save()
+
+        # Link parent
+        parent_email = application.mother_email or application.father_email or application.guardian_email
+        if parent_email:
+            try:
+                parent_user = User.objects.filter(email=parent_email).first()
+                if not parent_user:
+                    parent_clean = re.sub(r'[^a-z]', '', (application.last_name or 'parent').lower().split()[0])
+                    parent_username = f"parent.{parent_clean}.{secrets.token_hex(2)}"
+                    while User.objects.filter(username=parent_username).exists():
+                        parent_username = f"parent.{parent_clean}.{secrets.token_hex(2)}"
+                    parent_first = 'Parent'
+                    if application.father_name and application.father_name.strip():
+                        parent_first = application.father_name.strip().split()[0]
+                    elif application.mother_name and application.mother_name.strip():
+                        parent_first = application.mother_name.strip().split()[0]
+                    parent_user = User(username=parent_username, email=parent_email,
+                        first_name=parent_first, last_name=application.last_name, role='parent',
+                        is_verified=True, is_approved=True, must_change_password=True, account_status='active')
+                    parent_user.set_password(secrets.token_urlsafe(12)); parent_user.save()
+                    pp, _ = Profile.objects.get_or_create(user=parent_user)
+                    pp.phone_number = application.father_contact or application.mother_contact or application.guardian_contact or ''
+                    pp.save()
+                parent_profile_obj = getattr(parent_user, 'profile', None)
+                if parent_profile_obj:
+                    parent_profile_obj.linked_students.add(student_user); parent_profile_obj.save()
+                ParentLink.objects.get_or_create(parent=parent_user, student=student_user,
+                    defaults={'application': application, 'relationship': application.guardian_relationship or 'parent', 'is_primary': True})
+                application.linked_parent = parent_user
+                application.save(update_fields=['linked_parent'])
+            except Exception as pe:
+                logger.error(f"Parent linking error in bulk: {pe}")
+
+        # Assign classroom
+        cid = classroom_id
+        if not cid:
+            try: cid = self._auto_assign_section(application)
+            except Exception as ae: logger.error(f"Auto-assign error: {ae}")
+        classroom_name = ''
+        if cid:
+            try:
+                classroom = Classroom.objects.get(id=cid)
+                StudentClassEnrollment.objects.get_or_create(student=student_user, classroom=classroom)
+                application.assigned_classroom = classroom; classroom_name = classroom.name
+            except Exception as ce: logger.error(f"Classroom error: {ce}")
+
+        from_status = application.status
+        application.enrolled_student = student_user
+        application.status = 'enrolled'
+        application.remarks = f'Enrolled on {timezone.now().strftime("%Y-%m-%d %H:%M")}'
+        application.reviewed_by = user; application.reviewed_at = timezone.now()
+        application.temp_password_display = temp_password
+        application.save()
+        EnrollmentStatusHistory.objects.create(application=application, from_status=from_status,
+            to_status='enrolled', changed_by=user, notes=f'Student account created. Username: {username}')
+        checklist, _ = EnrollmentChecklist.objects.get_or_create(application=application)
+        checklist.evaluate()
+        return {'application_id': application.id, 'student_id': student_user.id, 'username': username, 'classroom': classroom_name}
+
+    @action(detail=False, methods=['post'], url_path='bulk-assign')
+    def bulk_assign(self, request):
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+        classroom_id = request.data.get('classroom_id')
+        application_ids = request.data.get('application_ids', [])
+        if not classroom_id or not application_ids:
+            return Response({'error': 'classroom_id and application_ids required'}, status=400)
+        try:
+            classroom = Classroom.objects.get(id=classroom_id)
+        except Classroom.DoesNotExist:
+            return Response({'error': 'Classroom not found'}, status=404)
+        current_count = StudentClassEnrollment.objects.filter(classroom=classroom).count()
+        capacity = classroom.capacity or 40
+        if current_count + len(application_ids) > capacity:
+            return Response({'error': f'{classroom.name} would exceed capacity ({current_count + len(application_ids)}/{capacity})'}, status=400)
+        assigned = []
+        errors = []
+        for app_id in application_ids:
+            try:
+                app = EnrollmentApplication.objects.get(id=app_id)
+                if _grade_key(classroom.grade_level) != _grade_key(app.grade_level):
+                    errors.append({'id': app_id, 'error': 'Grade level mismatch'})
+                    continue
+                app.assigned_classroom = classroom
+                app.save(update_fields=['assigned_classroom'])
+                if app.enrolled_student:
+                    StudentClassEnrollment.objects.get_or_create(student=app.enrolled_student, classroom=classroom)
+                assigned.append(app_id)
+            except EnrollmentApplication.DoesNotExist:
+                errors.append({'id': app_id, 'error': 'Not found'})
+        return Response({'assigned': assigned, 'errors': errors, 'classroom': classroom.name, 'new_count': current_count + len(assigned)})
 
     @action(detail=True, methods=['delete'])
     def delete_application(self, request, pk=None):

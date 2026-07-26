@@ -3,6 +3,7 @@ from rest_framework import serializers
 from ..models import (
     Transcript, TranscriptLineItem, TransferCertificate,
     CharacterCertificate, AchievementRecord, RecordRequest,
+    StudentPromotionRecord,
 )
 from ._base import full_name
 
@@ -123,3 +124,25 @@ class RecordRequestSerializer(serializers.ModelSerializer):
 
     def get_handled_by_name(self, obj):
         return full_name(obj.handled_by) if obj.handled_by else None
+
+
+class StudentPromotionRecordSerializer(serializers.ModelSerializer):
+    student_name = serializers.SerializerMethodField()
+    from_classroom_name = serializers.CharField(source='from_classroom.name', read_only=True)
+    to_classroom_name = serializers.CharField(source='to_classroom.name', read_only=True, default=None)
+    decision_by_name = serializers.SerializerMethodField()
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    class Meta:
+        model = StudentPromotionRecord
+        fields = ['id', 'student', 'student_name', 'from_classroom', 'from_classroom_name',
+                  'to_classroom', 'to_classroom_name', 'from_school_year', 'to_school_year',
+                  'status', 'status_display', 'general_average', 'decision_by', 'decision_by_name',
+                  'decided_at', 'remarks', 'is_final', 'created_at', 'updated_at']
+        read_only_fields = ['decided_at', 'is_final']
+
+    def get_student_name(self, obj):
+        return full_name(obj.student) if obj.student else None
+
+    def get_decision_by_name(self, obj):
+        return full_name(obj.decision_by) if obj.decision_by else None

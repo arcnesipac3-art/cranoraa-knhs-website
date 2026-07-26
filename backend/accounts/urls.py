@@ -20,7 +20,7 @@ from .views import (
     notification_preferences_view,
     TicketViewSet, DepartmentContactViewSet,
     TranscriptViewSet, TransferCertificateViewSet, CharacterCertificateViewSet,
-    AchievementRecordViewSet, RecordRequestViewSet,
+    AchievementRecordViewSet, RecordRequestViewSet, StudentPromotionRecordViewSet,
     AbsenceExcuseViewSet, EnrollmentWaitlistViewSet,
     ParentTeacherMeetingViewSet, BehavioralRecordViewSet, SchoolEventViewSet,
     parent_report_card_pdf, parent_year_over_year,
@@ -71,6 +71,7 @@ router.register(r'v1/transfer-certificates', TransferCertificateViewSet, basenam
 router.register(r'v1/character-certificates', CharacterCertificateViewSet, basename='character-certificate')
 router.register(r'v1/achievement-records', AchievementRecordViewSet, basename='achievement-record')
 router.register(r'v1/record-requests', RecordRequestViewSet, basename='record-request')
+router.register(r'v1/promotion-records', StudentPromotionRecordViewSet, basename='promotion-record')
 router.register(r'v1/absence-excuses', AbsenceExcuseViewSet, basename='absence-excuse')
 router.register(r'v1/enrollment-waitlist', EnrollmentWaitlistViewSet, basename='enrollment-waitlist')
 router.register(r'v1/ptm-meetings', ParentTeacherMeetingViewSet, basename='ptm-meeting')
