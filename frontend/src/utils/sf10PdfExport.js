@@ -4,12 +4,8 @@
  * Generates a multi-page PDF replicating the official SF10 template.
  * One page per student (or continuation pages for long forms).
  *
- * Fixes applied:
- *  - Was only exporting studentData[0] — now iterates ALL students
- *  - Imports shared mapToLearningArea / calcFinalGrade / depedRound / buildGradeIndex
- *    from sf10Export.js to eliminate duplication
- *  - Both JHS and SHS now use 3 term columns (T1, T2, T3)
- *  - Added SHS learning areas support
+ * New DepEd Curriculum: Both JHS and SHS use 3 terms (Term 1, Term 2, Term 3).
+ * Imports shared helpers from sf10Export.js.
  */
 
 import { jsPDF } from 'jspdf';
@@ -113,13 +109,14 @@ function addStudentPage(doc, student, schoolInfo, isFirstPage) {
   doc.text(`Adviser: ${schoolInfo.adviser}`, MARGIN, y);
   doc.setFont('helvetica', 'bold'); doc.text('Signature: ___________', MARGIN + 130, y); y += 7;
 
-  // ── Grades table ───────────────────────────────────────────────────────────
-  const colX = { area: MARGIN, t1: MARGIN + 85, t2: MARGIN + 100, t3: MARGIN + 115, final: MARGIN + 135, remarks: MARGIN + 155 };
+  // ── Grades table — 3 terms for both JHS and SHS ──────────────────────────
+  const colX = { area: MARGIN, t1: MARGIN + 95, t2: MARGIN + 112, t3: MARGIN + 129, final: MARGIN + 148, remarks: MARGIN + 170 };
 
   doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-  doc.text('LEARNING AREAS / SUBJECTS', colX.area, y);
-  doc.text('T1', colX.t1, y); doc.text('T2', colX.t2, y);
-  doc.text('T3', colX.t3, y);
+  doc.text(isSHS ? 'SUBJECT' : 'LEARNING AREAS / SUBJECTS', colX.area, y);
+  doc.text('Term 1', colX.t1, y);
+  doc.text('Term 2', colX.t2, y);
+  doc.text('Term 3', colX.t3, y);
   doc.text('FINAL', colX.final, y); doc.text('REMARKS', colX.remarks, y); y += 2;
   doc.line(MARGIN, y, PAGE_W - MARGIN, y); y += 4;
 
@@ -130,12 +127,11 @@ function addStudentPage(doc, student, schoolInfo, isFirstPage) {
 
   areas.forEach(area => {
     const aq = areaGrades[area] || {};
-    const finalGrade = calcFinalGrade(aq, isSHS);
+    const finalGrade = calcFinalGrade(aq); // unified 3-term average
     if (finalGrade !== '') finalsForAvg.push(Number(finalGrade));
     const rem = gradeRemarks(finalGrade);
 
-    // Truncate long area names so they don't overflow
-    const areaLabel = doc.splitTextToSize(area, colX.area + 80)[0];
+    const areaLabel = doc.splitTextToSize(area, colX.area + 90)[0];
     doc.text(areaLabel, colX.area, y);
     doc.text(String(depedRound(aq.t1) || ''), colX.t1, y);
     doc.text(String(depedRound(aq.t2) || ''), colX.t2, y);
@@ -144,10 +140,7 @@ function addStudentPage(doc, student, schoolInfo, isFirstPage) {
     doc.text(rem, colX.remarks, y);
     y += 4.5;
 
-    // Add new page if running out of space (leave 40mm for footer)
-    if (y > 257) {
-      doc.addPage(); y = MARGIN + 5;
-    }
+    if (y > 257) { doc.addPage(); y = MARGIN + 5; }
   });
 
   // General average

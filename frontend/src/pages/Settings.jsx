@@ -183,7 +183,8 @@ const GradingSettingsTab = () => {
 
   if (loading || !settings) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
 
-  const isJHS = settings.academic_level === 'jhs';
+  const level = settings.academic_level;
+  const isBoth = level === 'both';
   const currentQuarterNum = parseInt(settings.current_quarter) || 1;
 
   return (
@@ -193,21 +194,18 @@ const GradingSettingsTab = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Academic Level</p>
-              <p className="text-sm font-bold text-slate-800">{isJHS ? 'Junior High School (Grades 7-10)' : 'Senior High School (Grades 11-12)'}</p>
+              <p className="text-sm font-bold text-slate-800">{isBoth ? 'Both JHS & SHS (Grades 7-12)' : level === 'jhs' ? 'Junior High School (Grades 7-10)' : 'Senior High School (Grades 11-12)'}</p>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{isJHS ? 'Current Term' : 'Current Semester'}</p>
-              <p className="text-sm font-bold text-slate-800">{isJHS ? `${currentQuarterNum}${currentQuarterNum === 1 ? 'st' : currentQuarterNum === 2 ? 'nd' : currentQuarterNum === 3 ? 'rd' : 'th'} Term` : `${currentQuarterNum}${currentQuarterNum === 1 ? 'st' : currentQuarterNum === 2 ? 'nd' : 'rd'} Semester`}</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Term</p>
+              <p className="text-sm font-bold text-slate-800">{`${currentQuarterNum}${currentQuarterNum === 1 ? 'st' : currentQuarterNum === 2 ? 'nd' : currentQuarterNum === 3 ? 'rd' : 'th'} Term`}</p>
             </div>
           </div>
 
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Grading Period Structure</p>
             <div className="flex flex-wrap gap-2">
-              {(isJHS
-                ? ['1st Term', '2nd Term', '3rd Term']
-                : ['1st Semester', '2nd Semester', '3rd Semester (Summer)']
-              ).map((label, i) => (
+              {['1st Term', '2nd Term', '3rd Term'].map((label, i) => (
                 <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
                   (i + 1) === currentQuarterNum
                     ? 'bg-violet-100 border-violet-300 text-violet-800'
@@ -223,9 +221,7 @@ const GradingSettingsTab = () => {
               ))}
             </div>
             <p className="text-[11px] text-slate-500 font-medium mt-3">
-              {isJHS
-                ? 'Junior High School uses a term-based grading system with 3 grading periods per academic year.'
-                : 'Senior High School uses a semester-based grading system with 3 grading periods per academic year.'}
+              Both JHS and SHS use a term-based grading system with 3 grading periods per academic year.
             </p>
           </div>
         </div>
@@ -818,24 +814,15 @@ const PortalSettingsTab = () => {
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
                 <option value="jhs">Junior High School (Grades 7-10)</option>
                 <option value="shs">Senior High School (Grades 11-12)</option>
+                <option value="both">Both JHS & SHS (Grades 7-12)</option>
               </select>
             </Field>
-            <Field label={settings.academic_level === 'shs' ? 'Current Semester' : 'Current Quarter'} hint="Used as default when entering grades">
+            <Field label="Current Quarter" hint="Used as default when entering grades">
               <select value={settings.current_quarter} onChange={e => setSettings(p => ({...p, current_quarter: e.target.value}))}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
-                {settings.academic_level === 'shs' ? (
-                  <>
-                    <option value="1">1st Semester</option>
-                    <option value="2">2nd Semester</option>
-                    <option value="3">3rd Semester (Summer)</option>
-                  </>
-                ) : (
-                  <>
-                    <option value="1">1st Term</option>
-                    <option value="2">2nd Term</option>
-                    <option value="3">3rd Term</option>
-                  </>
-                )}
+                <option value="1">1st Term</option>
+                <option value="2">2nd Term</option>
+                <option value="3">3rd Term</option>
               </select>
             </Field>
             <Field label="Default Academic Year" hint="Used in analytics when no year is selected">
@@ -847,46 +834,23 @@ const PortalSettingsTab = () => {
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Grading Period Structure</p>
             <div className="flex flex-wrap gap-2">
-              {settings.academic_level === 'shs' ? (
-                <>
-                  {['1st Semester', '2nd Semester', '3rd Semester (Summer)'].map((label, i) => (
-                    <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                      String(i + 1) === settings.current_quarter 
-                        ? 'bg-violet-100 border-violet-300 text-violet-800' 
-                        : 'bg-white border-slate-200 text-slate-600'
-                    }`}>
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        String(i + 1) === settings.current_quarter 
-                          ? 'bg-violet-600 text-white' 
-                          : 'bg-slate-200 text-slate-600'
-                      }`}>{i + 1}</span>
-                      <span className="text-xs font-bold">{label}</span>
-                    </div>
-                  ))}
-                </>
-              ) : (
-                <>
-                  {['1st Term', '2nd Term', '3rd Term'].map((label, i) => (
-                    <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                      String(i + 1) === settings.current_quarter 
-                        ? 'bg-violet-100 border-violet-300 text-violet-800' 
-                        : 'bg-white border-slate-200 text-slate-600'
-                    }`}>
-                      <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                        String(i + 1) === settings.current_quarter 
-                          ? 'bg-violet-600 text-white' 
-                          : 'bg-slate-200 text-slate-600'
-                      }`}>{i + 1}</span>
-                      <span className="text-xs font-bold">{label}</span>
-                    </div>
-                  ))}
-                </>
-              )}
+              {['1st Term', '2nd Term', '3rd Term'].map((label, i) => (
+                <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
+                  String(i + 1) === settings.current_quarter 
+                    ? 'bg-violet-100 border-violet-300 text-violet-800' 
+                    : 'bg-white border-slate-200 text-slate-600'
+                }`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                    String(i + 1) === settings.current_quarter 
+                      ? 'bg-violet-600 text-white' 
+                      : 'bg-slate-200 text-slate-600'
+                  }`}>{i + 1}</span>
+                  <span className="text-xs font-bold">{label}</span>
+                </div>
+              ))}
             </div>
             <p className="text-[11px] text-slate-500 font-medium mt-3">
-              {settings.academic_level === 'shs' 
-                ? 'Senior High School uses a semester-based grading system with 3 grading periods per academic year.'
-                : 'Junior High School uses a term-based grading system with 3 grading periods per academic year.'}
+              Both JHS and SHS use a term-based grading system with 3 grading periods per academic year.
             </p>
           </div>
         </div>

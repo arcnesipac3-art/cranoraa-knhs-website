@@ -108,7 +108,7 @@ const AcademicSetup = () => {
 
   // ── Forms ─────────────────────────────────────────────────────────────────
   const [ayForm,       setAyForm]       = useState({ name: '', start_date: '', end_date: '', is_active: true });
-  const [semesterForm, setSemesterForm] = useState({ name: '', semester_type: '1st Quarter' });
+  const [semesterForm, setSemesterForm] = useState({ name: '', semester_type: '1st Term' });
   const [sectionForm,  setSectionForm]  = useState({ name: '', grade_level: '', teacher: '' });
   const [subjectForm,  setSubjectForm]  = useState({ name: '', code: '', description: '', grade_level: '' });
   const [assignForm,   setAssignForm]   = useState({ classroom: '', subject: '', teacher: '' });
@@ -145,19 +145,14 @@ const AcademicSetup = () => {
     );
   }, [subjects, subjectSearch]);
 
+  // New DepEd curriculum: both JHS and SHS use 3 terms
   const getDefaultPeriods = useCallback(() => {
-    if (educationLevel === 'jhs') return [
+    return [
       { name: '1st Term', semester_type: '1st Term' },
       { name: '2nd Term', semester_type: '2nd Term' },
       { name: '3rd Term', semester_type: '3rd Term' },
     ];
-    if (educationLevel === 'shs') return [
-      { name: '1st Term', semester_type: '1st Term' },
-      { name: '2nd Term', semester_type: '2nd Term' },
-      { name: '3rd Term', semester_type: '3rd Term' },
-    ];
-    return [];
-  }, [educationLevel]);
+  }, []);
 
   // ── Publish checklist (defined before canAdvance — fix #3) ───────────────
   const publishChecks = useMemo(() => [
@@ -311,7 +306,7 @@ const AcademicSetup = () => {
     }
     try {
       await api.patch('/system/settings/', { academic_level: educationLevel });
-      toast.success(`Education level set to ${educationLevel === 'jhs' ? 'Junior High School' : 'Senior High School'}`);
+      toast.success(`Education level set to ${educationLevel === 'jhs' ? 'Junior High School' : educationLevel === 'shs' ? 'Senior High School' : 'Both JHS & SHS'}`);
       goToNextStep();
     } catch (err) { toast.error(parseBackendErrors(err), { duration: 6000 }); }
   };
@@ -327,7 +322,7 @@ const AcademicSetup = () => {
       });
       toast.success('Period created');
       setShowModal(false);
-      setSemesterForm({ name: '', semester_type: educationLevel === 'jhs' ? '1st Quarter' : '1st Term' });
+      setSemesterForm({ name: '', semester_type: '1st Term' });
       fetchData();
     } catch (err) { toast.error(parseBackendErrors(err), { duration: 6000 }); }
     finally { setSavingSem(false); }
@@ -466,8 +461,8 @@ const AcademicSetup = () => {
       try {
         await api.patch('/system/settings/', { current_quarter: '1' });
       } catch (patchErr) {
-        console.warn('[AcademicSetup] current_quarter patch failed (non-critical):', patchErr);
-        toast('Note: Could not set current quarter to 1 — set it manually in Settings.', { icon: '⚠️' });
+        console.warn('[AcademicSetup] current_term patch failed (non-critical):', patchErr);
+        toast('Note: Could not set current term to 1 — set it manually in Settings.', { icon: '⚠️' });
       }
       // Persist published state so re-visits go straight to Complete step
       setPublishedAYId(activeAY.id);
@@ -642,7 +637,7 @@ const AcademicSetup = () => {
 
       {/* ── Modals (fix #13: individual modal components) ── */}
       <AYModal isOpen={showModal && modalType === 'academic-year'} onClose={() => setShowModal(false)} form={ayForm} setForm={setAyForm} onSubmit={handleCreateAY} saving={savingAY} />
-      <SemesterModal isOpen={showModal && modalType === 'semester'} onClose={() => setShowModal(false)} form={semesterForm} setForm={setSemesterForm} onSubmit={handleCreateSemester} saving={savingSem} educationLevel={educationLevel} activeAY={activeAY} />
+      <SemesterModal isOpen={showModal && modalType === 'semester'} onClose={() => setShowModal(false)} form={semesterForm} setForm={setSemesterForm} onSubmit={handleCreateSemester} saving={savingSem} activeAY={activeAY} />
       <SectionModal isOpen={showModal && modalType === 'section'} onClose={() => setShowModal(false)} form={sectionForm} setForm={setSectionForm} onSubmit={handleCreateSection} saving={savingSection} availGrades={availGrades} activeTeachers={activeTeachers} />
       <SubjectModal isOpen={showModal && modalType === 'subject'} onClose={() => setShowModal(false)} form={subjectForm} setForm={setSubjectForm} onSubmit={handleCreateSubject} saving={savingSubject} availGrades={availGrades} />
       <AssignModal isOpen={showModal && modalType === 'assign-subject'} onClose={() => setShowModal(false)} form={assignForm} setForm={setAssignForm} onSubmit={handleAssignSubject} saving={savingAssign} classrooms={classrooms} subjects={subjects} activeTeachers={activeTeachers} />
@@ -755,8 +750,9 @@ function StepEducationLevel({ educationLevel, setEducationLevel, onSelectEducati
         title="Education Level" desc="Choose the level for this academic year. This auto-selects grade levels and period structure." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto">
         {[
-          { id: 'jhs', label: 'Junior High School', sub: 'Grade 7 – Grade 10', badge: '3 Terms',   color: 'blue',  grades: JHS_GRADES },
-          { id: 'shs', label: 'Senior High School', sub: 'Grade 11 – Grade 12', badge: '3 Terms',   color: 'pink', grades: SHS_GRADES },
+          { id: 'jhs', label: 'Junior High School', sub: 'Grade 7 – Grade 10', badge: '3 Terms', color: 'blue',  grades: JHS_GRADES },
+          { id: 'shs', label: 'Senior High School', sub: 'Grade 11 – Grade 12', badge: '3 Terms', color: 'pink', grades: SHS_GRADES },
+          { id: 'both', label: 'Both JHS & SHS', sub: 'Grade 7 – Grade 12', badge: '3 Terms', color: 'emerald', grades: ALL_GRADES },
         ].map(opt => {
           const active = educationLevel === opt.id;
           const c = COLOR_CLASSES[opt.color];
@@ -789,7 +785,7 @@ function StepEducationLevel({ educationLevel, setEducationLevel, onSelectEducati
       <p className="text-center text-xs text-slate-400 italic max-w-sm mx-auto">Grade levels are automatically configured based on this selection.</p>
       <div className="flex justify-center">
         <Button variant="primary" onClick={onSelectEducationLevel} disabled={!educationLevel}>
-          Continue with {educationLevel === 'jhs' ? 'Junior High' : educationLevel === 'shs' ? 'Senior High' : '…'}
+          Continue with {educationLevel === 'jhs' ? 'Junior High' : educationLevel === 'shs' ? 'Senior High' : educationLevel === 'both' ? 'Both JHS & SHS' : '…'}
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
         </Button>
       </div>
@@ -799,15 +795,15 @@ function StepEducationLevel({ educationLevel, setEducationLevel, onSelectEducati
 
 // ── Step: Academic Periods ────────────────────────────────────────────────────
 
-function StepAcademicPeriods({ educationLevel, semesters, savingSem, onOpenModal, onQuickCreatePeriods, onDeleteSemester }) {
-  const isJhs = educationLevel === 'jhs';
-  const c = COLOR_CLASSES[isJhs ? 'blue' : 'pink'];
+// New curriculum: both JHS and SHS use 3 terms
+function StepAcademicPeriods({ semesters, savingSem, onOpenModal, onQuickCreatePeriods, onDeleteSemester }) {
+  const c = COLOR_CLASSES['blue'];
   return (
     <div className="space-y-5">
-      <StepHero icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" color={isJhs ? 'blue' : 'pink'}
-        title={`Configure ${isJhs ? '4 Quarters' : '3 Terms'}`}
-        desc={isJhs ? 'Set up the 4 quarterly grading periods for Junior High School.' : 'Set up the 3 term grading periods for Senior High School.'}
-        badge={isJhs ? 'JHS: 4 Quarters' : 'SHS: 3 Terms'} />
+      <StepHero icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" color="blue"
+        title="Configure 3 Terms"
+        desc="Set up the 3 grading terms for this academic year. Both JHS and SHS follow the new 3-term curriculum."
+        badge="3 Terms (New Curriculum)" />
       {semesters.length > 0 ? (
         <div className="space-y-2 max-w-xl mx-auto">
           {semesters.map((s, i) => (
@@ -828,19 +824,19 @@ function StepAcademicPeriods({ educationLevel, semesters, savingSem, onOpenModal
           ))}
         </div>
       ) : (
-        <EmptyPlaceholder icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" text="No periods yet"
-          sub={isJhs ? 'Create 4 quarters or use Quick Setup' : 'Create 3 terms or use Quick Setup'} />
+        <EmptyPlaceholder icon="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" text="No terms yet"
+          sub="Create 3 terms or use Quick Setup" />
       )}
       <div className="flex flex-wrap justify-center gap-3">
         {semesters.length === 0 && (
           <Button variant="primary" onClick={onQuickCreatePeriods} disabled={savingSem}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-            Quick Setup {isJhs ? '(4 Quarters)' : '(3 Terms)'}
+            Quick Setup (3 Terms)
           </Button>
         )}
         <Button variant="secondary" onClick={() => onOpenModal('semester')}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-          Add Period Manually
+          Add Term Manually
         </Button>
       </div>
     </div>
@@ -861,7 +857,7 @@ function StepSections({ classrooms, educationLevel, classroomSubjectMap, onOpenM
     <div className="space-y-5">
       <StepHero icon="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
         color="violet" title="Create Sections"
-        desc={`Set up sections for each ${educationLevel === 'jhs' ? 'Grade 7–10' : 'Grade 11–12'} level. Each section will have subjects assigned in the next steps.`} />
+        desc={`Set up sections for each ${educationLevel === 'jhs' ? 'Grade 7–10' : educationLevel === 'shs' ? 'Grade 11–12' : 'Grade 7–12'} level. Each section will have subjects assigned in the next steps.`} />
       {classrooms.length > 0 ? (
         <div className="space-y-4 max-w-xl mx-auto">
           {sortedGrades.map(grade => (
@@ -1155,14 +1151,15 @@ function AYModal({ isOpen, onClose, form, setForm, onSubmit, saving }) {
   );
 }
 
-function SemesterModal({ isOpen, onClose, form, setForm, onSubmit, saving, educationLevel, activeAY }) {
+function SemesterModal({ isOpen, onClose, form, setForm, onSubmit, saving, activeAY }) {
+  // New curriculum: both JHS and SHS use 3 terms
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="md">
       <ModalHeader onClose={onClose}><ModalTitle title="Add Term" subtitle={`For SY ${activeAY?.name || '—'}`} /></ModalHeader>
       <form onSubmit={onSubmit}>
         <ModalBody>
           <div className="space-y-4">
-            <ModalField label="Type" required>
+            <ModalField label="Term" required>
               <select value={form.semester_type} onChange={e => setForm({ ...form, semester_type: e.target.value, name: e.target.value })} className={modalSelectCls} required>
                 <option value="1st Term">1st Term</option>
                 <option value="2nd Term">2nd Term</option>

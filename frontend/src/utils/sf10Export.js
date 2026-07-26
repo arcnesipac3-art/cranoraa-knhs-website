@@ -4,11 +4,8 @@
  * Generates an Excel workbook replicating the official DepEd SF10 layout.
  * One full form per student, stacked vertically on a single worksheet.
  *
- * Fixes applied:
- *  - calcFinalGrade now uses Q1–Q4 for JHS (4 quarters), Q1–Q2 for SHS (2 semesters)
- *  - mapToLearningArea centralised here (was duplicated in sf10PdfExport.js)
- *  - SHS learning areas now defined and exported
- *  - gradeLevel param threaded through so SHS forms use correct columns/labels
+ * New DepEd Curriculum: Both JHS and SHS now use 3 terms (Term 1, Term 2, Term 3).
+ * Quarters and semesters are no longer used.
  */
 
 import * as XLSX from 'xlsx';
@@ -56,10 +53,10 @@ const GRADE_SCALE = [
   ['Did Not Meet Expectations', 'Below 75', 'Failed'],
 ];
 
-// Column indices: A=Learning Areas, B=T1, C=T2, D=T3, E=Final, F=Remarks
-const COL_JHS = { AREA: 0, T1: 1, T2: 2, T3: 3, FINAL: 4, REMARKS: 5 };
-const COL_SHS = { AREA: 0, T1: 1, T2: 2, T3: 3, FINAL: 4, REMARKS: 5 };
-const TOTAL_COLS = 6; // max columns used
+// 3-term columns for both JHS and SHS:
+// A=Learning Areas, B=Term1, C=Term2, D=Term3, E=Final Rating, F=Remarks
+const COL = { AREA: 0, T1: 1, T2: 2, T3: 3, FINAL: 4, REMARKS: 5 };
+const TOTAL_COLS = 6;
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -111,12 +108,12 @@ export function depedRound(v) {
 }
 
 /**
- * Compute final grade from term grades.
- * Both JHS and SHS: average of Term 1, Term 2, Term 3
+ * Compute final grade from 3-term grades.
+ * New curriculum: both JHS and SHS use Term 1, Term 2, Term 3.
+ * Keys: t1, t2, t3 (matching buildGradeIndex output)
  */
-export function calcFinalGrade(terms, isSHS = false) {
-  const keys = ['t1', 't2', 't3'];
-  const vals = keys
+export function calcFinalGrade(terms) {
+  const vals = ['t1', 't2', 't3']
     .map(k => terms[k])
     .filter(v => v !== null && v !== undefined && v !== '' && !isNaN(Number(v)))
     .map(Number);
@@ -142,20 +139,24 @@ function extendRange(ws, maxRow, maxCol) {
   ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: maxRow, c: maxCol } });
 }
 
-// ─── JHS per-student block ────────────────────────────────────────────────────
+// ─── Unified per-student block (3 terms — both JHS and SHS) ──────────────────
 
-function appendJHSStudentBlock(ws, startRow, student, schoolInfo) {
+function appendStudentBlock(ws, startRow, student, schoolInfo) {
   let r = startRow;
   const { schoolName, schoolId, district, division, region, schoolYear, gradeLevel, section, adviser } = schoolInfo;
+  const isSHS = /grade\s*1[12]/i.test(gradeLevel || '');
+  const areas = isSHS ? SHS_LEARNING_AREAS : JHS_LEARNING_AREAS;
+  const formTitle = isSHS
+    ? "Learner's Permanent Academic Record for Senior High School (SF10-SHS)"
+    : "Learner's Permanent Academic Record for Junior High School (SF10-JHS)";
 
-  setCell(ws, r, 0, 'SF 10-JHS'); r++;
+  setCell(ws, r, 0, isSHS ? 'SF 10-SHS' : 'SF 10-JHS'); r++;
   setCell(ws, r, 0, 'Republic of the Philippines'); r++;
   setCell(ws, r, 0, 'Department of Education'); r++;
-  setCell(ws, r, 0, "Learner's Permanent Academic Record for Junior High School (SF10-JHS)"); r++;
-  setCell(ws, r, 0, '(Formerly Form 137)'); r++;
+  setCell(ws, r, 0, formTitle); r++;
+  if (!isSHS) { setCell(ws, r, 0, '(Formerly Form 137)'); r++; }
 
   setCell(ws, r, 0, "LEARNER'S INFORMATION"); r++;
-
   const { lastName, firstName, middleName } = parseName(student.name);
   setCell(ws, r, 0, 'LAST NAME:');  setCell(ws, r, 1, lastName);
   setCell(ws, r, 2, 'FIRST NAME:'); setCell(ws, r, 3, firstName);
@@ -163,124 +164,61 @@ function appendJHSStudentBlock(ws, startRow, student, schoolInfo) {
   setCell(ws, r, 0, 'Learner Reference Number (LRN):'); setCell(ws, r, 1, student.lrn || '');
   setCell(ws, r, 2, 'Birthdate (mm/dd/yyyy):');         setCell(ws, r, 3, student.birthdate || '');
   setCell(ws, r, 4, 'Sex:');                            setCell(ws, r, 5, student.sex || ''); r++;
-  r++; // blank
-
-  setCell(ws, r, 0, 'ELIGIBILITY FOR JHS ENROLMENT'); r++;
-  setCell(ws, r, 0, 'Elementary School Completer:'); setCell(ws, r, 2, 'General Average:'); setCell(ws, r, 4, 'Citation (if any):'); r++;
-  setCell(ws, r, 0, 'Name of Elementary School:');   setCell(ws, r, 3, 'School ID:');       setCell(ws, r, 4, 'Address of School:'); r++;
   r++;
 
+  if (!isSHS) {
+    setCell(ws, r, 0, 'ELIGIBILITY FOR JHS ENROLMENT'); r++;
+    setCell(ws, r, 0, 'Elementary School Completer:'); setCell(ws, r, 2, 'General Average:'); setCell(ws, r, 4, 'Citation (if any):'); r++;
+    setCell(ws, r, 0, 'Name of Elementary School:');   setCell(ws, r, 3, 'School ID:');       setCell(ws, r, 4, 'Address of School:'); r++;
+    r++;
+  }
+
   setCell(ws, r, 0, 'SCHOLASTIC RECORD'); r++;
-  setCell(ws, r, 0, 'School:');   setCell(ws, r, 1, schoolName);
-  setCell(ws, r, 2, 'School ID:');setCell(ws, r, 3, schoolId);
-  setCell(ws, r, 4, 'District:'); setCell(ws, r, 5, district); r++;
-  setCell(ws, r, 0, 'Division:'); setCell(ws, r, 1, division);
-  setCell(ws, r, 3, 'Region:');   setCell(ws, r, 4, region); r++;
+  setCell(ws, r, 0, 'School:');    setCell(ws, r, 1, schoolName);
+  setCell(ws, r, 2, 'School ID:'); setCell(ws, r, 3, schoolId);
+  setCell(ws, r, 4, 'District:');  setCell(ws, r, 5, district); r++;
+  setCell(ws, r, 0, 'Division:');  setCell(ws, r, 1, division);
+  setCell(ws, r, 3, 'Region:');    setCell(ws, r, 4, region); r++;
   setCell(ws, r, 0, `Classified as Grade: ${gradeLevel}`);
   setCell(ws, r, 2, `Section: ${section}`);
   setCell(ws, r, 4, `School Year: ${schoolYear}`); r++;
-  setCell(ws, r, 0, `Name of Adviser/Teacher: ${adviser}`);
-  setCell(ws, r, 4, 'Signature: _____________'); r++;
+  if (isSHS) { setCell(ws, r, 0, `Track/Strand: ${schoolInfo.strand || ''}`); setCell(ws, r, 3, `Adviser: ${adviser}`); r++; }
+  else        { setCell(ws, r, 0, `Name of Adviser/Teacher: ${adviser}`); setCell(ws, r, 4, 'Signature: _____________'); r++; }
 
-  // Column headers — 3 term columns for JHS
-  setCell(ws, r, COL_JHS.AREA, 'LEARNING AREAS');
-  setCell(ws, r, COL_JHS.T1,   'T1'); setCell(ws, r, COL_JHS.T2, 'T2');
-  setCell(ws, r, COL_JHS.T3,   'T3');
-  setCell(ws, r, COL_JHS.FINAL, 'FINAL RATING');
-  setCell(ws, r, COL_JHS.REMARKS, 'REMARKS'); r++;
+  // 3-term column headers for both JHS and SHS
+  setCell(ws, r, COL.AREA,    isSHS ? 'SUBJECT' : 'LEARNING AREAS');
+  setCell(ws, r, COL.T1,      'Term 1');
+  setCell(ws, r, COL.T2,      'Term 2');
+  setCell(ws, r, COL.T3,      'Term 3');
+  setCell(ws, r, COL.FINAL,   'FINAL RATING');
+  setCell(ws, r, COL.REMARKS, 'REMARKS'); r++;
 
   const areaGrades = student.areaGrades || {};
   const finalsForAvg = [];
-
-  JHS_LEARNING_AREAS.forEach(area => {
+  areas.forEach(area => {
     const aq = areaGrades[area] || {};
-    const finalGrade = calcFinalGrade(aq, false);
+    const finalGrade = calcFinalGrade(aq);
     if (finalGrade !== '') finalsForAvg.push(Number(finalGrade));
-    setCell(ws, r, COL_JHS.AREA,    area);
-    setCell(ws, r, COL_JHS.T1,      aq.t1 != null && aq.t1 !== '' ? depedRound(aq.t1) : '');
-    setCell(ws, r, COL_JHS.T2,      aq.t2 != null && aq.t2 !== '' ? depedRound(aq.t2) : '');
-    setCell(ws, r, COL_JHS.T3,      aq.t3 != null && aq.t3 !== '' ? depedRound(aq.t3) : '');
-    setCell(ws, r, COL_JHS.FINAL,   finalGrade);
-    setCell(ws, r, COL_JHS.REMARKS, gradeRemarks(finalGrade)); r++;
+    setCell(ws, r, COL.AREA,    area);
+    setCell(ws, r, COL.T1,      aq.t1 != null && aq.t1 !== '' ? depedRound(aq.t1) : '');
+    setCell(ws, r, COL.T2,      aq.t2 != null && aq.t2 !== '' ? depedRound(aq.t2) : '');
+    setCell(ws, r, COL.T3,      aq.t3 != null && aq.t3 !== '' ? depedRound(aq.t3) : '');
+    setCell(ws, r, COL.FINAL,   finalGrade);
+    setCell(ws, r, COL.REMARKS, gradeRemarks(finalGrade)); r++;
   });
 
   const genAvg = finalsForAvg.length
     ? depedRound(finalsForAvg.reduce((a, b) => a + b, 0) / finalsForAvg.length)
     : '';
-  setCell(ws, r, COL_JHS.AREA,    'General Average');
-  setCell(ws, r, COL_JHS.FINAL,   genAvg);
-  setCell(ws, r, COL_JHS.REMARKS, gradeRemarks(genAvg)); r++;
+  setCell(ws, r, COL.AREA,    'General Average');
+  setCell(ws, r, COL.FINAL,   genAvg);
+  setCell(ws, r, COL.REMARKS, gradeRemarks(genAvg)); r++;
   r++;
 
   setCell(ws, r, 0, 'Remedial Classes  Conducted from (mm/dd/yyyy) _________________ to (mm/dd/yyyy) _________________'); r++;
   setCell(ws, r, 0, 'Learning Areas'); setCell(ws, r, 1, 'Final Rating');
-  setCell(ws, r, 2, 'Remedial Class Mark'); setCell(ws, r, 4, 'Recomputed Final Grade'); setCell(ws, r, 6, 'Remarks'); r++;
+  setCell(ws, r, 2, 'Remedial Class Mark'); setCell(ws, r, 4, 'Recomputed Final Grade'); setCell(ws, r, 5, 'Remarks'); r++;
   for (let i = 0; i < 3; i++) { setCell(ws, r, 0, ''); r++; }
-  r++;
-  return r;
-}
-
-// ─── SHS per-student block ────────────────────────────────────────────────────
-
-function appendSHSStudentBlock(ws, startRow, student, schoolInfo) {
-  let r = startRow;
-  const { schoolName, schoolId, district, division, region, schoolYear, gradeLevel, section, adviser } = schoolInfo;
-
-  setCell(ws, r, 0, 'SF 10-SHS'); r++;
-  setCell(ws, r, 0, 'Republic of the Philippines'); r++;
-  setCell(ws, r, 0, 'Department of Education'); r++;
-  setCell(ws, r, 0, "Learner's Permanent Academic Record for Senior High School (SF10-SHS)"); r++;
-  r++;
-
-  setCell(ws, r, 0, "LEARNER'S INFORMATION"); r++;
-  const { lastName, firstName, middleName } = parseName(student.name);
-  setCell(ws, r, 0, 'LAST NAME:');  setCell(ws, r, 1, lastName);
-  setCell(ws, r, 2, 'FIRST NAME:'); setCell(ws, r, 3, firstName);
-  setCell(ws, r, 4, 'MIDDLE NAME:');setCell(ws, r, 5, middleName); r++;
-  setCell(ws, r, 0, 'LRN:'); setCell(ws, r, 1, student.lrn || '');
-  setCell(ws, r, 2, 'Birthdate:'); setCell(ws, r, 3, student.birthdate || '');
-  setCell(ws, r, 4, 'Sex:'); setCell(ws, r, 5, student.sex || ''); r++;
-  r++;
-
-  setCell(ws, r, 0, 'SCHOLASTIC RECORD'); r++;
-  setCell(ws, r, 0, 'School:'); setCell(ws, r, 1, schoolName);
-  setCell(ws, r, 2, 'School ID:'); setCell(ws, r, 3, schoolId); r++;
-  setCell(ws, r, 0, 'Division:'); setCell(ws, r, 1, division);
-  setCell(ws, r, 3, 'Region:'); setCell(ws, r, 4, region); r++;
-  setCell(ws, r, 0, `Grade: ${gradeLevel}`);
-  setCell(ws, r, 2, `Section: ${section}`);
-  setCell(ws, r, 4, `School Year: ${schoolYear}`); r++;
-  setCell(ws, r, 0, `Track/Strand: ${schoolInfo.strand || ''}`);
-  setCell(ws, r, 3, `Adviser: ${adviser}`); r++;
-
-  // SHS has 3 term columns
-  setCell(ws, r, COL_SHS.AREA,    'SUBJECT');
-  setCell(ws, r, COL_SHS.T1,      'T1');
-  setCell(ws, r, COL_SHS.T2,      'T2');
-  setCell(ws, r, COL_SHS.T3,      'T3');
-  setCell(ws, r, COL_SHS.FINAL,   'FINAL GRADE');
-  setCell(ws, r, COL_SHS.REMARKS, 'REMARKS'); r++;
-
-  const areaGrades = student.areaGrades || {};
-  const finalsForAvg = [];
-  SHS_LEARNING_AREAS.forEach(area => {
-    const aq = areaGrades[area] || {};
-    const finalGrade = calcFinalGrade(aq, true);
-    if (finalGrade !== '') finalsForAvg.push(Number(finalGrade));
-    setCell(ws, r, COL_SHS.AREA,    area);
-    setCell(ws, r, COL_SHS.T1,      aq.t1 != null && aq.t1 !== '' ? depedRound(aq.t1) : '');
-    setCell(ws, r, COL_SHS.T2,      aq.t2 != null && aq.t2 !== '' ? depedRound(aq.t2) : '');
-    setCell(ws, r, COL_SHS.T3,      aq.t3 != null && aq.t3 !== '' ? depedRound(aq.t3) : '');
-    setCell(ws, r, COL_SHS.FINAL,   finalGrade);
-    setCell(ws, r, COL_SHS.REMARKS, gradeRemarks(finalGrade)); r++;
-  });
-
-  const genAvg = finalsForAvg.length
-    ? depedRound(finalsForAvg.reduce((a, b) => a + b, 0) / finalsForAvg.length)
-    : '';
-  setCell(ws, r, COL_SHS.AREA,    'General Average');
-  setCell(ws, r, COL_SHS.FINAL,   genAvg);
-  setCell(ws, r, COL_SHS.REMARKS, gradeRemarks(genAvg)); r++;
   r++;
   return r;
 }
@@ -317,22 +255,18 @@ function parseName(fullName = '') {
 
 // ─── Workbook builder ─────────────────────────────────────────────────────────
 
-function buildColWidths(isSHS) {
-  return isSHS
-    ? [{ wch: 52 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }]
-    : [{ wch: 46 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 14 }, { wch: 10 }];
+function buildColWidths() {
+  // 3-term layout: Area | T1 | T2 | T3 | Final | Remarks
+  return [{ wch: 52 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }];
 }
 
 function buildWorkbook(studentData, schoolInfo, sheetLabel) {
   const wb = XLSX.utils.book_new();
-  const isSHS = /grade\s*1[12]/i.test(schoolInfo.gradeLevel || '');
-  const ws = { '!cols': buildColWidths(isSHS) };
+  const ws = { '!cols': buildColWidths() };
   let row = 0;
 
   studentData.forEach(student => {
-    row = isSHS
-      ? appendSHSStudentBlock(ws, row, student, schoolInfo)
-      : appendJHSStudentBlock(ws, row, student, schoolInfo);
+    row = appendStudentBlock(ws, row, student, schoolInfo);
     row = appendLegendAndCertification(ws, row, schoolInfo.schoolName, schoolInfo.schoolId);
     row += 2;
   });
@@ -356,9 +290,9 @@ export function buildGradeIndex(allGrades, gradeLevel) {
     if (!area) return;
     if (!index[sid]) index[sid] = {};
     if (!index[sid][area]) index[sid][area] = {};
-    // Both JHS and SHS: quarter 1-3 → t1, t2, t3
+    // New curriculum: quarter field stores 1, 2, 3 → t1, t2, t3
     const key = `t${g.quarter}`;
-    // Keep highest score if duplicates exist (safety)
+    // Keep highest score if duplicate records exist (safety)
     const existing = index[sid][area][key];
     if (existing == null || Number(g.raw_score) > Number(existing)) {
       index[sid][area][key] = g.raw_score;
