@@ -28,16 +28,14 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Certificates', path: '/my-classes?tab=records', icon: 'FileCheck', color: 'orange' },
   ],
   teacher: [
-    { label: 'My Classes',    path: '/my-classes',          icon: 'BookOpen',      color: 'violet' },
-    { label: 'Schedule',      path: '/my-schedule',          icon: 'Clock',         color: 'green' },
-    { label: 'Announcements', path: '/announcements',        icon: 'Bell',          color: 'amber' },
-    { label: 'Quizzes',       path: '/quizzes',              icon: 'HelpCircle',    color: 'blue' },
-    { label: 'Lesson Plans',  path: '/lesson-plans',         icon: 'FileText',      color: 'emerald' },
-    { label: 'Grade Analytics', path: '/grade-analytics',    icon: 'BarChart2',     color: 'rose' },
-    { label: 'Question Bank', path: '/question-bank',        icon: 'Clipboard',     color: 'indigo' },
-    { label: 'People',        path: '/people',               icon: 'Users',         color: 'cyan' },
-    { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'pink' },
-    { label: 'Grades',        path: '/my-classes?view=grades', icon: 'Award',       color: 'amber' },
+    { label: 'My Classes',    path: '/my-classes',                          icon: 'BookOpen',      color: 'violet' },
+    { label: 'Quizzes',       path: '/my-classes?view=quizzes',             icon: 'HelpCircle',    color: 'blue' },
+    { label: 'Lesson Plans',  path: '/my-classes?view=lesson-plans',        icon: 'FileText',      color: 'emerald' },
+    { label: 'Grade Analytics', path: '/my-classes?view=analytics',         icon: 'BarChart2',     color: 'rose' },
+    { label: 'Question Bank', path: '/my-classes?view=question-bank',       icon: 'Clipboard',     color: 'indigo' },
+    { label: 'Grades',        path: '/my-classes?view=grades',              icon: 'Award',         color: 'amber' },
+    { label: 'Schedule',      path: '/my-schedule',                          icon: 'Clock',         color: 'green' },
+    { label: 'Announcements', path: '/announcements',                        icon: 'Bell',          color: 'pink' },
   ],
   parent: [
     { label: 'Dashboard',     path: '/parent-dashboard',     icon: 'Award',         color: 'violet' },
@@ -105,6 +103,11 @@ const QuickAccessLinks = ({ role, variant = 'grid', className = '' }) => {
               icon: 'text-white/90',
               label: 'text-white font-semibold',
             },
+            emerald: {
+              card: 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white hover:from-emerald-600 hover:to-emerald-800 shadow-emerald-200',
+              icon: 'text-white/90',
+              label: 'text-white font-semibold',
+            },
             amber: {
               card: 'bg-gradient-to-br from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 shadow-amber-200',
               icon: 'text-white/90',
@@ -117,6 +120,26 @@ const QuickAccessLinks = ({ role, variant = 'grid', className = '' }) => {
             },
             rose: {
               card: 'bg-gradient-to-br from-rose-500 to-rose-700 text-white hover:from-rose-600 hover:to-rose-800 shadow-rose-200',
+              icon: 'text-white/90',
+              label: 'text-white font-semibold',
+            },
+            teal: {
+              card: 'bg-gradient-to-br from-teal-500 to-teal-700 text-white hover:from-teal-600 hover:to-teal-800 shadow-teal-200',
+              icon: 'text-white/90',
+              label: 'text-white font-semibold',
+            },
+            orange: {
+              card: 'bg-gradient-to-br from-orange-500 to-orange-700 text-white hover:from-orange-600 hover:to-orange-800 shadow-orange-200',
+              icon: 'text-white/90',
+              label: 'text-white font-semibold',
+            },
+            cyan: {
+              card: 'bg-gradient-to-br from-cyan-500 to-cyan-700 text-white hover:from-cyan-600 hover:to-cyan-800 shadow-cyan-200',
+              icon: 'text-white/90',
+              label: 'text-white font-semibold',
+            },
+            pink: {
+              card: 'bg-gradient-to-br from-pink-500 to-pink-700 text-white hover:from-pink-600 hover:to-pink-800 shadow-pink-200',
               icon: 'text-white/90',
               label: 'text-white font-semibold',
             },

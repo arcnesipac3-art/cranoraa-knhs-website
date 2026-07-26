@@ -253,7 +253,7 @@ const TeacherDashboard = () => {
           <span className="truncate">Input Grades</span>
         </button>
         <button
-          onClick={() => navigate('/quizzes')}
+          onClick={() => navigate('/my-classes?view=quizzes')}
           className="flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-lg transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,7 +262,7 @@ const TeacherDashboard = () => {
           <span className="truncate">Quizzes</span>
         </button>
         <button
-          onClick={() => navigate('/lesson-plans')}
+          onClick={() => navigate('/my-classes?view=lesson-plans')}
           className="flex items-center justify-center gap-1 px-2 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +271,7 @@ const TeacherDashboard = () => {
           <span className="truncate">Lesson Plans</span>
         </button>
         <button
-          onClick={() => navigate('/grade-analytics')}
+          onClick={() => navigate('/my-classes?view=analytics')}
           className="flex items-center justify-center gap-1 px-2 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition-colors"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

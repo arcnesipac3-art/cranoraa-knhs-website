@@ -302,6 +302,10 @@ const Layout = () => {
       staff: [
         { label: 'My Classes', path: '/my-classes', category: 'Teaching', description: 'Your assigned classes' },
         { label: 'My Schedule', path: '/my-schedule', category: 'Teaching', description: 'View your schedule' },
+        { label: 'Quizzes & Exams', path: '/my-classes?view=quizzes', category: 'Teaching', description: 'Manage quizzes and exams' },
+        { label: 'Lesson Plans', path: '/my-classes?view=lesson-plans', category: 'Teaching', description: 'Daily and weekly lesson plans' },
+        { label: 'Grade Analytics', path: '/my-classes?view=analytics', category: 'Teaching', description: 'Student performance analytics' },
+        { label: 'Question Bank', path: '/my-classes?view=question-bank', category: 'Teaching', description: 'Manage question banks' },
         { label: 'Grades', path: '/grade-input', category: 'Teaching', description: 'Input and manage student grades' },
         { label: 'Students', path: '/people?tab=students', category: 'Directory', description: 'Student directory' },
         { label: 'Announcements', path: '/announcements', category: 'Communication', description: 'Post announcements' },
@@ -349,6 +353,16 @@ const Layout = () => {
           { to: '/enrollment', label: 'Enrollment', icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' },
           { to: '/announcements', label: 'Announcements', icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' },
           { to: '/school-forms', label: 'School Forms', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+        ]
+      },
+      {
+        header: 'Teaching',
+        items: [
+          { to: '/my-classes', label: 'Classroom Hub', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
+          { to: '/my-classes?view=quizzes', label: 'Quizzes & Exams', icon: 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+          { to: '/my-classes?view=lesson-plans', label: 'Lesson Plans', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
+          { to: '/my-classes?view=analytics', label: 'Grade Analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
+          { to: '/my-classes?view=question-bank', label: 'Question Bank', icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
         ]
       },
       {
