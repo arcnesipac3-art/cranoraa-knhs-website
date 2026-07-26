@@ -28,6 +28,10 @@ from .records import (
     Transcript, TranscriptLineItem, TransferCertificate,
     CharacterCertificate, AchievementRecord, RecordRequest,
 )
+from .quiz import (
+    Question, QuestionBank, Quiz, QuizQuestion, QuizAttempt, QuizAnswer,
+)
+from .lesson_plan import CurriculumStandard, LessonPlan, WeeklyPlan
 from .school_forms import (
     SchoolForm1, SchoolForm1Student,
     SchoolForm5, SchoolForm5Student,
@@ -59,6 +63,8 @@ __all__ = [
     'Department', 'StaffPerformance',
     'Transcript', 'TranscriptLineItem', 'TransferCertificate',
     'CharacterCertificate', 'AchievementRecord', 'RecordRequest',
+    'Question', 'QuestionBank', 'Quiz', 'QuizQuestion', 'QuizAttempt', 'QuizAnswer',
+    'CurriculumStandard', 'LessonPlan', 'WeeklyPlan',
     'SchoolForm1', 'SchoolForm1Student',
     'SchoolForm5', 'SchoolForm5Student',
     'SchoolForm9', 'SchoolForm9Subject',

@@ -61,6 +61,16 @@ const SF9Dashboard = lazy(() => retryImport(() => import('../pages/SF9Dashboard'
 const SF10Dashboard = lazy(() => retryImport(() => import('../pages/SF10Dashboard')));
 const SchoolForms = lazy(() => retryImport(() => import('../pages/SchoolForms')));
 
+// Phase 2 - Teacher Productivity
+const QuizManagement = lazy(() => retryImport(() => import('../pages/QuizManagement')));
+const QuizTake = lazy(() => retryImport(() => import('../pages/QuizTake')));
+const QuestionBankPage = lazy(() => retryImport(() => import('../pages/QuestionBank')));
+const LessonPlans = lazy(() => retryImport(() => import('../pages/LessonPlans')));
+const GradeAnalyticsPage = lazy(() => retryImport(() => import('../pages/GradeAnalytics')));
+
+// Phase 3 - Student Portal
+const StudentPortal = lazy(() => retryImport(() => import('../pages/StudentPortal')));
+
 // ── Route definitions ────────────────────────────────────────────────────────
 
 /**
@@ -120,6 +130,16 @@ export const protectedRoutes = [
   { path: 'sf10', element: SF10Dashboard, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'my-classes', element: ClassroomHub, roles: [Role.STAFF, Role.STUDENT] },
   { path: 'my-schedule', element: MySchedule, roles: [Role.STAFF, Role.STUDENT] },
+
+  // Phase 2 - Teacher Productivity
+  { path: 'quizzes', element: QuizManagement, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'quizzes/take/:id', element: QuizTake, roles: [Role.STUDENT] },
+  { path: 'question-bank', element: QuestionBankPage, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'lesson-plans', element: LessonPlans, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'grade-analytics', element: GradeAnalyticsPage, roles: [Role.ADMIN, Role.STAFF] },
+
+  // Phase 3 - Student Portal
+  { path: 'student-portal', element: StudentPortal, roles: [Role.STUDENT] },
 
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },

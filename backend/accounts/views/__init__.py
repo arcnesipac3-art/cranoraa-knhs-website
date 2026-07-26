@@ -37,6 +37,8 @@ from .grades import (
     GradeReportViewSet,
     grade_distribution_stats,
     check_result,
+    at_risk_students,
+    teacher_class_analytics,
 )
 
 from .attendance import (
@@ -131,10 +133,30 @@ from .fcm import (
     test_push_notification,
 )
 
+from .quiz import (
+    QuestionBankViewSet,
+    QuestionViewSet,
+    QuizViewSet,
+    QuizAttemptViewSet,
+)
+
 from .school_forms import (
     SchoolForm1ViewSet,
     SF2ViewSet,
     SchoolForm5ViewSet,
     SchoolForm9ViewSet,
     SchoolForm10ViewSet,
+)
+
+from .quiz import (
+    QuestionBankViewSet,
+    QuestionViewSet,
+    QuizViewSet,
+    QuizAttemptViewSet,
+)
+
+from .lesson_plan import (
+    CurriculumStandardViewSet,
+    LessonPlanViewSet,
+    WeeklyPlanViewSet,
 )

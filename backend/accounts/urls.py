@@ -27,12 +27,15 @@ from .views import (
     UserBlockViewSet, EmergencyMessageViewSet,
     DepartmentViewSet, StaffPerformanceViewSet,
     admin_attendance_analytics, admin_grade_analytics,
+    at_risk_students, teacher_class_analytics,
     data_retention_view, run_backup_view_enhanced,
     SchoolForm1ViewSet,
     SF2ViewSet,
     SchoolForm5ViewSet,
     SchoolForm9ViewSet,
     SchoolForm10ViewSet,
+    QuestionBankViewSet, QuestionViewSet, QuizViewSet, QuizAttemptViewSet,
+    CurriculumStandardViewSet, LessonPlanViewSet, WeeklyPlanViewSet,
 )
 
 app_name = 'accounts'
@@ -83,6 +86,17 @@ router.register(r'v1/sf5', SchoolForm5ViewSet, basename='sf5')
 router.register(r'v1/sf9', SchoolForm9ViewSet, basename='sf9')
 router.register(r'v1/sf10', SchoolForm10ViewSet, basename='sf10')
 
+# Quiz & Exam Module
+router.register(r'v1/question-banks', QuestionBankViewSet, basename='question-bank')
+router.register(r'v1/questions', QuestionViewSet, basename='question')
+router.register(r'v1/quizzes', QuizViewSet, basename='quiz')
+router.register(r'v1/quiz-attempts', QuizAttemptViewSet, basename='quiz-attempt')
+
+# Lesson Plans
+router.register(r'v1/curriculum-standards', CurriculumStandardViewSet, basename='curriculum-standard')
+router.register(r'v1/lesson-plans', LessonPlanViewSet, basename='lesson-plan')
+router.register(r'v1/weekly-plans', WeeklyPlanViewSet, basename='weekly-plan')
+
 # NOTE: school_portal/urls.py mounts these under 'api/', so paths here should NOT include 'api/'.
 # Final URL = api/ + path below  e.g. api/v1/login/
 urlpatterns = [
@@ -121,6 +135,8 @@ urlpatterns = [
     path('v1/parent/child/<int:student_id>/year-over-year/', parent_year_over_year, name='parent_year_over_year'),
     path('v1/admin/attendance-analytics/', admin_attendance_analytics, name='admin_attendance_analytics'),
     path('v1/admin/grade-analytics/', admin_grade_analytics, name='admin_grade_analytics'),
+    path('v1/at-risk-students/', at_risk_students, name='at_risk_students'),
+    path('v1/teacher/class-analytics/', teacher_class_analytics, name='teacher_class_analytics'),
     path('v1/admin/data-retention/', data_retention_view, name='data_retention'),
     path('v1/admin/run-backup-enhanced/', run_backup_view_enhanced, name='run_backup_enhanced'),
     path('v1/fcm-tokens/', fcm_token_register, name='fcm_token_register'),

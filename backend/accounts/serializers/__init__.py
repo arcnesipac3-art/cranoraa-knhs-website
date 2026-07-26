@@ -56,6 +56,16 @@ from .school_forms import (
 )
 from .departments import DepartmentSerializer, StaffPerformanceSerializer
 from .parent import ParentChildSummarySerializer
+from .quiz import (
+    QuestionSerializer, QuestionBankSerializer, QuizListSerializer,
+    QuizDetailSerializer, QuizQuestionSerializer, QuizAttemptSerializer,
+    QuizAnswerSerializer,
+)
+from .lesson_plan import (
+    CurriculumStandardSerializer,
+    LessonPlanSerializer, LessonPlanListSerializer,
+    WeeklyPlanSerializer, WeeklyPlanListSerializer,
+)
 
 __all__ = [
     'full_name',
@@ -98,4 +108,10 @@ __all__ = [
     'SchoolForm10ListSerializer', 'SchoolForm10DetailSerializer',
     'SchoolForm10RecordSerializer', 'SchoolForm10SubjectSerializer',
     'GenerateSF10Serializer',
+    'QuestionSerializer', 'QuestionBankSerializer', 'QuizListSerializer',
+    'QuizDetailSerializer', 'QuizQuestionSerializer', 'QuizAttemptSerializer',
+    'QuizAnswerSerializer',
+    'CurriculumStandardSerializer',
+    'LessonPlanSerializer', 'LessonPlanListSerializer',
+    'WeeklyPlanSerializer', 'WeeklyPlanListSerializer',
 ]

@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from ..models import (
     User, Profile, Classroom, StudentClassEnrollment,
     Subject, ClassroomSubject, ScratchCard, Notification,
-    Grade, GradeReport,
+    Grade, GradeReport, Attendance,
 )
 from ..serializers import (
     GradeSerializer, GradeReportSerializer, full_name,
@@ -1167,3 +1167,325 @@ class GradeReportViewSet(viewsets.ModelViewSet):
         reports = self.get_queryset()
         serializer = self.get_serializer(reports, many=True)
         return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def at_risk_students(request):
+    """
+    Identify at-risk students based on academic performance and attendance.
+
+    Returns students whose average grade is below the threshold or who have
+    3+ absences in the current quarter. Each student includes their average
+    grade, failing subjects, attendance rate, risk level, and risk factors.
+
+    Query params:
+        classroom_id: Filter by specific classroom
+        subject_id: Filter by specific subject
+        quarter: Quarter number (default: 1)
+        academic_year: Academic year string (default: '2025-2026')
+        threshold: Passing grade threshold (default: 75)
+    """
+    if request.user.role not in ['admin', 'staff']:
+        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+
+    classroom_id = request.query_params.get('classroom_id')
+    subject_id = request.query_params.get('subject_id')
+    quarter = request.query_params.get('quarter', '1')
+    academic_year = request.query_params.get('academic_year', '2025-2026')
+    threshold = float(request.query_params.get('threshold', 75))
+
+    try:
+        quarter = int(quarter)
+    except (TypeError, ValueError):
+        return Response({'error': 'Invalid quarter'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        threshold = float(threshold)
+    except (TypeError, ValueError):
+        return Response({'error': 'Invalid threshold'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Get enrolled students
+    enrollments = StudentClassEnrollment.objects.select_related('student', 'classroom')
+    if classroom_id:
+        enrollments = enrollments.filter(classroom_id=classroom_id)
+
+    # Get all final grades for the quarter/year
+    grade_qs = Grade.objects.filter(
+        grade_type='final_grade',
+        quarter=quarter,
+        academic_year=academic_year,
+        raw_score__isnull=False,
+    )
+    if classroom_id:
+        grade_qs = grade_qs.filter(classroom_id=classroom_id)
+    if subject_id:
+        grade_qs = grade_qs.filter(subject_id=subject_id)
+
+    # Get attendance records for the quarter
+    # Quarter date ranges are approximate: Q1 Aug-Oct, Q2 Nov-Jan, Q3 Feb-Apr, Q4 May-Jul
+    quarter_month_ranges = {
+        1: (8, 10),
+        2: (11, 1),
+        3: (2, 4),
+        4: (5, 7),
+    }
+    start_month, end_month = quarter_month_ranges.get(quarter, (8, 10))
+    current_year = timezone.now().year
+
+    # Build attendance queryset
+    attendance_qs = Attendance.objects.filter(status='absent')
+    if start_month > end_month:
+        # Spans year boundary (e.g., Q2: Nov-Jan)
+        attendance_qs = attendance_qs.filter(
+            Q(date__month__gte=start_month, date__year=current_year) |
+            Q(date__month__lte=end_month, date__year=current_year + 1)
+        )
+    else:
+        attendance_qs = attendance_qs.filter(
+            date__month__gte=start_month,
+            date__month__lte=end_month,
+            date__year=current_year,
+        )
+    if classroom_id:
+        attendance_qs = attendance_qs.filter(classroom_id=classroom_id)
+
+    # Build per-student lookup: average grade, failing subjects, absence count
+    student_grades = {}  # student_id -> {avg, failing_subjects, classroom_name}
+    for enrollment in enrollments:
+        sid = enrollment.student_id
+        if sid not in student_grades:
+            student_grades[sid] = {
+                'student_id': sid,
+                'student_name': full_name(enrollment.student),
+                'classroom_name': enrollment.classroom.name,
+                'grades': [],
+                'failing_subjects': [],
+                'absence_count': 0,
+                'total_classes': 0,
+            }
+
+    # Populate grades
+    for g in grade_qs:
+        sid = g.student_id
+        if sid not in student_grades:
+            # Student not in enrollment list but has grades; try to find classroom
+            try:
+                student_grades[sid] = {
+                    'student_id': sid,
+                    'student_name': full_name(g.student),
+                    'classroom_name': g.classroom.name if g.classroom else '',
+                    'grades': [],
+                    'failing_subjects': [],
+                    'absence_count': 0,
+                    'total_classes': 0,
+                }
+            except Exception:
+                continue
+        student_grades[sid]['grades'].append(float(g.raw_score))
+        if float(g.raw_score) < threshold:
+            student_grades[sid]['failing_subjects'].append(g.subject.name)
+
+    # Populate absence counts
+    absence_counts = attendance_qs.values('student_id').annotate(count=Count('id'))
+    for ac in absence_counts:
+        sid = ac['student_id']
+        if sid in student_grades:
+            student_grades[sid]['absence_count'] = ac['count']
+
+    # Compute total classes per student (for attendance rate)
+    total_attendance = Attendance.objects.all()
+    if classroom_id:
+        total_attendance = total_attendance.filter(classroom_id=classroom_id)
+    if start_month > end_month:
+        total_attendance = total_attendance.filter(
+            Q(date__month__gte=start_month, date__year=current_year) |
+            Q(date__month__lte=end_month, date__year=current_year + 1)
+        )
+    else:
+        total_attendance = total_attendance.filter(
+            date__month__gte=start_month,
+            date__month__lte=end_month,
+            date__year=current_year,
+        )
+    total_by_student = total_attendance.values('student_id').annotate(total=Count('id'))
+    total_map = {t['student_id']: t['total'] for t in total_by_student}
+
+    # Build at-risk list
+    at_risk = []
+    for sid, info in student_grades.items():
+        grades = info['grades']
+        avg_grade = round(sum(grades) / len(grades), 2) if grades else 0
+        absences = info['absence_count']
+        total_classes = total_map.get(sid, 0)
+        attendance_rate = round(((total_classes - absences) / total_classes * 100), 2) if total_classes > 0 else 100
+
+        risk_factors = []
+
+        # Determine risk level
+        if avg_grade < 60 or absences >= 5:
+            risk_level = 'high'
+            if avg_grade < 60:
+                risk_factors.append(f'Average grade ({avg_grade}) is critically low (<60)')
+            if absences >= 5:
+                risk_factors.append(f'{absences} absences (5+ is critical)')
+        elif avg_grade < 70 or absences >= 3:
+            risk_level = 'medium'
+            if avg_grade < 70:
+                risk_factors.append(f'Average grade ({avg_grade}) is below satisfactory (<70)')
+            if absences >= 3:
+                risk_factors.append(f'{absences} absences (3+ is concerning)')
+        elif avg_grade < threshold:
+            risk_level = 'low'
+            risk_factors.append(f'Average grade ({avg_grade}) is below threshold ({threshold})')
+        else:
+            # Only attendance-based risk
+            if absences >= 3:
+                risk_level = 'medium'
+                risk_factors.append(f'{absences} absences (3+ is concerning)')
+            else:
+                continue  # Not at risk
+
+        if info['failing_subjects']:
+            risk_factors.append(f'Failing in: {", ".join(set(info["failing_subjects"]))}')
+
+        if not risk_factors:
+            continue
+
+        at_risk.append({
+            'student_id': sid,
+            'student_name': info['student_name'],
+            'classroom_name': info['classroom_name'],
+            'average_grade': avg_grade,
+            'failing_subjects': list(set(info['failing_subjects'])),
+            'attendance_rate': attendance_rate,
+            'risk_level': risk_level,
+            'risk_factors': risk_factors,
+        })
+
+    # Sort: high first, then by average ascending
+    risk_order = {'high': 0, 'medium': 1, 'low': 2}
+    at_risk.sort(key=lambda x: (risk_order.get(x['risk_level'], 3), x['average_grade']))
+
+    return Response({
+        'total_at_risk': len(at_risk),
+        'threshold': threshold,
+        'quarter': quarter,
+        'academic_year': academic_year,
+        'at_risk_students': at_risk,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def teacher_class_analytics(request):
+    """
+    Comprehensive analytics for a teacher's classroom.
+
+    Returns classroom overview, subject averages, grade trends across quarters,
+    top 5 students, and struggling students (those below 75 average).
+
+    Query params:
+        classroom_id: Required. The classroom to analyze.
+        academic_year: Academic year string (default: '2025-2026')
+    """
+    if request.user.role not in ['admin', 'staff']:
+        return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+
+    classroom_id = request.query_params.get('classroom_id')
+    academic_year = request.query_params.get('academic_year', '2025-2026')
+
+    if not classroom_id:
+        return Response({'error': 'classroom_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        classroom = Classroom.objects.get(id=classroom_id)
+    except Classroom.DoesNotExist:
+        return Response({'error': 'Classroom not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # 1. Classroom overview
+    enrolled = StudentClassEnrollment.objects.filter(classroom=classroom).select_related('student')
+    total_students = enrolled.count()
+
+    all_grades = Grade.objects.filter(
+        classroom=classroom,
+        grade_type='final_grade',
+        academic_year=academic_year,
+        raw_score__isnull=False,
+    )
+    overall_avg = all_grades.aggregate(avg=Avg('raw_score'))['avg']
+
+    # 2. Subject averages
+    subject_stats = all_grades.values(
+        'subject__id', 'subject__name'
+    ).annotate(
+        average=Avg('raw_score'),
+        highest=Max('raw_score'),
+        lowest=Min('raw_score'),
+        passing_count=Count('id', filter=Q(raw_score__gte=75)),
+        failing_count=Count('id', filter=Q(raw_score__lt=75)),
+    ).order_by('subject__name')
+
+    subject_averages = [
+        {
+            'subject_name': s['subject__name'],
+            'average': round(float(s['average']), 2) if s['average'] else 0,
+            'highest': round(float(s['highest']), 2) if s['highest'] else 0,
+            'lowest': round(float(s['lowest']), 2) if s['lowest'] else 0,
+            'passing_count': s['passing_count'],
+            'failing_count': s['failing_count'],
+        }
+        for s in subject_stats
+    ]
+
+    # 3. Grade trend across quarters (Q1-Q3)
+    grade_trend = []
+    for q in [1, 2, 3]:
+        q_avg = all_grades.filter(quarter=q).aggregate(avg=Avg('raw_score'))['avg']
+        grade_trend.append({
+            'quarter': f'Q{q}',
+            'average': round(float(q_avg), 2) if q_avg else None,
+        })
+
+    # 4. Top 5 students by average
+    student_avgs = all_grades.values(
+        'student__id', 'student__first_name', 'student__last_name', 'student__username'
+    ).annotate(
+        avg=Avg('raw_score'),
+    ).order_by('-avg')
+
+    top_students = []
+    for sa in student_avgs[:5]:
+        name = f"{sa['student__first_name']} {sa['student__last_name']}".strip()
+        if not name:
+            name = sa['student__username']
+        top_students.append({
+            'student_id': sa['student__id'],
+            'student_name': name,
+            'average_grade': round(float(sa['avg']), 2) if sa['avg'] else 0,
+        })
+
+    # 5. Struggling students (below 75 average)
+    struggling = []
+    for sa in student_avgs:
+        if sa['avg'] is not None and float(sa['avg']) < 75:
+            name = f"{sa['student__first_name']} {sa['student__last_name']}".strip()
+            if not name:
+                name = sa['student__username']
+            struggling.append({
+                'student_id': sa['student__id'],
+                'student_name': name,
+                'average_grade': round(float(sa['avg']), 2),
+            })
+
+    return Response({
+        'classroom_overview': {
+            'name': classroom.name,
+            'total_students': total_students,
+            'average_grade': round(float(overall_avg), 2) if overall_avg else 0,
+        },
+        'subject_averages': subject_averages,
+        'grade_trend': grade_trend,
+        'top_students': top_students,
+        'struggling_students': struggling,
+    })
