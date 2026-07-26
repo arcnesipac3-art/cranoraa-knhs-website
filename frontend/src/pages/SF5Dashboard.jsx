@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  FileText, Plus, Search, Filter, Download, RefreshCw,
+  FileText, Search, Filter, Download, RefreshCw,
   Trash2, ChevronDown, ChevronUp, MoreVertical,
-  CheckCircle2, AlertTriangle, XCircle, BookOpen,
+  CheckCircle2, AlertTriangle, BookOpen,
 } from 'lucide-react';
 import api from '../utils/api';
-import { LoadingSpinner, Badge, Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from '../components/ui';
+import { LoadingSpinner, Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from '../components/ui';
 import toast from 'react-hot-toast';
 
 const STATUS_STYLES = {
@@ -76,7 +76,7 @@ export default function SF5Dashboard() {
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `SF5_${type}_${id}.pdf`;
+      a.download = `SF5_${type}_${id}.${type === 'excel' ? 'xlsx' : 'pdf'}`;
       document.body.appendChild(a);
       a.click();
       a.remove();

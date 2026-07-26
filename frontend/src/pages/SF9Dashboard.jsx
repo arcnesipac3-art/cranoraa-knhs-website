@@ -3,10 +3,10 @@ import { motion } from 'framer-motion';
 import {
   FileText, Search, Filter, Download, Printer, RefreshCw,
   ChevronDown, ChevronUp, MoreVertical,
-  CheckCircle2, AlertTriangle, Archive, BookOpen, Eye,
+  CheckCircle2, AlertTriangle, Archive, BookOpen,
 } from 'lucide-react';
 import api from '../utils/api';
-import { LoadingSpinner, Badge, Button } from '../components/ui';
+import { LoadingSpinner, Button } from '../components/ui';
 import toast from 'react-hot-toast';
 
 const STATUS_STYLES = {

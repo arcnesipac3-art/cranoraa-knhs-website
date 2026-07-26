@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 import {
   FileText, Plus, Search, Filter, Download, Eye, RefreshCw,
   Trash2, Printer, Archive, ChevronDown, ChevronUp, MoreVertical,
-  CheckCircle2, AlertTriangle, XCircle, BookOpen,
+  CheckCircle2, AlertTriangle, BookOpen,
 } from 'lucide-react';
 import api from '../utils/api';
-import { LoadingSpinner, Badge, Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from '../components/ui';
+import { LoadingSpinner, Button, Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle } from '../components/ui';
 import toast from 'react-hot-toast';
 
 const STATUS_STYLES = {

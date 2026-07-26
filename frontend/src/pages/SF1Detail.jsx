@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Download, Printer, RefreshCw, CheckCircle2, Archive,
-  BookOpen, Users, User, Calendar, GraduationCap, FileText,
+  BookOpen, Users, User, GraduationCap, FileText,
 } from 'lucide-react';
 import api from '../utils/api';
 import Swal from 'sweetalert2';
-import { LoadingSpinner, Badge, Button } from '../components/ui';
+import { LoadingSpinner, Button } from '../components/ui';
 import toast from 'react-hot-toast';
 
 function revokeUrlSafe(url) {

@@ -59,6 +59,7 @@ const SF2Dashboard = lazy(() => retryImport(() => import('../pages/SF2Dashboard'
 const SF5Dashboard = lazy(() => retryImport(() => import('../pages/SF5Dashboard')));
 const SF9Dashboard = lazy(() => retryImport(() => import('../pages/SF9Dashboard')));
 const SF10Dashboard = lazy(() => retryImport(() => import('../pages/SF10Dashboard')));
+const SchoolForms = lazy(() => retryImport(() => import('../pages/SchoolForms')));
 
 // ── Route definitions ────────────────────────────────────────────────────────
 
@@ -109,6 +110,7 @@ export const protectedRoutes = [
   { path: 'schedules', element: ScheduleManagement, roles: [Role.ADMIN] },
   { path: 'academic-setup', element: AcademicSetup, roles: [Role.ADMIN] },
   { path: 'analytics',      element: Analytics,     roles: [Role.ADMIN] },
+  { path: 'school-forms', element: SchoolForms, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'sf1', element: SF1Dashboard, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'sf1/generate', element: SF1Generate, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'sf1/:id', element: SF1Detail, roles: [Role.ADMIN, Role.STAFF] },

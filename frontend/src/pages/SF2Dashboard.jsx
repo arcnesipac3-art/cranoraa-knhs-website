@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Calendar, Search, Download, Printer, Loader2, BookOpen, ChevronDown,
+  Download, Loader2, BookOpen,
 } from 'lucide-react';
 import api from '../utils/api';
 import { LoadingSpinner, Button } from '../components/ui';
@@ -23,7 +23,6 @@ export default function SF2Dashboard() {
     year: new Date().getFullYear(),
   });
   const [generating, setGenerating] = useState(false);
-  const [reportData, setReportData] = useState(null);
 
   useEffect(() => {
     fetchClassrooms();
