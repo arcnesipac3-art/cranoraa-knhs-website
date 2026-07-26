@@ -199,7 +199,13 @@ const Enrollment = () => {
       guardianContact, guardianEmail, gradeLevel, strand, schoolYear, previousSchool,
       previousSchoolAddress, lrn, noLrn, lrnRequestReason, isAls, email, phoneNumber,
       emergencyContactName, emergencyContactRelationship, emergencyContactPhone });
-  });
+  }, [step, enrollmentType, firstName, lastName, middleName, sex, dateOfBirth,
+    placeOfBirth, nationality, religion, streetAddress, barangay, cityMunicipality, province,
+    zipCode, fatherName, fatherOccupation, fatherContact, fatherEmail, motherName,
+    motherOccupation, motherContact, motherEmail, guardianName, guardianRelationship,
+    guardianContact, guardianEmail, gradeLevel, strand, schoolYear, previousSchool,
+    previousSchoolAddress, lrn, noLrn, lrnRequestReason, isAls, email, phoneNumber,
+    emergencyContactName, emergencyContactRelationship, emergencyContactPhone]);
 
   const isTransferee = enrollmentType === 'transferee';
   const isReturning = enrollmentType === 'returning';

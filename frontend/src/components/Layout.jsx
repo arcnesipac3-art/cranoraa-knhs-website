@@ -239,11 +239,19 @@ const Layout = () => {
     if (path === '/backups') return 'Backups';
     if (path === '/website-content') return 'Website Editor';
     if (path === '/settings') return 'Settings';
-    if (path === '/settings') return 'My Profile';
     if (path === '/password-reset') return 'Change Password';
     if (path === '/schedule-management') return 'Schedules';
     if (path === '/parent-dashboard') return 'Parent Dashboard';
     if (path === '/parent-management') return 'Parents';
+    if (path === '/grade-input') return 'Grade Input';
+    if (path === '/grade-management') return 'Grade Management';
+    if (path === '/teachers') return 'Teachers';
+    if (path === '/student-management') return 'Students';
+    if (path === '/moderation') return 'Moderation';
+    if (path === '/enrollment-management') return 'Enrollment';
+    if (path === '/audit-logs') return 'Audit Logs';
+    if (path === '/backups') return 'Backups';
+    if (path === '/student-portal') return 'Student Portal';
     if (path === '/sf1') return 'SF1 - School Register';
     if (path === '/sf2') return 'SF2 - Attendance';
     if (path === '/sf5') return 'SF5 - Promotion';
@@ -612,7 +620,7 @@ const Layout = () => {
 
                 {showNotifications && (
                   <div
-                    className="fixed w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                    className="fixed z-50 w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
                     style={{ top: notifDropdownPos.top, right: notifDropdownPos.right }}
                   >
                     {/* Header */}

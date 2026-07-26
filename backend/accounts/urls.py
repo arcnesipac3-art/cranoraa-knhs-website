@@ -102,7 +102,8 @@ router.register(r'v1/weekly-plans', WeeklyPlanViewSet, basename='weekly-plan')
 urlpatterns = [
     path('v1/login/', login_view, name='login'),
     path('v1/logout/', logout_view, name='logout'),
-    path('v1/debug/reset-admin/', reset_admin_view, name='reset_admin'),
+    # SECURITY: Debug endpoint removed — use management commands for password resets
+    # path('v1/debug/reset-admin/', reset_admin_view, name='reset_admin'),
     path('v1/admin/create-user/', admin_create_user_view, name='admin_create_user'),
     path('v1/force-password-change/', force_password_change_view, name='force_password_change'),
     path('v1/auth/change-password/', change_password_view, name='change_password'),

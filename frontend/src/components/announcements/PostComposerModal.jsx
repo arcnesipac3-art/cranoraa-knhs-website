@@ -207,7 +207,7 @@ const PostComposerModal = ({
                     {previews.map(({ key, file, isImage, onRemove }) => (
                       <div key={key} className="relative aspect-square rounded-xl border border-violet-200 overflow-hidden bg-violet-50">
                         {isImage ? (
-                          <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                          <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" onLoad={(e) => URL.revokeObjectURL(e.target.src)} />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
                             <span className="text-[10px] font-bold text-violet-600 uppercase mb-1">{getFileTypeLabel(file)}</span>

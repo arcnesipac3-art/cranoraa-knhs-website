@@ -138,6 +138,9 @@ class Grade(models.Model):
     class Meta:
         unique_together = ['student', 'subject', 'component', 'grade_type', 'quarter', 'academic_year']
         ordering = ['-academic_year', '-quarter', 'subject__name', 'grade_type']
+        indexes = [
+            models.Index(fields=['grade_type', 'quarter'], name='idx_grade_type_quarter'),
+        ]
 
     def __str__(self):
         comp = f" ({self.get_component_display()})" if self.component else ''

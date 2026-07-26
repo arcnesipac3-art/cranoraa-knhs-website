@@ -247,13 +247,13 @@ const GradingSettingsTab = () => {
       <SectionCard title="Passing Standard" subtitle="Minimum grade to pass" icon="shield">
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {[
-            { label: 'Outstanding', range: '90-100', color: 'emerald' },
-            { label: 'Very Satisfactory', range: '85-89', color: 'blue' },
-            { label: 'Satisfactory', range: '80-84', color: 'amber' },
-            { label: 'Fairly Satisfactory', range: `${settings.passing_grade || 75}-79`, color: 'orange' },
-            { label: 'Did Not Meet', range: `Below ${settings.passing_grade || 75}`, color: 'red' },
+            { label: 'Outstanding', range: '90-100', bg: 'bg-emerald-50', border: 'border-emerald-200' },
+            { label: 'Very Satisfactory', range: '85-89', bg: 'bg-blue-50', border: 'border-blue-200' },
+            { label: 'Satisfactory', range: '80-84', bg: 'bg-amber-50', border: 'border-amber-200' },
+            { label: 'Fairly Satisfactory', range: `${settings.passing_grade || 75}-79`, bg: 'bg-orange-50', border: 'border-orange-200' },
+            { label: 'Did Not Meet', range: `Below ${settings.passing_grade || 75}`, bg: 'bg-red-50', border: 'border-red-200' },
           ].map(item => (
-            <div key={item.label} className={`bg-${item.color}-50 border border-${item.color}-200 rounded-lg p-2 text-center`}>
+            <div key={item.label} className={`${item.bg} ${item.border} rounded-lg p-2 text-center`}>
               <p className="text-xs font-extrabold text-slate-900">{item.range}</p>
               <p className="text-[10px] font-bold text-slate-600 mt-0.5">{item.label}</p>
             </div>

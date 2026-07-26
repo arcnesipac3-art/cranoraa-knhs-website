@@ -287,10 +287,14 @@ SIMPLE_JWT = {
 _frontend_url = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 _cors_env = os.environ.get('CORS_ALLOWED_ORIGINS', '')
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
+CORS_ALLOWED_ORIGINS = []
+
+# Only allow localhost in DEBUG mode
+if DEBUG:
+    CORS_ALLOWED_ORIGINS.extend([
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+    ])
 
 # Add frontend URL from env
 if _frontend_url and _frontend_url not in CORS_ALLOWED_ORIGINS:
@@ -310,10 +314,14 @@ CORS_ALLOW_HEADERS = list(default_headers) + [
 ]
 
 # CSRF Configuration
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-]
+CSRF_TRUSTED_ORIGINS = []
+
+# Only allow localhost in DEBUG mode
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend([
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+    ])
 
 # Sync with CORS origins
 for origin in CORS_ALLOWED_ORIGINS:
@@ -360,8 +368,42 @@ SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = not DEBUG
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # SPA needs to read CSRF cookie for double-submit pattern
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+# ─── Logging ──────────────────────────────────────────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
+            'propagate': False,
+        },
+        'accounts': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # Frontend URL for verification links
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')

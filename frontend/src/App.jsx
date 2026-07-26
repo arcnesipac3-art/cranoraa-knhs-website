@@ -102,7 +102,7 @@ function App() {
                         <Route
                           key={path}
                           path={path}
-                          element={Element ? <Element {...props} /> : null}
+                          element={Element ? <ErrorBoundary><Element {...props} /></ErrorBoundary> : null}
                         />
                       );
                     })}

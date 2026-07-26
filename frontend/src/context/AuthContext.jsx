@@ -13,7 +13,11 @@ export const AuthProvider = ({ children }) => {
     try {
       // Use the generic profile endpoint that works for all roles
       const response = await api.get('/profile/');
-      const profileResponse = await api.get('/student/profile/').catch(() => null);
+      // Only fetch student-specific profile for student users (avoids 404 for staff/admin)
+      const storedUser = getStoredUser();
+      const profileResponse = (storedUser?.role === 'student')
+        ? await api.get('/student/profile/').catch(() => null)
+        : null;
       const updatedUser = {
         ...getStoredUser(),
         first_name: response.data.first_name,

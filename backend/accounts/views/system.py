@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @api_view(['GET', 'POST', 'PATCH'])
+@permission_classes([IsAdminUser])
 def system_settings_view(request):
     """View to get or update global system settings (Admin only for updates)"""
     logger.info(f"System settings request: {request.method} by {request.user.username}")
@@ -91,6 +92,9 @@ def _format_uptime(seconds):
     return f"{minutes}m"
 
 
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+@throttle_classes([AdminWriteRateThrottle])
 def system_metrics_view(request):
     """Returns system metrics for the System Command Center"""
     from ..models import APIRequestLog
@@ -234,7 +238,12 @@ def maintenance_mode_view(request):
     """Toggle maintenance mode"""
     enabled = request.data.get('enabled', False)
 
-    # Store maintenance mode in a simple way (could use cache or database)
+    # Persist to database via SystemSetting so it survives cache flushes
+    sys_settings = SystemSetting.get_settings()
+    sys_settings.maintenance_mode = enabled
+    sys_settings.save(update_fields=['maintenance_mode'])
+
+    # Also set in cache for fast middleware lookups
     from django.core.cache import cache
     cache.set('maintenance_mode', enabled, timeout=None)
 
@@ -317,9 +326,11 @@ def clear_cache_view(request):
 
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
+@throttle_classes([AdminWriteRateThrottle])
 def data_retention_view(request):
     """Apply data retention policies: archive old grades, clean attendance, etc."""
     days_to_keep = int(request.data.get('days_to_keep', 365))
+    days_to_keep = max(30, min(days_to_keep, 3650))
     cutoff_date = timezone.now().date() - datetime.timedelta(days=days_to_keep)
     # Clean old attendance records (mark as archived rather than delete)
     old_attendance = Attendance.objects.filter(date__lt=cutoff_date)

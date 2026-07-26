@@ -46,7 +46,7 @@ export default defineConfig(() => {
     },
     build: {
       // Enable source maps for TypeScript debugging (Requirement 7.6)
-      sourcemap: true,
+      sourcemap: 'hidden',
       rollupOptions: {
         output: {
           manualChunks(id) {

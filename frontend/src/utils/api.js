@@ -3,6 +3,10 @@ import { getAccessToken, updateTokens, clearSession } from './session';
 
 const RAW_API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
+if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
+  console.error('[FATAL] VITE_API_URL is not set. The app cannot reach the backend.');
+}
+
 // Loading state management
 let activeRequests = 0;
 let loadingCallbacks = [];
@@ -75,6 +79,7 @@ export const MEDIA_ROOT = deriveMediaRoot(API_BASE_URL);
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
+  timeout: 30000,
   // Send the httpOnly refresh-token cookie on same-origin requests to /api/token/
   withCredentials: true,
 });

@@ -61,6 +61,17 @@ const SF9Dashboard = lazy(() => retryImport(() => import('../pages/SF9Dashboard'
 const SF10Dashboard = lazy(() => retryImport(() => import('../pages/SF10Dashboard')));
 const SchoolForms = lazy(() => retryImport(() => import('../pages/SchoolForms')));
 
+const GradeInput = lazy(() => retryImport(() => import('../pages/GradeInput')));
+const GradeManagement = lazy(() => retryImport(() => import('../pages/GradeManagement')));
+const Teachers = lazy(() => retryImport(() => import('../pages/Teachers')));
+const StudentManagement = lazy(() => retryImport(() => import('../pages/StudentManagement')));
+const Moderation = lazy(() => retryImport(() => import('../pages/Moderation')));
+const EnrollmentManagement = lazy(() => retryImport(() => import('../pages/EnrollmentManagement')));
+const AuditLogs = lazy(() => retryImport(() => import('../pages/AuditLogs')));
+const Backups = lazy(() => retryImport(() => import('../pages/Backups')));
+const StudentPortal = lazy(() => retryImport(() => import('../pages/StudentPortal')));
+const ParentManagement = lazy(() => retryImport(() => import('../pages/ParentManagement')));
+
 // Phase 2 - Teacher Productivity
 const QuizManagement = lazy(() => retryImport(() => import('../pages/QuizManagement')));
 const QuizTake = lazy(() => retryImport(() => import('../pages/QuizTake')));
@@ -116,6 +127,16 @@ export const protectedRoutes = [
   { path: 'subjects', element: SubjectsHub, roles: [Role.ADMIN] },
   { path: 'schedules', element: ScheduleManagement, roles: [Role.ADMIN] },
   { path: 'academic-setup', element: AcademicSetup, roles: [Role.ADMIN] },
+  { path: 'grade-input', element: GradeInput, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'grade-management', element: GradeManagement, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'teachers', element: Teachers, roles: [Role.ADMIN] },
+  { path: 'student-management', element: StudentManagement, roles: [Role.ADMIN] },
+  { path: 'moderation', element: Moderation, roles: [Role.ADMIN] },
+  { path: 'enrollment-management', element: EnrollmentManagement, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'audit-logs', element: AuditLogs, roles: [Role.ADMIN] },
+  { path: 'backups', element: Backups, roles: [Role.ADMIN] },
+  { path: 'student-portal', element: StudentPortal, roles: [Role.STUDENT] },
+  { path: 'parent-management', element: ParentManagement, roles: [Role.ADMIN] },
   { path: 'analytics',      element: Analytics,     roles: [Role.ADMIN] },
   { path: 'school-forms', element: SchoolForms, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'sf1', element: SF1Dashboard, roles: [Role.ADMIN, Role.STAFF] },

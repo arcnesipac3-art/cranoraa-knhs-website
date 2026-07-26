@@ -1036,7 +1036,7 @@ const StreamTab = ({ classroom, isTeacher, announcements, classroomSubjects, ann
                 {announcementFiles.map((f, i) => (
                   <div key={i} className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded-lg text-[10px] text-slate-700">
                     {f.type?.startsWith('image/') ? (
-                      <img src={URL.createObjectURL(f)} alt="" className="w-6 h-6 rounded object-cover" />
+                      <img src={URL.createObjectURL(f)} alt="" className="w-6 h-6 rounded object-cover" onLoad={(e) => URL.revokeObjectURL(e.target.src)} />
                     ) : (
                       <FileText className="w-3.5 h-3.5 text-violet-500" />
                     )}

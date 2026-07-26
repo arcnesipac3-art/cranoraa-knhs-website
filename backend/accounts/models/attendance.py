@@ -49,6 +49,9 @@ class Attendance(models.Model):
             ),
         ]
         ordering = ['-date', 'student__username']
+        indexes = [
+            models.Index(fields=['date', 'classroom'], name='idx_attendance_date_classroom'),
+        ]
 
     def __str__(self):
         scope = f" [{self.subject.code}]" if self.subject else ""
