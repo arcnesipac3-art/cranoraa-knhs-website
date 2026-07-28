@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { QueryProvider } from '@providers/QueryProvider';
 import { ThemeProvider } from '@providers/ThemeProvider';
-import { AuthGate } from '@providers/AuthGate';
 import { OfflineProvider } from '@providers/OfflineProvider';
 import { useAuthStore } from '@stores/auth.store';
 import { useOnboardingStore } from '@stores/onboarding.store';
@@ -14,6 +14,26 @@ import { useThemeContext } from '@providers/ThemeProvider';
 
 function TokenRefreshHandler() {
   useTokenRefresh();
+  return null;
+}
+
+function AuthNavigator() {
+  const router = useRouter();
+  const segments = useSegments();
+  const { isAuthenticated, isInitialized } = useAuthStore();
+
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/(main)/dashboard');
+    }
+  }, [isAuthenticated, isInitialized, segments, router]);
+
   return null;
 }
 
@@ -32,6 +52,7 @@ function RootLayoutInner() {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <TokenRefreshHandler />
+      <AuthNavigator />
       <Stack
         screenOptions={{
           headerShown: false,
@@ -48,9 +69,7 @@ export default function RootLayout() {
       <QueryProvider>
         <ThemeProvider>
           <OfflineProvider>
-            <AuthGate>
-              <RootLayoutInner />
-            </AuthGate>
+            <RootLayoutInner />
           </OfflineProvider>
         </ThemeProvider>
       </QueryProvider>

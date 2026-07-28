@@ -28,34 +28,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     try {
-      set({ isLoading: true });
       const refreshToken = await SecureStore.getItemAsync('refreshToken');
       const userJson = await SecureStore.getItemAsync('user');
 
       if (!refreshToken || !userJson) {
-        set({ isInitialized: true, isLoading: false });
+        set({ isInitialized: true });
         return;
       }
 
       const user = JSON.parse(userJson) as User;
-      const { access } = await authService.refreshToken(refreshToken);
-      setAccessToken(access);
 
       set({
         user,
         isAuthenticated: true,
         isInitialized: true,
-        isLoading: false,
       });
-    } catch (error) {
-      await SecureStore.deleteItemAsync('refreshToken');
-      await SecureStore.deleteItemAsync('user');
-      setAccessToken(null);
+
+      try {
+        const { access } = await authService.refreshToken(refreshToken);
+        setAccessToken(access);
+      } catch {
+        setAccessToken(null);
+      }
+    } catch {
       set({
         user: null,
         isAuthenticated: false,
         isInitialized: true,
-        isLoading: false,
       });
     }
   },

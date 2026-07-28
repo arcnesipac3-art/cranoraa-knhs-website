@@ -14,6 +14,9 @@ export default function MainLayout() {
   const unreadCount = unreadData?.count || 0;
   const userRole = user?.role || 'student';
 
+  const showEnrollment = canAccessFeature(userRole, 'enrollment');
+  const showAdmin = canAccessFeature(userRole, 'users');
+
   return (
     <Tabs
       screenOptions={{
@@ -52,17 +55,16 @@ export default function MainLayout() {
           ),
         }}
       />
-      {canAccessFeature(userRole, 'enrollment') && (
-        <Tabs.Screen
-          name="enrollment"
-          options={{
-            title: 'Enrollment',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="how-to-reg" size={size} color={color} />
-            ),
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="enrollment"
+        options={{
+          title: 'Enrollment',
+          href: showEnrollment ? undefined : null,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="how-to-reg" size={size} color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="communication"
         options={{
@@ -82,17 +84,16 @@ export default function MainLayout() {
           tabBarBadge: unreadCount > 0 ? unreadCount : undefined,
         }}
       />
-      {canAccessFeature(userRole, 'users') && (
-        <Tabs.Screen
-          name="admin"
-          options={{
-            title: 'Admin',
-            tabBarIcon: ({ color, size }) => (
-              <MaterialIcons name="settings" size={size} color={color} />
-            ),
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="admin"
+        options={{
+          title: 'Admin',
+          href: showAdmin ? undefined : null,
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="settings" size={size} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
