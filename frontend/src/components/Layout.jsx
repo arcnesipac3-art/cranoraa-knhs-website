@@ -13,28 +13,54 @@ import { generateBreadcrumbs } from '../utils/breadcrumbs';
 import { getNotifConfig, formatNotifTime } from '../utils/notificationConfig';
 
 
-const NavItem = ({ to, label, isActive, icon, onClick }) => (
-  <Link
-    to={to}
-    onClick={onClick}
-    aria-current={isActive(to) ? 'page' : undefined}
-    className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 text-xs group ${
-      isActive(to)
-        ? 'bg-gradient-to-r from-violet-500/90 to-purple-500/90 text-white font-bold shadow-lg shadow-purple-900/30 ring-1 ring-white/10'
-        : 'text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold'
-    }`}
-  >
-    <svg
-      className={`w-4 h-4 mr-2.5 flex-shrink-0 transition-transform duration-150 ${isActive(to) ? 'text-white' : 'text-purple-400/70'}`}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
+const NavItem = ({ to, label, isActive, icon, onClick, href, external }) => {
+  if (external && href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}
+        className="flex items-center px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 text-xs group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold"
+      >
+        <svg
+          className="w-4 h-4 mr-2.5 flex-shrink-0 transition-transform duration-150 text-purple-400/70"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+        </svg>
+        <span className="truncate">{label}</span>
+        <svg className="w-3 h-3 ml-1.5 text-purple-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    );
+  }
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      aria-current={isActive(to) ? 'page' : undefined}
+      className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 text-xs group ${
+        isActive(to)
+          ? 'bg-gradient-to-r from-violet-500/90 to-purple-500/90 text-white font-bold shadow-lg shadow-purple-900/30 ring-1 ring-white/10'
+          : 'text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold'
+      }`}
     >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
-    </svg>
-    <span className="truncate">{label}</span>
-  </Link>
-);
+      <svg
+        className={`w-4 h-4 mr-2.5 flex-shrink-0 transition-transform duration-150 ${isActive(to) ? 'text-white' : 'text-purple-400/70'}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+      </svg>
+      <span className="truncate">{label}</span>
+    </Link>
+  );
+};
 
 const SectionLabel = ({ label }) => (
   <div className="mt-5 mb-2 px-3 first:mt-0">
@@ -353,7 +379,8 @@ const Layout = () => {
       {
         header: 'System',
         items: [
-          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { label: 'Download App', href: 'https://github.com/cranoraa-eng/cranoraa-knhs-website/releases', icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4', external: true },
         ]
       }
     ],
@@ -388,7 +415,8 @@ const Layout = () => {
       {
         header: 'System',
         items: [
-          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { label: 'Download App', href: 'https://github.com/cranoraa-eng/cranoraa-knhs-website/releases', icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4', external: true },
         ]
       }
     ],
@@ -414,7 +442,8 @@ const Layout = () => {
         header: 'Account',
         items: [
           { to: '/settings', label: 'My Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { label: 'Download App', href: 'https://github.com/cranoraa-eng/cranoraa-knhs-website/releases', icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4', external: true },
         ]
       }
     ],
@@ -434,6 +463,7 @@ const Layout = () => {
         items: [
           { to: '/settings', label: 'My Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
           { to: '/password-reset', label: 'Change Password', icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' },
+          { label: 'Download App', href: 'https://github.com/cranoraa-eng/cranoraa-knhs-website/releases', icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4', external: true },
         ]
       }
     ]
@@ -518,6 +548,8 @@ const Layout = () => {
                       label={item.label} 
                       isActive={isActive} 
                       icon={item.icon}
+                      href={item.href}
+                      external={item.external}
                       onClick={() => setSidebarOpen(false)}
                     />
                   ))}

@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import { 
   BookOpen, Users, Calendar, FileText, MessageSquare, 
   BarChart2, Settings, UserCheck, GraduationCap, ClipboardList,
-  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard
+  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard, Download
 } from 'lucide-react';
 
 // Icon mapping
 const iconMap = {
   BookOpen, Users, Calendar, FileText, MessageSquare,
   BarChart2, Settings, UserCheck, GraduationCap, ClipboardList,
-  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard
+  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard, Download
 };
 
 // Role-based quick access link configurations
@@ -21,7 +21,7 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Schedule', path: '/my-schedule', icon: 'Calendar', color: 'green' },
     { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
     { label: 'Grades', path: '/my-classes?view=grades', icon: 'Award', color: 'violet' },
-    { label: 'Settings', path: '/settings', icon: 'Settings', color: 'indigo' }
+    { label: 'Download App', href: 'https://github.com/cranoraa-eng/cranoraa-knhs-website/releases', icon: 'Download', color: 'indigo', external: true }
   ],
   teacher: [
     { label: 'My Classes',    path: '/my-classes',          icon: 'BookOpen',      color: 'violet' },
@@ -29,14 +29,14 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Announcements', path: '/announcements',        icon: 'Bell',          color: 'amber' },
     { label: 'People',        path: '/people',               icon: 'Users',         color: 'indigo' },
     { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
-    { label: 'Grades',        path: '/my-classes?view=grades', icon: 'Award',       color: 'violet' }
+    { label: 'Download App',  href: 'https://github.com/cranoraa-eng/cranoraa-knhs-website/releases', icon: 'Download', color: 'blue', external: true }
   ],
   parent: [
     { label: 'Dashboard',     path: '/parent-dashboard',     icon: 'Award',         color: 'violet' },
     { label: 'Announcements', path: '/announcements',        icon: 'Bell',          color: 'amber' },
     { label: 'Messages',      path: '/communication-center', icon: 'MessageSquare', color: 'blue' },
     { label: 'Calendar',      path: '/portal-calendar',      icon: 'Calendar',      color: 'rose' },
-    { label: 'Settings',      path: '/settings',             icon: 'Settings',      color: 'indigo' }
+    { label: 'Download App',  href: 'https://github.com/cranoraa-eng/cranoraa-knhs-website/releases', icon: 'Download', color: 'green', external: true }
   ],
   admin: [
     { label: 'Analytics',        path: '/analytics',                    icon: 'TrendingUp',   color: 'violet' },
@@ -44,7 +44,7 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Enrollment',       path: '/enrollment?tab=applications',  icon: 'GraduationCap',color: 'green' },
     { label: 'Classes',          path: '/classes',                      icon: 'Grid',         color: 'amber' },
     { label: 'System Settings',  path: '/settings',                     icon: 'Settings',     color: 'indigo' },
-    { label: 'Audit Logs',       path: '/system-admin?tab=audit-logs',  icon: 'ClipboardList',color: 'rose' }
+    { label: 'Download App',     href: 'https://github.com/cranoraa-eng/cranoraa-knhs-website/releases', icon: 'Download', color: 'rose', external: true }
   ]
 };
 
@@ -115,10 +115,15 @@ const QuickAccessLinks = ({ role, variant = 'grid', className = '' }) => {
           };
           const theme = colorClasses[link.color] || colorClasses.violet;
 
+          const linkProps = link.external
+            ? { href: link.href, target: '_blank', rel: 'noopener noreferrer' }
+            : { to: link.path };
+          const Component = link.external ? 'a' : Link;
+
           return (
-            <Link
+            <Component
               key={index}
-              to={link.path}
+              {...linkProps}
               className={`
                 flex items-center gap-1.5 p-2 rounded-lg transition-all duration-200 shadow-sm
                 ${theme.card}
@@ -131,7 +136,7 @@ const QuickAccessLinks = ({ role, variant = 'grid', className = '' }) => {
               <span className={`text-[11px] leading-tight ${theme.label} truncate`}>
                 {link.label}
               </span>
-            </Link>
+            </Component>
           );
         })}
       </div>
