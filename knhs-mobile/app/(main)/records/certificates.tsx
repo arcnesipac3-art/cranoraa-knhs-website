@@ -25,7 +25,7 @@ export default function CertificatesScreen() {
   const theme = useTheme();
   const router = useRouter();
   const [showRequestModal, setShowRequestModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: transferData, isLoading: transferLoading } = useTransferCertificates();
   const { data: characterData, isLoading: characterLoading } = useCharacterCertificates();
@@ -45,7 +45,7 @@ export default function CertificatesScreen() {
 
   const onSubmit = async (data: any) => {
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
       if (type === 'transfer') {
         await createTransfer.mutateAsync({
           school_name: data.school_name,
@@ -62,7 +62,7 @@ export default function CertificatesScreen() {
     } catch (error) {
       Alert.alert('Error', 'Failed to submit certificate request');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -227,7 +227,7 @@ export default function CertificatesScreen() {
           <Button
             label="Submit Request"
             onPress={handleSubmit(onSubmit)}
-            loading={isLoading}
+            loading={isSubmitting}
             style={{ flex: 1 }}
           />
         </View>
