@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useMemo } from 'react';
-import { FlashList, FlashListProps } from 'flash-list';
+import { FlashList, FlashListProps } from '@shopify/flash-list';
 
 interface OptimizedListProps<T> extends Omit<FlashListProps<T>, 'getItemType' | 'keyExtractor'> {
   data: T[];
