@@ -4,6 +4,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'KNHS School Portal',
   slug: 'knhs-mobile',
+  owner: 'arccs-team',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
@@ -15,7 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   updates: {
     fallbackToCacheTimeout: 0,
-    url: 'https://u.expo.dev/your-project-id',
+    url: 'https://u.expo.dev/98a04804-eb81-474b-be20-ab77f47ce7e6',
   },
   runtimeVersion: {
     policy: 'appVersion',
@@ -24,14 +25,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'com.knhs.schoolportal',
-    infoPlist: {
-      NSAppTransportSecurity: {
-        NSAllowsArbitraryLoads: true,
-      },
-      NSCameraUsageDescription: 'This app uses camera for profile photos and document uploads',
-      NSPhotoLibraryUsageDescription: 'This app accesses photo library for uploads',
-      NSFaceIDUsageDescription: 'This app uses Face ID for secure authentication',
-    },
   },
   android: {
     adaptiveIcon: {
@@ -39,15 +32,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#1E3A5F',
     },
     package: 'com.knhs.schoolportal',
-    permissions: [
-      'android.permission.CAMERA',
-      'android.permission.READ_EXTERNAL_STORAGE',
-      'android.permission.WRITE_EXTERNAL_STORAGE',
-      'android.permission.INTERNET',
-      'android.permission.ACCESS_NETWORK_STATE',
-      'android.permission.VIBRATE',
-      'android.permission.RECEIVE_BOOT_COMPLETED',
-    ],
   },
   web: {
     favicon: './assets/images/favicon.png',
@@ -66,14 +50,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         imageWidth: 200,
       },
     ],
-    [
-      'expo-build-properties',
-      {
-        ios: {
-          useFrameworks: 'static',
-        },
-      },
-    ],
   ],
   experiments: {
     typedRoutes: true,
@@ -82,7 +58,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.knhs.edu.ph/api/v1',
     wsBaseUrl: process.env.EXPO_PUBLIC_WS_BASE_URL || 'wss://api.knhs.edu.ph/ws',
     eas: {
-      projectId: 'your-project-id',
+      projectId: '98a04804-eb81-474b-be20-ab77f47ce7e6',
     },
   },
 });
