@@ -45,3 +45,7 @@ backend/.env.*
 !backend/.env.example
 
 .vercel
+
+# APK files
+*.apk
+knhs-mobile.apk
