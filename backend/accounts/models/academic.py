@@ -110,7 +110,7 @@ class SystemSetting(models.Model):
     ]
     academic_level = models.CharField(max_length=3, choices=ACADEMIC_LEVEL_CHOICES, default='jhs')
     current_quarter = models.CharField(max_length=1, default='1', choices=[('1', 'Term 1'), ('2', 'Term 2'), ('3', 'Term 3'), ('4', 'Term 4 (Legacy)')])
-    academic_year = models.CharField(max_length=9, default='2025-2026')
+    academic_year = models.CharField(max_length=9, blank=True, default='')
 
     default_ww_weight = models.DecimalField(max_digits=5, decimal_places=2, default=30.00, help_text="Default Written Work weight (%)")
     default_pt_weight = models.DecimalField(max_digits=5, decimal_places=2, default=50.00, help_text="Default Performance Task weight (%)")
