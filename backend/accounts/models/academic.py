@@ -43,10 +43,18 @@ class Classroom(models.Model):
 
 
 class Subject(models.Model):
+    COMPONENT_CHOICES = [
+        ('core', 'Core Subject'),
+        ('mapeh', 'MAPEH Component'),
+        ('guidance', 'Homeroom Guidance'),
+    ]
+
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20, unique=True)
     description = models.TextField(blank=True, null=True)
     grade_level = models.CharField(max_length=20, help_text="Grade level this subject is for")
+    component = models.CharField(max_length=20, choices=COMPONENT_CHOICES, blank=True, null=True,
+        help_text="Subject component category (core, mapeh, guidance)")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

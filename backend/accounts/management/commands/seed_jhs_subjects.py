@@ -37,31 +37,31 @@ from accounts.models import Subject
 # ---------------------------------------------------------------------------
 
 _BASE_SUBJECTS = [
-    # code_suffix, name, description
+    # (code_suffix, name, description, component)
     ('FIL',  'Filipino',
-     'Paglinang ng kasanayan sa komunikasyon sa wikang Filipino.'),
+     'Paglinang ng kasanayan sa komunikasyon sa wikang Filipino.', 'core'),
     ('ENG',  'English',
-     'Development of communicative competence in the English language.'),
+     'Development of communicative competence in the English language.', 'core'),
     ('MATH', 'Mathematics',
-     'Number sense, measurement, geometry, patterns, algebra, and statistics.'),
+     'Number sense, measurement, geometry, patterns, algebra, and statistics.', 'core'),
     ('SCI',  'Science',
-     'Scientific inquiry, life science, physical science, and earth science.'),
+     'Scientific inquiry, life science, physical science, and earth science.', 'core'),
     ('AP',   'Araling Panlipunan',
-     'Philippine and world history, geography, economics, and social studies.'),
+     'Philippine and world history, geography, economics, and social studies.', 'core'),
     ('ESP',  'Edukasyon sa Pagpapakatao',
-     'Character education grounded in Filipino values and ethics.'),
+     'Character education grounded in Filipino values and ethics.', 'core'),
     ('TLE',  'Technology and Livelihood Education',
-     'Practical technology, home economics, and livelihood skills.'),
+     'Practical technology, home economics, and livelihood skills.', 'core'),
     ('MUS',  'Music',
-     'Musical literacy, appreciation, and performance. (MAPEH component)'),
+     'Musical literacy, appreciation, and performance. (MAPEH component)', 'mapeh'),
     ('ARTS', 'Arts',
-     'Visual arts, appreciation, and creative expression. (MAPEH component)'),
+     'Visual arts, appreciation, and creative expression. (MAPEH component)', 'mapeh'),
     ('PE',   'Physical Education',
-     'Physical fitness, sports, and healthy lifestyle. (MAPEH component)'),
+     'Physical fitness, sports, and healthy lifestyle. (MAPEH component)', 'mapeh'),
     ('HLT',  'Health',
-     'Personal health, community health, and health literacy. (MAPEH component)'),
+     'Personal health, community health, and health literacy. (MAPEH component)', 'mapeh'),
     ('HG',   'Homeroom Guidance',
-     'Guidance and counseling integrated through homeroom sessions.'),
+     'Guidance and counseling integrated through homeroom sessions.', 'guidance'),
 ]
 
 GRADES = ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10']
@@ -72,13 +72,14 @@ def _build_subjects():
     subjects = []
     for grade in GRADES:
         grade_num = grade.split()[-1]  # '7', '8', '9', '10'
-        for suffix, name, description in _BASE_SUBJECTS:
+        for suffix, name, description, component in _BASE_SUBJECTS:
             code = f'{suffix}{grade_num}'
             subjects.append({
                 'code':        code,
                 'name':        name,
                 'grade_level': grade,
                 'description': description,
+                'component':   component,
             })
     return subjects
 
@@ -124,6 +125,7 @@ class Command(BaseCommand):
                             existing.name        = s['name']
                             existing.grade_level = s['grade_level']
                             existing.description = s['description']
+                            existing.component   = s['component']
                             existing.save()
                         self.stdout.write(
                             f"  {'[DRY] ' if dry_run else ''}UPDATED  {s['code']:<8} {s['grade_level']} — {s['name']}"
