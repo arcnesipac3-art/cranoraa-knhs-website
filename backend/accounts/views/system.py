@@ -79,6 +79,8 @@ def maintenance_status_view(request):
         }, status=200)  # Return 200 to avoid breaking frontend UI if possible
 
 
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
 def system_metrics_view(request):
     """Returns system metrics for the System Command Center"""
     from ..models import APIRequestLog
@@ -104,7 +106,7 @@ def system_metrics_view(request):
 
     # Get real API hits data from the last hour
     api_hits = []
-    now = datetime.datetime.now()
+    now = timezone.now()
     try:
         for i in range(12):
             time_start = now - datetime.timedelta(minutes=(12-i)*5)
