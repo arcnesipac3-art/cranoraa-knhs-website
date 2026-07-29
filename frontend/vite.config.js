@@ -177,12 +177,16 @@ export default defineConfig(() => {
             // ━━━ 7. Sensitive Auth Endpoints ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
             // Token refresh, login, logout — NEVER cached.
             // Strategy: NetworkOnly — prevents stale/leaked tokens.
+            // NOTE: Only match API paths (containing /api/) to avoid intercepting
+            // frontend navigation routes like /login, /logout, /password-reset.
             {
               urlPattern: ({ url }) =>
-                url.pathname.includes('/token/') ||
-                url.pathname.includes('/login') ||
-                url.pathname.includes('/logout') ||
-                url.pathname.includes('/password'),
+                url.pathname.includes('/api/') && (
+                  url.pathname.includes('/token/') ||
+                  url.pathname.includes('/login') ||
+                  url.pathname.includes('/logout') ||
+                  url.pathname.includes('/password')
+                ),
               handler: 'NetworkOnly',
             },
 
