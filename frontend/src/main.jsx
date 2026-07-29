@@ -9,6 +9,7 @@ import OfflineBanner from './components/OfflineBanner.jsx'
 import InstallBanner from './components/InstallBanner.jsx'
 import UpdateSnackbar from './components/UpdateSnackbar.jsx'
 import { ServiceProviderUpdate } from './hooks/useServiceWorkerUpdate.jsx'
+import { PushNotificationProvider } from './context/PushNotificationContext.jsx'
 import { getModalZ } from './components/ui/Modal.jsx'
 import { Buffer } from 'buffer'
 import backgroundSync from './utils/backgroundSync'
@@ -128,12 +129,13 @@ Swal.fire = (...args) => {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ServiceProviderUpdate>
-      {/* Global overlays — outside App so they always render */}
-      <OfflineBanner />
-      <InstallBanner />
-      <UpdateSnackbar />
-      <App />
-      <Toaster
+      <PushNotificationProvider>
+        {/* Global overlays — outside App so they always render */}
+        <OfflineBanner />
+        <InstallBanner />
+        <UpdateSnackbar />
+        <App />
+        <Toaster
       position="top-right"
       toastOptions={{
         duration: 4000,
@@ -153,6 +155,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         },
       }}
     />
+      </PushNotificationProvider>
     </ServiceProviderUpdate>
   </React.StrictMode>,
 )
