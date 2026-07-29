@@ -117,10 +117,10 @@ const Layout = () => {
   const userBtnRef = useRef(null);
   const mobileUserMenuRef = useRef(null);
 
-  // Fetch system settings for academic year
+  // Re-fetch system settings on navigation so academic year stays current
   useEffect(() => {
     api.get('/system/settings/').then(r => setSysSettings(r.data)).catch(() => {});
-  }, []);
+  }, [location.pathname]);
 
   // Scroll to top on route change
   useEffect(() => {

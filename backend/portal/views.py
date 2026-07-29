@@ -156,6 +156,8 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
         if request.user.role != 'admin':
             return Response({'error': 'Unauthorized'}, status=403)
         year = self.get_object()
+        # Deactivate all other years first
+        AcademicYear.objects.filter(is_active=True).exclude(pk=year.pk).update(is_active=False)
         year.is_active = True
         year.save()
         # Sync SystemSetting.academic_year so all pages see the active year

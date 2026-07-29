@@ -25,8 +25,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = title || 'KNHS Portal';
   const notificationOptions = {
     body: body || '',
-    icon: icon || '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: icon || '/icons/school-logo-source.png',
+    badge: '/icons/school-logo-source.png',
     data: { link: link || data.link || '/notifications' },
     tag: data.tag || undefined,
     requireInteraction: false,

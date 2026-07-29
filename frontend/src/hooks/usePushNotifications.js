@@ -53,8 +53,8 @@ export function usePushNotifications() {
       if (Notification.permission === 'granted') {
         new Notification(title || 'KNHS Portal', {
           body: body || '',
-          icon: icon || '/icons/icon-192.png',
-          badge: '/icons/icon-192.png',
+          icon: icon || '/icons/school-logo-source.png',
+          badge: '/icons/school-logo-source.png',
           data: payload.data,
           tag: payload.data?.tag || undefined,
         });
