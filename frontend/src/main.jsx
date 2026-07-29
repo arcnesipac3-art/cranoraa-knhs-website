@@ -9,56 +9,21 @@ import OfflineBanner from './components/OfflineBanner.jsx'
 import InstallBanner from './components/InstallBanner.jsx'
 import UpdateSnackbar from './components/UpdateSnackbar.jsx'
 import { ServiceProviderUpdate } from './hooks/useServiceWorkerUpdate.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { PushNotificationProvider } from './context/PushNotificationContext.jsx'
 import { getModalZ } from './components/ui/Modal.jsx'
 import { Buffer } from 'buffer'
-import backgroundSync from './utils/backgroundSync'
+import { initOfflineDb } from './utils/offlineDb'
+import { initSyncEngine, processSyncQueue } from './utils/syncEngine'
 
 // Polyfill Buffer for xlsx-populate in browser
 window.Buffer = Buffer;
 
-// ── Background Sync on Reconnect ─────────────────────────────────────────────
-// When the browser/backend comes back online, process any queued mutations.
-const processSyncQueue = async () => {
-  const queueLength = backgroundSync.length();
-  if (queueLength === 0) return;
-
-  try {
-    // Dynamic import to avoid circular dependency with api.js
-    const { default: api } = await import('./utils/api.js');
-    const result = await backgroundSync.processQueue(api);
-
-    if (result.succeeded > 0) {
-      Swal.fire({
-        icon: 'success',
-        title: 'Synced',
-        text: `${result.succeeded} change${result.succeeded !== 1 ? 's' : ''} synced successfully.`,
-        timer: 3000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-      });
-    }
-    if (result.failed > 0) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Sync issue',
-        text: `${result.failed} change${result.failed !== 1 ? 's' : ''} could not be synced.`,
-        timer: 4000,
-        timerProgressBar: true,
-        showConfirmButton: false,
-      });
-    }
-  } catch {
-    // Sync will retry on next reconnect
-  }
-};
-
-// Listen for reconnect events
-window.addEventListener('backend:reachable', processSyncQueue);
-window.addEventListener('online', () => {
-  // Small delay to let the backend connection stabilize
-  setTimeout(processSyncQueue, 2000);
+// ── Initialize IndexedDB + Sync Engine ───────────────────────────────────────
+initOfflineDb().catch(() => {
+  // IndexedDB not available — app will work without offline caching
 });
+initSyncEngine();
 
 const baseSwalOptions = {
   customClass: {
@@ -128,6 +93,7 @@ Swal.fire = (...args) => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
+    <ErrorBoundary>
     <ServiceProviderUpdate>
       <PushNotificationProvider>
         {/* Global overlays — outside App so they always render */}
@@ -157,5 +123,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     />
       </PushNotificationProvider>
     </ServiceProviderUpdate>
+    </ErrorBoundary>
   </React.StrictMode>,
 )

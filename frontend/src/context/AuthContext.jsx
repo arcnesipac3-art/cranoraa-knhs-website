@@ -33,6 +33,8 @@ export const AuthProvider = ({ children }) => {
 
   // Sync state from localStorage on mount; attempt token refresh if needed
   useEffect(() => {
+    let cancelled = false;
+
     const initAuth = async () => {
       const storedUser = getStoredUser();
       
@@ -42,7 +44,12 @@ export const AuthProvider = ({ children }) => {
         refreshUser();
       } else if (storedUser) {
         // Has stored user but no access token (page refresh) - try to refresh
-        const refreshed = await tryRefreshToken();
+        // Add 8s timeout so we don't hang forever on slow/failed network
+        const refreshed = await Promise.race([
+          tryRefreshToken(),
+          new Promise(resolve => setTimeout(() => resolve(false), 8000)),
+        ]);
+        if (cancelled) return;
         if (refreshed) {
           setUser(storedUser);
           refreshUser();
@@ -58,6 +65,7 @@ export const AuthProvider = ({ children }) => {
     };
     
     initAuth();
+    return () => { cancelled = true; };
   }, [refreshUser]);
 
   // Listen for the custom logout event fired by api.js interceptor (e.g. 401 on refresh)

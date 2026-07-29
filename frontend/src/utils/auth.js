@@ -1,4 +1,4 @@
-import api from './api';
+import axios from 'axios';
 import {
   saveSession,
   clearAccessToken,
@@ -8,6 +8,7 @@ import {
   updateTokens,
   clearSession
 } from './session';
+import { API_BASE_URL } from './api';
 
 // Aliases kept for backward compatibility
 export { getAccessToken, getStoredUser, updateStoredUser, updateTokens, clearSession };
@@ -17,11 +18,16 @@ export const hasToken = () => !!getAccessToken();
 
 // ---------------------------------------------------------------------------
 // Token refresh - attempt to get a new access token using the httpOnly cookie
+// Uses raw axios to bypass the api interceptor and avoid circular clearSession
 // ---------------------------------------------------------------------------
 
 export const tryRefreshToken = async () => {
   try {
-    const { data } = await api.post('/token/refresh/');
+    const { data } = await axios.post(
+      `${API_BASE_URL}/token/refresh/`,
+      {},
+      { withCredentials: true }
+    );
     if (data.access) {
       updateTokens(data.access);
       return true;
