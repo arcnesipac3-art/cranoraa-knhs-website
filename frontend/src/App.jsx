@@ -19,6 +19,7 @@ import Login from './pages/Login';
 import ForcePasswordChange from './pages/ForcePasswordChange';
 import Maintenance from './pages/Maintenance';
 import NotFound from './pages/NotFound';
+import Offline from './pages/Offline';
 
 function App() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
@@ -68,6 +69,9 @@ function App() {
             <ErrorBoundary>
               <Suspense fallback={<RouteLoadingIndicator />}>
                 <Routes>
+                  {/* Offline Fallback — served by SW when offline */}
+                  <Route path="/offline" element={<Offline />} />
+
                   {/* Auth Routes */}
                   <Route path="/login" element={<Login />} />
                   <Route path="/force-password-change" element={<ForcePasswordChange />} />

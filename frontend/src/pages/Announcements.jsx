@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import api, { MEDIA_ROOT } from '../utils/api';
+import apiCache from '../utils/apiCache';
 import { useCurrentUser } from '../hooks/useCurrentUser';
+import { useOfflineMode } from '../hooks/useBackendStatus';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useScrollLock } from '../hooks/useScrollLock';
@@ -115,6 +117,7 @@ const Announcements = () => {
   const { user } = useCurrentUser();
   const canManage = user?.role === 'admin' || user?.role === 'staff';
   const canComment = ['student', 'staff', 'admin'].includes(user?.role);
+  const { isOfflineMode } = useOfflineMode();
 
   const [announcements, setAnnouncements] = useState([]);
   const [classrooms, setClassrooms]           = useState([]);
@@ -130,6 +133,7 @@ const Announcements = () => {
   const [zoomGallery, setZoomGallery]         = useState(null);
   const [selectedIds, setSelectedIds]         = useState([]);
   const [liveCommentCount, setLiveCommentCount] = useState(0);
+  const [isStaleData, setIsStaleData]         = useState(false);
 
   useScrollLock(showModal || showView || zoomGallery);
 
@@ -151,21 +155,42 @@ const Announcements = () => {
   };
 
   const fetchAnnouncements = async () => {
-    setLoading(true);
+    const params = {};
+    if (search) params.search = search;
+    if (activeFilter === 'unread') params.unread = true;
+    if (activeFilter === 'pinned') params.is_pinned = true;
+    if (activeFilter === 'urgent') params.priority = 'critical';
+    if (activeFilter === 'academic') params.category = 'academic';
+    if (activeFilter === 'events') params.category = 'events';
+    if (activeFilter === 'examinations') params.category = 'examinations';
+    if (activeFilter === 'archived') params.status = 'expired';
+
+    const cacheKey = `/announcements/?${new URLSearchParams(params).toString()}`;
+
+    // Serve from cache immediately
+    const cached = apiCache.get(cacheKey);
+    if (cached) {
+      setAnnouncements(cached);
+      setIsStaleData(false);
+      setLoading(false);
+    } else {
+      const stale = apiCache.getStale(cacheKey);
+      if (stale) {
+        setAnnouncements(stale);
+        setIsStaleData(true);
+      }
+    }
+
+    // Fetch from network
     try {
-      const params = {};
-      if (search) params.search = search;
-      if (activeFilter === 'unread') params.unread = true;
-      if (activeFilter === 'pinned') params.is_pinned = true;
-      if (activeFilter === 'urgent') params.priority = 'critical';
-      if (activeFilter === 'academic') params.category = 'academic';
-      if (activeFilter === 'events') params.category = 'events';
-      if (activeFilter === 'examinations') params.category = 'examinations';
-      if (activeFilter === 'archived') params.status = 'expired';
       const r = await api.get('/announcements/', { params });
       setAnnouncements(r.data);
+      setIsStaleData(false);
+      apiCache.set(cacheKey, r.data, 60 * 60 * 1000);
     } catch (err) {
-      if (err.code !== 'ERR_NETWORK') toast.error('Failed to load announcements');
+      if (!cached && !apiCache.getStale(cacheKey)) {
+        if (err.code !== 'ERR_NETWORK') toast.error('Failed to load announcements');
+      }
     } finally { setLoading(false); }
   };
 
@@ -315,7 +340,21 @@ const Announcements = () => {
               </div>
               <div>
                 <h1 className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight">Announcements</h1>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">School News & Updates</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                  School News & Updates
+                  {isStaleData && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-amber-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                      Cached
+                    </span>
+                  )}
+                  {isOfflineMode && !isStaleData && (
+                    <span className="ml-2 inline-flex items-center gap-1 text-red-500">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                      Offline
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">

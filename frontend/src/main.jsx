@@ -6,11 +6,58 @@ import './styles/accessibility.css'
 import { Toaster } from 'react-hot-toast'
 import Swal from 'sweetalert2'
 import OfflineBanner from './components/OfflineBanner.jsx'
+import InstallBanner from './components/InstallBanner.jsx'
+import UpdateSnackbar from './components/UpdateSnackbar.jsx'
+import { ServiceProviderUpdate } from './hooks/useServiceWorkerUpdate.jsx'
 import { getModalZ } from './components/ui/Modal.jsx'
 import { Buffer } from 'buffer'
+import backgroundSync from './utils/backgroundSync'
 
 // Polyfill Buffer for xlsx-populate in browser
 window.Buffer = Buffer;
+
+// ── Background Sync on Reconnect ─────────────────────────────────────────────
+// When the browser/backend comes back online, process any queued mutations.
+const processSyncQueue = async () => {
+  const queueLength = backgroundSync.length();
+  if (queueLength === 0) return;
+
+  try {
+    // Dynamic import to avoid circular dependency with api.js
+    const { default: api } = await import('./utils/api.js');
+    const result = await backgroundSync.processQueue(api);
+
+    if (result.succeeded > 0) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Synced',
+        text: `${result.succeeded} change${result.succeeded !== 1 ? 's' : ''} synced successfully.`,
+        timer: 3000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    }
+    if (result.failed > 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sync issue',
+        text: `${result.failed} change${result.failed !== 1 ? 's' : ''} could not be synced.`,
+        timer: 4000,
+        timerProgressBar: true,
+        showConfirmButton: false,
+      });
+    }
+  } catch {
+    // Sync will retry on next reconnect
+  }
+};
+
+// Listen for reconnect events
+window.addEventListener('backend:reachable', processSyncQueue);
+window.addEventListener('online', () => {
+  // Small delay to let the backend connection stabilize
+  setTimeout(processSyncQueue, 2000);
+});
 
 const baseSwalOptions = {
   customClass: {
@@ -80,10 +127,13 @@ Swal.fire = (...args) => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* Global overlays — outside App so they always render */}
-    <OfflineBanner />
-    <App />
-    <Toaster
+    <ServiceProviderUpdate>
+      {/* Global overlays — outside App so they always render */}
+      <OfflineBanner />
+      <InstallBanner />
+      <UpdateSnackbar />
+      <App />
+      <Toaster
       position="top-right"
       toastOptions={{
         duration: 4000,
@@ -103,5 +153,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         },
       }}
     />
+    </ServiceProviderUpdate>
   </React.StrictMode>,
 )

@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { getAccessToken, updateTokens, clearSession } from './session';
+import apiCache from './apiCache';
+import backgroundSync from './backgroundSync';
 
 const RAW_API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
@@ -203,3 +205,79 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+// ── Backend Reachability Tracking ─────────────────────────────────────────────
+// Tracks consecutive API failures to detect when the backend is unreachable.
+// Dispatches custom events consumed by useBackendStatus hook.
+const BACKEND_FAILURE_THRESHOLD = 3;
+let consecutiveBackendFailures = 0;
+
+api.interceptors.response.use(
+  (response) => {
+    // Backend is reachable — reset failure counter
+    if (consecutiveBackendFailures > 0) {
+      consecutiveBackendFailures = 0;
+      window.dispatchEvent(
+        new CustomEvent('backend:reachable', {
+          detail: { timestamp: Date.now() },
+        })
+      );
+    }
+
+    // Cache successful GET responses (except auth-sensitive endpoints)
+    if (
+      response.config.method === 'get' &&
+      response.status === 200 &&
+      !response.config.url?.includes('/token/') &&
+      !response.config.url?.includes('/login') &&
+      !response.config.url?.includes('/logout') &&
+      !response.config.url?.includes('/password')
+    ) {
+      const cacheKey = response.config.url;
+      if (cacheKey) {
+        apiCache.set(cacheKey, response.data, 60 * 60 * 1000); // 1 hour TTL
+      }
+    }
+
+    return response;
+  },
+  (error) => {
+    // Track consecutive backend failures
+    if (!error.response || error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK') {
+      consecutiveBackendFailures++;
+      if (consecutiveBackendFailures >= BACKEND_FAILURE_THRESHOLD) {
+        window.dispatchEvent(
+          new CustomEvent('backend:unreachable', {
+            detail: {
+              failureCount: consecutiveBackendFailures,
+              timestamp: Date.now(),
+            },
+          })
+        );
+      }
+    }
+
+    // Queue failed mutations for background sync
+    if (
+      error.config &&
+      !error.config.url?.includes('/token/') &&
+      !error.config.url?.includes('/login') &&
+      !error.config.url?.includes('/logout') &&
+      ['post', 'put', 'patch', 'delete'].includes(error.config.method)
+    ) {
+      const isNetworkError = !error.response || error.code === 'ERR_NETWORK';
+      if (isNetworkError) {
+        backgroundSync.enqueue({
+          url: error.config.url?.startsWith('http')
+            ? error.config.url
+            : `${API_BASE_URL}${error.config.url}`,
+          method: error.config.method,
+          data: error.config.data,
+          headers: error.config.headers,
+        });
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
