@@ -8,7 +8,7 @@ import {
   updateTokens,
   clearSession
 } from './session';
-import { API_BASE_URL } from './api';
+import api, { API_BASE_URL } from './api';
 
 // Aliases kept for backward compatibility
 export { getAccessToken, getStoredUser, updateStoredUser, updateTokens, clearSession };
