@@ -52,7 +52,7 @@ export default function LoginScreen() {
     async (data: LoginFormData) => {
       try {
         clearError();
-        await login({ email: data.email, password: data.password });
+        await login({ username: data.email, password: data.password, role: selectedRole });
         // AuthGate will handle redirect based on role
       } catch (err: any) {
         const message = err.message || 'Login failed. Please try again.';

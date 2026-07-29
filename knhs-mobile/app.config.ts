@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'contain',
-    backgroundColor: '#1E3A5F',
+    backgroundColor: '#7C3AED',
   },
   updates: {
     fallbackToCacheTimeout: 0,
@@ -29,7 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     adaptiveIcon: {
       foregroundImage: './assets/images/adaptive-icon.png',
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#7C3AED',
     },
     package: 'com.knhs.schoolportal',
   },
@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#1E3A5F',
+        backgroundColor: '#7C3AED',
         image: './assets/images/splash.png',
         imageWidth: 200,
       },

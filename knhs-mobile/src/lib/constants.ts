@@ -1,18 +1,18 @@
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.knhs.edu.ph/api/v1';
-export const WS_BASE_URL = process.env.EXPO_PUBLIC_WS_BASE_URL || 'wss://api.knhs.edu.ph/ws';
-export const MEDIA_ROOT = process.env.EXPO_PUBLIC_MEDIA_ROOT || 'https://api.knhs.edu.ph';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://cranoraa-knhs-website-1.onrender.com/api/v1';
+export const WS_BASE_URL = process.env.EXPO_PUBLIC_WS_BASE_URL || 'wss://cranoraa-knhs-website-1.onrender.com/ws';
+export const MEDIA_ROOT = process.env.EXPO_PUBLIC_MEDIA_ROOT || 'https://cranoraa-knhs-website-1.onrender.com';
 
 export const APP_NAME = 'KNHS School Portal';
 export const APP_VERSION = '1.0.0';
 
 export const COLORS = {
-  primary: '#1E3A5F',
-  secondary: '#2E86AB',
-  accent: '#A23B72',
-  success: '#22C55E',
-  warning: '#EAB308',
-  error: '#EF4444',
-  info: '#3B82F6',
+  primary: '#7C3AED',
+  secondary: '#6D28D9',
+  accent: '#D97706',
+  success: '#059669',
+  warning: '#D97706',
+  error: '#DC2626',
+  info: '#0369A1',
 };
 
 export const FONT_SIZES = {

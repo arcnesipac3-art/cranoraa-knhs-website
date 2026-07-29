@@ -67,13 +67,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await SecureStore.setItemAsync('refreshToken', response.refresh);
       await SecureStore.setItemAsync('user', JSON.stringify(response.user));
 
+      if (response.user.must_change_password) {
+        set({
+          user: response.user,
+          isAuthenticated: true,
+          isLoading: false,
+        });
+        return;
+      }
+
       set({
         user: response.user,
         isAuthenticated: true,
         isLoading: false,
       });
     } catch (error: any) {
-      const message = error.response?.data?.detail || error.message || 'Login failed';
+      let message = 'Login failed';
+      if (!error.response && error.message === 'Network Error') {
+        message = 'Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (error.response?.data?.detail) {
+        message = error.response.data.detail;
+      } else if (error.response?.data?.non_field_errors) {
+        message = Array.isArray(error.response.data.non_field_errors)
+          ? error.response.data.non_field_errors[0]
+          : error.response.data.non_field_errors;
+      } else if (error.message) {
+        message = error.message;
+      }
       set({ isLoading: false, error: message });
       throw new Error(message);
     }
