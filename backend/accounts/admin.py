@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User, Profile, WebsiteContent, Room, TimeSlot, Schedule, DashboardPreferences
+from .models import FCMToken
 
 
 class ProfileInline(admin.StackedInline):
@@ -94,5 +95,12 @@ class DashboardPreferencesAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(FCMToken)
+class FCMTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'device_type', 'is_active', 'created_at')
+    list_filter = ('is_active', 'device_type')
+    search_fields = ('user__email', 'token')
 
 
