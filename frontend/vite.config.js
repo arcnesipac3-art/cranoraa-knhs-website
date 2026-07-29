@@ -56,6 +56,7 @@ export default defineConfig(() => {
         manifest: false,
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          importScripts: ['firebase-messaging-sw.js'],
 
           // ── Navigation Fallback ──────────────────────────────────────────
           // Serve index.html for all navigation requests not matched by

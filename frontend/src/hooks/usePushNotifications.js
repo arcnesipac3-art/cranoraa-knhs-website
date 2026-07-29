@@ -72,8 +72,12 @@ export function usePushNotifications() {
     if (!messaging) return null;
 
     try {
+      // Get the Workbox service worker registration (registered by vite-plugin-pwa)
+      const swRegistration = await navigator.serviceWorker.ready;
+
       const currentToken = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY || undefined,
+        serviceWorkerRegistration: swRegistration,
       });
 
       if (currentToken) {

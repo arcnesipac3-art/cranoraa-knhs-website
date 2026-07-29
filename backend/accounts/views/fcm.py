@@ -102,4 +102,4 @@ def test_push_notification(request):
         })
     except Exception as e:
         logger.error(f"Firebase error: {str(e)}", exc_info=True)
-        return Response({'error': f'Failed to process notification request: {str(e)}'}, status=500)
+        return Response({'error': 'Failed to process notification request.'}, status=500)
