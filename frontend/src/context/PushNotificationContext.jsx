@@ -44,6 +44,12 @@ export function PushNotificationProvider({ children }) {
     }
   }, [userId, isSupported, permission, registerToken]);
 
+  // Re-register token on page load if permission is already granted
+  useEffect(() => {
+    if (!userId || !isSupported || permission !== 'granted') return;
+    registerToken();
+  }, [isSupported, permission, registerToken, userId]);
+
   // Delete token on logout
   useEffect(() => {
     if (prevUserIdRef.current && !userId) {
