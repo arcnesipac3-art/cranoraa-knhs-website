@@ -151,6 +151,24 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
             return AcademicYear.objects.all()
         return AcademicYear.objects.filter(is_active=True)
 
+    def perform_create(self, serializer):
+        year = serializer.save()
+        if year.is_active:
+            # Deactivate all other years
+            AcademicYear.objects.filter(is_active=True).exclude(pk=year.pk).update(is_active=False)
+            # Sync SystemSetting
+            sys_settings = SystemSetting.get_settings()
+            sys_settings.academic_year = year.name
+            sys_settings.save(update_fields=['academic_year'])
+
+    def perform_update(self, serializer):
+        year = serializer.save()
+        if year.is_active:
+            AcademicYear.objects.filter(is_active=True).exclude(pk=year.pk).update(is_active=False)
+            sys_settings = SystemSetting.get_settings()
+            sys_settings.academic_year = year.name
+            sys_settings.save(update_fields=['academic_year'])
+
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         if request.user.role != 'admin':
