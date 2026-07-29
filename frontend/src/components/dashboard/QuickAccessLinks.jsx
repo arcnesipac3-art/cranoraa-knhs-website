@@ -21,7 +21,7 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Schedule', path: '/my-schedule', icon: 'Calendar', color: 'green' },
     { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
     { label: 'Grades', path: '/my-classes?view=grades', icon: 'Award', color: 'violet' },
-    { label: 'Download App', href: 'https://expo.dev/artifacts/eas/Y-xzrFNWJClk6kU2oC7EeSPiermGJWMUiiWbhN38Kng.apk', icon: 'Download', color: 'indigo', external: true }
+    { label: 'Download App', href: 'https://expo.dev/artifacts/eas/jzXDfGsYZ0jiW1FC0omG1leer4JL6rpa4hDqflIuGx4.apk', icon: 'Download', color: 'indigo', external: true }
   ],
   teacher: [
     { label: 'My Classes',    path: '/my-classes',          icon: 'BookOpen',      color: 'violet' },
@@ -29,14 +29,14 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Announcements', path: '/announcements',        icon: 'Bell',          color: 'amber' },
     { label: 'People',        path: '/people',               icon: 'Users',         color: 'indigo' },
     { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
-    { label: 'Download App',  href: 'https://expo.dev/artifacts/eas/Y-xzrFNWJClk6kU2oC7EeSPiermGJWMUiiWbhN38Kng.apk', icon: 'Download', color: 'blue', external: true }
+    { label: 'Download App',  href: 'https://expo.dev/artifacts/eas/jzXDfGsYZ0jiW1FC0omG1leer4JL6rpa4hDqflIuGx4.apk', icon: 'Download', color: 'blue', external: true }
   ],
   parent: [
     { label: 'Dashboard',     path: '/parent-dashboard',     icon: 'Award',         color: 'violet' },
     { label: 'Announcements', path: '/announcements',        icon: 'Bell',          color: 'amber' },
     { label: 'Messages',      path: '/communication-center', icon: 'MessageSquare', color: 'blue' },
     { label: 'Calendar',      path: '/portal-calendar',      icon: 'Calendar',      color: 'rose' },
-    { label: 'Download App',  href: 'https://expo.dev/artifacts/eas/Y-xzrFNWJClk6kU2oC7EeSPiermGJWMUiiWbhN38Kng.apk', icon: 'Download', color: 'green', external: true }
+    { label: 'Download App',  href: 'https://expo.dev/artifacts/eas/jzXDfGsYZ0jiW1FC0omG1leer4JL6rpa4hDqflIuGx4.apk', icon: 'Download', color: 'green', external: true }
   ],
   admin: [
     { label: 'Analytics',        path: '/analytics',                    icon: 'TrendingUp',   color: 'violet' },
@@ -44,7 +44,7 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Enrollment',       path: '/enrollment?tab=applications',  icon: 'GraduationCap',color: 'green' },
     { label: 'Classes',          path: '/classes',                      icon: 'Grid',         color: 'amber' },
     { label: 'System Settings',  path: '/settings',                     icon: 'Settings',     color: 'indigo' },
-    { label: 'Download App',     href: 'https://expo.dev/artifacts/eas/Y-xzrFNWJClk6kU2oC7EeSPiermGJWMUiiWbhN38Kng.apk', icon: 'Download', color: 'rose', external: true }
+    { label: 'Download App',     href: 'https://expo.dev/artifacts/eas/jzXDfGsYZ0jiW1FC0omG1leer4JL6rpa4hDqflIuGx4.apk', icon: 'Download', color: 'rose', external: true }
   ]
 };
 
