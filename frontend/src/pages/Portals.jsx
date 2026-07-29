@@ -11,14 +11,6 @@ const Portals = () => {
       internal: true
     },
     {
-      name: 'KNHS Mobile App',
-      desc: 'Download our mobile app for Android. Access grades, attendance, announcements, and more on the go',
-      url: 'https://expo.dev/artifacts/eas/jzXDfGsYZ0jiW1FC0omG1leer4JL6rpa4hDqflIuGx4.apk',
-      icon: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4',
-      color: 'green',
-      internal: false
-    },
-    {
       name: 'DepEd Commons',
       desc: 'Official DepEd portal for learning resources, modules, and educational materials',
       url: 'https://commons.deped.gov.ph',
