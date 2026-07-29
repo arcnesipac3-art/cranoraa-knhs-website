@@ -3,6 +3,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useNotifications } from '../context/NotificationContext';
+import { usePushNotificationContext } from '../context/PushNotificationContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getNotifConfig, formatNotifTime, TYPE_CONFIG } from '../utils/notificationConfig';
@@ -50,6 +51,7 @@ const Notifications = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { setUnreadCount, unreadCount } = useNotifications();
+  const { permission, requestPermission, isSupported } = usePushNotificationContext();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading]             = useState(true);
@@ -105,8 +107,23 @@ const Notifications = () => {
     }
   };
 
-  const togglePref = (key) => {
+  const togglePref = async (key) => {
     if (!prefs) return;
+    if (key === 'push_enabled' && !prefs[key]) {
+      if (!isSupported) {
+        toast.error('Push notifications are not supported in this browser');
+        return;
+      }
+      if (permission === 'denied') {
+        toast.error('Notification permission was denied. Please reset it in browser settings.');
+        return;
+      }
+      const result = await requestPermission();
+      if (result !== 'granted') {
+        toast.error('Notification permission denied');
+        return;
+      }
+    }
     savePreferences({ ...prefs, [key]: !prefs[key] });
   };
 
