@@ -1472,7 +1472,7 @@ const NAV_SECTIONS = [
       { id: 'backup',   label: 'Backup Management' },
       { id: 'audit',    label: 'Audit Logs' },
       { id: 'maintenance', label: 'Maintenance Mode' },
-    },
+    ],
   },
 ];
 
