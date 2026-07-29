@@ -182,6 +182,14 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
         sys_settings = SystemSetting.get_settings()
         sys_settings.academic_year = year.name
         sys_settings.save(update_fields=['academic_year'])
+        # Auto-assign orphan classrooms (no academic year) to this year
+        Classroom = year.classrooms.model
+        orphaned = Classroom.objects.filter(academic_year__isnull=True)
+        count = orphaned.update(academic_year=year)
+        return Response({
+            'status': f'Academic Year {year.name} activated',
+            'synced_classrooms': count,
+        })
         return Response({'status': f'Academic Year {year.name} activated'})
 
     @action(detail=False, methods=['get'])
