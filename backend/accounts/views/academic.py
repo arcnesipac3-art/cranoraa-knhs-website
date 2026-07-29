@@ -46,6 +46,14 @@ class ClassroomViewSet(viewsets.ModelViewSet):
 
             if academic_year:
                 qs = qs.filter(Q(academic_year__name=academic_year) | Q(academic_year__isnull=True))
+                # Auto-assign orphan classrooms to the requested academic year
+                from portal.models import AcademicYear
+                try:
+                    ay = AcademicYear.objects.get(name=academic_year)
+                    Classroom.objects.filter(academic_year__isnull=True).update(academic_year=ay)
+                    qs = qs.filter(Q(academic_year__name=academic_year))
+                except AcademicYear.DoesNotExist:
+                    pass
 
             if user.role == 'admin':
                 return qs
