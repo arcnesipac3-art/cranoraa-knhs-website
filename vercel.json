@@ -19,14 +19,6 @@
   ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "https://cranoraa-knhs-website-1.onrender.com/api/$1"
-    },
-    {
-      "source": "/media/(.*)",
-      "destination": "https://cranoraa-knhs-website-1.onrender.com/media/$1"
-    },
-    {
       "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }

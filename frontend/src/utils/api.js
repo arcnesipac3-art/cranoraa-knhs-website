@@ -3,7 +3,7 @@ import { getAccessToken, updateTokens, clearSession } from './session';
 import { putItems } from './offlineDb';
 import { queueMutation } from './syncEngine';
 
-const RAW_API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000/api' : '/api');
+const RAW_API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000/api' : 'https://cranoraa-knhs-website-1.onrender.com/api');
 
 // Loading state management
 let activeRequests = 0;
@@ -57,10 +57,7 @@ function deriveWsRoot(apiUrl) {
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     return url.toString().replace(/\/$/, '');
   } catch {
-    // Relative URL (e.g. /api/v1) — derive WS from current page origin
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    return `${wsProtocol}//${host}`;
+    return apiUrl.replace(/\/api\/v1\/?$/, '').replace(/^http/, 'ws');
   }
 }
 
@@ -70,8 +67,7 @@ function deriveMediaRoot(apiUrl) {
     url.pathname = url.pathname.replace(/\/api\/v1\/?$/, '') || '/';
     return url.toString().replace(/\/$/, '');
   } catch {
-    // Relative URL — media is served from the same origin
-    return '';
+    return apiUrl.replace(/\/api\/v1\/?$/, '');
   }
 }
 
