@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { QueryProvider } from '@providers/QueryProvider';
 import { ThemeProvider } from '@providers/ThemeProvider';
 import { OfflineProvider } from '@providers/OfflineProvider';
@@ -11,6 +10,9 @@ import { useOnboardingStore } from '@stores/onboarding.store';
 import { useTokenRefresh } from '@hooks/useTokenRefresh';
 import { notificationService } from '@services/notification.service';
 import { useThemeContext } from '@providers/ThemeProvider';
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function TokenRefreshHandler() {
   useTokenRefresh();
@@ -25,6 +27,8 @@ function AuthNavigator() {
   useEffect(() => {
     if (!isInitialized) return;
 
+    SplashScreen.hideAsync().catch(() => {});
+
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!isAuthenticated && !inAuthGroup) {
@@ -32,7 +36,7 @@ function AuthNavigator() {
     } else if (isAuthenticated && inAuthGroup) {
       router.replace('/(main)/dashboard');
     }
-  }, [isAuthenticated, isInitialized, segments, router]);
+  }, [isInitialized, isAuthenticated, segments]);
 
   return null;
 }

@@ -28,7 +28,7 @@
       "@types/*": ["src/types/*"],
       "@assets/*": ["assets/*"]
     },
-    "types": ["react", "react-native", "@expo/vector-icons", "expo-router"]
+    "types": ["react"]
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "app/**/*"],
   "exclude": ["node_modules", "dist", ".expo"]
