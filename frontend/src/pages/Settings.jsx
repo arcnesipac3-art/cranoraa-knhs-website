@@ -1466,21 +1466,13 @@ const NAV_SECTIONS = [
     ],
   },
   {
-    label: 'Portal',
-    icon: 'globe',
-    items: [
-      { id: 'portal',   label: 'Portal Settings' },
-      { id: 'comm',     label: 'Communication Settings' },
-    ],
-  },
-  {
     label: 'System',
     icon: 'cog',
     items: [
       { id: 'backup',   label: 'Backup Management' },
       { id: 'audit',    label: 'Audit Logs' },
       { id: 'maintenance', label: 'Maintenance Mode' },
-    ],
+    },
   },
 ];
 
