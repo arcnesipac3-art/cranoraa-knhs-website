@@ -91,7 +91,7 @@ def _broadcast_new_chat_message(message, serialized_data, sender):
     """Broadcast a new chat message to room WebSocket groups and offline notifications."""
     from channels.layers import get_channel_layer
     from asgiref.sync import async_to_sync
-    from ..models import Notification, ChatMessage
+    from ..models import ChatMessage
     from ..serializers import full_name
 
     channel_layer = get_channel_layer()
@@ -104,20 +104,19 @@ def _broadcast_new_chat_message(message, serialized_data, sender):
         'message_data': serialized_data,
     })
 
-    # Notify ALL non-sender participants.
-    # Using create() in a loop so the post_save signal fires correctly
-    # for each notification (WebSocket broadcast + FCM push).
+    # Consolidated notifications: same sender → same recipient gets one
+    # notification that updates its count instead of creating a new one.
     sender_name = full_name(sender)
     room = message.room
     room_label = room.name if room.is_group else sender_name
     preview_text = preview[:80] + ('…' if len(preview) > 80 else '')
+    from ..models.notifications import consolidate_message_notification
     for participant in room.participants.exclude(id=sender.id):
-        Notification.objects.create(
+        consolidate_message_notification(
             recipient=participant,
-            notification_type='message',
-            title=f'New message from {sender_name}',
-            message=f'{room_label}: {preview_text}',
-            link='/communication-center',
+            sender=sender,
+            room_label=room_label,
+            preview=preview_text,
         )
 
 

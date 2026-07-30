@@ -108,7 +108,11 @@ export const NotificationProvider = ({ children }) => {
 
         } else if (data.type === 'notification') {
           setNotifications(prev => {
-            if (prev.some(n => n.id === data.id)) return prev;
+            const existing = prev.find(n => n.id === data.id);
+            if (existing) {
+              // Consolidated notification — update in place
+              return prev.map(n => n.id === data.id ? { ...n, title: data.title, message: data.message, message_count: data.message_count } : n);
+            }
             return [data, ...prev].slice(0, 20);
           });
           setUnreadCount(data.unread_count);

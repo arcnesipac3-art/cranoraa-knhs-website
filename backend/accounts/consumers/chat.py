@@ -5,7 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from ..models import ChatRoom, ChatMessage, MessageReaction, Notification
+from ..models import ChatRoom, ChatMessage, MessageReaction
 from ..serializers import ChatMessageSerializer
 from ..utils import check_user_moderation
 from .base import (
@@ -382,16 +382,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room_label = room.name if room.is_group else sender_name
         preview = message[:80] + ('…' if len(message) > 80 else '')
 
-        # Notify ALL non-sender participants.
-        # Using create() in a loop so the post_save signal fires correctly
-        # for each notification (WebSocket broadcast + FCM push).
+        # Consolidated notifications: same sender → same recipient gets one
+        # notification that updates its count instead of creating a new one.
+        from ..models.notifications import consolidate_message_notification
         for participant in room.participants.exclude(id=sender_id):
-            Notification.objects.create(
+            consolidate_message_notification(
                 recipient=participant,
-                notification_type='message',
-                title=f'New message from {sender_name}',
-                message=f'{room_label}: {preview}',
-                link='/communication-center',
+                sender=sender,
+                room_label=room_label,
+                preview=preview,
             )
 
         return msg
