@@ -19,7 +19,7 @@ from .communication import ParentTeacherMeeting, BehavioralRecord
 from .events import SchoolEvent, WebsiteContent
 from .assignments import Assignment, Submission, Grade
 from .schedule import Room, TimeSlot, Schedule
-from .grades import GradeReport
+from .grades import GradeReport, CoreValuesGrade
 from .tickets import (
     Ticket, TicketParticipant, TicketMessage, TicketAttachment, DepartmentContact,
 )
@@ -48,7 +48,7 @@ __all__ = [
     'SchoolEvent', 'WebsiteContent',
     'Assignment', 'Submission', 'Grade',
     'Room', 'TimeSlot', 'Schedule',
-    'GradeReport',
+    'GradeReport', 'CoreValuesGrade',
     'Ticket', 'TicketParticipant', 'TicketMessage', 'TicketAttachment', 'DepartmentContact',
     'Department', 'StaffPerformance',
     'Transcript', 'TranscriptLineItem', 'TransferCertificate',

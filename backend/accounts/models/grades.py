@@ -7,6 +7,20 @@ from .user import User
 from .academic import Classroom, SystemSetting
 from .assignments import Grade
 
+CORE_VALUES_CHOICES = [
+    ('makadiyos', 'Maka-Diyos'),
+    ('makatao', 'Makatao'),
+    ('makakalikasan', 'Makakalikasan'),
+    ('makabansa', 'Makabansa'),
+]
+
+RATING_CHOICES = [
+    (4, 'Advanced (4)'),
+    (3, 'Proficient (3)'),
+    (2, 'Approaching Proficiency (2)'),
+    (1, 'Developing (1)'),
+]
+
 
 class GradeReport(models.Model):
     student = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='student_grade_reports')
@@ -107,3 +121,22 @@ class GradeReport(models.Model):
         rank_val = list(ranked)
         self.class_rank = int(rank_val[0]) if rank_val else None
         self.save(update_fields=['class_rank'])
+
+
+class CoreValuesGrade(models.Model):
+    value_type = models.CharField(max_length=20, choices=CORE_VALUES_CHOICES)
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    quarter = models.IntegerField(help_text="Quarter (1-4)")
+    remarks = models.TextField(blank=True, null=True)
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='core_values_grades')
+    graded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='graded_core_values')
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='core_values_grades')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-quarter', 'value_type']
+        unique_together = [('student', 'classroom', 'value_type', 'quarter')]
+
+    def __str__(self):
+        return f"{self.student.username} - {self.value_type} - Q{self.quarter}"
