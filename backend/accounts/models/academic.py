@@ -20,7 +20,7 @@ class Classroom(models.Model):
         help_text="The advisory teacher for this classroom. Each teacher can only have one advisory classroom."
     )
 
-    academic_year = models.ForeignKey('portal.AcademicYear', on_delete=models.SET_NULL, null=True, blank=True, related_name='classrooms')
+    academic_year = models.ForeignKey('accounts.AcademicYear', on_delete=models.SET_NULL, null=True, blank=True, related_name='classrooms')
     semester = models.ForeignKey('portal.Semester', on_delete=models.SET_NULL, null=True, blank=True, related_name='classrooms')
 
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,7 +1,5 @@
 from rest_framework import serializers
-from portal.models import AcademicYear as PortalAcademicYear
-
-from ..models import Classroom, StudentClassEnrollment, Subject, ClassroomSubject, SystemSetting
+from ..models import AcademicYear, Classroom, StudentClassEnrollment, Subject, ClassroomSubject, SystemSetting
 from ._base import full_name
 from .user import SimplifiedStudentSerializer
 
@@ -39,7 +37,7 @@ class ClassroomSerializer(serializers.ModelSerializer):
     subject_name = serializers.SerializerMethodField()
     subject_code = serializers.SerializerMethodField()
     academic_year = LaxAcademicYearField(
-        queryset=PortalAcademicYear.objects.all(),
+        queryset=AcademicYear.objects.all(),
         required=False, allow_null=True,
     )
 

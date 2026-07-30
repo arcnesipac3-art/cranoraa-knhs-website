@@ -45,7 +45,7 @@ class ClassroomViewSet(viewsets.ModelViewSet):
             qs = Classroom.objects.select_related('teacher', 'academic_year').prefetch_related('enrollments', 'classroom_subjects__subject')
 
             if academic_year:
-                from portal.models import AcademicYear
+                from ..models import AcademicYear
                 # Resolve the academic year by name or ID
                 ay = None
                 try:
