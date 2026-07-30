@@ -32,3 +32,21 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return request.user.is_authenticated and request.user.role == Role.ADMIN
+
+
+class IsGroupOwnerOrAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        from .models import ChatMember
+        if obj.owner == request.user:
+            return True
+        return ChatMember.objects.filter(
+            chat_room=obj, user=request.user, role__in=['owner', 'admin']
+        ).exists()
+
+
+class IsGroupMember(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        from .models import ChatMember
+        return ChatMember.objects.filter(
+            chat_room=obj, user=request.user
+        ).exists() or obj.participants.filter(id=request.user.id).exists()

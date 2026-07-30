@@ -3,8 +3,8 @@ from .academic import (
     Classroom, Subject, ClassroomSubject, SystemSetting, StudentClassEnrollment,
 )
 from .chat import (
-    ChatRoom, ChatMessage, MessageReaction, ReportedMessage,
-    UserBlock, EmergencyMessage,
+    ChatRoom, ChatMessage, MessageReaction, ChatMember, Mention,
+    ReportedMessage, UserBlock, EmergencyMessage,
 )
 from .announcements import Announcement, AnnouncementAttachment, AnnouncementComment
 from .attendance import Attendance, AbsenceExcuse
@@ -35,8 +35,8 @@ from .infrastructure import (
 __all__ = [
     'User', 'OTP', 'Profile', 'OnboardingStatus', 'DashboardPreferences',
     'Classroom', 'Subject', 'ClassroomSubject', 'SystemSetting', 'StudentClassEnrollment',
-    'ChatRoom', 'ChatMessage', 'MessageReaction', 'ReportedMessage',
-    'UserBlock', 'EmergencyMessage',
+    'ChatRoom', 'ChatMessage', 'MessageReaction', 'ChatMember', 'Mention',
+    'ReportedMessage', 'UserBlock', 'EmergencyMessage',
     'Announcement', 'AnnouncementAttachment', 'AnnouncementComment',
     'Attendance', 'AbsenceExcuse',
     'LearningMaterial',

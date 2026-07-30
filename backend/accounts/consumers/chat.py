@@ -5,7 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from ..models import ChatRoom, ChatMessage, MessageReaction
+from ..models import ChatRoom, ChatMessage, MessageReaction, Mention
 from ..serializers import ChatMessageSerializer
 from ..utils import check_user_moderation
 from .base import (
@@ -358,6 +358,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, room_id, sender_id, message, parent_id=None):
+        import re
         room = ChatRoom.objects.filter(id=room_id, participants__id=sender_id).first()
         if not room:
             return None
@@ -375,6 +376,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         room.save()
 
         msg = ChatMessage.objects.create(room=room, sender=sender, content=message, parent_message=parent)
+
+        # Parse @mentions and create Mention objects
+        mention_pattern = re.compile(r'@(\w+)')
+        mentioned_usernames = mention_pattern.findall(message)
+        if mentioned_usernames:
+            mentioned_users = User.objects.filter(
+                username__in=mentioned_usernames,
+                id__in=room.participants.values_list('id', flat=True)
+            )
+            for mu in mentioned_users:
+                Mention.objects.create(message=msg, mentioned_user=mu)
 
         import datetime
         from django.utils import timezone as tz
