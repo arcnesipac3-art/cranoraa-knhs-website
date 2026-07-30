@@ -14,6 +14,7 @@ function SF5Page() {
     section: '',
     adviser: '',
   });
+  const [exporting, setExporting] = useState(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['sf5', filters],
@@ -28,6 +29,34 @@ function SF5Page() {
 
   const handleFilterChange = (key, value) => {
     setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      setExporting('pdf');
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+      const res = await api.post('/school-forms/sf5/export/pdf/', {}, { params });
+      const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch { } finally { setExporting(null); }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setExporting('excel');
+      const params = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+      const res = await api.post('/school-forms/sf5/export/excel/', {}, { params });
+      const blob = new Blob([res.data.excel], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SF5_Promotion_Report.xlsx';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch { } finally { setExporting(null); }
   };
 
   const classSummary = data?.class_summary || {};
@@ -47,8 +76,8 @@ function SF5Page() {
           <p className="text-sm text-slate-500 mt-1">Promotion status with class summary</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm">Export PDF</Button>
-          <Button variant="secondary" size="sm">Export Excel</Button>
+          <Button variant="secondary" size="sm" onClick={handleExportPDF} disabled={exporting !== null}>{exporting === 'pdf' ? 'Exporting...' : 'Export PDF'}</Button>
+          <Button variant="secondary" size="sm" onClick={handleExportExcel} disabled={exporting !== null}>{exporting === 'excel' ? 'Exporting...' : 'Export Excel'}</Button>
         </div>
       </div>
 
