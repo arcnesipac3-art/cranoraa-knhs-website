@@ -49,7 +49,7 @@ const GradeManagement = () => {
     useSystemSettings();
 
   // State
-  const [filterYear, setFilterYear] = useState(settings?.academic_year || '2025-2026');
+  const [filterYear, setFilterYear] = useState(settings?.academic_year || '');
   const [filterQuarter, setFilterQuarter] = useState('');
   const [search, setSearch] = useState('');
   const [selectedClass, setSelectedClass] = useState(null);

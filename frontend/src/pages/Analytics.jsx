@@ -1086,6 +1086,7 @@ const Analytics = () => {
   };
 
   const handleYearChange = (dir) => {
+    if (!academicYear) return;
     const [start, end] = academicYear.split('-').map(Number);
     const newYear = dir === 'next' ? `${start + 1}-${end + 1}` : `${start - 1}-${end - 1}`;
     setAcademicYear(newYear);

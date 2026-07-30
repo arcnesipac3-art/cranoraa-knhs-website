@@ -1,15 +1,12 @@
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import api from '../utils/api';
-import { getCurrentAcademicYear } from '../utils/dateHelpers';
 import { useAuth } from './AuthContext';
 
 const AcademicYearContext = createContext(null);
 
 export function AcademicYearProvider({ children }) {
   const { user, ready } = useAuth();
-  const [academicYear, setAcademicYear] = useState(
-    () => localStorage.getItem('knhs_academic_year') || getCurrentAcademicYear()
-  );
+  const [academicYear, setAcademicYear] = useState(null);
   const [academicYears, setAcademicYears] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,6 +24,9 @@ export function AcademicYearProvider({ children }) {
       if (activeRes?.data?.name) {
         localStorage.setItem('knhs_academic_year', activeRes.data.name);
         setAcademicYear(activeRes.data.name);
+      } else {
+        localStorage.removeItem('knhs_academic_year');
+        setAcademicYear(null);
       }
       if (allRes?.data) {
         setAcademicYears(allRes.data);
@@ -40,7 +40,11 @@ export function AcademicYearProvider({ children }) {
 
   const updateAcademicYear = useCallback((year) => {
     setAcademicYear(year);
-    localStorage.setItem('knhs_academic_year', year);
+    if (year) {
+      localStorage.setItem('knhs_academic_year', year);
+    } else {
+      localStorage.removeItem('knhs_academic_year');
+    }
   }, []);
 
   return (

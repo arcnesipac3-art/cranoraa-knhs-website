@@ -1,15 +1,12 @@
 import { useState, useEffect, useContext } from 'react';
 import api from '../utils/api';
-import { getCurrentAcademicYear } from '../utils/dateHelpers';
 import AcademicYearContext from '../context/AcademicYearContext';
 
 export function useActiveAcademicYear() {
   const ctx = useContext(AcademicYearContext);
 
   // Fallback for pages not yet wrapped in AcademicYearProvider
-  const [academicYear, setAcademicYear] = useState(
-    () => localStorage.getItem('knhs_academic_year') || getCurrentAcademicYear()
-  );
+  const [academicYear, setAcademicYear] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,7 +20,12 @@ export function useActiveAcademicYear() {
         localStorage.setItem('knhs_academic_year', year);
         setAcademicYear(year);
       })
-      .catch(() => {})
+      .catch(() => {
+        if (!cancelled) {
+          localStorage.removeItem('knhs_academic_year');
+          setAcademicYear(null);
+        }
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });

@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import api from '../utils/api';
 import Swal from 'sweetalert2';
@@ -104,6 +105,7 @@ const Layout = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { notifications, setNotifications, unreadCount, setUnreadCount, realtimeConnected, isPolling } = useNotifications();
+  const { academicYear } = useActiveAcademicYear();
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -524,7 +526,7 @@ const Layout = () => {
           {/* Academic Year Info */}
           <div className="flex-shrink-0 px-4 py-3 bg-black/20 border-b border-white/5">
             <div className="flex items-center justify-between text-[10px] font-bold text-purple-300/80 uppercase tracking-wider">
-              <span>{sysSettings?.academic_year || 'No Year Set'}</span>
+              <span>{academicYear ? `SY ${academicYear}` : 'No Year Set'}</span>
               <span className="text-purple-200/60">{sysSettings?.current_quarter || 'Current Semester'}</span>
             </div>
           </div>
