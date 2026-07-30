@@ -8,7 +8,7 @@ class SystemSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemSetting
         fields = ['id', 'academic_year', 'academic_level', 'current_quarter',
-                  'passing_grade', 'grading_period', 'school_name',
+                  'passing_grade', 'site_name',
                   'school_address', 'school_phone', 'school_email',
                   'maintenance_mode', 'maintenance_message']
 
