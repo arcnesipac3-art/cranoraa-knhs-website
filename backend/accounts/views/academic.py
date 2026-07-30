@@ -271,7 +271,7 @@ class ClassroomViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            from portal.models import AcademicYear
+            from ..models import AcademicYear
             source_year = AcademicYear.objects.get(id=source_year_id)
             target_year = AcademicYear.objects.get(id=target_year_id)
         except AcademicYear.DoesNotExist:
