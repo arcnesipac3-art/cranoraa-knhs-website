@@ -21,6 +21,7 @@ urlpatterns = [
     path('api/health/', health_check_view),
     path('api/', include('accounts.urls')),
     path('api/', include('portal.urls')),
+    path('api/', include('school_forms.urls')),
     # Manually serve media files in production for Render free tier
     path('media/<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
     # API Documentation

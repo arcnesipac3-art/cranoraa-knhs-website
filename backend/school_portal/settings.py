@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'channels',
     'accounts',
     'portal',
+    'school_forms',
 ]
 
 MIDDLEWARE = [
