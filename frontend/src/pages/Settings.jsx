@@ -168,119 +168,6 @@ const ImageCropModal = ({ isOpen, onClose, onCrop, imageSrc }) => {
   );
 };
 
-// ── Grading Settings Tab ─────────────────────────────────────────────────
-
-const GradingSettingsTab = () => {
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api.get('/system/settings/')
-      .then(r => setSettings(r.data))
-      .catch(() => toast.error('Failed to load grading settings'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading || !settings) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
-
-  const isJHS = settings.academic_level === 'jhs';
-  const isSHS = settings.academic_level === 'shs';
-  const isBoth = settings.academic_level === 'both';
-  const currentQuarterNum = parseInt(settings.current_quarter) || 1;
-
-  const levelLabel = isBoth ? 'Both (JHS + SHS)' : isJHS ? 'Junior High School (Grades 7-10)' : 'Senior High School (Grades 11-12)';
-  const periodLabel = isSHS ? 'Semester' : 'Term';
-  const periodOptions = isSHS
-    ? ['1st Semester', '2nd Semester', '3rd Semester (Summer)']
-    : ['1st Term', '2nd Term', '3rd Term'];
-
-  return (
-    <div className="space-y-6">
-      <SectionCard title="Grading Configuration" subtitle="Current grading period structure (set in Academic Context)" icon="chart">
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Academic Level</p>
-              <p className="text-sm font-bold text-slate-800">{levelLabel}</p>
-            </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current {periodLabel}</p>
-              <p className="text-sm font-bold text-slate-800">{currentQuarterNum}{currentQuarterNum === 1 ? 'st' : currentQuarterNum === 2 ? 'nd' : 'rd'} {periodLabel}</p>
-            </div>
-          </div>
-
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Grading Period Structure</p>
-            <div className="flex flex-wrap gap-2">
-              {periodOptions.map((label, i) => (
-                <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                  (i + 1) === currentQuarterNum
-                    ? 'bg-violet-100 border-violet-300 text-violet-800'
-                    : 'bg-white border-slate-200 text-slate-600'
-                }`}>
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    (i + 1) === currentQuarterNum
-                      ? 'bg-violet-600 text-white'
-                      : 'bg-slate-200 text-slate-600'
-                  }`}>{i + 1}</span>
-                  <span className="text-xs font-bold">{label}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-[11px] text-slate-500 font-medium mt-3">
-              {isBoth
-                ? 'Both JHS and SHS use a term-based grading system with 3 grading periods per academic year.'
-                : isJHS
-                  ? 'Junior High School uses a term-based grading system with 3 grading periods per academic year.'
-                  : 'Senior High School uses a semester-based grading system with 3 grading periods per academic year.'}
-            </p>
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Grading Weights" subtitle="Default weights applied to all classroom-subjects" icon="chart">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
-            <p className="text-2xl font-extrabold text-violet-600">{settings.default_ww_weight || 30}%</p>
-            <p className="text-xs font-bold text-slate-600 mt-1">Written Work</p>
-          </div>
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
-            <p className="text-2xl font-extrabold text-violet-600">{settings.default_pt_weight || 50}%</p>
-            <p className="text-xs font-bold text-slate-600 mt-1">Performance Task</p>
-          </div>
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
-            <p className="text-2xl font-extrabold text-violet-600">{settings.default_qa_weight || 20}%</p>
-            <p className="text-xs font-bold text-slate-600 mt-1">Quarterly Assessment</p>
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Passing Standard" subtitle="Minimum grade to pass" icon="shield">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {[
-            { label: 'Outstanding', range: '90-100', color: 'emerald' },
-            { label: 'Very Satisfactory', range: '85-89', color: 'blue' },
-            { label: 'Satisfactory', range: '80-84', color: 'amber' },
-            { label: 'Fairly Satisfactory', range: `${settings.passing_grade || 75}-79`, color: 'orange' },
-            { label: 'Did Not Meet', range: `Below ${settings.passing_grade || 75}`, color: 'red' },
-          ].map(item => (
-            <div key={item.label} className={`bg-${item.color}-50 border border-${item.color}-200 rounded-lg p-2 text-center`}>
-              <p className="text-xs font-extrabold text-slate-900">{item.range}</p>
-              <p className="text-[10px] font-bold text-slate-600 mt-0.5">{item.label}</p>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <p className="text-xs font-bold text-amber-800">
-          To change the academic level or current grading period, go to <span className="underline">Settings &gt; Academic Context</span>.
-        </p>
-      </div>
-    </div>
-  );
-};
-
 // ── Roles & Permissions Tab ──────────────────────────────────────────────
 
 const RolesPermissionsTab = () => {
@@ -1446,7 +1333,6 @@ const NAV_SECTIONS = [
     items: [
       { id: 'school',   label: 'School Information' },
       { id: 'academic', label: 'Academic Years' },
-      { id: 'grading',  label: 'Grading Settings' },
     ],
   },
   {
@@ -1524,7 +1410,6 @@ const Settings = () => {
       case 'portal':      return <PortalSettingsTab />;
       case 'profile':     return <ProfileTab />;
       case 'security':    return <SecurityTab />;
-      case 'grading':     return <GradingSettingsTab />;
       case 'roles':       return <RolesPermissionsTab />;
       case 'comm':        return <CommunicationSettingsTab />;
       case 'backup':      return <BackupManagementTab />;
