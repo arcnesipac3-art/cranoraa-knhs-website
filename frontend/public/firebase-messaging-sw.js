@@ -36,7 +36,8 @@ messaging.onBackgroundMessage((payload) => {
 });
 
 // ── Notification Click Handler ──────────────────────────────────────────────
-// Opens or focuses the app window when the user clicks a notification.
+// Focuses the existing app window and navigates to the notification link.
+// If no window is open, opens a new one at the link path.
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
@@ -44,21 +45,22 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(
     (async () => {
-      // Focus existing window if one is open to this origin
       const allClients = await self.clients.matchAll({
         type: 'window',
         includeUncontrolled: true,
       });
 
+      // Find an existing window on this origin
       for (const client of allClients) {
-        if (client.url.includes(self.location.origin) && 'focus' in client) {
-          // Navigate to the link, then focus
+        if (client.url.includes(self.location.origin)) {
+          // Tell the React app to navigate to the link
           client.postMessage({ type: 'NOTIFICATION_CLICK', link });
+          // Focus the window (brings it to front if minimized/tabbed away)
           return client.focus();
         }
       }
 
-      // No existing window — open a new one
+      // No existing window — open a new one at the link
       return self.clients.openWindow(link);
     })()
   );

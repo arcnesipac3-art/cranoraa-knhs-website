@@ -184,6 +184,18 @@ const Layout = () => {
     setSidebarOpen(false);
   }, [location.pathname]);
 
+  // Listen for notification clicks from the service worker (background push)
+  // and navigate to the correct page inside the SPA.
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.data?.type === 'NOTIFICATION_CLICK' && event.data.link) {
+        navigate(event.data.link);
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', handler);
+    return () => navigator.serviceWorker?.removeEventListener('message', handler);
+  }, [navigate]);
+
   const handleLogout = async () => {
     playSound('click');
     const result = await Swal.fire({
@@ -658,14 +670,18 @@ const Layout = () => {
                     <div className="max-h-[400px] overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
                       {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-12 text-slate-300">
-                          <svg className="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                          </svg>
-                          <p className="text-xs font-bold uppercase tracking-widest">All caught up!</p>
+                          <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                          </div>
+                          <p className="text-sm font-bold text-slate-400">All caught up!</p>
+                          <p className="text-xs text-slate-300 mt-1">No new notifications</p>
                         </div>
                       ) : (
-                        notifications.map(n => {
+                        notifications.map((n, idx) => {
                           const cfg = getNotifConfig(n.notification_type);
+                          const isFresh = idx < 3 && !n.is_read;
                           return (
                             <div 
                               key={n.id}
@@ -673,7 +689,9 @@ const Layout = () => {
                                 if (!n.is_read) markAsRead(n.id); 
                                 if (n.link) { navigate(n.link); setShowNotifications(false); } 
                               }}
-                              className={`flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors hover:bg-slate-50 group ${!n.is_read ? 'bg-violet-50/40' : ''}`}
+                              className={`flex items-start gap-4 px-5 py-4 cursor-pointer transition-all hover:bg-slate-50 group
+                                ${!n.is_read ? 'bg-violet-50/40' : ''}
+                                ${isFresh ? 'animate-[slideIn_0.3s_ease-out]' : ''}`}
                             >
                               <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm group-hover:scale-110 transition-transform`}>
                                 <svg className={`w-5 h-5 ${cfg.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -47,9 +47,13 @@ export function usePushNotifications() {
     if (!messaging) return;
 
     unsubscribeRef.current = onMessage(messaging, (payload) => {
-      const { title, body, icon } = payload.notification || {};
+      // When the app is in focus, the WebSocket already delivers the notification
+      // via the NotificationContext (toast + state update). Only show a browser
+      // Notification if the tab is not visible (user switched tabs) so we don't
+      // double-notify.
+      if (document.visibilityState === 'visible') return;
 
-      // Show a browser notification even in foreground
+      const { title, body, icon } = payload.notification || {};
       if (Notification.permission === 'granted') {
         new Notification(title || 'KNHS Portal', {
           body: body || '',
@@ -105,7 +109,8 @@ export function usePushNotifications() {
   // Delete token from Firebase and backend on logout
   const deleteToken = useCallback(async () => {
     const messaging = messagingRef.current;
-    if (!messaging || !token) return;
+    const currentToken = token;
+    if (!messaging || !currentToken) return;
 
     try {
       const { deleteToken: fbDelete } = await import('firebase/messaging');
@@ -114,9 +119,9 @@ export function usePushNotifications() {
       // Token may already be deleted
     }
 
-    // Deactivate on backend
+    // Deactivate on backend — axios sends the body with DELETE requests
     try {
-      await api.delete('/fcm-tokens/delete/', { data: { token } });
+      await api.delete('/fcm-tokens/delete/', { data: { token: currentToken } });
     } catch {
       // Best effort
     }

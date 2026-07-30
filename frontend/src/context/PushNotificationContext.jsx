@@ -13,6 +13,8 @@ export const usePushNotificationContext = () => useContext(PushNotificationConte
  *   - Registers the FCM token with the backend when a user logs in
  *   -   (only if permission is already granted)
  *   - Deletes the token from the backend when the user logs out
+ *   - Re-registers when permission changes to 'granted' (e.g. user
+ *     re-enables notifications after previously denying)
  *
  * Does NOT request permission automatically — that must be triggered
  * explicitly (e.g. from the Notifications page preferences panel).
@@ -28,6 +30,7 @@ export function PushNotificationProvider({ children }) {
   } = usePushNotifications();
 
   const prevUserIdRef = useRef(null);
+  const prevPermissionRef = useRef(permission);
   const user = getStoredUser();
   const userId = user?.id;
 
@@ -49,6 +52,15 @@ export function PushNotificationProvider({ children }) {
     if (!userId || !isSupported || permission !== 'granted') return;
     registerToken();
   }, [isSupported, permission, registerToken, userId]);
+
+  // Re-register when permission changes to 'granted' (user re-enabled)
+  useEffect(() => {
+    if (!userId || !isSupported) return;
+    if (prevPermissionRef.current !== 'granted' && permission === 'granted') {
+      registerToken();
+    }
+    prevPermissionRef.current = permission;
+  }, [permission, isSupported, userId, registerToken]);
 
   // Delete token on logout
   useEffect(() => {

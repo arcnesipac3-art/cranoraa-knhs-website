@@ -92,6 +92,10 @@ def broadcast_notification(sender, instance, created, **kwargs):
     if not created:
         return
 
+    # Guard: skip if recipient was deleted (SET_NULL)
+    if not instance.recipient:
+        return
+
     prefs = getattr(instance.recipient, 'notification_preferences', None)
     notif_type = instance.notification_type
     if prefs and not prefs.is_type_enabled(notif_type):
@@ -123,7 +127,7 @@ def broadcast_notification(sender, instance, created, **kwargs):
                 }
             )
         except Exception as e:
-            logging.getLogger(__name__).error(f"Failed to broadcast notification {instance.id}: {e}")
+            _models_logger.error(f"Failed to broadcast notification {instance.id}: {e}")
 
     if not prefs or prefs.push_enabled:
         try:
@@ -139,7 +143,7 @@ def broadcast_notification(sender, instance, created, **kwargs):
                 }
             )
         except Exception as e:
-            logging.getLogger(__name__).warning(f"FCM push failed for notification {instance.id}: {e}")
+            _models_logger.warning(f"FCM push failed for notification {instance.id}: {e}")
 
 
 @receiver(post_save, sender=User)

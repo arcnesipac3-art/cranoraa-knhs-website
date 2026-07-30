@@ -84,8 +84,7 @@ const AcademicSetup = () => {
       { name: '2nd Term', semester_type: '2nd Term' },
       { name: '3rd Term', semester_type: '3rd Term' },
     ];
-    return [];
-  }, [educationLevel]);
+  }, []);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
@@ -290,6 +289,20 @@ const AcademicSetup = () => {
     finally { setSaving(false); }
   };
 
+  const handleDeleteSection = async (id, name) => {
+    const result = await Swal.fire({ title: `Delete "${name}"?`, text: 'This will permanently remove the section and all its subject assignments.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete', customClass: { popup: 'rounded-2xl' } });
+    if (!result.isConfirmed) return;
+    try { await api.delete(`/classrooms/${id}/`); toast.success('Section deleted'); fetchData(); }
+    catch { toast.error('Failed to delete section'); }
+  };
+
+  const handleDeleteSubject = async (id, name) => {
+    const result = await Swal.fire({ title: `Delete "${name}"?`, text: 'This will permanently remove the subject from the curriculum.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete', customClass: { popup: 'rounded-2xl' } });
+    if (!result.isConfirmed) return;
+    try { await api.delete(`/subjects/${id}/`); toast.success('Subject deleted'); fetchData(); }
+    catch { toast.error('Failed to delete subject'); }
+  };
+
   const handleRemoveAssignment = async (id) => {
     const result = await Swal.fire({ title: 'Remove assignment?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Remove', customClass: { popup: 'rounded-2xl' } });
     if (!result.isConfirmed) return;
@@ -414,27 +427,27 @@ const AcademicSetup = () => {
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto">
             {[
-              { id: 'jhs', label: 'Junior High School', sub: 'Grade 7 – Grade 10', badge: '3 Terms', color: 'blue', grades: JHS_GRADES },
-              { id: 'shs', label: 'Senior High School', sub: 'Grade 11 – Grade 12', badge: '3 Terms',    color: 'pink', grades: SHS_GRADES },
+              { id: 'jhs', label: 'Junior High School', sub: 'Grade 7 – Grade 10', badge: '3 Terms', grades: JHS_GRADES, activeBorder: 'border-blue-500', activeGrad: 'bg-gradient-to-br from-blue-50 to-blue-100', iconBg: 'bg-blue-100', iconText: 'text-blue-600', badgeBg: 'bg-blue-100', badgeText: 'text-blue-700', checkBg: 'bg-blue-500' },
+              { id: 'shs', label: 'Senior High School', sub: 'Grade 11 – Grade 12', badge: '3 Terms', grades: SHS_GRADES, activeBorder: 'border-pink-500', activeGrad: 'bg-gradient-to-br from-pink-50 to-pink-100', iconBg: 'bg-pink-100', iconText: 'text-pink-600', badgeBg: 'bg-pink-100', badgeText: 'text-pink-700', checkBg: 'bg-pink-500' },
             ].map(opt => {
               const active = educationLevel === opt.id;
-              const borderCls = active ? `border-${opt.color}-500 bg-gradient-to-br from-${opt.color}-50 to-${opt.color}-100 shadow-lg` : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-md';
+              const borderCls = active ? `${opt.activeBorder} ${opt.activeGrad} shadow-lg` : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-md';
               return (
                 <button key={opt.id} type="button"
                   onClick={() => setEducationLevel(opt.id)}
                   className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-200 ${borderCls}`}>
                   {active && (
-                    <div className={`absolute top-3 right-3 w-6 h-6 rounded-full bg-${opt.color}-500 flex items-center justify-center`}>
+                    <div className={`absolute top-3 right-3 w-6 h-6 rounded-full ${opt.checkBg} flex items-center justify-center`}>
                       <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                     </div>
                   )}
-                  <div className={`w-11 h-11 rounded-xl bg-${opt.color}-100 flex items-center justify-center mb-3`}>
-                    <svg className={`w-6 h-6 text-${opt.color}-600`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332-.477-4.5-1.253" /></svg>
+                  <div className={`w-11 h-11 rounded-xl ${opt.iconBg} flex items-center justify-center mb-3`}>
+                    <svg className={`w-6 h-6 ${opt.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332-.477-4.5-1.253" /></svg>
                   </div>
                   <h4 className="font-extrabold text-slate-900 mb-0.5">{opt.label}</h4>
                   <p className="text-xs text-slate-500 font-semibold">{opt.sub}</p>
                   <div className="mt-2 flex flex-wrap gap-1">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md bg-${opt.color}-100 text-${opt.color}-700`}>{opt.badge}</span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${opt.badgeBg} ${opt.badgeText}`}>{opt.badge}</span>
                     {opt.grades.map(g => (
                       <span key={g} className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">{g}</span>
                     ))}
@@ -555,6 +568,10 @@ const AcademicSetup = () => {
                             {subjectCount > 0 && (
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 shrink-0">{subjectCount} subj.</span>
                             )}
+                            <button onClick={() => handleDeleteSection(c.id, c.name)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
                           </div>
                         );
                       })}
@@ -597,6 +614,10 @@ const AcademicSetup = () => {
                     <p className="font-bold text-sm text-slate-900 truncate">{s.name}</p>
                     <p className="text-xs text-slate-500">{s.grade_level || 'All levels'}</p>
                   </div>
+                  <button onClick={() => handleDeleteSubject(s.id, s.name)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
                 </div>
               ))}
               {subjects.length > 12 && (
@@ -623,51 +644,68 @@ const AcademicSetup = () => {
       );
 
       // ── STEP 5: Assign Subjects ────────────────────────────────────────
-      case 'assign-subjects': return (
-        <div className="space-y-5">
-          <StepHero icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-            color="violet" title="Assign Subjects to Sections"
-            desc="Link subjects to sections and assign a teacher for each. A section must have at least one subject before teachers can grade."
-          />
-          {classroomSubjects.length > 0 ? (
-            <div className="space-y-2 max-w-xl mx-auto">
-              {classroomSubjects.slice(0, 12).map(cs => (
-                <div key={cs.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all">
-                  <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-extrabold text-xs shrink-0">
-                    {cs.classroom_name?.charAt(0) || '?'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm text-slate-900 truncate">{cs.subject_name}</p>
-                    <p className="text-xs text-slate-500 truncate">{cs.classroom_name} · {cs.teacher_name || 'No teacher'}</p>
-                  </div>
-                  <button onClick={() => handleRemoveAssignment(cs.id)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0">
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                  </button>
-                </div>
-              ))}
-              {classroomSubjects.length > 12 && (
-                <button onClick={() => navigate('/subjects?tab=assignments')} className="w-full text-center text-xs font-bold text-violet-600 hover:underline py-2">
-                  + {classroomSubjects.length - 12} more · Open Assignments Manager →
-                </button>
-              )}
-            </div>
-          ) : (
-            <EmptyPlaceholder icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-              text="No assignments yet" sub="Assign subjects to your sections"
+      case 'assign-subjects': {
+        const groupedByClassroom = {};
+        classroomSubjects.forEach(cs => {
+          const key = cs.classroom_name || 'Unknown';
+          if (!groupedByClassroom[key]) groupedByClassroom[key] = [];
+          groupedByClassroom[key].push(cs);
+        });
+        const sortedClassNames = Object.keys(groupedByClassroom).sort();
+        return (
+          <div className="space-y-5">
+            <StepHero icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              color="violet" title="Assign Subjects to Sections"
+              desc="Link subjects to sections and assign a teacher for each. A section must have at least one subject before teachers can grade."
             />
-          )}
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button variant="primary" onClick={() => openModal('assign-subject')}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-              Assign Subject
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/subjects?tab=assignments')}>
-              Open Assignments Manager →
-            </Button>
+            {classroomSubjects.length > 0 ? (
+              <div className="space-y-4 max-w-xl mx-auto">
+                {sortedClassNames.map(className => (
+                  <div key={className}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-black text-slate-700 uppercase tracking-widest">{className}</span>
+                      <span className="text-xs font-bold text-slate-400">({groupedByClassroom[className].length})</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      {groupedByClassroom[className].slice(0, 6).map(cs => (
+                        <div key={cs.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all">
+                          <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-extrabold text-xs shrink-0">
+                            {cs.subject_code?.slice(0,4) || '—'}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-bold text-sm text-slate-900 truncate">{cs.subject_name}</p>
+                            <p className="text-xs text-slate-500 truncate">{cs.teacher_name || <span className="text-amber-500">No teacher</span>}</p>
+                          </div>
+                          <button onClick={() => handleRemoveAssignment(cs.id)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        </div>
+                      ))}
+                      {groupedByClassroom[className].length > 6 && (
+                        <p className="text-[10px] font-bold text-slate-400 text-center py-1">+ {groupedByClassroom[className].length - 6} more</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptyPlaceholder icon="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                text="No assignments yet" sub="Assign subjects to your sections"
+              />
+            )}
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button variant="primary" onClick={() => openModal('assign-subject')}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
+                Assign Subject
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/subjects?tab=assignments')}>
+                Open Assignments Manager →
+              </Button>
+            </div>
           </div>
-        </div>
-      );
+        );
+      }
 
       // ── STEP 6: Review — per-classroom subject+teacher matrix ─────────
       case 'review': return (
@@ -680,6 +718,21 @@ const AcademicSetup = () => {
           {classrooms.length === 0 ? (
             <EmptyPlaceholder icon="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16" text="No sections to review" sub="Go back and create sections first" />
           ) : (
+            <>
+              <div className="grid grid-cols-3 gap-3 max-w-xl mx-auto">
+                <div className="p-3 bg-white border border-slate-200 rounded-xl text-center">
+                  <p className="text-xl font-extrabold text-violet-700">{classrooms.length}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sections</p>
+                </div>
+                <div className="p-3 bg-white border border-slate-200 rounded-xl text-center">
+                  <p className="text-xl font-extrabold text-emerald-700">{classroomSubjects.length}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Assignments</p>
+                </div>
+                <div className="p-3 bg-white border border-slate-200 rounded-xl text-center">
+                  <p className="text-xl font-extrabold text-sky-700">{subjects.length}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Subjects</p>
+                </div>
+              </div>
             <div className="space-y-3 max-w-2xl mx-auto">
               {classrooms.map(c => {
                 const assignments = classroomSubjectMap[c.id] || [];
@@ -720,6 +773,7 @@ const AcademicSetup = () => {
                 );
               })}
             </div>
+            </>
           )}
           <div className="flex justify-center gap-3">
             <Button variant="ghost" size="sm" onClick={() => navigate('/subjects?tab=assignments')}>
@@ -933,38 +987,61 @@ const AcademicSetup = () => {
         </Modal>
       );
 
-      case 'assign-subject': return (
-        <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="md">
-          <ModalHeader onClose={() => setShowModal(false)}>
-            <ModalTitle title="Assign Subject to Section" subtitle="Link a subject, section, and teacher" />
-          </ModalHeader>
-          <form onSubmit={handleAssignSubject}>
-            <ModalBody>
-              <div className="space-y-4">
-                <ModalField label="Section" required>
-                  <select value={assignForm.classroom} onChange={e => setAssignForm({ ...assignForm, classroom: e.target.value })} className={modalSelectCls} required>
-                    <option value="">— Select Section —</option>
-                    {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                </ModalField>
-                <ModalField label="Subject" required>
-                  <select value={assignForm.subject} onChange={e => setAssignForm({ ...assignForm, subject: e.target.value })} className={modalSelectCls} required>
-                    <option value="">— Select Subject —</option>
-                    {subjects.map(s => <option key={s.id} value={s.id}>{s.code} – {s.name}</option>)}
-                  </select>
-                </ModalField>
-                <ModalField label="Teacher" required>
-                  <select value={assignForm.teacher} onChange={e => setAssignForm({ ...assignForm, teacher: e.target.value })} className={modalSelectCls} required>
-                    <option value="">— Select Teacher —</option>
-                    {activeTeachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
-                  </select>
-                </ModalField>
-              </div>
-            </ModalBody>
-            <ModalFooter><ModalBtnSecondary onClick={() => setShowModal(false)}>Cancel</ModalBtnSecondary><ModalBtnPrimary loading={saving}>Assign</ModalBtnPrimary></ModalFooter>
-          </form>
-        </Modal>
-      );
+      case 'assign-subject': {
+        const selectedClassroomId = assignForm.classroom;
+        const assignedSubjectIds = classroomSubjects
+          .filter(cs => String(cs.classroom) === String(selectedClassroomId))
+          .map(cs => String(cs.subject));
+        const availableSubjects = subjects.filter(s => !assignedSubjectIds.includes(String(s.id)));
+        const groupedSubjects = {};
+        availableSubjects.forEach(s => {
+          const grade = s.grade_level || 'All levels';
+          if (!groupedSubjects[grade]) groupedSubjects[grade] = [];
+          groupedSubjects[grade].push(s);
+        });
+        const sortedGradesForModal = Object.keys(groupedSubjects).sort();
+        return (
+          <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="md">
+            <ModalHeader onClose={() => setShowModal(false)}>
+              <ModalTitle title="Assign Subject to Section" subtitle="Link a subject, section, and teacher" />
+            </ModalHeader>
+            <form onSubmit={handleAssignSubject}>
+              <ModalBody>
+                <div className="space-y-4">
+                  <ModalField label="Section" required>
+                    <select value={assignForm.classroom} onChange={e => setAssignForm({ ...assignForm, classroom: e.target.value, subject: '' })} className={modalSelectCls} required>
+                      <option value="">— Select Section —</option>
+                      {classrooms.map(c => {
+                        const count = classroomSubjects.filter(cs => cs.classroom === c.id).length;
+                        return <option key={c.id} value={c.id}>{c.name}{count > 0 ? ` (${count} assigned)` : ''}</option>;
+                      })}
+                    </select>
+                  </ModalField>
+                  <ModalField label="Subject" required hint={selectedClassroomId && assignedSubjectIds.length > 0 ? `${assignedSubjectIds.length} already assigned to this section` : undefined}>
+                    <select value={assignForm.subject} onChange={e => setAssignForm({ ...assignForm, subject: e.target.value })} className={modalSelectCls} required disabled={!selectedClassroomId}>
+                      <option value="">{!selectedClassroomId ? '— Select section first —' : '— Select Subject —'}</option>
+                      {sortedGradesForModal.map(grade => (
+                        <optgroup key={grade} label={grade}>
+                          {groupedSubjects[grade].map(s => (
+                            <option key={s.id} value={s.id}>{s.code} – {s.name}</option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </ModalField>
+                  <ModalField label="Teacher" required>
+                    <select value={assignForm.teacher} onChange={e => setAssignForm({ ...assignForm, teacher: e.target.value })} className={modalSelectCls} required>
+                      <option value="">— Select Teacher —</option>
+                      {activeTeachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
+                    </select>
+                  </ModalField>
+                </div>
+              </ModalBody>
+              <ModalFooter><ModalBtnSecondary onClick={() => setShowModal(false)}>Cancel</ModalBtnSecondary><ModalBtnPrimary loading={saving}>Assign</ModalBtnPrimary></ModalFooter>
+            </form>
+          </Modal>
+        );
+      }
 
       default: return null;
     }
