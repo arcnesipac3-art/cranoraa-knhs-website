@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import api, { WS_ROOT } from '../utils/api';
 import { getStoredUser, getAccessToken } from '../utils/auth';
+import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 import { playSound } from '../utils/sounds';
 
@@ -9,6 +10,7 @@ const NotificationContext = createContext();
 export const useNotifications = () => useContext(NotificationContext);
 
 export const NotificationProvider = ({ children }) => {
+  const { ready: authReady } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [realtimeConnected, setRealtimeConnected] = useState(false);
@@ -187,7 +189,11 @@ export const NotificationProvider = ({ children }) => {
   }, [connect]);
 
   // ── Connect / disconnect on login / logout ───────────────────────────────
+  // authReady is needed so the effect re-runs after a page refresh when the
+  // access token is restored via cookie refresh (userId is the same from
+  // localStorage but getAccessToken() was null on the first render).
   useEffect(() => {
+    if (!authReady) return;
     if (userId) {
       connect();
     } else {
@@ -206,7 +212,7 @@ export const NotificationProvider = ({ children }) => {
     return () => {
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
     };
-  }, [userId, connect, stopPolling]);
+  }, [authReady, userId, connect, stopPolling]);
 
   const value = {
     notifications,
