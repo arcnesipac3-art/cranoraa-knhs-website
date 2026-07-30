@@ -3,6 +3,13 @@ import api from '../utils/api';
 import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 
+const REASON_TYPES = [
+  { value: 'withdrawn', label: 'Withdrawn', description: 'Student voluntarily left the school' },
+  { value: 'transferred', label: 'Transferred Out', description: 'Student moved to another school' },
+  { value: 'dropped', label: 'Dropped', description: 'Student stopped attending without notice' },
+  { value: 'other', label: 'Other', description: 'Other reason for removal' },
+];
+
 const StudentEnrollment = () => {
   const [classrooms, setClassrooms] = useState([]);
   const [students, setStudents] = useState([]);
@@ -14,6 +21,13 @@ const StudentEnrollment = () => {
   const [studentSearch, setStudentSearch] = useState('');
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [formData, setFormData] = useState({ classroom: '' });
+
+  // Withdrawal modal state
+  const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+  const [withdrawStudent, setWithdrawStudent] = useState(null);
+  const [withdrawReasonType, setWithdrawReasonType] = useState('withdrawn');
+  const [withdrawReason, setWithdrawReason] = useState('');
+  const [withdrawing, setWithdrawing] = useState(false);
 
   useEffect(() => {
     fetchMeta();
@@ -58,24 +72,33 @@ const StudentEnrollment = () => {
     setShowModal(true);
   };
 
-  const handleRemove = async (enrollment) => {
-    const result = await Swal.fire({
-      title: 'Remove Student?',
-      text: `Remove "${enrollment.student_name}" from this classroom?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Remove',
-    });
-    if (!result.isConfirmed) return;
-    try {
-      await api.delete(`/enrollments/${enrollment.id}/`);
-      toast.success('Student removed');
-      fetchEnrollments(selectedClassroom);
-    } catch {
-      toast.error('Failed to remove student');
+  const handleRemove = (enrollment) => {
+    setWithdrawStudent(enrollment);
+    setWithdrawReasonType('withdrawn');
+    setWithdrawReason('');
+    setShowWithdrawModal(true);
+  };
+
+  const handleWithdrawConfirm = async () => {
+    if (!withdrawReason.trim()) {
+      toast.error('Please provide a reason');
+      return;
     }
+    setWithdrawing(true);
+    try {
+      await api.post(`/enrollment-applications/${withdrawStudent.id}/withdraw_student/`, {
+        reason_type: withdrawReasonType,
+        reason: withdrawReason.trim(),
+      });
+      toast.success('Student removed successfully');
+      setShowWithdrawModal(false);
+      setWithdrawStudent(null);
+      fetchEnrollments(selectedClassroom);
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Failed to remove student';
+      toast.error(msg);
+    }
+    setWithdrawing(false);
   };
 
   const toggleStudentSelection = (studentId) => {
@@ -416,6 +439,98 @@ const StudentEnrollment = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Withdrawal Modal */}
+      {showWithdrawModal && withdrawStudent && (
+        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-2 md:p-4" onClick={() => { if (!withdrawing) { setShowWithdrawModal(false); setWithdrawStudent(null); } }}>
+          <div className="bg-white w-full max-w-md border border-gray-300 shadow-2xl rounded-lg flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="bg-red-600 flex items-center justify-between px-5 py-3 flex-shrink-0 rounded-t-lg">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6v1h12v-1a6 6 0 00-6-6zM21 12h-6"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Remove Student</h2>
+                  <p className="text-red-200 text-[10px] mt-0.5 font-medium truncate max-w-[200px]">
+                    {withdrawStudent.student_name}
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={() => { setShowWithdrawModal(false); setWithdrawStudent(null); }}
+                disabled={withdrawing}
+                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all disabled:opacity-50">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-5 py-4 space-y-4">
+              <p className="text-xs text-slate-600">
+                Select the reason for removing this student from the classroom. This will update their enrollment status and remove them from the class roster.
+              </p>
+
+              {/* Reason Type */}
+              <div>
+                <label className="block text-[10px] font-black text-slate-700 uppercase tracking-widest mb-2">Reason Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {REASON_TYPES.map(rt => (
+                    <button
+                      key={rt.value}
+                      onClick={() => setWithdrawReasonType(rt.value)}
+                      className={`text-left p-2.5 rounded-lg border-2 transition-all ${
+                        withdrawReasonType === rt.value
+                          ? 'border-red-500 bg-red-50'
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <p className={`text-[10px] font-black uppercase tracking-tight ${withdrawReasonType === rt.value ? 'text-red-700' : 'text-slate-700'}`}>
+                        {rt.label}
+                      </p>
+                      <p className="text-[9px] text-slate-400 mt-0.5 leading-tight">{rt.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Reason Text */}
+              <div>
+                <label className="block text-[10px] font-black text-slate-700 uppercase tracking-widest mb-1.5">
+                  Details <span className="text-red-400">*</span>
+                </label>
+                <textarea
+                  value={withdrawReason}
+                  onChange={e => setWithdrawReason(e.target.value)}
+                  placeholder="Provide a specific reason for this action..."
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent placeholder-slate-400 resize-none"
+                  disabled={withdrawing}
+                />
+              </div>
+            </div>
+
+            <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-end gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => { setShowWithdrawModal(false); setWithdrawStudent(null); }}
+                disabled={withdrawing}
+                className="px-4 py-2 text-xs font-black text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 uppercase tracking-widest"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleWithdrawConfirm}
+                disabled={withdrawing || !withdrawReason.trim()}
+                className="px-4 py-2 text-xs font-black text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 uppercase tracking-widest"
+              >
+                {withdrawing ? 'Removing...' : 'Confirm Remove'}
+              </button>
+            </div>
           </div>
         </div>
       )}
