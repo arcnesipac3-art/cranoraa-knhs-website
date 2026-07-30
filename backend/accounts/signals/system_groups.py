@@ -12,7 +12,7 @@ import logging
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 
-from .models import Classroom, ClassroomSubject, Department, StudentClassEnrollment
+from ..models import Classroom, ClassroomSubject, Department, StudentClassEnrollment
 
 logger = logging.getLogger(__name__)
 
