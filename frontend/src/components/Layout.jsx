@@ -647,11 +647,11 @@ const Layout = () => {
 
                 {showNotifications && (
                   <div
-                    className="fixed w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                    className="fixed w-80 max-w-[calc(100vw-1rem)] sm:w-96 sm:max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
                     style={{ top: notifDropdownPos.top, right: notifDropdownPos.right }}
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-[#1A0B2E] to-[#2D1452] text-white">
+                    <div className="flex items-center justify-between px-3 sm:px-5 py-3 sm:py-4 bg-gradient-to-r from-[#1A0B2E] to-[#2D1452] text-white">
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-sm tracking-tight">Notifications</h3>
                         {unreadCount > 0 && (
@@ -669,11 +669,11 @@ const Layout = () => {
                     </div>
 
                     {/* List */}
-                    <div className="max-h-[400px] overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
+                    <div className="max-h-[50vh] sm:max-h-[400px] overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
                       {notifications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-slate-300">
-                          <div className="w-16 h-16 rounded-2xl bg-violet-50 flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="flex flex-col items-center justify-center py-8 sm:py-12 text-slate-300">
+                          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-violet-50 flex items-center justify-center mb-3 sm:mb-4">
+                            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
                           </div>
@@ -691,12 +691,12 @@ const Layout = () => {
                                 if (!n.is_read) markAsRead(n.id); 
                                 if (n.link) { navigate(n.link); setShowNotifications(false); } 
                               }}
-                              className={`flex items-start gap-4 px-5 py-4 cursor-pointer transition-all hover:bg-slate-50 group
+                              className={`flex items-start gap-3 sm:gap-4 px-3 sm:px-5 py-3 sm:py-4 cursor-pointer transition-all hover:bg-slate-50 group
                                 ${!n.is_read ? 'bg-violet-50/40' : ''}
                                 ${isFresh ? 'animate-[slideIn_0.3s_ease-out]' : ''}`}
                             >
-                              <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm group-hover:scale-110 transition-transform`}>
-                                <svg className={`w-5 h-5 ${cfg.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm group-hover:scale-110 transition-transform`}>
+                                <svg className={`w-4 h-4 sm:w-5 sm:h-5 ${cfg.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cfg.icon} />
                                 </svg>
                               </div>
@@ -717,7 +717,7 @@ const Layout = () => {
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-slate-100 px-5 py-3 bg-slate-50 flex items-center justify-between">
+                    <div className="border-t border-slate-100 px-3 sm:px-5 py-2 sm:py-3 bg-slate-50 flex items-center justify-between">
                       <button 
                         onClick={markAllAsRead}
                         className="text-[10px] font-black text-violet-600 hover:text-violet-800 uppercase tracking-widest transition-colors"
