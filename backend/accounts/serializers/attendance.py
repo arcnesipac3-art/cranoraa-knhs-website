@@ -15,6 +15,9 @@ class TimeSlotSerializer(serializers.ModelSerializer):
         model = TimeSlot
         fields = ['id', 'classroom', 'classroom_name', 'day', 'day_display', 'start_time', 'end_time',
                   'start_time_display', 'end_time_display', 'label']
+        extra_kwargs = {
+            'classroom': {'required': False, 'allow_null': True},
+        }
 
     def get_classroom_name(self, obj):
         return obj.classroom.name if obj.classroom else None
