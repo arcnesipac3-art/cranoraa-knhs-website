@@ -359,7 +359,29 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         user = request.user
         remarks = request.data.get('remarks', 'Provide reason for rejection.')
         if application.status == 'enrolled':
-            return Response({'error': 'Cannot reject an already enrolled application'}, status=400)
+            # Treat rejection of enrolled student as a withdrawal/unenrollment
+            from ..models import StudentClassEnrollment, Profile
+            reason_type = request.data.get('reason_type', 'transfer_out')
+            enrolled_count = StudentClassEnrollment.objects.filter(student=application.enrolled_student).delete()[0]
+            profile, _ = Profile.objects.get_or_create(user=application.enrolled_student)
+            profile.enrollment_status = reason_type
+            profile.enrollment_status_reason = remarks
+            profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
+            from_status = application.status
+            application.status = 'rejected'
+            application.remarks = f'Withdrawn/Unenrolled: {remarks}'
+            application.reviewed_by = user
+            application.reviewed_at = timezone.now()
+            application.save()
+            EnrollmentStatusHistory.objects.create(application=application, from_status=from_status,
+                to_status='rejected', changed_by=user, notes=f'Unenrolled ({reason_type}): {remarks}')
+            try:
+                log_audit_action(user=request.user, action='unenroll', model_name='EnrollmentApplication',
+                    object_id=application.id, object_repr=application.enrollment_number or str(application),
+                    description=f'Unenrolled student {application.full_name} — {reason_type}: {remarks}', request=request)
+            except Exception as audit_err:
+                logger.error(f"Audit log failed on unenroll: {audit_err}")
+            return Response({'status': 'Student unenrolled', 'enrollments_removed': enrolled_count, 'reason_type': reason_type})
         from_status = application.status
         application.status = 'rejected'
         application.remarks = remarks
@@ -371,15 +393,10 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         self._safe_notify_user(application, 'Application Rejected',
             f'Your application has been rejected. Reason: {remarks}', '/track-enrollment')
         try:
-            log_audit_action(
-                user=request.user,
-                action='reject',
-                model_name='EnrollmentApplication',
-                object_id=application.id,
-                object_repr=application.enrollment_number or str(application),
+            log_audit_action(user=request.user, action='reject', model_name='EnrollmentApplication',
+                object_id=application.id, object_repr=application.enrollment_number or str(application),
                 description=f'Rejected application {application.enrollment_number} ({application.full_name}). Reason: {remarks}',
-                request=request
-            )
+                request=request)
         except Exception as audit_err:
             logger.error(f"Audit log failed on reject: {audit_err}")
         return Response({'status': 'Application rejected'})

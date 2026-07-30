@@ -116,6 +116,27 @@ function ApplicationsTab({ refetch }) {
     if (value) handleAction(id, 'reject', { remarks: value });
   };
 
+  const promptWithdraw = async (id) => {
+    const { value: reason } = await Swal.fire({
+      title: 'Withdraw / Unenroll Student', input: 'textarea', inputLabel: 'Reason',
+      inputPlaceholder: 'e.g. Transferred out, Withdrawn by parent, Removed...', showCancelButton: true,
+      confirmButtonText: 'Unenroll', confirmButtonColor: '#F59E0B',
+      preConfirm: (v) => { if (!v) { Swal.showValidationMessage('Reason required'); } },
+    });
+    if (reason) {
+      const { value: reasonType } = await Swal.fire({
+        title: 'Reason Type', input: 'select', inputOptions: {
+          transferred_out: 'Transferred Out',
+          withdrawn: 'Withdrawn',
+          removed: 'Removed',
+          other: 'Other',
+        }, inputPlaceholder: 'Select reason type', showCancelButton: true,
+        confirmButtonText: 'Confirm', confirmButtonColor: '#F59E0B',
+      });
+      if (reasonType !== undefined) handleAction(id, 'reject', { remarks: reason, reason_type: reasonType });
+    }
+  };
+
   const promptRequestDocs = async (id) => {
     const { value } = await Swal.fire({
       title: 'Request Requirements', html: `
@@ -421,6 +442,11 @@ function ApplicationsTab({ refetch }) {
                           </Button>
                         )}
                         {app.enrolled_student && (
+                          <Button onClick={() => promptWithdraw(app.id)} variant="ghost" size="sm" title="Unenroll Student">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                          </Button>
+                        )}
+                        {app.enrolled_student && (
                           <span className="text-[9px] font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-lg">Enrolled</span>
                         )}
                         {app.status !== 'enrolled' && (
@@ -436,14 +462,17 @@ function ApplicationsTab({ refetch }) {
                         {activeMenu === app.id && (
                           <div className="absolute right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl z-50 py-1 min-w-[130px]">
                             <Button onClick={() => { handleView(app); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-slate-600 hover:bg-violet-50 flex items-center gap-2">View</Button>
-                            {(app.status === 'pending' || app.status === 'under_review') && (
-                              <>
-                                <Button onClick={() => { promptReject(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2">Reject</Button>
-                                {app.status === 'under_review' && (
-                                  <Button onClick={() => { promptApproveApplication(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 flex items-center gap-2">Approve</Button>
-                                )}
-                              </>
-                            )}
+{(app.status === 'pending' || app.status === 'under_review') && (
+                               <>
+                                 <Button onClick={() => { promptReject(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2">Reject</Button>
+                                 {app.status === 'under_review' && (
+                                   <Button onClick={() => { promptApproveApplication(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 flex items-center gap-2">Approve</Button>
+                                 )}
+                               </>
+                             )}
+                             {app.status === 'enrolled' && (
+                               <Button onClick={() => { promptWithdraw(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2">Unenroll</Button>
+                             )}
                             <Button onClick={() => { promptRequestDocs(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2">Request Docs</Button>
                             {(app.status === 'pending' || app.status === 'under_review') && (
                               <Button onClick={() => { assignSection(app.id, app.grade_level); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-violet-600 hover:bg-violet-50 flex items-center gap-2">Set Section</Button>
@@ -602,6 +631,9 @@ function ApplicationsTab({ refetch }) {
                     )}
                     {selected.status === 'approved' && (
                       <Button onClick={() => { setEnrollApp(selected); setShowEnrollModal(true); }} variant="primary" size="sm">Enroll Student</Button>
+                    )}
+                    {selected.status === 'enrolled' && (
+                      <Button onClick={() => promptWithdraw(selected.id)} variant="warning" size="sm">Unenroll</Button>
                     )}
                     {selected.status !== 'enrolled' && (
                       <Button onClick={() => promptDelete(selected.id, `${selected.first_name} ${selected.last_name}`)} variant="danger" size="sm">Delete</Button>
