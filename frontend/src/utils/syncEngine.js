@@ -61,11 +61,12 @@ export async function processSyncQueue() {
  * @param {object} mutation - { storeName, url, method, body, headers }
  */
 export function queueMutation(mutation) {
-  // Import dynamically to avoid circular dependency
   import('./offlineDb.js').then(({ enqueueMutation }) => {
     enqueueMutation(mutation).catch(() => {
       // Queue full or DB error — silently drop
     });
+  }).catch(() => {
+    // offlineDb import failed — silently drop
   });
 }
 

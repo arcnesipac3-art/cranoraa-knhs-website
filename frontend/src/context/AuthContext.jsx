@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
       if (hasToken()) {
         // Already have access token in memory
         setUser(storedUser);
-        refreshUser();
+        refreshUser().catch(() => {});
       } else if (storedUser) {
         // Has stored user but no access token (page refresh) - try to refresh
         // Add 8s timeout so we don't hang forever on slow/failed network
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
         if (cancelled) return;
         if (refreshed) {
           setUser(storedUser);
-          refreshUser();
+          refreshUser().catch(() => {});
         } else {
           // Refresh failed - cookie expired or invalid
           setUser(null);

@@ -123,22 +123,23 @@ const StudentDashboard = () => {
     Promise.all(endpoints.map(({ url }) =>
       api.get(url).catch(() => ({ data: url.includes('stats') ? {} : [] }))
     )).then((results) => {
-      setGrades(results[0].data);
-      setAttendance(results[1].data);
-      setStats(results[2].data);
-      if (results[2].data?.latest_messages?.length) setMessages(results[2].data.latest_messages);
-      setAssignments(Array.isArray(results[3].data) ? results[3].data : results[3].data?.results || []);
-      setAnnouncements(Array.isArray(results[4].data) ? results[4].data : results[4].data?.results || []);
-      setSchedule(results[5].data || []);
-      const cls = Array.isArray(results[6].data) ? results[6].data : results[6].data?.results || [];
+      if (!results?.length) return;
+      setGrades(results[0]?.data || []);
+      setAttendance(results[1]?.data || []);
+      setStats(results[2]?.data || {});
+      if (results[2]?.data?.latest_messages?.length) setMessages(results[2].data.latest_messages);
+      setAssignments(Array.isArray(results[3]?.data) ? results[3].data : results[3]?.data?.results || []);
+      setAnnouncements(Array.isArray(results[4]?.data) ? results[4].data : results[4]?.data?.results || []);
+      setSchedule(results[5]?.data || []);
+      const cls = Array.isArray(results[6]?.data) ? results[6].data : results[6]?.data?.results || [];
       setClassrooms(cls);
       setUsingCache(false);
 
       // 3. Update cache
       endpoints.forEach(({ key, url }, i) => {
-        apiCache.set(url, results[i].data, 60 * 60 * 1000);
+        apiCache.set(url, results[i]?.data, 60 * 60 * 1000);
       });
-    }).finally(() => setLoading(false));
+    }).catch(() => {}).finally(() => setLoading(false));
 
     loadMessages();
   }, [loadMessages]);

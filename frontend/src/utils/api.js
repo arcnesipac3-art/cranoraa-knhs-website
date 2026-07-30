@@ -304,16 +304,26 @@ api.interceptors.response.use(
     ) {
       const isNetworkError = !error.response || error.code === 'ERR_NETWORK';
       if (isNetworkError) {
-        const storeName = resolveStore(error.config.url);
-        queueMutation({
-          storeName: storeName || 'unknown',
-          url: error.config.url?.startsWith('http')
-            ? error.config.url
-            : `${API_BASE_URL}${error.config.url}`,
-          method: error.config.method,
-          body: error.config.data ? JSON.parse(error.config.data) : null,
-          headers: error.config.headers,
-        });
+        try {
+          const storeName = resolveStore(error.config.url);
+          let body = null;
+          if (error.config.data) {
+            body = typeof error.config.data === 'string'
+              ? JSON.parse(error.config.data)
+              : error.config.data;
+          }
+          queueMutation({
+            storeName: storeName || 'unknown',
+            url: error.config.url?.startsWith('http')
+              ? error.config.url
+              : `${API_BASE_URL}${error.config.url}`,
+            method: error.config.method,
+            body,
+            headers: error.config.headers,
+          });
+        } catch {
+          // Non-critical — mutation won't be queued but app continues
+        }
       }
     }
 
