@@ -64,6 +64,11 @@ def _sync_room_members(room, user_ids, role_map=None):
     if role_map is None:
         role_map = {}
 
+    # Filter out None values (e.g. deleted users from enrollments)
+    user_ids = [uid for uid in user_ids if uid is not None]
+    if not user_ids:
+        return 0, 0
+
     current_member_ids = set(room.participants.values_list('id', flat=True))
     target_ids = set(user_ids)
 
