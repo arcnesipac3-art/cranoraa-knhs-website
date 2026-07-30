@@ -123,20 +123,15 @@ const AcademicSetup = () => {
   const getDefaultPeriods = useCallback(() => {
     if (!activeAY?.start_date || !activeAY?.end_date) {
       return [
-        { name: '1st Term', semester_type: '1st Term', start_date: '', end_date: '' },
-        { name: '2nd Term', semester_type: '2nd Term', start_date: '', end_date: '' },
-        { name: '3rd Term', semester_type: '3rd Term', start_date: '', end_date: '' },
+        { name: 'Term 1', semester_type: '1st Term', start_date: '2026-06-08', end_date: '2026-09-15' },
+        { name: 'Term 2', semester_type: '2nd Term', start_date: '2026-09-16', end_date: '2026-12-18' },
+        { name: 'Term 3', semester_type: '3rd Term', start_date: '2027-01-04', end_date: '2027-04-08' },
       ];
     }
-    const start = new Date(activeAY.start_date);
-    const end = new Date(activeAY.end_date);
-    const totalMs = end.getTime() - start.getTime();
-    const thirdMs = totalMs / 3;
-    const fmt = (d) => d.toISOString().split('T')[0];
     return [
-      { name: '1st Term', semester_type: '1st Term', start_date: fmt(start), end_date: fmt(new Date(start.getTime() + thirdMs)) },
-      { name: '2nd Term', semester_type: '2nd Term', start_date: fmt(new Date(start.getTime() + thirdMs + 86400000)), end_date: fmt(new Date(start.getTime() + 2 * thirdMs)) },
-      { name: '3rd Term', semester_type: '3rd Term', start_date: fmt(new Date(start.getTime() + 2 * thirdMs + 86400000)), end_date: fmt(end) },
+      { name: 'Term 1', semester_type: '1st Term', start_date: '2026-06-08', end_date: '2026-09-15' },
+      { name: 'Term 2', semester_type: '2nd Term', start_date: '2026-09-16', end_date: '2026-12-18' },
+      { name: 'Term 3', semester_type: '3rd Term', start_date: '2027-01-04', end_date: '2027-04-08' },
     ];
   }, [activeAY]);
 
