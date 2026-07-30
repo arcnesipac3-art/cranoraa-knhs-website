@@ -45,6 +45,48 @@ const parseBackendErrors = (err) => {
   return messages.length > 0 ? messages.join(' · ') : 'Failed to save. Check your input.';
 };
 
+// ── Shared sub-components ────────────────────────────────────────────────────
+
+function StepHero({ icon, color = 'violet', title, desc, badge }) {
+  const colorMap = {
+    violet: 'from-violet-500 to-violet-600 shadow-violet-200',
+    indigo: 'from-indigo-500 to-indigo-600 shadow-indigo-200',
+    blue:   'from-blue-500 to-blue-600 shadow-blue-200',
+    pink:   'from-pink-500 to-pink-600 shadow-pink-200',
+    emerald:'from-emerald-500 to-emerald-600 shadow-emerald-200',
+  };
+  return (
+    <div className="text-center max-w-md mx-auto">
+      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colorMap[color] || colorMap.violet} flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+        </svg>
+      </div>
+      <h3 className="text-xl font-extrabold text-slate-900 mb-1">{title}</h3>
+      <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+      {badge && (
+        <span className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${
+          color === 'blue' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+          color === 'pink' ? 'bg-pink-50 text-pink-700 border-pink-200' :
+          'bg-violet-50 text-violet-700 border-violet-200'
+        }`}>{badge}</span>
+      )}
+    </div>
+  );
+}
+
+function EmptyPlaceholder({ icon, text, sub }) {
+  return (
+    <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-300 max-w-xl mx-auto">
+      <svg className="w-10 h-10 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={icon} />
+      </svg>
+      <p className="text-sm font-semibold text-slate-500">{text}</p>
+      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
 // ── Main Component ───────────────────────────────────────────────────────────
 
 const AcademicSetup = () => {
@@ -1172,45 +1214,3 @@ const AcademicSetup = () => {
 };
 
 export default AcademicSetup;
-
-// ── Shared sub-components ────────────────────────────────────────────────────
-
-function StepHero({ icon, color = 'violet', title, desc, badge }) {
-  const colorMap = {
-    violet: 'from-violet-500 to-violet-600 shadow-violet-200',
-    indigo: 'from-indigo-500 to-indigo-600 shadow-indigo-200',
-    blue:   'from-blue-500 to-blue-600 shadow-blue-200',
-    pink:   'from-pink-500 to-pink-600 shadow-pink-200',
-    emerald:'from-emerald-500 to-emerald-600 shadow-emerald-200',
-  };
-  return (
-    <div className="text-center max-w-md mx-auto">
-      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colorMap[color] || colorMap.violet} flex items-center justify-center mx-auto mb-3 shadow-lg`}>
-        <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
-        </svg>
-      </div>
-      <h3 className="text-xl font-extrabold text-slate-900 mb-1">{title}</h3>
-      <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
-      {badge && (
-        <span className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${
-          color === 'blue' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-          color === 'pink' ? 'bg-pink-50 text-pink-700 border-pink-200' :
-          'bg-violet-50 text-violet-700 border-violet-200'
-        }`}>{badge}</span>
-      )}
-    </div>
-  );
-}
-
-function EmptyPlaceholder({ icon, text, sub }) {
-  return (
-    <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-300 max-w-xl mx-auto">
-      <svg className="w-10 h-10 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={icon} />
-      </svg>
-      <p className="text-sm font-semibold text-slate-500">{text}</p>
-      {sub && <p className="text-xs text-slate-400 mt-1">{sub}</p>}
-    </div>
-  );
-}
