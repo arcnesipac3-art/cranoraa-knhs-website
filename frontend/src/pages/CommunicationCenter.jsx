@@ -182,54 +182,67 @@ function PeopleDirectory({ onSelectPerson, currentUserId }) {
           </div>
         ) : (
           <div className="py-2">
-            {ROLE_GROUPS.map(group => {
-              const list = filtered[group.key] || [];
-              if (list.length === 0) return null;
-              const isExpanded = expandedGroups[group.key];
-              return (
-                <div key={group.key} className="mb-1">
-                  <button
-                    onClick={() => setExpandedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
-                    className="w-full flex items-center justify-between px-5 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:bg-slate-50 transition-colors"
-                  >
-                    <span>{group.label}</span>
-                    <span className="text-slate-300">{list.length}</span>
-                  </button>
-                  {isExpanded && (
-                    <div className="divide-y divide-slate-50">
-                      {list.map(person => (
-                        <button
-                          key={person.id}
-                          onClick={() => onSelectPerson(person)}
-                          className="w-full flex items-center gap-3 px-5 py-2.5 hover:bg-violet-50/30 transition-colors text-left"
-                        >
-                          <div className="relative flex-shrink-0">
-                            <Avatar name={`${person.first_name || ''} ${person.last_name || ''}`} size="sm" profilePicture={person.profile?.profile_picture} />
-                            <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                              person.is_online ? 'bg-emerald-400' : 'bg-slate-300'
-                            }`} />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-xs font-medium text-slate-800 truncate">
-                              {person.first_name} {person.last_name}
-                            </p>
-                            <p className="text-[10px] text-slate-400 truncate">
-                              {person.role === 'admin'
-                                ? 'Admin'
-                                : person.role === 'staff'
-                                  ? (person.staff_title || 'Staff').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-                                  : person.role === 'parent'
-                                    ? 'Parent'
-                                    : (person.profile?.classroom_name || 'Student')}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
+            {(() => {
+              const hasAnyResults = ROLE_GROUPS.some(group => (filtered[group.key] || []).length > 0);
+              if (!hasAnyResults) {
+                return (
+                  <div className="text-center py-8 px-4">
+                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <UsersIcon size={18} className="text-slate-400" />
                     </div>
-                  )}
-                </div>
-              );
-            })}
+                    <p className="text-xs font-medium text-slate-500">{peopleSearch ? 'No people found' : 'No people available'}</p>
+                  </div>
+                );
+              }
+              return ROLE_GROUPS.map(group => {
+                const list = filtered[group.key] || [];
+                if (list.length === 0) return null;
+                const isExpanded = expandedGroups[group.key];
+                return (
+                  <div key={group.key} className="mb-1">
+                    <button
+                      onClick={() => setExpandedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                      className="w-full flex items-center justify-between px-5 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:bg-slate-50 transition-colors"
+                    >
+                      <span>{group.label}</span>
+                      <span className="text-slate-300">{list.length}</span>
+                    </button>
+                    {isExpanded && (
+                      <div className="divide-y divide-slate-50">
+                        {list.map(person => (
+                          <button
+                            key={person.id}
+                            onClick={() => onSelectPerson(person)}
+                            className="w-full flex items-center gap-3 px-5 py-2.5 hover:bg-violet-50/30 transition-colors text-left"
+                          >
+                            <div className="relative flex-shrink-0">
+                              <Avatar name={`${person.first_name || ''} ${person.last_name || ''}`} size="sm" profilePicture={person.profile?.profile_picture} />
+                              <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                                person.is_online ? 'bg-emerald-400' : 'bg-slate-300'
+                              }`} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-medium text-slate-800 truncate">
+                                {person.first_name} {person.last_name}
+                              </p>
+                              <p className="text-[10px] text-slate-400 truncate">
+                                {person.role === 'admin'
+                                  ? 'Admin'
+                                  : person.role === 'staff'
+                                    ? (person.staff_title || 'Staff').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+                                    : person.role === 'parent'
+                                      ? 'Parent'
+                                      : (person.profile?.classroom_name || 'Student')}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              });
+            })()}
           </div>
         )}
       </div>
