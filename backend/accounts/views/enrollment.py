@@ -471,6 +471,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             profile.middle_name = application.middle_name or ''
             profile.father_name = application.father_name or ''; profile.mother_name = application.mother_name or ''
             profile.nationality = application.nationality or 'Filipino'
+            profile.enrollment_status = 'enrolled'
             if lrn: profile.registration_number = lrn
             profile.save()
 
@@ -677,6 +678,66 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         elif action_type == 'reject': return self.reject(request, pk)
         elif action_type == 'enroll': return self.enroll_student(request, pk)
         return Response({'error': 'Unknown action'}, status=400)
+
+    @action(detail=True, methods=['post'])
+    def withdraw_student(self, request, pk=None):
+        """Withdraw/unenroll a student from their classroom with a reason."""
+        application = self.get_object()
+        if not application.enrolled_student:
+            return Response({'error': 'This application has no enrolled student'}, status=400)
+
+        reason = request.data.get('reason', '').strip()
+        reason_type = request.data.get('reason_type', 'other')
+        if not reason:
+            return Response({'error': 'A reason is required to withdraw a student'}, status=400)
+
+        from ..models import StudentClassEnrollment, Profile
+
+        # Remove classroom enrollment
+        removed_count = StudentClassEnrollment.objects.filter(
+            student=application.enrolled_student
+        ).delete()[0]
+
+        # Update profile enrollment status
+        profile, _ = Profile.objects.get_or_create(user=application.enrolled_student)
+        profile.enrollment_status = reason_type
+        profile.enrollment_status_reason = reason
+        profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
+
+        # Create status history
+        from_status = application.status
+        application.status = 'rejected'
+        application.remarks = f'Withdrawn: {reason}'
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.save()
+
+        EnrollmentStatusHistory.objects.create(
+            application=application,
+            from_status=from_status,
+            to_status='rejected',
+            changed_by=request.user,
+            notes=f'Withdrawn ({reason_type}): {reason}',
+        )
+
+        try:
+            log_audit_action(
+                user=request.user,
+                action='withdraw',
+                model_name='EnrollmentApplication',
+                object_id=application.id,
+                object_repr=application.enrollment_number or str(application),
+                description=f'Withdrew student {application.full_name} — {reason_type}: {reason}',
+                request=request,
+            )
+        except Exception as audit_err:
+            logger.error(f"Audit log failed on withdraw_student: {audit_err}")
+
+        return Response({
+            'status': 'Student withdrawn',
+            'enrollments_removed': removed_count,
+            'reason_type': reason_type,
+        })
 
     @action(detail=True, methods=['delete'])
     def delete_application(self, request, pk=None):
