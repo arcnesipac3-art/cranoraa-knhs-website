@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0116_add_profile_enrollment_status'),
+        ('accounts', '0115_sync_academic_year_data'),
     ]
 
     operations = [
