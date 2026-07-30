@@ -158,6 +158,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
 
     def get_owner_details(self, obj):
         if obj.owner:
+            from .user import UserSerializer
             return UserSerializer(obj.owner).data
         return None
 
@@ -172,6 +173,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         return None
 
     def get_participants_details(self, obj):
+        from .user import UserSerializer
         if hasattr(obj, '_prefetched_objects_cache') and 'participants' in obj._prefetched_objects_cache:
             participants = obj._prefetched_objects_cache['participants']
         else:
