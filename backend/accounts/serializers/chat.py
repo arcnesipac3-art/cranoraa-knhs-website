@@ -140,6 +140,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatRoom
         fields = ['id', 'name', 'description', 'avatar', 'is_group', 'is_archived',
+                  'group_type', 'source_type', 'source_id',
                   'participants', 'participants_details',
                   'created_by', 'owner', 'owner_name', 'owner_details',
                   'created_at', 'updated_at', 'last_message', 'unread_count', 'is_pinned',

@@ -31,6 +31,9 @@ if python manage.py shell -c "from django.db import connection; cursor = connect
         echo "Seeding website content..."
         python manage.py seed_website_content
     fi
+
+    echo "Syncing system groups..."
+    python manage.py sync_system_groups
 else
     echo "Tables not yet created — skipping seeds"
 fi

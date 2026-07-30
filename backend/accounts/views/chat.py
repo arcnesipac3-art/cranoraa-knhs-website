@@ -474,28 +474,14 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             classroom = Classroom.objects.get(id=classroom_id)
         except Classroom.DoesNotExist:
             return Response({'error': 'Classroom not found'}, status=404)
-        # Check if class chat already exists
-        room = ChatRoom.objects.filter(
-            is_group=True, name=f"Class: {classroom.name}"
-        ).first()
-        if room:
-            return Response(ChatRoomSerializer(room, context={'request': request}).data)
-        # Create room and add all enrolled students + advisers
-        room = ChatRoom.objects.create(
-            is_group=True,
-            name=f"Class: {classroom.name}",
-            created_by=request.user,
-        )
-        enrolled_students = StudentClassEnrollment.objects.filter(classroom=classroom).values_list('student_id', flat=True)
-        participant_ids = list(enrolled_students)
-        if classroom.teacher_id:
-            participant_ids.append(classroom.teacher_id)
-        participant_ids = list(set(participant_ids))
-        if participant_ids:
-            room.participants.add(*User.objects.filter(id__in=participant_ids))
+
+        # Use the system group sync service
+        from ..system_groups import sync_classroom_group
+        room = sync_classroom_group(classroom)
+        if not room:
+            return Response({'error': 'Classroom has no teacher assigned'}, status=400)
+
         serialized = ChatRoomSerializer(room, context={'request': request}).data
-        for p in room.participants.all():
-            _notify_user_of_new_room(p.id, serialized)
         return Response(serialized)
 
     @action(detail=False, methods=['post'])
@@ -549,6 +535,20 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             }
         )
         return Response({'message': f'Emergency broadcast sent to {count} users', 'emergency_id': em.id})
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAdmin])
+    def sync_system_groups(self, request):
+        """Manually trigger system group sync (admin only)"""
+        from ..system_groups import sync_all_system_groups
+        try:
+            stats = sync_all_system_groups()
+            return Response({
+                'message': 'System groups synced',
+                'stats': stats,
+            })
+        except Exception as e:
+            logger.error(f"System group sync failed: {e}")
+            return Response({'error': str(e)}, status=500)
 
 
 class ChatMessageViewSet(viewsets.ModelViewSet):

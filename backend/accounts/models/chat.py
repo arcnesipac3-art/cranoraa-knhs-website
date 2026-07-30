@@ -4,11 +4,25 @@ from .user import User
 
 
 class ChatRoom(models.Model):
+    GROUP_TYPE_CHOICES = [
+        ('manual', 'Manual'),
+        ('system', 'System'),
+    ]
+    SOURCE_TYPE_CHOICES = [
+        ('classroom', 'Classroom'),
+        ('subject', 'Subject'),
+        ('department', 'Department'),
+        ('faculty', 'Faculty'),
+    ]
+
     name = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     avatar = models.URLField(max_length=1000, blank=True, null=True)
     is_group = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
+    group_type = models.CharField(max_length=10, choices=GROUP_TYPE_CHOICES, default='manual')
+    source_type = models.CharField(max_length=20, choices=SOURCE_TYPE_CHOICES, blank=True, null=True)
+    source_id = models.PositiveIntegerField(blank=True, null=True, help_text='ID of the source object (Classroom, Subject, Department)')
     participants = models.ManyToManyField(User, related_name='chat_rooms')
     pinned_by = models.ManyToManyField(User, related_name='pinned_rooms', blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_rooms')
@@ -19,6 +33,15 @@ class ChatRoom(models.Model):
     last_action_type = models.CharField(max_length=20, default='message')
     last_action_sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='last_actions')
     last_action_content = models.TextField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['source_type', 'source_id'],
+                condition=models.Q(source_type__isnull=False, source_id__isnull=False),
+                name='unique_source_room',
+            ),
+        ]
 
     def __str__(self):
         if self.is_group:

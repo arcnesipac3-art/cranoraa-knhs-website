@@ -62,6 +62,7 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
   const isOwner = room?.owner === userId;
   const isAdmin = members.some(m => m.user === userId && (m.role === 'owner' || m.role === 'admin'));
   const canManage = isOwner || isAdmin;
+  const isSystem = room?.group_type === 'system';
 
   useEffect(() => {
     if (isOpen && room?.is_group) {
@@ -283,7 +284,7 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
               ) : (
                 <div className="flex items-center gap-1">
                   <h3 className="text-sm font-bold text-slate-800 truncate">{room.name || 'Unnamed Group'}</h3>
-                  {canManage && (
+              {canManage && !isSystem && (
                     <button onClick={() => { setNewName(room.name || ''); setEditingName(true); }} className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded" aria-label="Edit name">
                       <EditIcon size={12} />
                     </button>
@@ -305,19 +306,22 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
                 className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 resize-none"
                 rows={2}
                 autoFocus
+                disabled={isSystem}
               />
-              <div className="flex gap-1 mt-1">
-                <button onClick={handleUpdateDescription} className="px-2 py-1 text-xs font-medium text-white bg-violet-600 rounded-lg">Save</button>
-                <button onClick={() => setEditingDesc(false)} className="px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-lg">Cancel</button>
-              </div>
+              {!isSystem && (
+                <div className="flex gap-1 mt-1">
+                  <button onClick={handleUpdateDescription} className="px-2 py-1 text-xs font-medium text-white bg-violet-600 rounded-lg">Save</button>
+                  <button onClick={() => setEditingDesc(false)} className="px-2 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded-lg">Cancel</button>
+                </div>
+              )}
             </div>
-          ) : room.description && canManage ? (
+          ) : room.description && canManage && !isSystem ? (
             <p className="text-xs text-slate-500 mt-2 cursor-pointer hover:text-slate-700" onClick={() => { setNewDesc(room.description || ''); setEditingDesc(true); }}>
               {room.description}
             </p>
           ) : room.description ? (
             <p className="text-xs text-slate-500 mt-2">{room.description}</p>
-          ) : canManage ? (
+          ) : canManage && !isSystem ? (
             <button onClick={() => { setNewDesc(room.description || ''); setEditingDesc(true); }} className="text-xs text-slate-400 mt-2 hover:text-violet-600 transition-colors">
               + Add description
             </button>
