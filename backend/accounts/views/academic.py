@@ -1352,30 +1352,14 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         elif announcement.target_audience == 'teachers':
             users = users.filter(role='staff')
 
-        notifications_to_create = []
-
         for user in users:
             if user != self.request.user:
-                notifications_to_create.append(
-                    Notification(
-                        recipient=user,
-                        notification_type='announcement',
-                        title=f'New Announcement: {announcement.title}',
-                        message=announcement.content[:200] + '...' if len(announcement.content) > 200 else announcement.content,
-                        link='/announcements'
-                    )
-                )
-
-        if notifications_to_create:
-            Notification.objects.bulk_create(notifications_to_create)
-            # Explicitly send FCM push — bulk_create skips post_save signal
-            from ..fcm import send_push_notification
-            for notif in notifications_to_create:
-                send_push_notification(
-                    user=notif.recipient,
-                    title=notif.title,
-                    body=notif.message,
-                    data={'notification_type': notif.notification_type, 'link': notif.link or '', 'notification_id': str(notif.id)},
+                Notification.objects.create(
+                    recipient=user,
+                    notification_type='announcement',
+                    title=f'New Announcement: {announcement.title}',
+                    message=announcement.content[:200] + '...' if len(announcement.content) > 200 else announcement.content,
+                    link='/announcements'
                 )
 
     @action(detail=True, methods=['post'], url_path='mark-read')

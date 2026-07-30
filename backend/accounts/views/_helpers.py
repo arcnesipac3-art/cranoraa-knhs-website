@@ -104,52 +104,21 @@ def _broadcast_new_chat_message(message, serialized_data, sender):
         'message_data': serialized_data,
     })
 
-    # Notify ALL non-sender participants — WebSocket delivers to online users,
-    # FCM push delivers to backgrounded/offline users.
+    # Notify ALL non-sender participants.
+    # Using create() in a loop so the post_save signal fires correctly
+    # for each notification (WebSocket broadcast + FCM push).
     sender_name = full_name(sender)
     room = message.room
     room_label = room.name if room.is_group else sender_name
     preview_text = preview[:80] + ('…' if len(preview) > 80 else '')
-    offline_participants = room.participants.exclude(id=sender.id).only('id', 'last_activity')
-    notif_list = [
-        Notification(
+    for participant in room.participants.exclude(id=sender.id):
+        Notification.objects.create(
             recipient=participant,
             notification_type='message',
             title=f'New message from {sender_name}',
             message=f'{room_label}: {preview_text}',
             link='/communication-center',
         )
-        for participant in offline_participants
-    ]
-    if notif_list:
-        Notification.objects.bulk_create(notif_list)
-        for notif in notif_list:
-            async_to_sync(channel_layer.group_send)(
-                f'notifications_{notif.recipient_id}',
-                {
-                    'type': 'notification_message',
-                    'data': {
-                        'type': 'notification',
-                        'id': notif.id,
-                        'title': notif.title,
-                        'message': notif.message,
-                        'notification_type': notif.notification_type,
-                        'link': notif.link,
-                        'created_at': notif.created_at.isoformat(),
-                    }
-                }
-            )
-        # Explicitly send FCM push — bulk_create skips post_save signal
-        from ..fcm import send_push_notification
-        for notif in notif_list:
-            prefs = getattr(notif.recipient, 'notification_preferences', None)
-            if not prefs or prefs.push_enabled:
-                send_push_notification(
-                    user=notif.recipient,
-                    title=notif.title,
-                    body=notif.message,
-                    data={'notification_type': notif.notification_type, 'link': notif.link or '', 'notification_id': str(notif.id)},
-                )
 
 
 def _get_time_ago(timestamp):
