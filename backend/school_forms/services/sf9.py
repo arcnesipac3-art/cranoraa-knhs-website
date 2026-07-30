@@ -9,7 +9,6 @@ from accounts.models import (
     Grade, StudentClassEnrollment, Classroom, AcademicYear,
     Attendance, Profile, CoreValuesGrade,
 )
-from accounts.models.grades import SubjectComponent
 
 
 class SF9ReportCardService:
