@@ -231,7 +231,7 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
   if (!isOpen || !room) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/30 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Group settings">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/30 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Group settings" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="w-full max-w-sm bg-white h-full shadow-2xl flex flex-col animate-slide-in-right" style={{ animation: 'slideInRight 0.2s ease-out' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
