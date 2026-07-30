@@ -148,7 +148,7 @@ const AcademicSetup = () => {
       const ay = years.find(y => y.is_active) || years[0];
       if (ay) {
         const [clsRes, semRes] = await Promise.all([
-          api.get(`/classrooms/?academic_year=${encodeURIComponent(ay.name)}`).catch(() => ({ data: [] })),
+          api.get(`/classrooms/?academic_year=${encodeURIComponent(ay.id)}`).catch(() => ({ data: [] })),
           api.get(`/admin/semesters/?academic_year=${ay.id}`).catch(() => ({ data: [] })),
         ]);
         const cls = Array.isArray(clsRes.data) ? clsRes.data : [];
