@@ -305,8 +305,9 @@ export default function ClassesHub() {
               Subjects
             </button>
             <button onClick={() => { setFormData({ name: '', grade_level: '', teacher: '' }); setEditingClass(null); setShowModal(true); }}
+              aria-label="Add new section"
               className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               Add Section
             </button>
           </div>
@@ -434,11 +435,11 @@ export default function ClassesHub() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)} role="dialog" aria-modal="true" aria-label={editingClass ? 'Edit Section' : 'New Section'}>
           <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
             <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0" aria-hidden="true">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
@@ -448,7 +449,7 @@ export default function ClassesHub() {
                   <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Classroom Management</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setShowModal(false)}
+              <button type="button" onClick={() => setShowModal(false)} aria-label="Close dialog"
                 className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
@@ -458,8 +459,8 @@ export default function ClassesHub() {
             <form onSubmit={editingClass ? handleUpdateClass : handleCreateClass}>
               <div className="px-6 py-4 space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Section Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Grade 7 - St. Michael" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required />
+                  <label htmlFor="section-name" className="block text-xs font-bold text-slate-700 mb-1">Section Name <span className="text-red-500" aria-hidden="true">*</span></label>
+                  <input id="section-name" type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Grade 7 - St. Michael" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required aria-required="true" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
