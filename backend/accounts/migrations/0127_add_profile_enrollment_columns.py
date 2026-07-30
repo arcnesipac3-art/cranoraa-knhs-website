@@ -8,23 +8,31 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='profile',
-            name='enrollment_status',
-            field=models.CharField(
-                blank=True,
-                choices=[
-                    ('enrolled', 'Enrolled'),
-                    ('withdrawn', 'Withdrawn'),
-                    ('transferred', 'Transferred Out'),
-                    ('dropped', 'Dropped'),
-                    ('graduated', 'Graduated'),
-                ],
-                default='enrolled',
-                max_length=20,
-                null=True,
-            ),
+        # enrollment_status column already exists in the DB (from Supabase)
+        # but was only declared state-only in 0116. No DB operation needed.
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterField(
+                    model_name='profile',
+                    name='enrollment_status',
+                    field=models.CharField(
+                        blank=True,
+                        choices=[
+                            ('enrolled', 'Enrolled'),
+                            ('withdrawn', 'Withdrawn'),
+                            ('transferred', 'Transferred Out'),
+                            ('dropped', 'Dropped'),
+                            ('graduated', 'Graduated'),
+                        ],
+                        default='enrolled',
+                        max_length=20,
+                        null=True,
+                    ),
+                ),
+            ],
+            database_operations=[],
         ),
+        # enrollment_status_reason does NOT exist yet — add it
         migrations.AddField(
             model_name='profile',
             name='enrollment_status_reason',
