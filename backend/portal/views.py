@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from accounts.models import User, ClassroomSubject, StudentClassEnrollment, Grade, SystemSetting, AuditLog, AcademicYear
-from .models import Announcement, SchoolClass, Department, Semester, DatabaseBackup
+from accounts.models import User, ClassroomSubject, StudentClassEnrollment, Grade, SystemSetting, AuditLog, AcademicYear, Semester
+from .models import Announcement, SchoolClass, Department, DatabaseBackup
 from .serializers import (
     AnnouncementSerializer,
     SchoolClassSerializer, DepartmentSerializer, AcademicYearSerializer, SemesterSerializer,

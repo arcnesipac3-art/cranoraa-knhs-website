@@ -17,6 +17,22 @@ def sync_portal_to_accounts(apps, schema_editor):
             }
         )
 
+    PortalSem = apps.get_model('portal', 'Semester')
+    AccountsSem = apps.get_model('accounts', 'Semester')
+
+    for portal_sem in PortalSem.objects.all():
+        AccountsSem.objects.update_or_create(
+            id=portal_sem.id,
+            defaults={
+                'academic_year_id': portal_sem.academic_year_id,
+                'name': portal_sem.name,
+                'semester_type': portal_sem.semester_type,
+                'start_date': portal_sem.start_date,
+                'end_date': portal_sem.end_date,
+                'is_active': portal_sem.is_active,
+            }
+        )
+
 
 class Migration(migrations.Migration):
 
