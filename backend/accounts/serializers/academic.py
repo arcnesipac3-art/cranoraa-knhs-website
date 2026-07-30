@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from portal.models import AcademicYear as PortalAcademicYear
 
 from ..models import Classroom, StudentClassEnrollment, Subject, ClassroomSubject, SystemSetting
 from ._base import full_name
@@ -11,6 +12,24 @@ class SystemSettingSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class LaxPrimaryKeyField(serializers.PrimaryKeyRelatedField):
+    """PK field that treats empty string as None instead of crashing."""
+
+    def to_internal_value(self, data):
+        if data == '' or data is None:
+            return None
+        return super().to_internal_value(data)
+
+
+class LaxAcademicYearField(serializers.PrimaryKeyRelatedField):
+    """Treats empty string as None instead of crashing PostgreSQL."""
+
+    def to_internal_value(self, data):
+        if data == '' or data is None:
+            return None
+        return super().to_internal_value(data)
+
+
 class ClassroomSerializer(serializers.ModelSerializer):
     teacher_name = serializers.SerializerMethodField()
     teacher_profile_picture = serializers.SerializerMethodField()
@@ -19,6 +38,10 @@ class ClassroomSerializer(serializers.ModelSerializer):
     academic_year_name = serializers.SerializerMethodField()
     subject_name = serializers.SerializerMethodField()
     subject_code = serializers.SerializerMethodField()
+    academic_year = LaxAcademicYearField(
+        queryset=PortalAcademicYear.objects.all(),
+        required=False, allow_null=True,
+    )
 
     class Meta:
         model = Classroom
@@ -28,7 +51,6 @@ class ClassroomSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
         extra_kwargs = {
             'teacher': {'required': False, 'allow_null': True},
-            'academic_year': {'required': False, 'allow_null': True},
         }
 
     def get_teacher_name(self, obj): return full_name(obj.teacher) if obj.teacher else 'No Adviser'

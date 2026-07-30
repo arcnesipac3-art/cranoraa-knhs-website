@@ -93,7 +93,7 @@ function ScheduleGrid({ schedules }) {
               <tr key={i} className="hover:bg-slate-50/50">
                 <td className="px-3 py-2 text-slate-500 font-semibold whitespace-nowrap">
                   <div>{ts.start_time_display}</div>
-                  <div className="text-[9px] text-slate-400">— {ts.end_time_display}</div>
+                  <div className="text-[9px] text-slate-400">ï¿½ {ts.end_time_display}</div>
                 </td>
                 {DAYS.map(d => {
                   const key = `${d}_${ts.start_time}_${ts.end_time}`;
@@ -107,7 +107,7 @@ function ScheduleGrid({ schedules }) {
                           {sched.room_name && <div className="text-[9px] text-slate-400 truncate">{sched.room_name}</div>}
                         </div>
                       ) : (
-                        <span className="text-slate-300">—</span>
+                        <span className="text-slate-300">ï¿½</span>
                       )}
                     </td>
                   );
@@ -212,12 +212,12 @@ export default function ClassesHub() {
     if (!formData.grade_level) return toast.error('Grade level is required');
     setSaving(true);
     try {
-      await api.post('/classrooms/', { name: formData.name.trim(), grade_level: formData.grade_level, teacher: formData.teacher || null, academic_year: selectedYearId });
+      const payload = { name: formData.name.trim(), grade_level: formData.grade_level, teacher: formData.teacher || null }; if (selectedYearId) payload.academic_year = selectedYearId; await api.post('/classrooms/', payload);
       toast.success('Section created');
       setShowModal(false);
       setFormData({ name: '', grade_level: '', teacher: '' });
       refetch();
-    } catch (err) { toast.error(err.response?.data?.detail || 'Failed to create section'); }
+    } catch (err) { toast.error(err.response?.data?.detail || err.response?.data?.error || `${err.response?.status}: ${err.response?.statusText}` || 'Failed to create section'); console.error('createClass error', err.response?.data, err); }
     finally { setSaving(false); }
   };
 
@@ -295,7 +295,7 @@ export default function ClassesHub() {
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search sections…"
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search sectionsï¿½"
               className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -360,7 +360,7 @@ export default function ClassesHub() {
                                 ) : (
                                   <span className="text-xs text-slate-400 italic">No adviser</span>
                                 )}
-                                <span className="text-slate-300 text-xs">·</span>
+                                <span className="text-slate-300 text-xs">ï¿½</span>
                                 <span className="text-xs text-slate-500">{cls.student_count ?? 0} students</span>
                               </div>
                             </div>
@@ -391,7 +391,7 @@ export default function ClassesHub() {
                             {subs.map(s => (
                               <span key={s.id} className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-violet-50 text-violet-700 border border-violet-200">
                                 <span className="font-mono">{s.subject_code}</span>
-                                <span className="text-violet-300">·</span>
+                                <span className="text-violet-300">ï¿½</span>
                                 <span>{s.teacher_name}</span>
                               </span>
                             ))}
@@ -465,14 +465,14 @@ export default function ClassesHub() {
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Grade Level <span className="text-red-500">*</span></label>
                     <select value={formData.grade_level} onChange={e => setFormData({ ...formData, grade_level: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required>
-                      <option value="">— Select —</option>
+                      <option value="">ï¿½ Select ï¿½</option>
                       {GRADE_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Adviser</label>
                     <select value={formData.teacher} onChange={e => setFormData({ ...formData, teacher: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
-                      <option value="">— None —</option>
+                      <option value="">ï¿½ None ï¿½</option>
                       {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
                     </select>
                   </div>
