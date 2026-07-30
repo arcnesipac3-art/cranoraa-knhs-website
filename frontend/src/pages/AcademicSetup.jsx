@@ -106,7 +106,7 @@ const AcademicSetup = () => {
 
   // ── Forms ─────────────────────────────────────────────────────────────────
   const [ayForm,           setAyForm]           = useState({ name: '', start_date: '', end_date: '', is_active: true });
-  const [semesterForm,     setSemesterForm]     = useState({ name: '', semester_type: '1st Term' });
+  const [semesterForm,     setSemesterForm]     = useState({ name: '', semester_type: '1st Term', start_date: '', end_date: '' });
   const [sectionForm,      setSectionForm]      = useState({ name: '', grade_level: '', teacher: '' });
   const [subjectForm,      setSubjectForm]      = useState({ name: '', code: '', description: '', grade_level: '' });
   const [assignForm,       setAssignForm]       = useState({ classroom: '', subject: '', teacher: '' });
@@ -121,12 +121,24 @@ const AcademicSetup = () => {
   const activeTeachers = useMemo(() => teachers.filter(t => t.is_active !== false), [teachers]);
 
   const getDefaultPeriods = useCallback(() => {
+    if (!activeAY?.start_date || !activeAY?.end_date) {
+      return [
+        { name: '1st Term', semester_type: '1st Term', start_date: '', end_date: '' },
+        { name: '2nd Term', semester_type: '2nd Term', start_date: '', end_date: '' },
+        { name: '3rd Term', semester_type: '3rd Term', start_date: '', end_date: '' },
+      ];
+    }
+    const start = new Date(activeAY.start_date);
+    const end = new Date(activeAY.end_date);
+    const totalMs = end.getTime() - start.getTime();
+    const thirdMs = totalMs / 3;
+    const fmt = (d) => d.toISOString().split('T')[0];
     return [
-      { name: '1st Term', semester_type: '1st Term' },
-      { name: '2nd Term', semester_type: '2nd Term' },
-      { name: '3rd Term', semester_type: '3rd Term' },
+      { name: '1st Term', semester_type: '1st Term', start_date: fmt(start), end_date: fmt(new Date(start.getTime() + thirdMs)) },
+      { name: '2nd Term', semester_type: '2nd Term', start_date: fmt(new Date(start.getTime() + thirdMs + 86400000)), end_date: fmt(new Date(start.getTime() + 2 * thirdMs)) },
+      { name: '3rd Term', semester_type: '3rd Term', start_date: fmt(new Date(start.getTime() + 2 * thirdMs + 86400000)), end_date: fmt(end) },
     ];
-  }, []);
+  }, [activeAY]);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   const fetchData = useCallback(async () => {
@@ -248,11 +260,12 @@ const AcademicSetup = () => {
         name: semesterForm.name.trim(),
         academic_year: activeAY?.id,
         semester_type: semesterForm.semester_type,
-        start_date: null, end_date: null,
+        start_date: semesterForm.start_date || null,
+        end_date: semesterForm.end_date || null,
       });
       toast.success('Period created');
       setShowModal(false);
-      setSemesterForm({ name: '', semester_type: '1st Term' });
+      setSemesterForm({ name: '', semester_type: '1st Term', start_date: '', end_date: '' });
       fetchData();
     } catch (err) { toast.error(parseBackendErrors(err), { duration: 6000 }); }
     finally { setSaving(false); }
@@ -265,7 +278,7 @@ const AcademicSetup = () => {
     let created = 0; const failed = [];
     for (const p of defaults) {
       try {
-        await api.post('/admin/semesters/', { name: p.name, academic_year: activeAY?.id, semester_type: p.semester_type, start_date: null, end_date: null });
+        await api.post('/admin/semesters/', { name: p.name, academic_year: activeAY?.id, semester_type: p.semester_type, start_date: p.start_date || null, end_date: p.end_date || null });
         created++;
       } catch (err) {
         const msg = parseBackendErrors(err);
@@ -569,6 +582,11 @@ const AcademicSetup = () => {
                 Add Period Manually
               </Button>
             </div>
+            {semesters.length === 0 && activeAY?.start_date && activeAY?.end_date && (
+              <p className="text-center text-[11px] text-slate-400 font-medium">
+                Quick Setup will auto-derive term dates from your academic year ({fmtDate(activeAY.start_date)} – {fmtDate(activeAY.end_date)})
+              </p>
+            )}
           </div>
         );
       }
@@ -966,6 +984,16 @@ const AcademicSetup = () => {
                   <ModalField label="Display Name" required hint="Auto-filled from type; override if needed">
                     <input type="text" value={semesterForm.name} onChange={e => setSemesterForm({ ...semesterForm, name: e.target.value })} placeholder="1st Term" className={modalInputCls} required />
                   </ModalField>
+                  <div className="grid grid-cols-2 gap-3">
+                    <ModalField label="Start Date" hint="When this term begins">
+                      <input type="date" value={semesterForm.start_date} onChange={e => setSemesterForm({ ...semesterForm, start_date: e.target.value })}
+                        className={modalInputCls} />
+                    </ModalField>
+                    <ModalField label="End Date" hint="When this term ends">
+                      <input type="date" value={semesterForm.end_date} onChange={e => setSemesterForm({ ...semesterForm, end_date: e.target.value })}
+                        className={modalInputCls} min={semesterForm.start_date || undefined} />
+                    </ModalField>
+                  </div>
                 </div>
               </ModalBody>
               <ModalFooter><ModalBtnSecondary onClick={() => setShowModal(false)}>Cancel</ModalBtnSecondary><ModalBtnPrimary loading={saving}>Create</ModalBtnPrimary></ModalFooter>
