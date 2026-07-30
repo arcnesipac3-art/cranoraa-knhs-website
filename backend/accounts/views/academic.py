@@ -1368,6 +1368,15 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 
         if notifications_to_create:
             Notification.objects.bulk_create(notifications_to_create)
+            # Explicitly send FCM push — bulk_create skips post_save signal
+            from ..fcm import send_push_notification
+            for notif in notifications_to_create:
+                send_push_notification(
+                    user=notif.recipient,
+                    title=notif.title,
+                    body=notif.message,
+                    data={'notification_type': notif.notification_type, 'link': notif.link or '', 'notification_id': str(notif.id)},
+                )
 
     @action(detail=True, methods=['post'], url_path='mark-read')
     def mark_read(self, request, pk=None):

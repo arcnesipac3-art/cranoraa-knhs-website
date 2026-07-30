@@ -141,6 +141,15 @@ def _broadcast_new_chat_message(message, serialized_data, sender):
                     }
                 }
             )
+        # Explicitly send FCM push — bulk_create skips post_save signal
+        from ..fcm import send_push_notification
+        for notif in notif_list:
+            send_push_notification(
+                user=notif.recipient,
+                title=notif.title,
+                body=notif.message,
+                data={'notification_type': notif.notification_type, 'link': notif.link or '', 'notification_id': str(notif.id)},
+            )
 
 
 def _get_time_ago(timestamp):
