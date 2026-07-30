@@ -818,6 +818,7 @@ const PortalSettingsTab = () => {
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
                 <option value="jhs">Junior High School (Grades 7-10)</option>
                 <option value="shs">Senior High School (Grades 11-12)</option>
+                <option value="both">Both (JHS + SHS)</option>
               </select>
             </Field>
             <Field label={settings.academic_level === 'shs' ? 'Current Semester' : 'Current Quarter'} hint="Used as default when entering grades">

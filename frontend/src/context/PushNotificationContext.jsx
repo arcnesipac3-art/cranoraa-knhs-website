@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef } from 'react';
 import { usePushNotifications } from '../hooks/usePushNotifications';
-import { getStoredUser } from '../utils/auth';
+import { getStoredUser, getAccessToken } from '../utils/auth';
 
 const PushNotificationContext = createContext(null);
 
@@ -36,7 +36,7 @@ export function PushNotificationProvider({ children }) {
 
   // Register token on login (if permission already granted)
   useEffect(() => {
-    if (!userId || !isSupported) return;
+    if (!userId || !isSupported || !getAccessToken()) return;
 
     // Only act on actual login (userId changed from null to a value)
     if (prevUserIdRef.current === userId) return;
@@ -49,13 +49,13 @@ export function PushNotificationProvider({ children }) {
 
   // Re-register token on page load if permission is already granted
   useEffect(() => {
-    if (!userId || !isSupported || permission !== 'granted') return;
+    if (!userId || !isSupported || permission !== 'granted' || !getAccessToken()) return;
     registerToken();
   }, [isSupported, permission, registerToken, userId]);
 
   // Re-register when permission changes to 'granted' (user re-enabled)
   useEffect(() => {
-    if (!userId || !isSupported) return;
+    if (!userId || !isSupported || !getAccessToken()) return;
     if (prevPermissionRef.current !== 'granted' && permission === 'granted') {
       registerToken();
     }

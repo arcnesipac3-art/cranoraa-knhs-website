@@ -228,7 +228,7 @@ const AcademicSetup = () => {
     if (!educationLevel) return toast.error('Select an education level');
     try {
       await api.patch('/system/settings/', { academic_level: educationLevel });
-      toast.success(`Education level set to ${educationLevel === 'jhs' ? 'Junior High School' : 'Senior High School'}`);
+      toast.success(`Education level set to ${educationLevel === 'jhs' ? 'Junior High School' : educationLevel === 'shs' ? 'Senior High School' : 'Both (JHS + SHS)'}`);
       goToNextStep();
     } catch (err) { toast.error(parseBackendErrors(err), { duration: 6000 }); }
   };
@@ -467,10 +467,11 @@ const AcademicSetup = () => {
             title="Education Level"
             desc="Choose the level for this academic year. This auto-selects grade levels and period structure."
           />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
             {[
               { id: 'jhs', label: 'Junior High School', sub: 'Grade 7 – Grade 10', badge: '3 Terms', grades: JHS_GRADES, activeBorder: 'border-blue-500', activeGrad: 'bg-gradient-to-br from-blue-50 to-blue-100', iconBg: 'bg-blue-100', iconText: 'text-blue-600', badgeBg: 'bg-blue-100', badgeText: 'text-blue-700', checkBg: 'bg-blue-500' },
               { id: 'shs', label: 'Senior High School', sub: 'Grade 11 – Grade 12', badge: '3 Terms', grades: SHS_GRADES, activeBorder: 'border-pink-500', activeGrad: 'bg-gradient-to-br from-pink-50 to-pink-100', iconBg: 'bg-pink-100', iconText: 'text-pink-600', badgeBg: 'bg-pink-100', badgeText: 'text-pink-700', checkBg: 'bg-pink-500' },
+              { id: 'both', label: 'Both (JHS + SHS)', sub: 'Grade 7 – Grade 12', badge: '3 Terms', grades: ALL_GRADES, activeBorder: 'border-violet-500', activeGrad: 'bg-gradient-to-br from-violet-50 to-violet-100', iconBg: 'bg-violet-100', iconText: 'text-violet-600', badgeBg: 'bg-violet-100', badgeText: 'text-violet-700', checkBg: 'bg-violet-500' },
             ].map(opt => {
               const active = educationLevel === opt.id;
               const borderCls = active ? `${opt.activeBorder} ${opt.activeGrad} shadow-lg` : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-md';
@@ -503,7 +504,7 @@ const AcademicSetup = () => {
           </p>
           <div className="flex justify-center">
             <Button variant="primary" onClick={handleSelectEducationLevel} disabled={!educationLevel}>
-              Continue with {educationLevel === 'jhs' ? 'Junior High' : educationLevel === 'shs' ? 'Senior High' : '…'}
+              Continue with {educationLevel === 'jhs' ? 'Junior High' : educationLevel === 'shs' ? 'Senior High' : educationLevel === 'both' ? 'Both Levels' : '…'}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </Button>
           </div>

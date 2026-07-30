@@ -18,8 +18,8 @@ export function useSystemSettings() {
     return () => { cancelled = true; };
   }, []);
 
-  const isJHS = settings?.academic_level === 'jhs';
-  const isSHS = settings?.academic_level === 'shs';
+  const isJHS = settings?.academic_level === 'jhs' || settings?.academic_level === 'both';
+  const isSHS = settings?.academic_level === 'shs' || settings?.academic_level === 'both';
 
   // Number of grading periods: both JHS and SHS use 3 terms
   const gradingPeriods = 3;
