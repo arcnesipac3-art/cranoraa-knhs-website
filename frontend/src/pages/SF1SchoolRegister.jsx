@@ -8,7 +8,6 @@ import { Select } from '../components/ui/Select';
 import { DataTable } from '../components/ui/DataTable';
 import { Badge } from '../components/ui/Badge';
 import { useAcademicYear } from '../context/AcademicYearContext';
-import { ExportMenu } from '../components/ExportMenu';
 
 function SF1Page() {
   const { activeYear } = useAcademicYear();

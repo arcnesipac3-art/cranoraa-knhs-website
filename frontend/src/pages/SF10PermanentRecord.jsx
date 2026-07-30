@@ -5,7 +5,6 @@ import { Card, CardHeader, CardBody, CardFooter } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { useAcademicYear } from '../context/AcademicYearContext';
-import { ExportMenu } from '../components/ExportMenu';
 
 function SF10Page() {
   const { activeYear } = useAcademicYear();
