@@ -190,7 +190,6 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
             'status': f'Academic Year {year.name} activated',
             'synced_classrooms': count,
         })
-        return Response({'status': f'Academic Year {year.name} activated'})
 
     @action(detail=False, methods=['get'])
     def active(self, request):

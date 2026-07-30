@@ -24,15 +24,21 @@ export function useSystemSettings() {
   // Number of grading periods: both JHS and SHS use 3 terms
   const gradingPeriods = 3;
 
-  // Label: both use "Term"
-  const periodLabel = 'Term';
+  // Label: SHS uses "Semester", JHS/Both uses "Term"
+  const periodLabel = settings?.academic_level === 'shs' ? 'Semester' : 'Term';
 
   // Generate period options array: [{value: '1', label: '1st Term'}, ...]
-  const periodOptions = [
-    { value: '1', label: '1st Term' },
-    { value: '2', label: '2nd Term' },
-    { value: '3', label: '3rd Term' },
-  ];
+  const periodOptions = settings?.academic_level === 'shs'
+    ? [
+        { value: '1', label: '1st Semester' },
+        { value: '2', label: '2nd Semester' },
+        { value: '3', label: '3rd Semester (Summer)' },
+      ]
+    : [
+        { value: '1', label: '1st Term' },
+        { value: '2', label: '2nd Term' },
+        { value: '3', label: '3rd Term' },
+      ];
 
   // Short labels for table headers: ["T1","T2","T3"]
   const periodShortLabels = ['T1', 'T2', 'T3'];
