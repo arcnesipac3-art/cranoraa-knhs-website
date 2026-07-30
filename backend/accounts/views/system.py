@@ -101,8 +101,8 @@ def system_metrics_view(request):
     except Exception:
         storage_used = 0
 
-    # Get system uptime (mock for now, would need actual server uptime tracking)
-    uptime = "99.8%"
+    # Get system uptime — not tracked server-side; return N/A
+    uptime = "N/A"
 
     # Get real API hits data from the last hour
     api_hits = []
@@ -121,11 +121,10 @@ def system_metrics_view(request):
 
             api_hits.append({'time': time_label, 'hits': hits})
     except Exception as e:
-        # Fallback to mock data if query fails
+        # Return zeros instead of fake data
         for i in range(12):
             time = (now - datetime.timedelta(minutes=(11-i)*5)).strftime('%H:%M')
-            hits = 45 + (i * 3) % 50
-            api_hits.append({'time': time, 'hits': hits})
+            api_hits.append({'time': time, 'hits': 0})
 
     # Get active sessions (count of unique users in last 15 minutes)
     fifteen_minutes_ago = now - datetime.timedelta(minutes=15)
@@ -135,7 +134,7 @@ def system_metrics_view(request):
             user__isnull=False
         ).values('user').distinct().count()
     except Exception as e:
-        active_sessions = 142  # Fallback
+        active_sessions = 0
 
     # Get mobile vs desktop users (based on user agent)
     try:
@@ -144,7 +143,7 @@ def system_metrics_view(request):
             user_agent__icontains='mobile'
         ).values('user').distinct().count()
     except Exception as e:
-        mobile_users = 45  # Fallback
+        mobile_users = 0
 
     desktop_users = max(active_sessions - mobile_users, 0)
 
@@ -156,7 +155,7 @@ def system_metrics_view(request):
             status_code=401
         ).count()
     except Exception as e:
-        failed_logins = 12  # Fallback
+        failed_logins = 0
 
     return Response({
         'storageUsed': storage_used,
@@ -192,15 +191,9 @@ def maintenance_feed_view(request):
             'time': _get_time_ago(log.timestamp)
         })
 
-    # If no logs, provide mock data
+    # If no logs, return empty feed (no fake data)
     if not feed:
-        feed = [
-            {'id': 1, 'action': 'Subject Schema Updated', 'details': 'Added new fields to student_records', 'status': 'success', 'time': '10 min ago'},
-            {'id': 2, 'action': 'Cache Cleared', 'details': 'Redis cache flushed - 2.3GB freed', 'status': 'success', 'time': '25 min ago'},
-            {'id': 3, 'action': 'Backup Verified', 'details': 'Daily backup integrity check passed', 'status': 'success', 'time': '1 hour ago'},
-            {'id': 4, 'action': 'Database Optimization', 'details': 'Index rebuild completed', 'status': 'success', 'time': '2 hours ago'},
-            {'id': 5, 'action': 'SSL Certificate Renewed', 'details': 'Valid until 2027-05-06', 'status': 'success', 'time': '3 hours ago'},
-        ]
+        feed = []
 
     return Response(feed)
 
@@ -298,6 +291,8 @@ def clear_cache_view(request):
 def data_retention_view(request):
     """Apply data retention policies: archive old grades, clean attendance, etc."""
     days_to_keep = int(request.data.get('days_to_keep', 365))
+    # Safety bounds: minimum 30 days, maximum 3650 (10 years)
+    days_to_keep = max(30, min(days_to_keep, 3650))
     cutoff_date = timezone.now().date() - datetime.timedelta(days=days_to_keep)
     # Clean old attendance records (mark as archived rather than delete)
     old_attendance = Attendance.objects.filter(date__lt=cutoff_date)
@@ -306,6 +301,13 @@ def data_retention_view(request):
     old_messages = ChatMessage.objects.filter(timestamp__date__lt=cutoff_date)
     msg_count = old_messages.count()
     old_messages.delete()
+    log_audit_action(
+        user=request.user, action='data_retention',
+        model_name='ChatMessage', description=(
+            f'Data retention applied: {att_count} attendance records archived, '
+            f'{msg_count} messages deleted, cutoff={cutoff_date.isoformat()}'
+        ), request=request,
+    )
     return Response({
         'message': f'Data retention applied: {att_count} attendance records older than {days_to_keep} days, {msg_count} old messages cleaned',
         'cutoff_date': cutoff_date.isoformat(),

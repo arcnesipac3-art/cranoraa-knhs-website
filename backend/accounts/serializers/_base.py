@@ -7,7 +7,7 @@ def full_name(user):
     try:
         if hasattr(user, 'profile') and user.profile.title:
             title = user.profile.title + " "
-    except:
+    except Exception:
         pass
 
     if user.first_name and user.last_name:

@@ -94,7 +94,7 @@ const Modal = ({
                 {subtitle && <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">{subtitle}</p>}
               </div>
             </div>
-            <button type="button" onClick={onClose}
+            <button type="button" onClick={onClose} aria-label="Close"
               className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all flex-shrink-0">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>

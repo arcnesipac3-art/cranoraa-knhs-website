@@ -15,7 +15,7 @@ function isStaleChunkError(error) {
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null, isStaleChunk: false };
+    this.state = { hasError: false, error: null, isStaleChunk: false, showDetails: false };
   }
 
   static getDerivedStateFromError(error) {
@@ -65,10 +65,32 @@ class ErrorBoundary extends Component {
           </div>
           <h2 className="text-lg font-bold text-slate-800 mb-2">Something went wrong</h2>
           <p className="text-sm text-slate-500 mb-4 max-w-md">An unexpected error occurred. Please try refreshing the page.</p>
-          <button onClick={() => window.location.reload()}
-            className="px-5 py-2.5 bg-violet-600 text-white text-sm font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-sm">
-            Refresh Page
-          </button>
+          <div className="flex gap-3">
+            <button onClick={() => window.location.reload()}
+              className="px-5 py-2.5 bg-violet-600 text-white text-sm font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-sm">
+              Refresh Page
+            </button>
+            <button onClick={() => this.setState(s => ({ showDetails: !s.showDetails }))}
+              className="px-5 py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors">
+              {this.state.showDetails ? 'Hide Details' : 'Show Details'}
+            </button>
+            {this.state.showDetails && (
+              <button onClick={() => {
+                const msg = this.state.error?.message || 'Unknown error';
+                navigator.clipboard?.writeText(msg).catch(() => {});
+              }}
+                className="px-5 py-2.5 bg-slate-100 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-200 transition-colors">
+                Copy Error
+              </button>
+            )}
+          </div>
+          {this.state.showDetails && this.state.error && (
+            <pre className="mt-4 text-xs text-left text-slate-600 bg-slate-50 border border-slate-200 rounded-xl p-4 max-w-lg w-full overflow-auto max-h-48">
+              {this.state.error.message}
+              {'\n'}
+              {this.state.error.stack}
+            </pre>
+          )}
         </div>
       );
     }

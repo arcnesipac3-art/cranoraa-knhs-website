@@ -1,7 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .views.debug_reset import reset_admin_view
 from .views import (
     login_view, logout_view, cookie_token_refresh_view,
     admin_create_user_view, force_password_change_view, change_password_view, user_profile, student_profile,
@@ -78,7 +77,6 @@ router.register(r'v1/staff-performance', StaffPerformanceViewSet, basename='staf
 urlpatterns = [
     path('v1/login/', login_view, name='login'),
     path('v1/logout/', logout_view, name='logout'),
-    path('v1/debug/reset-admin/', reset_admin_view, name='reset_admin'),
     path('v1/admin/create-user/', admin_create_user_view, name='admin_create_user'),
     path('v1/force-password-change/', force_password_change_view, name='force_password_change'),
     path('v1/auth/change-password/', change_password_view, name='change_password'),

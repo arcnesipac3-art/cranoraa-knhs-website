@@ -10,6 +10,17 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Warn once at startup if critical Firebase env vars are missing
+const _missingKeys = Object.entries(firebaseConfig)
+  .filter(([, v]) => !v)
+  .map(([k]) => k);
+if (_missingKeys.length > 0) {
+  console.warn(
+    `[Firebase] Missing env vars: ${_missingKeys.join(', ')}. ` +
+    'Push notifications will not work. Set VITE_FIREBASE_* in your .env.'
+  );
+}
+
 const app = initializeApp(firebaseConfig);
 
 /**

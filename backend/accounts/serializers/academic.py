@@ -7,7 +7,10 @@ from .user import SimplifiedStudentSerializer
 class SystemSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemSetting
-        fields = '__all__'
+        fields = ['id', 'academic_year', 'academic_level', 'current_quarter',
+                  'passing_grade', 'grading_period', 'school_name',
+                  'school_address', 'school_phone', 'school_email',
+                  'maintenance_mode', 'maintenance_message']
 
 
 class LaxPrimaryKeyField(serializers.PrimaryKeyRelatedField):
