@@ -151,7 +151,13 @@ const AcademicSetup = () => {
           api.get(`/classrooms/?academic_year=${encodeURIComponent(ay.id)}`).catch(() => ({ data: [] })),
           api.get(`/admin/semesters/?academic_year=${ay.id}`).catch(() => ({ data: [] })),
         ]);
-        const cls = Array.isArray(clsRes.data) ? clsRes.data : [];
+        let cls = Array.isArray(clsRes.data) ? clsRes.data : [];
+
+        if (cls.length === 0) {
+          const allClsRes = await api.get('/classrooms/').catch(() => ({ data: [] }));
+          cls = Array.isArray(allClsRes.data) ? allClsRes.data : [];
+        }
+
         setClassrooms(cls);
         setSemesters(Array.isArray(semRes.data) ? semRes.data : []);
 
