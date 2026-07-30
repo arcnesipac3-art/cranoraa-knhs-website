@@ -6,6 +6,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0125_add_timeslot_slot_type'),
+        ('accounts', '0116_add_profile_enrollment_status'),
     ]
 
     operations = [
