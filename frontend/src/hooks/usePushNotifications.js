@@ -60,7 +60,7 @@ export function usePushNotifications() {
           icon: icon || '/icons/school-logo-source.png',
           badge: '/icons/school-logo-source.png',
           data: payload.data,
-          tag: payload.data?.tag || undefined,
+          tag: payload.data?.notification_id || payload.data?.link || 'notification',
         });
       }
     });

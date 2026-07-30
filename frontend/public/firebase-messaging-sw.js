@@ -28,7 +28,7 @@ messaging.onBackgroundMessage((payload) => {
     icon: icon || '/icons/school-logo-source.png',
     badge: '/icons/school-logo-source.png',
     data: { link: link || data.link || '/notifications' },
-    tag: data.tag || undefined,
+    tag: data.notification_id || data.link || 'notification',
     requireInteraction: false,
   };
 
