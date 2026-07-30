@@ -109,7 +109,7 @@ class SystemSetting(models.Model):
         ('shs', 'Senior High School (Grades 11-12)'),
         ('both', 'Both (JHS + SHS)'),
     ]
-    academic_level = models.CharField(max_length=3, choices=ACADEMIC_LEVEL_CHOICES, default='jhs')
+    academic_level = models.CharField(max_length=4, choices=ACADEMIC_LEVEL_CHOICES, default='jhs')
     current_quarter = models.CharField(max_length=1, default='1', choices=[('1', 'Term 1'), ('2', 'Term 2'), ('3', 'Term 3'), ('4', 'Term 4 (Legacy)')])
     academic_year = models.CharField(max_length=9, blank=True, default='')
 
