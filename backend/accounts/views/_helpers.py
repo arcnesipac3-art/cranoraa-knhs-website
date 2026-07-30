@@ -104,15 +104,13 @@ def _broadcast_new_chat_message(message, serialized_data, sender):
         'message_data': serialized_data,
     })
 
-    # Batch-create offline notifications to avoid N individual signal fires.
-    five_mins_ago = timezone.now() - datetime.timedelta(minutes=5)
+    # Notify ALL non-sender participants — WebSocket delivers to online users,
+    # FCM push delivers to backgrounded/offline users.
     sender_name = full_name(sender)
     room = message.room
     room_label = room.name if room.is_group else sender_name
     preview_text = preview[:80] + ('…' if len(preview) > 80 else '')
-    offline_participants = room.participants.exclude(id=sender.id).filter(
-        last_activity__lt=five_mins_ago
-    ).only('id', 'last_activity')
+    offline_participants = room.participants.exclude(id=sender.id).only('id', 'last_activity')
     notif_list = [
         Notification(
             recipient=participant,
@@ -144,12 +142,14 @@ def _broadcast_new_chat_message(message, serialized_data, sender):
         # Explicitly send FCM push — bulk_create skips post_save signal
         from ..fcm import send_push_notification
         for notif in notif_list:
-            send_push_notification(
-                user=notif.recipient,
-                title=notif.title,
-                body=notif.message,
-                data={'notification_type': notif.notification_type, 'link': notif.link or '', 'notification_id': str(notif.id)},
-            )
+            prefs = getattr(notif.recipient, 'notification_preferences', None)
+            if not prefs or prefs.push_enabled:
+                send_push_notification(
+                    user=notif.recipient,
+                    title=notif.title,
+                    body=notif.message,
+                    data={'notification_type': notif.notification_type, 'link': notif.link or '', 'notification_id': str(notif.id)},
+                )
 
 
 def _get_time_ago(timestamp):

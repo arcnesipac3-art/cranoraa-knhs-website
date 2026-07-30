@@ -378,14 +378,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         import datetime
         from django.utils import timezone as tz
-        five_mins_ago = tz.now() - datetime.timedelta(minutes=5)
         sender_name = sender.get_full_name() or sender.username
         room_label = room.name if room.is_group else sender_name
         preview = message[:80] + ('…' if len(message) > 80 else '')
 
-        offline_participants = room.participants.exclude(id=sender_id).filter(
-            last_activity__lt=five_mins_ago
-        )
+        # Notify ALL non-sender participants — WebSocket delivers to online users,
+        # FCM push delivers to backgrounded/offline users.
+        offline_participants = room.participants.exclude(id=sender_id)
         notif_list = [
             Notification(
                 recipient=participant,
@@ -398,7 +397,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         ]
         if notif_list:
             Notification.objects.bulk_create(notif_list)
-            # Bulk signal: single group_send per recipient instead of N signal fires
             from channels.layers import get_channel_layer
             from asgiref.sync import async_to_sync
             channel_layer = get_channel_layer()
@@ -421,12 +419,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # Explicitly send FCM push — bulk_create skips post_save signal
             from ..fcm import send_push_notification
             for notif in notif_list:
-                send_push_notification(
-                    user=notif.recipient,
-                    title=notif.title,
-                    body=notif.message,
-                    data={'notification_type': notif.notification_type, 'link': notif.link or '', 'notification_id': str(notif.id)},
-                )
+                prefs = getattr(notif.recipient, 'notification_preferences', None)
+                if not prefs or prefs.push_enabled:
+                    send_push_notification(
+                        user=notif.recipient,
+                        title=notif.title,
+                        body=notif.message,
+                        data={'notification_type': notif.notification_type, 'link': notif.link or '', 'notification_id': str(notif.id)},
+                    )
 
         return msg
 
