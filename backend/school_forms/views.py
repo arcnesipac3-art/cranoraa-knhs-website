@@ -89,9 +89,6 @@ class SF1ViewSet(SchoolFormsViewSet):
 class SF2ViewSet(SchoolFormsViewSet):
     """SF2 - Daily Attendance Report"""
 
-    class SF2ViewSet(SchoolFormsViewSet):
-    """SF2 - Daily Attendance Report"""
-
     def list(self, request):
         filters = self.get_filters()
         try:
