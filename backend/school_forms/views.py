@@ -35,7 +35,6 @@ class SchoolFormsViewSet(viewsets.ViewSet):
 class SF1ViewSet(SchoolFormsViewSet):
     """SF1 - School Register"""
 
-    @action(detail=False, methods=['get'])
     def list(self, request):
         filters = self.get_filters()
         try:
@@ -50,8 +49,7 @@ class SF1ViewSet(SchoolFormsViewSet):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @action(detail=False, methods=['get'], url_path='filters')
-    def get_filters(self):
+    def get_filters(self, request):
         filters = self.get_filters()
         try:
             result = sf1_service.generate_sf1(
@@ -91,7 +89,9 @@ class SF1ViewSet(SchoolFormsViewSet):
 class SF2ViewSet(SchoolFormsViewSet):
     """SF2 - Daily Attendance Report"""
 
-    @action(detail=False, methods=['get'])
+    class SF2ViewSet(SchoolFormsViewSet):
+    """SF2 - Daily Attendance Report"""
+
     def list(self, request):
         filters = self.get_filters()
         try:
@@ -134,20 +134,6 @@ class SF2ViewSet(SchoolFormsViewSet):
 class SF5ViewSet(SchoolFormsViewSet):
     """SF5 - Promotion and Learning Progress Report"""
 
-    @action(detail=False, methods=['get'])
-    def list(self, request):
-        filters = self.get_filters()
-        try:
-            result = sf5_service.generate_sf5(
-                academic_year=filters['academic_year'],
-                grade_level=filters['grade_level'],
-                section=filters['section'],
-                adviser=filters['adviser'],
-            )
-            return Response(result)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
     @action(detail=False, methods=['post'])
     def export_pdf(self, request):
         filters = self.get_filters()
@@ -176,16 +162,6 @@ class SF9ViewSet(SchoolFormsViewSet):
 
     @action(detail=False, methods=['get'])
     def student(self, request, student_id=None):
-        academic_year = request.query_params.get('academic_year')
-        try:
-            result = sf9_service.generate_sf9(student_id=student_id, academic_year=academic_year)
-            return Response(result)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    @action(detail=False, methods=['get'])
-    def list(self, request):
-        student_id = request.query_params.get('student_id')
         academic_year = request.query_params.get('academic_year')
         try:
             result = sf9_service.generate_sf9(student_id=student_id, academic_year=academic_year)
