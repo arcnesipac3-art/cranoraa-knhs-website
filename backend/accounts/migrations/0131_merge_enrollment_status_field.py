@@ -28,14 +28,6 @@ class Migration(migrations.Migration):
                 'ordering': ['-quarter', 'value_type'],
             },
         ),
-        migrations.RemoveField(
-            model_name='friendship',
-            name='from_user',
-        ),
-        migrations.RemoveField(
-            model_name='friendship',
-            name='to_user',
-        ),
         migrations.AlterModelOptions(
             name='semester',
             options={'ordering': ['-academic_year__start_date', 'semester_type']},
@@ -398,9 +390,6 @@ class Migration(migrations.Migration):
             model_name='corevaluesgrade',
             name='student',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='core_values_grades', to=settings.AUTH_USER_MODEL),
-        ),
-        migrations.DeleteModel(
-            name='Friendship',
         ),
         migrations.AlterUniqueTogether(
             name='corevaluesgrade',
