@@ -116,6 +116,27 @@ function ApplicationsTab({ refetch }) {
     if (value) handleAction(id, 'reject', { remarks: value });
   };
 
+  const promptWithdraw = async (id) => {
+    const { value: reason } = await Swal.fire({
+      title: 'Withdraw / Unenroll Student', input: 'textarea', inputLabel: 'Reason',
+      inputPlaceholder: 'e.g. Transferred out, Withdrawn by parent, Removed...', showCancelButton: true,
+      confirmButtonText: 'Unenroll', confirmButtonColor: '#F59E0B',
+      preConfirm: (v) => { if (!v) { Swal.showValidationMessage('Reason required'); } },
+    });
+    if (reason) {
+      const { value: reasonType } = await Swal.fire({
+        title: 'Reason Type', input: 'select', inputOptions: {
+          transferred_out: 'Transferred Out',
+          withdrawn: 'Withdrawn',
+          removed: 'Removed',
+          other: 'Other',
+        }, inputPlaceholder: 'Select reason type', showCancelButton: true,
+        confirmButtonText: 'Confirm', confirmButtonColor: '#F59E0B',
+      });
+      if (reasonType !== undefined) handleAction(id, 'reject', { remarks: reason, reason_type: reasonType });
+    }
+  };
+
   const promptRequestDocs = async (id) => {
     const { value } = await Swal.fire({
       title: 'Request Requirements', html: `
@@ -421,6 +442,11 @@ function ApplicationsTab({ refetch }) {
                           </Button>
                         )}
                         {app.enrolled_student && (
+                          <Button onClick={() => promptWithdraw(app.id)} variant="ghost" size="sm" title="Unenroll Student">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                          </Button>
+                        )}
+                        {app.enrolled_student && (
                           <span className="text-[9px] font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-lg">Enrolled</span>
                         )}
                         {app.status !== 'enrolled' && (
@@ -436,14 +462,17 @@ function ApplicationsTab({ refetch }) {
                         {activeMenu === app.id && (
                           <div className="absolute right-0 top-full mt-1 bg-white border border-slate-100 rounded-xl shadow-xl z-50 py-1 min-w-[130px]">
                             <Button onClick={() => { handleView(app); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-slate-600 hover:bg-violet-50 flex items-center gap-2">View</Button>
-                            {(app.status === 'pending' || app.status === 'under_review') && (
-                              <>
-                                <Button onClick={() => { promptReject(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2">Reject</Button>
-                                {app.status === 'under_review' && (
-                                  <Button onClick={() => { promptApproveApplication(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 flex items-center gap-2">Approve</Button>
-                                )}
-                              </>
-                            )}
+{(app.status === 'pending' || app.status === 'under_review') && (
+                               <>
+                                 <Button onClick={() => { promptReject(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2">Reject</Button>
+                                 {app.status === 'under_review' && (
+                                   <Button onClick={() => { promptApproveApplication(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-emerald-600 hover:bg-emerald-50 flex items-center gap-2">Approve</Button>
+                                 )}
+                               </>
+                             )}
+                             {app.status === 'enrolled' && (
+                               <Button onClick={() => { promptWithdraw(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2">Unenroll</Button>
+                             )}
                             <Button onClick={() => { promptRequestDocs(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2">Request Docs</Button>
                             {(app.status === 'pending' || app.status === 'under_review') && (
                               <Button onClick={() => { assignSection(app.id, app.grade_level); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-violet-600 hover:bg-violet-50 flex items-center gap-2">Set Section</Button>
@@ -602,6 +631,9 @@ function ApplicationsTab({ refetch }) {
                     )}
                     {selected.status === 'approved' && (
                       <Button onClick={() => { setEnrollApp(selected); setShowEnrollModal(true); }} variant="primary" size="sm">Enroll Student</Button>
+                    )}
+                    {selected.status === 'enrolled' && (
+                      <Button onClick={() => promptWithdraw(selected.id)} variant="warning" size="sm">Unenroll</Button>
                     )}
                     {selected.status !== 'enrolled' && (
                       <Button onClick={() => promptDelete(selected.id, `${selected.first_name} ${selected.last_name}`)} variant="danger" size="sm">Delete</Button>
@@ -786,18 +818,44 @@ function EnrollStudentsTab({ refetch }) {
   };
 
   const handleRemove = async enrollment => {
-    const { isConfirmed } = await Swal.fire({
-      title: 'Remove Student?',
-      html: `Remove <strong>${enrollment.student_name}</strong> from this section?`,
-      icon: 'warning', showCancelButton: true,
-      confirmButtonColor: '#ef4444', confirmButtonText: 'Remove',
+    const { value: formValues } = await Swal.fire({
+      title: 'Withdraw Student?',
+      html: `
+        <p class="text-sm text-slate-600 mb-3">Remove <strong>${enrollment.student_name}</strong> from this section. Select a reason:</p>
+        <select id="swal-reason-type" class="swal2-input text-sm" style="max-width:100%;height:40px;margin:0 auto 12px">
+          <option value="transferred">Transferred Out</option>
+          <option value="withdrawn">Withdrawn</option>
+          <option value="dropped">Dropped</option>
+          <option value="other">Other</option>
+        </select>
+        <textarea id="swal-reason" class="swal2-textarea text-sm" placeholder="Enter reason (required)" style="min-height:80px"></textarea>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Withdraw Student',
+      cancelButtonColor: '#64748b',
+      customClass: { popup: 'rounded-2xl' },
+      preConfirm: () => {
+        const reason = document.getElementById('swal-reason')?.value?.trim();
+        if (!reason) { Swal.showValidationMessage('A reason is required'); return false; }
+        return {
+          reason_type: document.getElementById('swal-reason-type')?.value || 'other',
+          reason,
+        };
+      },
     });
-    if (!isConfirmed) return;
+    if (!formValues) return;
     try {
-      await api.delete(`/enrollments/${enrollment.id}/`);
-      toast.success('Student removed');
+      await api.post(`/enrollments/${enrollment.enrollment_id || enrollment.id}/withdraw_student/`, {
+        reason_type: formValues.reason_type,
+        reason: formValues.reason,
+      });
+      toast.success('Student withdrawn');
       setEnrollments(prev => prev.filter(e => e.id !== enrollment.id));
-    } catch { toast.error('Failed to remove student'); }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to withdraw student');
+    }
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><LoadingSpinner /></div>;
@@ -947,7 +1005,7 @@ function EnrollStudentsTab({ refetch }) {
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
-                        Remove
+                        Withdraw
                       </button>
                     </td>
                   </tr>

@@ -32,14 +32,8 @@ if python manage.py shell -c "from django.db import connection; cursor = connect
         python manage.py seed_website_content
     fi
 
-    echo "Seeding faculty accounts..."
-    python manage.py seed_faculty_accounts
-
-    echo "Updating staff titles to DepEd ranks..."
-    python manage.py update_staff_titles
-
-    echo "Seeding JHS subjects (Grade 7-10)..."
-    python manage.py seed_jhs_subjects
+    echo "Syncing system groups..."
+    python manage.py sync_system_groups
 else
     echo "Tables not yet created — skipping seeds"
 fi

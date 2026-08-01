@@ -18,13 +18,9 @@ from ..models import User, Profile, Classroom, StudentClassEnrollment, Enrollmen
 from ..permissions import IsAdmin, IsAdminOrStaff
 from ..throttles import CsvImportRateThrottle
 from ..utils import log_audit_action, generate_temp_password
+from .enrollment import _grade_key
 
 logger = logging.getLogger(__name__)
-
-
-def _grade_key(g):
-    m = re.search(r'(\d+)', str(g or ''))
-    return m.group(1) if m else str(g or '')
 
 
 @api_view(['GET'])

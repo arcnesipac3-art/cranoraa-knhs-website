@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'channels',
     'accounts',
     'portal',
+    'school_forms',
 ]
 
 MIDDLEWARE = [
@@ -250,6 +251,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     # Global rate limiting — auth-specific throttles are applied per-view
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
@@ -461,3 +463,66 @@ CSP_FRAME_ANCESTORS = ("'none'",)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5 MB for JSON/form data
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5 MB in-memory file threshold
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 200              # Prevent hash-flood DoS via many fields
+
+# ─── API Documentation (OpenAPI / Swagger) ────────────────────────────────────
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'KNHS PRISM Portal API',
+    'DESCRIPTION': 'School management system API for Kiwalan National High School. Manages students, teachers, classrooms, grades, attendance, scheduling, and announcements.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+# ─── Structured Logging ──────────────────────────────────────────────────────
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
+            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
+        },
+        "verbose": {
+            "format": "{asctime} [{levelname}] {name}: {message}",
+            "style": "{",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "json" if not DEBUG else "verbose",
+        },
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "WARNING" if not DEBUG else "INFO",
+            "propagate": True,
+        },
+        "accounts": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "WARNING",
+    },
+}
+
+# ─── Sentry Error Tracking ───────────────────────────────────────────────────
+_sentry_dsn = os.environ.get("SENTRY_DSN")
+if _sentry_dsn:
+    import sentry_sdk
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    sentry_logging = LoggingIntegration(
+        level="WARNING",
+        event_level="ERROR",
+    )
+    sentry_sdk.init(
+        dsn=_sentry_dsn,
+        integrations=[sentry_logging],
+        traces_sample_rate=0.1 if not DEBUG else 0,
+        send_default_pii=False,
+    )

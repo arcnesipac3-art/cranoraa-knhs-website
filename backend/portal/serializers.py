@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Announcement, SchoolClass, Department, AcademicYear, Semester, DatabaseBackup
-from accounts.models import AuditLog
+from .models import Announcement, SchoolClass, Department, AcademicYear as PortalAcademicYear, DatabaseBackup
+from accounts.models import AuditLog, AcademicYear, Semester
 from accounts.serializers import UserSerializer, full_name
 
 

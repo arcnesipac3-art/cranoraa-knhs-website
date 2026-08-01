@@ -3,8 +3,8 @@ from .academic import (
     Classroom, Subject, ClassroomSubject, SystemSetting, StudentClassEnrollment,
 )
 from .chat import (
-    ChatRoom, ChatMessage, MessageReaction, ReportedMessage,
-    UserBlock, EmergencyMessage,
+    ChatRoom, ChatMessage, MessageReaction, ChatMember, Mention,
+    ReportedMessage, UserBlock, EmergencyMessage,
 )
 from .announcements import Announcement, AnnouncementAttachment, AnnouncementComment
 from .attendance import Attendance, AbsenceExcuse
@@ -19,7 +19,7 @@ from .communication import ParentTeacherMeeting, BehavioralRecord
 from .events import SchoolEvent, WebsiteContent
 from .assignments import Assignment, Submission, Grade
 from .schedule import Room, TimeSlot, Schedule
-from .grades import GradeReport
+from .grades import GradeReport, CoreValuesGrade
 from .tickets import (
     Ticket, TicketParticipant, TicketMessage, TicketAttachment, DepartmentContact,
 )
@@ -46,8 +46,8 @@ from .infrastructure import (
 __all__ = [
     'User', 'OTP', 'Profile', 'OnboardingStatus', 'DashboardPreferences',
     'Classroom', 'Subject', 'ClassroomSubject', 'SystemSetting', 'StudentClassEnrollment',
-    'ChatRoom', 'ChatMessage', 'MessageReaction', 'ReportedMessage',
-    'UserBlock', 'EmergencyMessage',
+    'ChatRoom', 'ChatMessage', 'MessageReaction', 'ChatMember', 'Mention',
+    'ReportedMessage', 'UserBlock', 'EmergencyMessage',
     'Announcement', 'AnnouncementAttachment', 'AnnouncementComment',
     'Attendance', 'AbsenceExcuse',
     'LearningMaterial',
@@ -59,7 +59,7 @@ __all__ = [
     'SchoolEvent', 'WebsiteContent',
     'Assignment', 'Submission', 'Grade',
     'Room', 'TimeSlot', 'Schedule',
-    'GradeReport',
+    'GradeReport', 'CoreValuesGrade',
     'Ticket', 'TicketParticipant', 'TicketMessage', 'TicketAttachment', 'DepartmentContact',
     'Department', 'StaffPerformance',
     'Transcript', 'TranscriptLineItem', 'TransferCertificate',

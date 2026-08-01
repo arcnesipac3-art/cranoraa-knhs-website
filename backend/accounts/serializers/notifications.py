@@ -6,14 +6,17 @@ from ._base import full_name
 
 class NotificationSerializer(serializers.ModelSerializer):
     recipient_name = serializers.SerializerMethodField()
+    sender_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
-        fields = ['id', 'recipient', 'recipient_name', 'notification_type',
-                  'title', 'message', 'is_read', 'link', 'created_at']
+        fields = ['id', 'recipient', 'recipient_name', 'sender', 'sender_name',
+                  'notification_type', 'title', 'message', 'is_read', 'link',
+                  'message_count', 'created_at']
         read_only_fields = ['recipient', 'created_at']
 
     def get_recipient_name(self, obj): return full_name(obj.recipient)
+    def get_sender_name(self, obj): return full_name(obj.sender) if obj.sender else None
 
 
 class NotificationPreferenceSerializer(serializers.ModelSerializer):

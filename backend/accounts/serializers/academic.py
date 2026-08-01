@@ -1,6 +1,5 @@
 from rest_framework import serializers
-
-from ..models import Classroom, StudentClassEnrollment, Subject, ClassroomSubject, SystemSetting
+from ..models import AcademicYear, Classroom, StudentClassEnrollment, Subject, ClassroomSubject, SystemSetting
 from ._base import full_name
 from .user import SimplifiedStudentSerializer
 
@@ -8,7 +7,28 @@ from .user import SimplifiedStudentSerializer
 class SystemSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemSetting
-        fields = '__all__'
+        fields = ['id', 'academic_year', 'academic_level', 'current_quarter',
+                  'passing_grade', 'site_name',
+                  'school_address', 'school_phone', 'school_email',
+                  'maintenance_mode', 'maintenance_message']
+
+
+class LaxPrimaryKeyField(serializers.PrimaryKeyRelatedField):
+    """PK field that treats empty string as None instead of crashing."""
+
+    def to_internal_value(self, data):
+        if data == '' or data is None:
+            return None
+        return super().to_internal_value(data)
+
+
+class LaxAcademicYearField(serializers.PrimaryKeyRelatedField):
+    """Treats empty string as None instead of crashing PostgreSQL."""
+
+    def to_internal_value(self, data):
+        if data == '' or data is None:
+            return None
+        return super().to_internal_value(data)
 
 
 class ClassroomSerializer(serializers.ModelSerializer):
@@ -19,6 +39,10 @@ class ClassroomSerializer(serializers.ModelSerializer):
     academic_year_name = serializers.SerializerMethodField()
     subject_name = serializers.SerializerMethodField()
     subject_code = serializers.SerializerMethodField()
+    academic_year = LaxAcademicYearField(
+        queryset=AcademicYear.objects.all(),
+        required=False, allow_null=True,
+    )
 
     class Meta:
         model = Classroom
@@ -28,7 +52,6 @@ class ClassroomSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
         extra_kwargs = {
             'teacher': {'required': False, 'allow_null': True},
-            'academic_year': {'required': False, 'allow_null': True},
         }
 
     def get_teacher_name(self, obj): return full_name(obj.teacher) if obj.teacher else 'No Adviser'

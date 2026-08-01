@@ -28,7 +28,7 @@ from .events import SchoolEventSerializer, WebsiteContentSerializer
 from .assignments import AssignmentSerializer, SubmissionSerializer
 from .grades import GradeSerializer, GradeReportSerializer
 from .chat import (
-    MessageReactionSerializer, ChatMessageSerializer, ChatRoomSerializer,
+    MessageReactionSerializer, ChatMemberSerializer, ChatMessageSerializer, ChatRoomSerializer,
     ReportedMessageSerializer,
     UserBlockSerializer, EmergencyMessageSerializer,
 )
@@ -89,7 +89,7 @@ __all__ = [
     'SchoolEventSerializer', 'WebsiteContentSerializer',
     'AssignmentSerializer', 'SubmissionSerializer',
     'GradeSerializer', 'GradeReportSerializer',
-    'MessageReactionSerializer', 'ChatMessageSerializer', 'ChatRoomSerializer',
+    'MessageReactionSerializer', 'ChatMemberSerializer', 'ChatMessageSerializer', 'ChatRoomSerializer',
     'ReportedMessageSerializer',
     'UserBlockSerializer', 'EmergencyMessageSerializer',
     'ScheduleSerializer', 'RoomSerializer',

@@ -45,7 +45,22 @@ class ClassroomViewSet(viewsets.ModelViewSet):
             qs = Classroom.objects.select_related('teacher', 'academic_year').prefetch_related('enrollments', 'classroom_subjects__subject')
 
             if academic_year:
-                qs = qs.filter(Q(academic_year__name=academic_year) | Q(academic_year__isnull=True))
+                from ..models import AcademicYear
+                # Resolve the academic year by name or ID
+                ay = None
+                try:
+                    ay = AcademicYear.objects.get(name=academic_year)
+                except AcademicYear.DoesNotExist:
+                    try:
+                        ay = AcademicYear.objects.get(pk=int(academic_year))
+                    except (AcademicYear.DoesNotExist, ValueError, TypeError):
+                        pass
+                if ay:
+                    # Auto-assign orphan classrooms to this academic year
+                    Classroom.objects.filter(academic_year__isnull=True).update(academic_year=ay)
+                    qs = qs.filter(academic_year=ay)
+                else:
+                    qs = qs.filter(Q(academic_year__name=academic_year) | Q(academic_year__isnull=True))
 
             if user.role == 'admin':
                 return qs
@@ -256,7 +271,7 @@ class ClassroomViewSet(viewsets.ModelViewSet):
             )
 
         try:
-            from portal.models import AcademicYear
+            from ..models import AcademicYear
             source_year = AcademicYear.objects.get(id=source_year_id)
             target_year = AcademicYear.objects.get(id=target_year_id)
         except AcademicYear.DoesNotExist:
@@ -1337,22 +1352,15 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         elif announcement.target_audience == 'teachers':
             users = users.filter(role='staff')
 
-        notifications_to_create = []
-
         for user in users:
             if user != self.request.user:
-                notifications_to_create.append(
-                    Notification(
-                        recipient=user,
-                        notification_type='announcement',
-                        title=f'New Announcement: {announcement.title}',
-                        message=announcement.content[:200] + '...' if len(announcement.content) > 200 else announcement.content,
-                        link='/announcements'
-                    )
+                Notification.objects.create(
+                    recipient=user,
+                    notification_type='announcement',
+                    title=f'New Announcement: {announcement.title}',
+                    message=announcement.content[:200] + '...' if len(announcement.content) > 200 else announcement.content,
+                    link='/announcements'
                 )
-
-        if notifications_to_create:
-            Notification.objects.bulk_create(notifications_to_create)
 
     @action(detail=True, methods=['post'], url_path='mark-read')
     def mark_read(self, request, pk=None):

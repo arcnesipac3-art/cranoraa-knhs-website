@@ -3,10 +3,12 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useNotifications } from '../context/NotificationContext';
+import { usePushNotificationContext } from '../context/PushNotificationContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getNotifConfig, formatNotifTime, TYPE_CONFIG } from '../utils/notificationConfig';
 import { LoadingSpinner, EmptyState } from '../components/ui';
+import { getMuted, toggleMute } from '../utils/sounds';
 
 // ── Notification type labels ─────────────────────────────────────────────────
 const TYPE_LABELS = {
@@ -49,7 +51,8 @@ const formatTime = formatNotifTime;
 const Notifications = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { setUnreadCount, unreadCount } = useNotifications();
+  const { setUnreadCount, unreadCount, realtimeConnected, isPolling } = useNotifications();
+  const { permission, requestPermission, isSupported } = usePushNotificationContext();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading]             = useState(true);
@@ -67,8 +70,16 @@ const Notifications = () => {
   const [prefs, setPrefs]                 = useState(null);
   const [prefsLoading, setPrefsLoading]   = useState(false);
   const [prefsSaving, setPrefsSaving]     = useState(false);
+  const [soundMuted, setSoundMuted]       = useState(() => getMuted());
 
   const PAGE_SIZE = 20;
+
+  // Update document title with unread count badge
+  useEffect(() => {
+    const base = 'Notifications';
+    document.title = unreadCount > 0 ? `(${unreadCount}) ${base} | KNHS` : `${base} | KNHS`;
+    return () => { document.title = 'KNHS Portal'; };
+  }, [unreadCount]);
 
   useEffect(() => { fetchNotifications(); }, [page, typeFilter, statusFilter]);
 
@@ -105,8 +116,23 @@ const Notifications = () => {
     }
   };
 
-  const togglePref = (key) => {
+  const togglePref = async (key) => {
     if (!prefs) return;
+    if (key === 'push_enabled' && !prefs[key]) {
+      if (!isSupported) {
+        toast.error('Push notifications are not supported in this browser');
+        return;
+      }
+      if (permission === 'denied') {
+        toast.error('Notification permission was denied. Please reset it in browser settings.');
+        return;
+      }
+      const result = await requestPermission();
+      if (result !== 'granted') {
+        toast.error('Notification permission denied');
+        return;
+      }
+    }
     savePreferences({ ...prefs, [key]: !prefs[key] });
   };
 
@@ -243,7 +269,15 @@ const Notifications = () => {
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Notifications</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Notifications</h1>
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-100">
+              <div className={`w-2 h-2 rounded-full ${realtimeConnected ? 'bg-green-500' : isPolling ? 'bg-amber-400 animate-pulse' : 'bg-red-400'}`} />
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                {realtimeConnected ? 'Live' : isPolling ? 'Polling' : 'Offline'}
+              </span>
+            </div>
+          </div>
           <p className="text-sm text-slate-500 mt-0.5">
             {totalCount > 0 ? `${totalCount} total` : 'Your activity feed'}
             {unreadCount > 0 && (
@@ -328,6 +362,22 @@ const Notifications = () => {
                       </div>
                     </button>
                   ))}
+                  <button
+                    onClick={() => {
+                      const nowMuted = toggleMute();
+                      setSoundMuted(nowMuted);
+                      toast(nowMuted ? 'Sounds muted' : 'Sounds enabled', { duration: 1500 });
+                    }}
+                    className={`flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${!soundMuted ? 'bg-violet-50 border-violet-200' : 'bg-slate-50 border-slate-200 opacity-60'}`}
+                  >
+                    <div className={`w-10 h-6 rounded-full flex items-center transition-all ${!soundMuted ? 'bg-violet-500 justify-end' : 'bg-slate-300 justify-start'}`}>
+                      <div className="w-5 h-5 bg-white rounded-full shadow-sm mx-0.5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">Notification Sounds</p>
+                      <p className="text-xs text-slate-500">{soundMuted ? 'Currently muted' : 'Play sounds on notification'}</p>
+                    </div>
+                  </button>
                 </div>
               </div>
 

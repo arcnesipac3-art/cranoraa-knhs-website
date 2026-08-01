@@ -3,46 +3,37 @@ import { Link } from 'react-router-dom';
 import { 
   BookOpen, Users, Calendar, FileText, MessageSquare, 
   BarChart2, Settings, UserCheck, GraduationCap, ClipboardList,
-  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard,
-  HelpCircle, FileCheck, Download, Stethoscope
+  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard, Download
 } from 'lucide-react';
 
 // Icon mapping
 const iconMap = {
   BookOpen, Users, Calendar, FileText, MessageSquare,
   BarChart2, Settings, UserCheck, GraduationCap, ClipboardList,
-  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard,
-  HelpCircle, FileCheck, Download, Stethoscope
+  Award, TrendingUp, Mail, Bell, Clock, Grid, Clipboard, Download
 };
 
 // Role-based quick access link configurations
 export const QUICK_ACCESS_CONFIGS = {
   student: [
     { label: 'My Classes', path: '/my-classes', icon: 'BookOpen', color: 'blue' },
-    { label: 'Quizzes', path: '/my-classes?view=quizzes', icon: 'HelpCircle', color: 'violet' },
     { label: 'Announcements', path: '/announcements', icon: 'Bell', color: 'amber' },
     { label: 'Schedule', path: '/my-schedule', icon: 'Calendar', color: 'green' },
     { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
     { label: 'Grades', path: '/my-classes?view=grades', icon: 'Award', color: 'violet' },
-    { label: 'Settings', path: '/settings', icon: 'Settings', color: 'indigo' },
-    { label: 'Download SF9', path: '/my-classes?view=grades', icon: 'Download', color: 'teal' },
-    { label: 'Certificates', path: '/my-classes?tab=records', icon: 'FileCheck', color: 'orange' },
   ],
   teacher: [
-    { label: 'My Classes',    path: '/my-classes',                          icon: 'BookOpen',      color: 'violet' },
-    { label: 'Quiz Management', path: '/my-classes?view=quizzes',           icon: 'HelpCircle',    color: 'blue' },
-    { label: 'Lesson Plans',  path: '/my-classes?view=lesson-plans',        icon: 'FileText',      color: 'emerald' },
-    { label: 'Grade Analytics', path: '/my-classes?view=analytics',         icon: 'BarChart2',     color: 'rose' },
-    { label: 'Grades',        path: '/my-classes?view=grades',              icon: 'Award',         color: 'amber' },
-    { label: 'Schedule',      path: '/my-schedule',                          icon: 'Clock',         color: 'green' },
-    { label: 'Announcements', path: '/announcements',                        icon: 'Bell',          color: 'pink' },
+    { label: 'My Classes',    path: '/my-classes',          icon: 'BookOpen',      color: 'violet' },
+    { label: 'Schedule',      path: '/my-schedule',          icon: 'Clock',         color: 'green' },
+    { label: 'Announcements', path: '/announcements',        icon: 'Bell',          color: 'amber' },
+    { label: 'People',        path: '/people',               icon: 'Users',         color: 'indigo' },
+    { label: 'Communication', path: '/communication-center', icon: 'MessageSquare', color: 'rose' },
   ],
   parent: [
     { label: 'Dashboard',     path: '/parent-dashboard',     icon: 'Award',         color: 'violet' },
     { label: 'Announcements', path: '/announcements',        icon: 'Bell',          color: 'amber' },
     { label: 'Messages',      path: '/communication-center', icon: 'MessageSquare', color: 'blue' },
     { label: 'Calendar',      path: '/portal-calendar',      icon: 'Calendar',      color: 'rose' },
-    { label: 'Settings',      path: '/settings',             icon: 'Settings',      color: 'indigo' }
   ],
   admin: [
     { label: 'Analytics',        path: '/analytics',                    icon: 'TrendingUp',   color: 'violet' },
@@ -50,7 +41,6 @@ export const QUICK_ACCESS_CONFIGS = {
     { label: 'Enrollment',       path: '/enrollment?tab=applications',  icon: 'GraduationCap',color: 'green' },
     { label: 'Classes',          path: '/classes',                      icon: 'Grid',         color: 'amber' },
     { label: 'System Settings',  path: '/settings',                     icon: 'Settings',     color: 'indigo' },
-    { label: 'Audit Logs',       path: '/system-admin?tab=audit-logs',  icon: 'ClipboardList',color: 'rose' }
   ]
 };
 
@@ -103,11 +93,6 @@ const QuickAccessLinks = ({ role, variant = 'grid', className = '' }) => {
               icon: 'text-white/90',
               label: 'text-white font-semibold',
             },
-            emerald: {
-              card: 'bg-gradient-to-br from-emerald-500 to-emerald-700 text-white hover:from-emerald-600 hover:to-emerald-800 shadow-emerald-200',
-              icon: 'text-white/90',
-              label: 'text-white font-semibold',
-            },
             amber: {
               card: 'bg-gradient-to-br from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 shadow-amber-200',
               icon: 'text-white/90',
@@ -123,33 +108,18 @@ const QuickAccessLinks = ({ role, variant = 'grid', className = '' }) => {
               icon: 'text-white/90',
               label: 'text-white font-semibold',
             },
-            teal: {
-              card: 'bg-gradient-to-br from-teal-500 to-teal-700 text-white hover:from-teal-600 hover:to-teal-800 shadow-teal-200',
-              icon: 'text-white/90',
-              label: 'text-white font-semibold',
-            },
-            orange: {
-              card: 'bg-gradient-to-br from-orange-500 to-orange-700 text-white hover:from-orange-600 hover:to-orange-800 shadow-orange-200',
-              icon: 'text-white/90',
-              label: 'text-white font-semibold',
-            },
-            cyan: {
-              card: 'bg-gradient-to-br from-cyan-500 to-cyan-700 text-white hover:from-cyan-600 hover:to-cyan-800 shadow-cyan-200',
-              icon: 'text-white/90',
-              label: 'text-white font-semibold',
-            },
-            pink: {
-              card: 'bg-gradient-to-br from-pink-500 to-pink-700 text-white hover:from-pink-600 hover:to-pink-800 shadow-pink-200',
-              icon: 'text-white/90',
-              label: 'text-white font-semibold',
-            },
           };
           const theme = colorClasses[link.color] || colorClasses.violet;
 
+          const linkProps = link.external
+            ? { href: link.href, target: '_blank', rel: 'noopener noreferrer' }
+            : { to: link.path };
+          const Component = link.external ? 'a' : Link;
+
           return (
-            <Link
+            <Component
               key={index}
-              to={link.path}
+              {...linkProps}
               className={`
                 flex items-center gap-1.5 p-2 rounded-lg transition-all duration-200 shadow-sm
                 ${theme.card}
@@ -162,7 +132,7 @@ const QuickAccessLinks = ({ role, variant = 'grid', className = '' }) => {
               <span className={`text-[11px] leading-tight ${theme.label} truncate`}>
                 {link.label}
               </span>
-            </Link>
+            </Component>
           );
         })}
       </div>

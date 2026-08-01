@@ -6,11 +6,24 @@ import './styles/accessibility.css'
 import { Toaster } from 'react-hot-toast'
 import Swal from 'sweetalert2'
 import OfflineBanner from './components/OfflineBanner.jsx'
+import InstallBanner from './components/InstallBanner.jsx'
+import UpdateSnackbar from './components/UpdateSnackbar.jsx'
+import { ServiceProviderUpdate } from './hooks/useServiceWorkerUpdate.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
+import { PushNotificationProvider } from './context/PushNotificationContext.jsx'
 import { getModalZ } from './components/ui/Modal.jsx'
 import { Buffer } from 'buffer'
+import { initOfflineDb } from './utils/offlineDb'
+import { initSyncEngine, processSyncQueue } from './utils/syncEngine'
 
 // Polyfill Buffer for xlsx-populate in browser
 window.Buffer = Buffer;
+
+// ── Initialize IndexedDB + Sync Engine ───────────────────────────────────────
+initOfflineDb().catch(() => {
+  // IndexedDB not available — app will work without offline caching
+});
+initSyncEngine();
 
 const baseSwalOptions = {
   customClass: {
@@ -80,10 +93,15 @@ Swal.fire = (...args) => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    {/* Global overlays — outside App so they always render */}
-    <OfflineBanner />
-    <App />
-    <Toaster
+    <ErrorBoundary>
+    <ServiceProviderUpdate>
+      <PushNotificationProvider>
+        {/* Global overlays — outside App so they always render */}
+        <OfflineBanner />
+        <InstallBanner />
+        <UpdateSnackbar />
+        <App />
+        <Toaster
       position="top-right"
       toastOptions={{
         duration: 4000,
@@ -103,5 +121,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         },
       }}
     />
+      </PushNotificationProvider>
+    </ServiceProviderUpdate>
+    </ErrorBoundary>
   </React.StrictMode>,
 )

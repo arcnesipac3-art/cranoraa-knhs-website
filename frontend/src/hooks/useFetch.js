@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import api from '../utils/api';
 
 /**
@@ -15,6 +15,9 @@ export function useFetch(url, options = {}) {
   const [loading, setLoading] = useState(immediate);
   const [error, setError] = useState(null);
   const cancelledRef = useRef(false);
+  // Memoize params to avoid re-creating fetchData on every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const paramsKey = useMemo(() => JSON.stringify(params), [JSON.stringify(params)]);
 
   const fetchData = useCallback(async () => {
     if (!url) return;
@@ -31,7 +34,7 @@ export function useFetch(url, options = {}) {
     } finally {
       if (!cancelledRef.current) setLoading(false);
     }
-  }, [url, JSON.stringify(params), ...deps]);
+  }, [url, paramsKey, ...deps]);
 
   useEffect(() => {
     if (immediate) fetchData();
@@ -57,6 +60,9 @@ export function useParallelFetch(endpoints, options = {}) {
   const [loading, setLoading] = useState(immediate);
   const [error, setError] = useState(null);
   const cancelledRef = useRef(false);
+  // Memoize endpoints key to avoid re-creating fetchAll on every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const endpointsKey = useMemo(() => JSON.stringify(endpoints), [JSON.stringify(endpoints)]);
 
   const fetchAll = useCallback(async () => {
     cancelledRef.current = false;
@@ -82,7 +88,7 @@ export function useParallelFetch(endpoints, options = {}) {
     } finally {
       if (!cancelledRef.current) setLoading(false);
     }
-  }, [JSON.stringify(endpoints), ...deps]);
+  }, [endpointsKey, ...deps]);
 
   useEffect(() => {
     if (immediate) fetchAll();

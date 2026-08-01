@@ -4,6 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { motion } from 'framer-motion';
 import api from '../../utils/api';
+import apiCache from '../../utils/apiCache';
+import { useOfflineMode } from '../../hooks/useBackendStatus';
 import {
   Card, CardHeader, CardBody, CardTitle,
   Button, Badge, EmptyState, Skeleton,
@@ -62,6 +64,8 @@ const TeacherDashboard = () => {
   const [classGrades, setClassGrades] = useState({});
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState(null);
+  const [usingCache, setUsingCache]   = useState(false);
+  const { isOfflineMode } = useOfflineMode();
 
   const classroomSubjectCodes = useMemo(() => {
     const map = {};
@@ -79,6 +83,26 @@ const TeacherDashboard = () => {
     setLoading(true);
     setError(null);
     const today = getLocalDateStr();
+    const cacheKey = (url) => `${url}?_date=${today}`;
+
+    // 1. Load from cache immediately
+    const cachedData = {
+      stats: apiCache.get(cacheKey('/teacher/stats/')),
+      classrooms: apiCache.get('/classrooms/'),
+      subjects: apiCache.get(cacheKey(`/classroom-subjects/by_teacher/?teacher_id=${user?.id}`)),
+      attendance: apiCache.get(cacheKey(`/attendance/?date=${today}`)),
+    };
+
+    const hasCache = Object.values(cachedData).some(Boolean);
+    if (hasCache) {
+      if (cachedData.stats) setData(cachedData.stats);
+      if (cachedData.classrooms) setClassrooms(cachedData.classrooms);
+      if (cachedData.subjects) setSubjects(cachedData.subjects);
+      setUsingCache(true);
+      setLoading(false);
+    }
+
+    // 2. Fetch from network
     try {
       const [statsRes, clsRes, subjectsRes, attRes] = await Promise.all([
         api.get('/teacher/stats/'),
@@ -120,9 +144,18 @@ const TeacherDashboard = () => {
         // Fallback: if batch endpoint not supported, skip — don't do N+1
         setClassGrades(gMap);
       }
+
+      // 3. Update cache
+      apiCache.set(cacheKey('/teacher/stats/'), statsRes.data, 60 * 60 * 1000);
+      apiCache.set('/classrooms/', clsRes.data, 60 * 60 * 1000);
+      apiCache.set(cacheKey(`/classroom-subjects/by_teacher/?teacher_id=${user?.id}`), subjectsRes.data, 60 * 60 * 1000);
+      apiCache.set(cacheKey(`/attendance/?date=${today}`), attRes.data, 60 * 60 * 1000);
+      setUsingCache(false);
     } catch (err) {
       console.error('Teacher dashboard load failed:', err);
-      setError('Failed to load dashboard data. Please refresh.');
+      // Only show error if no cached data was loaded
+      const hasAnyCache = cachedData.stats || cachedData.classrooms || cachedData.subjects;
+      if (!hasAnyCache) setError('Failed to load dashboard data. Please refresh.');
     } finally {
       setLoading(false);
     }

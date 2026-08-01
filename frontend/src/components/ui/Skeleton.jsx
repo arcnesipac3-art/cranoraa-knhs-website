@@ -156,4 +156,5 @@ Skeleton.QuickTile = ({ className }) => (
   </div>
 );
 
+export { Skeleton };
 export default Skeleton;

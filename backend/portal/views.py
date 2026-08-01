@@ -3,8 +3,8 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from accounts.models import User, ClassroomSubject, StudentClassEnrollment, Grade, SystemSetting, AuditLog
-from .models import Announcement, SchoolClass, Department, AcademicYear, Semester, DatabaseBackup
+from accounts.models import User, ClassroomSubject, StudentClassEnrollment, Grade, SystemSetting, AuditLog, AcademicYear, Semester
+from .models import Announcement, SchoolClass, Department, DatabaseBackup
 from .serializers import (
     AnnouncementSerializer,
     SchoolClassSerializer, DepartmentSerializer, AcademicYearSerializer, SemesterSerializer,
@@ -16,46 +16,6 @@ import datetime
 import logging
 
 logger = logging.getLogger(__name__)
-
-def log_audit_action(user, action, model_name, object_id=None, object_repr='', description='', request=None):
-    """Helper function to log audit actions"""
-    ip_address = None
-    user_agent = ''
-
-    if request:
-        ip_address = get_client_ip(request)
-        user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
-
-    # Safely coerce object_id to int — AuditLog.object_id is PositiveIntegerField
-    safe_object_id = None
-    if object_id is not None:
-        try:
-            safe_object_id = int(object_id)
-        except (TypeError, ValueError):
-            safe_object_id = None
-
-    try:
-        AuditLog.objects.create(
-            user=user,
-            action=action,
-            model_name=model_name,
-            object_id=safe_object_id,
-            object_repr=str(object_repr)[:255],
-            description=str(description)[:1000],
-            ip_address=ip_address,
-            user_agent=user_agent
-        )
-    except Exception as e:
-        logger.error(f"Failed to write audit log: {e}")
-
-def get_client_ip(request):
-    """Helper function to get client IP address"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
 
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
@@ -151,18 +111,45 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
             return AcademicYear.objects.all()
         return AcademicYear.objects.filter(is_active=True)
 
+    def perform_create(self, serializer):
+        year = serializer.save()
+        if year.is_active:
+            # Deactivate all other years
+            AcademicYear.objects.filter(is_active=True).exclude(pk=year.pk).update(is_active=False)
+            # Sync SystemSetting
+            sys_settings = SystemSetting.get_settings()
+            sys_settings.academic_year = year.name
+            sys_settings.save(update_fields=['academic_year'])
+
+    def perform_update(self, serializer):
+        year = serializer.save()
+        if year.is_active:
+            AcademicYear.objects.filter(is_active=True).exclude(pk=year.pk).update(is_active=False)
+            sys_settings = SystemSetting.get_settings()
+            sys_settings.academic_year = year.name
+            sys_settings.save(update_fields=['academic_year'])
+
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
         if request.user.role != 'admin':
             return Response({'error': 'Unauthorized'}, status=403)
         year = self.get_object()
+        # Deactivate all other years first
+        AcademicYear.objects.filter(is_active=True).exclude(pk=year.pk).update(is_active=False)
         year.is_active = True
         year.save()
         # Sync SystemSetting.academic_year so all pages see the active year
         sys_settings = SystemSetting.get_settings()
         sys_settings.academic_year = year.name
         sys_settings.save(update_fields=['academic_year'])
-        return Response({'status': f'Academic Year {year.name} activated'})
+        # Auto-assign orphan classrooms (no academic year) to this year
+        Classroom = year.classrooms.model
+        orphaned = Classroom.objects.filter(academic_year__isnull=True)
+        count = orphaned.update(academic_year=year)
+        return Response({
+            'status': f'Academic Year {year.name} activated',
+            'synced_classrooms': count,
+        })
 
     @action(detail=False, methods=['get'])
     def active(self, request):

@@ -153,6 +153,13 @@ class Profile(models.Model):
         ('Dr.', 'Dr.'),
         ('Prof.', 'Prof.'),
     ]
+    ENROLLMENT_STATUS_CHOICES = [
+        ('enrolled', 'Enrolled'),
+        ('withdrawn', 'Withdrawn'),
+        ('transferred', 'Transferred Out'),
+        ('dropped', 'Dropped'),
+        ('graduated', 'Graduated'),
+    ]
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     lrn = models.CharField(max_length=12, blank=True, null=True, db_index=True, help_text="Learner Reference Number (12 digits)")
     title = models.CharField(max_length=10, choices=TITLE_CHOICES, blank=True, null=True, help_text="Honorific title for teachers")
@@ -190,6 +197,9 @@ class Profile(models.Model):
         ('inactive', 'Inactive'),
     ], db_index=True)
     graduation_date = models.DateField(null=True, blank=True)
+
+    enrollment_status = models.CharField(max_length=20, choices=ENROLLMENT_STATUS_CHOICES, default='enrolled', blank=True, null=True)
+    enrollment_status_reason = models.TextField(blank=True, null=True, help_text="Reason for status change (e.g. transfer out)")
 
     mute_until = models.DateTimeField(null=True, blank=True)
     is_suspended = models.BooleanField(default=False)

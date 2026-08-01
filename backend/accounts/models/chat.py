@@ -4,17 +4,44 @@ from .user import User
 
 
 class ChatRoom(models.Model):
+    GROUP_TYPE_CHOICES = [
+        ('manual', 'Manual'),
+        ('system', 'System'),
+    ]
+    SOURCE_TYPE_CHOICES = [
+        ('classroom', 'Classroom'),
+        ('subject', 'Subject'),
+        ('department', 'Department'),
+        ('faculty', 'Faculty'),
+    ]
+
     name = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    avatar = models.URLField(max_length=1000, blank=True, null=True)
     is_group = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False)
+    group_type = models.CharField(max_length=10, choices=GROUP_TYPE_CHOICES, default='manual')
+    source_type = models.CharField(max_length=20, choices=SOURCE_TYPE_CHOICES, blank=True, null=True)
+    source_id = models.PositiveIntegerField(blank=True, null=True, help_text='ID of the source object (Classroom, Subject, Department)')
     participants = models.ManyToManyField(User, related_name='chat_rooms')
     pinned_by = models.ManyToManyField(User, related_name='pinned_rooms', blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_rooms')
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='owned_chat_rooms')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     last_action_type = models.CharField(max_length=20, default='message')
     last_action_sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='last_actions')
     last_action_content = models.TextField(blank=True, null=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['source_type', 'source_id'],
+                condition=models.Q(source_type__isnull=False, source_id__isnull=False),
+                name='unique_source_room',
+            ),
+        ]
 
     def __str__(self):
         if self.is_group:
@@ -63,6 +90,39 @@ class MessageReaction(models.Model):
 
     def __str__(self):
         return f"{self.user.username} reacted {self.emoji} to message {self.message.id}"
+
+
+class ChatMember(models.Model):
+    ROLE_CHOICES = [
+        ('owner', 'Owner'),
+        ('admin', 'Admin'),
+        ('member', 'Member'),
+    ]
+    chat_room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='chat_members')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_memberships')
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
+    nickname = models.CharField(max_length=100, blank=True, null=True)
+    muted = models.BooleanField(default=False)
+    last_read_message = models.ForeignKey(
+        ChatMessage, on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('chat_room', 'user')
+        ordering = ['joined_at']
+
+    def __str__(self):
+        return f"{self.user.username} in {self.chat_room} ({self.role})"
+
+
+class Mention(models.Model):
+    message = models.ForeignKey(ChatMessage, on_delete=models.CASCADE, related_name='mentions')
+    mentioned_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_mentions')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('message', 'mentioned_user')
 
 
 class ReportedMessage(models.Model):

@@ -90,4 +90,5 @@ export const SkeletonCard = ({ className = '' }) => {
   );
 };
 
+export { LoadingSpinner };
 export default LoadingSpinner;

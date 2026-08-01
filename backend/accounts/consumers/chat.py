@@ -5,7 +5,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from ..models import ChatRoom, ChatMessage, MessageReaction, Notification
+from ..models import ChatRoom, ChatMessage, MessageReaction, Mention
 from ..serializers import ChatMessageSerializer
 from ..utils import check_user_moderation
 from .base import (
@@ -358,6 +358,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, room_id, sender_id, message, parent_id=None):
+        import re
         room = ChatRoom.objects.filter(id=room_id, participants__id=sender_id).first()
         if not room:
             return None
@@ -376,48 +377,33 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         msg = ChatMessage.objects.create(room=room, sender=sender, content=message, parent_message=parent)
 
+        # Parse @mentions and create Mention objects
+        mention_pattern = re.compile(r'@(\w+)')
+        mentioned_usernames = mention_pattern.findall(message)
+        if mentioned_usernames:
+            mentioned_users = User.objects.filter(
+                username__in=mentioned_usernames,
+                id__in=room.participants.values_list('id', flat=True)
+            )
+            for mu in mentioned_users:
+                Mention.objects.create(message=msg, mentioned_user=mu)
+
         import datetime
         from django.utils import timezone as tz
-        five_mins_ago = tz.now() - datetime.timedelta(minutes=5)
         sender_name = sender.get_full_name() or sender.username
         room_label = room.name if room.is_group else sender_name
         preview = message[:80] + ('…' if len(message) > 80 else '')
 
-        offline_participants = room.participants.exclude(id=sender_id).filter(
-            last_activity__lt=five_mins_ago
-        )
-        notif_list = [
-            Notification(
+        # Consolidated notifications: same sender → same recipient gets one
+        # notification that updates its count instead of creating a new one.
+        from ..models.notifications import consolidate_message_notification
+        for participant in room.participants.exclude(id=sender_id):
+            consolidate_message_notification(
                 recipient=participant,
-                notification_type='message',
-                title=f'New message from {sender_name}',
-                message=f'{room_label}: {preview}',
-                link='/communication-center',
+                sender=sender,
+                room_label=room_label,
+                preview=preview,
             )
-            for participant in offline_participants
-        ]
-        if notif_list:
-            Notification.objects.bulk_create(notif_list)
-            # Bulk signal: single group_send per recipient instead of N signal fires
-            from channels.layers import get_channel_layer
-            from asgiref.sync import async_to_sync
-            channel_layer = get_channel_layer()
-            for notif in notif_list:
-                async_to_sync(channel_layer.group_send)(
-                    f'notifications_{notif.recipient_id}',
-                    {
-                        'type': 'notification_message',
-                        'data': {
-                            'type': 'notification',
-                            'id': notif.id,
-                            'title': notif.title,
-                            'message': notif.message,
-                            'notification_type': notif.notification_type,
-                            'link': notif.link,
-                            'created_at': notif.created_at.isoformat(),
-                        }
-                    }
-                )
 
         return msg
 

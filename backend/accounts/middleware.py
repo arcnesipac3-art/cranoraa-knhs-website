@@ -82,6 +82,12 @@ class ContentSecurityPolicyMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         from django.conf import settings
 
+        # CSP headers belong on HTML documents, not API responses.
+        # Sending them on /api/ endpoints adds unnecessary overhead and can
+        # interfere with cross-origin fetch in some browsers.
+        if request.path.startswith('/api/'):
+            return response
+
         directives = {
             'default-src': getattr(settings, 'CSP_DEFAULT_SRC', ("'self'",)),
             'script-src':  getattr(settings, 'CSP_SCRIPT_SRC',  ("'self'",)),

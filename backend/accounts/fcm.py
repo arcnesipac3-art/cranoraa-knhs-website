@@ -73,8 +73,8 @@ def _send_to_token(access_token: str, project_id: str, fcm_token: str,
                 'notification': {
                     'title': title,
                     'body': body,
-                    'icon': '/icon-192.png',
-                    'badge': '/badge-72.png',
+                    'icon': '/icons/school-logo-source.png',
+                    'badge': '/icons/school-logo-source.png',
                     'requireInteraction': False,
                 },
                 'fcm_options': {

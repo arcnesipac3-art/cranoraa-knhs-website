@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { getAccessToken, updateTokens, clearSession } from './session';
+import { putItems } from './offlineDb';
+import { queueMutation } from './syncEngine';
 
-const RAW_API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const RAW_API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000/api' : 'https://cranoraa-knhs-website-1.onrender.com/api');
 
 if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
   console.error('[FATAL] VITE_API_URL is not set. The app cannot reach the backend.');
@@ -162,7 +164,10 @@ api.interceptors.response.use(
     // Never retry the refresh endpoint itself — avoids infinite loops
     // Never retry /login/ — a 401 there means wrong credentials, not expired token
     if (original.url?.includes('/token/refresh/') || original.url?.includes('/login/')) {
-      if (original.url?.includes('/token/refresh/')) clearSession();
+      // Only clear session on 401 (invalid/expired refresh token), not on transient errors like 500/timeout
+      if (original.url?.includes('/token/refresh/') && error.response?.status === 401) {
+        clearSession();
+      }
       return Promise.reject(error);
     }
 
@@ -207,4 +212,127 @@ api.interceptors.response.use(
   }
 );
 
+export { api };
 export default api;
+
+// ── URL-to-IndexedDB Store Mapping ────────────────────────────────────────────
+// Maps API URL patterns to IndexedDB store names for automatic caching.
+// Only GET responses for these stores are written to IndexedDB.
+const STORE_MAP = [
+  { pattern: '/announcements',   store: 'announcements' },
+  { pattern: '/profile',         store: 'profile' },
+  { pattern: '/student/profile', store: 'profile' },
+  { pattern: '/subjects',        store: 'subjects' },
+  { pattern: '/grades',          store: 'grades' },
+  { pattern: '/attendance',      store: 'attendance' },
+  { pattern: '/materials',       store: 'materials' },
+  { pattern: '/student/calendar',store: 'calendar' },
+  { pattern: '/school-events',   store: 'calendar' },
+];
+
+function resolveStore(url) {
+  if (!url) return null;
+  for (const { pattern, store } of STORE_MAP) {
+    if (url.includes(pattern)) return store;
+  }
+  return null;
+}
+
+// ── Backend Reachability Tracking ─────────────────────────────────────────────
+// Tracks consecutive API failures to detect when the backend is unreachable.
+// Dispatches custom events consumed by useBackendStatus hook.
+const BACKEND_FAILURE_THRESHOLD = 3;
+let consecutiveBackendFailures = 0;
+
+api.interceptors.response.use(
+  (response) => {
+    // Backend is reachable — reset failure counter
+    if (consecutiveBackendFailures > 0) {
+      consecutiveBackendFailures = 0;
+      window.dispatchEvent(
+        new CustomEvent('backend:reachable', {
+          detail: { timestamp: Date.now() },
+        })
+      );
+    }
+
+    // Cache successful GET responses in IndexedDB (for the 7 target stores)
+    if (
+      response.config.method === 'get' &&
+      response.status === 200 &&
+      !response.config.url?.includes('/token/') &&
+      !response.config.url?.includes('/login') &&
+      !response.config.url?.includes('/logout') &&
+      !response.config.url?.includes('/password')
+    ) {
+      const storeName = resolveStore(response.config.url);
+      if (storeName) {
+        try {
+          const data = response.data;
+          // Normalize to array for IndexedDB storage
+          const items = Array.isArray(data)
+            ? data
+            : data?.results || [data].filter(Boolean);
+          if (items.length > 0) {
+            putItems(storeName, items).catch(() => {});
+          }
+        } catch {
+          // Non-critical — data is still available in memory
+        }
+      }
+    }
+
+    return response;
+  },
+  (error) => {
+    // Track consecutive backend failures
+    if (!error.response || error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK') {
+      consecutiveBackendFailures++;
+      if (consecutiveBackendFailures >= BACKEND_FAILURE_THRESHOLD) {
+        window.dispatchEvent(
+          new CustomEvent('backend:unreachable', {
+            detail: {
+              failureCount: consecutiveBackendFailures,
+              timestamp: Date.now(),
+            },
+          })
+        );
+      }
+    }
+
+    // Queue failed mutations for background sync
+    if (
+      error.config &&
+      !error.config.url?.includes('/token/') &&
+      !error.config.url?.includes('/login') &&
+      !error.config.url?.includes('/logout') &&
+      ['post', 'put', 'patch', 'delete'].includes(error.config.method)
+    ) {
+      const isNetworkError = !error.response || error.code === 'ERR_NETWORK';
+      if (isNetworkError) {
+        try {
+          const storeName = resolveStore(error.config.url);
+          let body = null;
+          if (error.config.data) {
+            body = typeof error.config.data === 'string'
+              ? JSON.parse(error.config.data)
+              : error.config.data;
+          }
+          queueMutation({
+            storeName: storeName || 'unknown',
+            url: error.config.url?.startsWith('http')
+              ? error.config.url
+              : `${API_BASE_URL}${error.config.url}`,
+            method: error.config.method,
+            body,
+            headers: error.config.headers,
+          });
+        } catch {
+          // Non-critical — mutation won't be queued but app continues
+        }
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);

@@ -91,7 +91,7 @@ def _broadcast_new_chat_message(message, serialized_data, sender):
     """Broadcast a new chat message to room WebSocket groups and offline notifications."""
     from channels.layers import get_channel_layer
     from asgiref.sync import async_to_sync
-    from ..models import Notification, ChatMessage
+    from ..models import ChatMessage
     from ..serializers import full_name
 
     channel_layer = get_channel_layer()
@@ -104,43 +104,20 @@ def _broadcast_new_chat_message(message, serialized_data, sender):
         'message_data': serialized_data,
     })
 
-    # Batch-create offline notifications to avoid N individual signal fires.
-    five_mins_ago = timezone.now() - datetime.timedelta(minutes=5)
+    # Consolidated notifications: same sender → same recipient gets one
+    # notification that updates its count instead of creating a new one.
     sender_name = full_name(sender)
     room = message.room
     room_label = room.name if room.is_group else sender_name
     preview_text = preview[:80] + ('…' if len(preview) > 80 else '')
-    offline_participants = room.participants.exclude(id=sender.id).filter(
-        last_activity__lt=five_mins_ago
-    ).only('id', 'last_activity')
-    notif_list = [
-        Notification(
+    from ..models.notifications import consolidate_message_notification
+    for participant in room.participants.exclude(id=sender.id):
+        consolidate_message_notification(
             recipient=participant,
-            notification_type='message',
-            title=f'New message from {sender_name}',
-            message=f'{room_label}: {preview_text}',
-            link='/communication-center',
+            sender=sender,
+            room_label=room_label,
+            preview=preview_text,
         )
-        for participant in offline_participants
-    ]
-    if notif_list:
-        Notification.objects.bulk_create(notif_list)
-        for notif in notif_list:
-            async_to_sync(channel_layer.group_send)(
-                f'notifications_{notif.recipient_id}',
-                {
-                    'type': 'notification_message',
-                    'data': {
-                        'type': 'notification',
-                        'id': notif.id,
-                        'title': notif.title,
-                        'message': notif.message,
-                        'notification_type': notif.notification_type,
-                        'link': notif.link,
-                        'created_at': notif.created_at.isoformat(),
-                    }
-                }
-            )
 
 
 def _get_time_ago(timestamp):

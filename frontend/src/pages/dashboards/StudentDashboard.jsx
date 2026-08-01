@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../../utils/api';
+import apiCache from '../../utils/apiCache';
 import { useAuth } from '../../context/AuthContext';
+import { useOfflineMode } from '../../hooks/useBackendStatus';
 import {
   Card, CardHeader, CardBody, CardTitle, Button, Badge,
   Skeleton, EmptyState,
@@ -68,6 +70,7 @@ const formatFeedTime = (dateStr) => {
 const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isOfflineMode, isStaleData } = useOfflineMode();
   const [grades, setGrades] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [stats, setStats] = useState(null);
@@ -76,8 +79,8 @@ const StudentDashboard = () => {
   const [schedule, setSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
   const [classrooms, setClassrooms] = useState([]);
-  // Messages fetched independently so the widget degrades gracefully
-  const [messages, setMessages] = useState(null); // null = still loading
+  const [messages, setMessages] = useState(null);
+  const [usingCache, setUsingCache] = useState(false);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -90,29 +93,57 @@ const StudentDashboard = () => {
   }, []);
 
   useEffect(() => {
-    Promise.all([
-      api.get('/grades/my_grades/').catch(() => ({ data: [] })),
-      api.get('/attendance/').catch(() => ({ data: [] })),
-      api.get('/student/dashboard/stats/').catch(() => ({ data: {} })),
-      api.get('/assignments/').catch(() => ({ data: [] })),
-      api.get('/announcements/').catch(() => ({ data: [] })),
-      api.get('/schedules/today/').catch(() => ({ data: [] })),
-      api.get('/classrooms/').catch(() => ({ data: [] })),
-    ]).then(([gradeRes, attRes, statsRes, assignRes, annRes, schedRes, classRes]) => {
-      setGrades(gradeRes.data);
-      setAttendance(attRes.data);
-      const s = statsRes.data;
-      setStats(s);
-      // Seed messages from stats if available so there's no flicker
-      if (s?.latest_messages?.length) setMessages(s.latest_messages);
-      setAssignments(Array.isArray(assignRes.data) ? assignRes.data : assignRes.data?.results || []);
-      setAnnouncements(Array.isArray(annRes.data) ? annRes.data : annRes.data?.results || []);
-      setSchedule(schedRes.data || []);
-      const cls = Array.isArray(classRes.data) ? classRes.data : classRes.data?.results || [];
-      setClassrooms(cls);
-    }).finally(() => setLoading(false));
+    const endpoints = [
+      { key: 'grades', url: '/grades/my_grades/' },
+      { key: 'attendance', url: '/attendance/' },
+      { key: 'stats', url: '/student/dashboard/stats/' },
+      { key: 'assignments', url: '/assignments/' },
+      { key: 'announcements', url: '/announcements/' },
+      { key: 'schedule', url: '/schedules/today/' },
+      { key: 'classrooms', url: '/classrooms/' },
+    ];
 
-    // Load messages in parallel — doesn't block the rest of the UI
+    // 1. Load from cache immediately
+    let hasCache = false;
+    const cached = {};
+    for (const { key, url } of endpoints) {
+      const c = apiCache.get(url);
+      if (c) { cached[key] = c; hasCache = true; }
+    }
+    if (hasCache) {
+      setGrades(cached.grades || []);
+      setAttendance(cached.attendance || []);
+      setStats(cached.stats || null);
+      setAssignments(cached.assignments || []);
+      setAnnouncements(cached.announcements || []);
+      setSchedule(cached.schedule || []);
+      setClassrooms(cached.classrooms || []);
+      setUsingCache(true);
+      setLoading(false);
+    }
+
+    // 2. Fetch from network
+    Promise.all(endpoints.map(({ url }) =>
+      api.get(url).catch(() => ({ data: url.includes('stats') ? {} : [] }))
+    )).then((results) => {
+      if (!results?.length) return;
+      setGrades(results[0]?.data || []);
+      setAttendance(results[1]?.data || []);
+      setStats(results[2]?.data || {});
+      if (results[2]?.data?.latest_messages?.length) setMessages(results[2].data.latest_messages);
+      setAssignments(Array.isArray(results[3]?.data) ? results[3].data : results[3]?.data?.results || []);
+      setAnnouncements(Array.isArray(results[4]?.data) ? results[4].data : results[4]?.data?.results || []);
+      setSchedule(results[5]?.data || []);
+      const cls = Array.isArray(results[6]?.data) ? results[6].data : results[6]?.data?.results || [];
+      setClassrooms(cls);
+      setUsingCache(false);
+
+      // 3. Update cache
+      endpoints.forEach(({ key, url }, i) => {
+        apiCache.set(url, results[i]?.data, 60 * 60 * 1000);
+      });
+    }).catch(() => {}).finally(() => setLoading(false));
+
     loadMessages();
   }, [loadMessages]);
 

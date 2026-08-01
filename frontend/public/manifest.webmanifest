@@ -1,0 +1,71 @@
+{
+  "name": "KNHS Portal",
+  "short_name": "KNHS",
+  "description": "Kiwalan National High School — student, teacher, and admin portal.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "lang": "en",
+  "dir": "ltr",
+  "id": "/",
+  "categories": ["education"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "KNHS Portal Dashboard"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "KNHS Portal"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "url": "/dashboard",
+      "description": "Go to your dashboard"
+    },
+    {
+      "name": "Announcements",
+      "short_name": "News",
+      "url": "/announcements",
+      "description": "View school announcements"
+    },
+    {
+      "name": "My Classes",
+      "short_name": "Classes",
+      "url": "/my-classes",
+      "description": "View your enrolled classes"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

@@ -93,7 +93,7 @@ function ScheduleGrid({ schedules }) {
               <tr key={i} className="hover:bg-slate-50/50">
                 <td className="px-3 py-2 text-slate-500 font-semibold whitespace-nowrap">
                   <div>{ts.start_time_display}</div>
-                  <div className="text-[9px] text-slate-400">— {ts.end_time_display}</div>
+                  <div className="text-[9px] text-slate-400">ï¿½ {ts.end_time_display}</div>
                 </td>
                 {DAYS.map(d => {
                   const key = `${d}_${ts.start_time}_${ts.end_time}`;
@@ -107,7 +107,7 @@ function ScheduleGrid({ schedules }) {
                           {sched.room_name && <div className="text-[9px] text-slate-400 truncate">{sched.room_name}</div>}
                         </div>
                       ) : (
-                        <span className="text-slate-300">—</span>
+                        <span className="text-slate-300">ï¿½</span>
                       )}
                     </td>
                   );
@@ -212,12 +212,12 @@ export default function ClassesHub() {
     if (!formData.grade_level) return toast.error('Grade level is required');
     setSaving(true);
     try {
-      await api.post('/classrooms/', { name: formData.name.trim(), grade_level: formData.grade_level, teacher: formData.teacher || null, academic_year: selectedYearId });
+      const payload = { name: formData.name.trim(), grade_level: formData.grade_level, teacher: formData.teacher || null }; if (selectedYearId) payload.academic_year = selectedYearId; await api.post('/classrooms/', payload);
       toast.success('Section created');
       setShowModal(false);
       setFormData({ name: '', grade_level: '', teacher: '' });
       refetch();
-    } catch (err) { toast.error(err.response?.data?.detail || 'Failed to create section'); }
+    } catch (err) { toast.error(err.response?.data?.detail || err.response?.data?.error || `${err.response?.status}: ${err.response?.statusText}` || 'Failed to create section'); console.error('createClass error', err.response?.data, err); }
     finally { setSaving(false); }
   };
 
@@ -295,7 +295,7 @@ export default function ClassesHub() {
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search sections…"
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search sectionsï¿½"
               className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -305,8 +305,9 @@ export default function ClassesHub() {
               Subjects
             </button>
             <button onClick={() => { setFormData({ name: '', grade_level: '', teacher: '' }); setEditingClass(null); setShowModal(true); }}
+              aria-label="Add new section"
               className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
               Add Section
             </button>
           </div>
@@ -360,7 +361,7 @@ export default function ClassesHub() {
                                 ) : (
                                   <span className="text-xs text-slate-400 italic">No adviser</span>
                                 )}
-                                <span className="text-slate-300 text-xs">·</span>
+                                <span className="text-slate-300 text-xs">ï¿½</span>
                                 <span className="text-xs text-slate-500">{cls.student_count ?? 0} students</span>
                               </div>
                             </div>
@@ -391,7 +392,7 @@ export default function ClassesHub() {
                             {subs.map(s => (
                               <span key={s.id} className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-violet-50 text-violet-700 border border-violet-200">
                                 <span className="font-mono">{s.subject_code}</span>
-                                <span className="text-violet-300">·</span>
+                                <span className="text-violet-300">ï¿½</span>
                                 <span>{s.teacher_name}</span>
                               </span>
                             ))}
@@ -434,11 +435,11 @@ export default function ClassesHub() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)} role="dialog" aria-modal="true" aria-label={editingClass ? 'Edit Section' : 'New Section'}>
           <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
             <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0" aria-hidden="true">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
@@ -448,7 +449,7 @@ export default function ClassesHub() {
                   <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Classroom Management</p>
                 </div>
               </div>
-              <button type="button" onClick={() => setShowModal(false)}
+              <button type="button" onClick={() => setShowModal(false)} aria-label="Close dialog"
                 className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
@@ -458,21 +459,21 @@ export default function ClassesHub() {
             <form onSubmit={editingClass ? handleUpdateClass : handleCreateClass}>
               <div className="px-6 py-4 space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Section Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Grade 7 - St. Michael" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required />
+                  <label htmlFor="section-name" className="block text-xs font-bold text-slate-700 mb-1">Section Name <span className="text-red-500" aria-hidden="true">*</span></label>
+                  <input id="section-name" type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Grade 7 - St. Michael" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required aria-required="true" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Grade Level <span className="text-red-500">*</span></label>
                     <select value={formData.grade_level} onChange={e => setFormData({ ...formData, grade_level: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required>
-                      <option value="">— Select —</option>
+                      <option value="">ï¿½ Select ï¿½</option>
                       {GRADE_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Adviser</label>
                     <select value={formData.teacher} onChange={e => setFormData({ ...formData, teacher: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
-                      <option value="">— None —</option>
+                      <option value="">ï¿½ None ï¿½</option>
                       {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
                     </select>
                   </div>

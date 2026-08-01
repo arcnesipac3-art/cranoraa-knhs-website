@@ -1,7 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .views.debug_reset import reset_admin_view
 from .views import (
     login_view, logout_view, cookie_token_refresh_view,
     admin_create_user_view, force_password_change_view, change_password_view, user_profile, student_profile,
@@ -15,27 +14,19 @@ from .views import (
     system_settings_view, maintenance_status_view,
     RoomViewSet, TimeSlotViewSet, ScheduleViewSet,
     parent_dashboard_view, parent_child_detail_view,
-    fcm_token_register, fcm_token_delete,
+    fcm_token_register, fcm_token_delete, test_push_notification,
     storage_analytics_view,
     notification_preferences_view,
     TicketViewSet, DepartmentContactViewSet,
     TranscriptViewSet, TransferCertificateViewSet, CharacterCertificateViewSet,
-    AchievementRecordViewSet, RecordRequestViewSet, StudentPromotionRecordViewSet,
+    AchievementRecordViewSet, RecordRequestViewSet,
     AbsenceExcuseViewSet, EnrollmentWaitlistViewSet,
     ParentTeacherMeetingViewSet, BehavioralRecordViewSet, SchoolEventViewSet,
     parent_report_card_pdf, parent_year_over_year,
     UserBlockViewSet, EmergencyMessageViewSet,
     DepartmentViewSet, StaffPerformanceViewSet,
     admin_attendance_analytics, admin_grade_analytics,
-    at_risk_students, teacher_class_analytics,
     data_retention_view, run_backup_view_enhanced,
-    SchoolForm1ViewSet,
-    SF2ViewSet,
-    SchoolForm5ViewSet,
-    SchoolForm9ViewSet,
-    SchoolForm10ViewSet,
-    QuestionBankViewSet, QuestionViewSet, QuizViewSet, QuizAttemptViewSet,
-    CurriculumStandardViewSet, LessonPlanViewSet, WeeklyPlanViewSet,
 )
 
 app_name = 'accounts'
@@ -71,7 +62,6 @@ router.register(r'v1/transfer-certificates', TransferCertificateViewSet, basenam
 router.register(r'v1/character-certificates', CharacterCertificateViewSet, basename='character-certificate')
 router.register(r'v1/achievement-records', AchievementRecordViewSet, basename='achievement-record')
 router.register(r'v1/record-requests', RecordRequestViewSet, basename='record-request')
-router.register(r'v1/promotion-records', StudentPromotionRecordViewSet, basename='promotion-record')
 router.register(r'v1/absence-excuses', AbsenceExcuseViewSet, basename='absence-excuse')
 router.register(r'v1/enrollment-waitlist', EnrollmentWaitlistViewSet, basename='enrollment-waitlist')
 router.register(r'v1/ptm-meetings', ParentTeacherMeetingViewSet, basename='ptm-meeting')
@@ -81,30 +71,12 @@ router.register(r'v1/user-blocks', UserBlockViewSet, basename='user-block')
 router.register(r'v1/emergency-messages', EmergencyMessageViewSet, basename='emergency-message')
 router.register(r'v1/departments', DepartmentViewSet, basename='department')
 router.register(r'v1/staff-performance', StaffPerformanceViewSet, basename='staff-performance')
-router.register(r'v1/sf1', SchoolForm1ViewSet, basename='sf1')
-router.register(r'v1/sf2', SF2ViewSet, basename='sf2')
-router.register(r'v1/sf5', SchoolForm5ViewSet, basename='sf5')
-router.register(r'v1/sf9', SchoolForm9ViewSet, basename='sf9')
-router.register(r'v1/sf10', SchoolForm10ViewSet, basename='sf10')
-
-# Quiz & Exam Module
-router.register(r'v1/question-banks', QuestionBankViewSet, basename='question-bank')
-router.register(r'v1/questions', QuestionViewSet, basename='question')
-router.register(r'v1/quizzes', QuizViewSet, basename='quiz')
-router.register(r'v1/quiz-attempts', QuizAttemptViewSet, basename='quiz-attempt')
-
-# Lesson Plans
-router.register(r'v1/curriculum-standards', CurriculumStandardViewSet, basename='curriculum-standard')
-router.register(r'v1/lesson-plans', LessonPlanViewSet, basename='lesson-plan')
-router.register(r'v1/weekly-plans', WeeklyPlanViewSet, basename='weekly-plan')
 
 # NOTE: school_portal/urls.py mounts these under 'api/', so paths here should NOT include 'api/'.
 # Final URL = api/ + path below  e.g. api/v1/login/
 urlpatterns = [
     path('v1/login/', login_view, name='login'),
     path('v1/logout/', logout_view, name='logout'),
-    # SECURITY: Debug endpoint removed — use management commands for password resets
-    # path('v1/debug/reset-admin/', reset_admin_view, name='reset_admin'),
     path('v1/admin/create-user/', admin_create_user_view, name='admin_create_user'),
     path('v1/force-password-change/', force_password_change_view, name='force_password_change'),
     path('v1/auth/change-password/', change_password_view, name='change_password'),
@@ -137,12 +109,11 @@ urlpatterns = [
     path('v1/parent/child/<int:student_id>/year-over-year/', parent_year_over_year, name='parent_year_over_year'),
     path('v1/admin/attendance-analytics/', admin_attendance_analytics, name='admin_attendance_analytics'),
     path('v1/admin/grade-analytics/', admin_grade_analytics, name='admin_grade_analytics'),
-    path('v1/at-risk-students/', at_risk_students, name='at_risk_students'),
-    path('v1/teacher/class-analytics/', teacher_class_analytics, name='teacher_class_analytics'),
     path('v1/admin/data-retention/', data_retention_view, name='data_retention'),
     path('v1/admin/run-backup-enhanced/', run_backup_view_enhanced, name='run_backup_enhanced'),
     path('v1/fcm-tokens/', fcm_token_register, name='fcm_token_register'),
     path('v1/fcm-tokens/delete/', fcm_token_delete, name='fcm_token_delete'),
+    path('v1/test-push/', test_push_notification, name='test_push_notification'),
     path('v1/notification-preferences/', notification_preferences_view, name='notification_preferences'),
     path('', include(router.urls)),
 ]

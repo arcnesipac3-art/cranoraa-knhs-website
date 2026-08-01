@@ -168,108 +168,6 @@ const ImageCropModal = ({ isOpen, onClose, onCrop, imageSrc }) => {
   );
 };
 
-// ── Grading Settings Tab ─────────────────────────────────────────────────
-
-const GradingSettingsTab = () => {
-  const [settings, setSettings] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    api.get('/system/settings/')
-      .then(r => setSettings(r.data))
-      .catch(() => toast.error('Failed to load grading settings'))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading || !settings) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
-
-  const level = settings.academic_level;
-  const isBoth = level === 'both';
-  const currentQuarterNum = parseInt(settings.current_quarter) || 1;
-
-  return (
-    <div className="space-y-6">
-      <SectionCard title="Grading Configuration" subtitle="Current grading period structure (set in Academic Context)" icon="chart">
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Academic Level</p>
-              <p className="text-sm font-bold text-slate-800">{isBoth ? 'Both JHS & SHS (Grades 7-12)' : level === 'jhs' ? 'Junior High School (Grades 7-10)' : 'Senior High School (Grades 11-12)'}</p>
-            </div>
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Current Term</p>
-              <p className="text-sm font-bold text-slate-800">{`${currentQuarterNum}${currentQuarterNum === 1 ? 'st' : currentQuarterNum === 2 ? 'nd' : currentQuarterNum === 3 ? 'rd' : 'th'} Term`}</p>
-            </div>
-          </div>
-
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Grading Period Structure</p>
-            <div className="flex flex-wrap gap-2">
-              {['1st Term', '2nd Term', '3rd Term'].map((label, i) => (
-                <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                  (i + 1) === currentQuarterNum
-                    ? 'bg-violet-100 border-violet-300 text-violet-800'
-                    : 'bg-white border-slate-200 text-slate-600'
-                }`}>
-                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    (i + 1) === currentQuarterNum
-                      ? 'bg-violet-600 text-white'
-                      : 'bg-slate-200 text-slate-600'
-                  }`}>{i + 1}</span>
-                  <span className="text-xs font-bold">{label}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-[11px] text-slate-500 font-medium mt-3">
-              Both JHS and SHS use a term-based grading system with 3 grading periods per academic year.
-            </p>
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Grading Weights" subtitle="Default weights applied to all classroom-subjects" icon="chart">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
-            <p className="text-2xl font-extrabold text-violet-600">{settings.default_ww_weight || 30}%</p>
-            <p className="text-xs font-bold text-slate-600 mt-1">Written Work</p>
-          </div>
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
-            <p className="text-2xl font-extrabold text-violet-600">{settings.default_pt_weight || 50}%</p>
-            <p className="text-xs font-bold text-slate-600 mt-1">Performance Task</p>
-          </div>
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
-            <p className="text-2xl font-extrabold text-violet-600">{settings.default_qa_weight || 20}%</p>
-            <p className="text-xs font-bold text-slate-600 mt-1">Quarterly Assessment</p>
-          </div>
-        </div>
-      </SectionCard>
-
-      <SectionCard title="Passing Standard" subtitle="Minimum grade to pass" icon="shield">
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {[
-            { label: 'Outstanding', range: '90-100', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-            { label: 'Very Satisfactory', range: '85-89', bg: 'bg-blue-50', border: 'border-blue-200' },
-            { label: 'Satisfactory', range: '80-84', bg: 'bg-amber-50', border: 'border-amber-200' },
-            { label: 'Fairly Satisfactory', range: `${settings.passing_grade || 75}-79`, bg: 'bg-orange-50', border: 'border-orange-200' },
-            { label: 'Did Not Meet', range: `Below ${settings.passing_grade || 75}`, bg: 'bg-red-50', border: 'border-red-200' },
-          ].map(item => (
-            <div key={item.label} className={`${item.bg} ${item.border} rounded-lg p-2 text-center`}>
-              <p className="text-xs font-extrabold text-slate-900">{item.range}</p>
-              <p className="text-[10px] font-bold text-slate-600 mt-0.5">{item.label}</p>
-            </div>
-          ))}
-        </div>
-      </SectionCard>
-
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <p className="text-xs font-bold text-amber-800">
-          To change the academic level or current grading period, go to <span className="underline">Settings &gt; Academic Context</span>.
-        </p>
-      </div>
-    </div>
-  );
-};
-
 // ── Roles & Permissions Tab ──────────────────────────────────────────────
 
 const RolesPermissionsTab = () => {
@@ -765,7 +663,6 @@ import AcademicYearsTab from './settings/AcademicYearsTab';
 // ── Portal Settings Tab ─────────────────────────────────────────────────────
 
 const PortalSettingsTab = () => {
-  const { setAcademicYear } = useActiveAcademicYear();
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -782,9 +679,9 @@ const PortalSettingsTab = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const r = await api.patch('/system/settings/', settings);
+      const { academic_year, ...patchData } = settings;
+      const r = await api.patch('/system/settings/', patchData);
       setSettings(r.data);
-      setAcademicYear(settings.academic_year);
       toast.success('Portal settings saved');
     } catch { toast.error('Failed to save settings'); }
     finally { setSaving(false); }
@@ -814,19 +711,31 @@ const PortalSettingsTab = () => {
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
                 <option value="jhs">Junior High School (Grades 7-10)</option>
                 <option value="shs">Senior High School (Grades 11-12)</option>
-                <option value="both">Both JHS & SHS (Grades 7-12)</option>
+                <option value="both">Both (JHS + SHS)</option>
               </select>
             </Field>
-            <Field label="Current Quarter" hint="Used as default when entering grades">
+            <Field label={settings.academic_level === 'shs' ? 'Current Semester' : 'Current Term'} hint="Used as default when entering grades">
               <select value={settings.current_quarter} onChange={e => setSettings(p => ({...p, current_quarter: e.target.value}))}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
-                <option value="1">1st Term</option>
-                <option value="2">2nd Term</option>
-                <option value="3">3rd Term</option>
+                {settings.academic_level === 'shs' ? (
+                  <>
+                    <option value="1">1st Semester</option>
+                    <option value="2">2nd Semester</option>
+                    <option value="3">3rd Semester (Summer)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="1">1st Term</option>
+                    <option value="2">2nd Term</option>
+                    <option value="3">3rd Term</option>
+                  </>
+                )}
               </select>
             </Field>
-            <Field label="Default Academic Year" hint="Used in analytics when no year is selected">
-              <Input value={settings.academic_year} onChange={e => setSettings(p => ({...p, academic_year: e.target.value}))} placeholder="2026-2027" />
+            <Field label="Active Academic Year" hint="Automatically synced when you activate a year in Academic Years tab">
+              <div className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-bold text-slate-800">
+                {settings.academic_year || <span className="text-slate-400 italic font-normal">No year activated yet</span>}
+              </div>
             </Field>
           </div>
 
@@ -834,7 +743,10 @@ const PortalSettingsTab = () => {
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Grading Period Structure</p>
             <div className="flex flex-wrap gap-2">
-              {['1st Term', '2nd Term', '3rd Term'].map((label, i) => (
+              {(settings.academic_level === 'shs'
+                ? ['1st Semester', '2nd Semester', '3rd Semester (Summer)']
+                : ['1st Term', '2nd Term', '3rd Term']
+              ).map((label, i) => (
                 <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
                   String(i + 1) === settings.current_quarter 
                     ? 'bg-violet-100 border-violet-300 text-violet-800' 
@@ -850,7 +762,11 @@ const PortalSettingsTab = () => {
               ))}
             </div>
             <p className="text-[11px] text-slate-500 font-medium mt-3">
-              Both JHS and SHS use a term-based grading system with 3 grading periods per academic year.
+              {settings.academic_level === 'both'
+                ? 'Both JHS and SHS use a term-based grading system with 3 grading periods per academic year.'
+                : settings.academic_level === 'shs'
+                  ? 'Senior High School uses a semester-based grading system with 3 grading periods per academic year.'
+                  : 'Junior High School uses a term-based grading system with 3 grading periods per academic year.'}
             </p>
           </div>
         </div>
@@ -1417,7 +1333,6 @@ const NAV_SECTIONS = [
     items: [
       { id: 'school',   label: 'School Information' },
       { id: 'academic', label: 'Academic Years' },
-      { id: 'grading',  label: 'Grading Settings' },
     ],
   },
   {
@@ -1427,14 +1342,6 @@ const NAV_SECTIONS = [
       { id: 'roles',    label: 'Roles & Permissions' },
       { id: 'security', label: 'Security' },
       { id: 'profile',  label: 'My Profile' },
-    ],
-  },
-  {
-    label: 'Portal',
-    icon: 'globe',
-    items: [
-      { id: 'portal',   label: 'Portal Settings' },
-      { id: 'comm',     label: 'Communication Settings' },
     ],
   },
   {
@@ -1503,7 +1410,6 @@ const Settings = () => {
       case 'portal':      return <PortalSettingsTab />;
       case 'profile':     return <ProfileTab />;
       case 'security':    return <SecurityTab />;
-      case 'grading':     return <GradingSettingsTab />;
       case 'roles':       return <RolesPermissionsTab />;
       case 'comm':        return <CommunicationSettingsTab />;
       case 'backup':      return <BackupManagementTab />;

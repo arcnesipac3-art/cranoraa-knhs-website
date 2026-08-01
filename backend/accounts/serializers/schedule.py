@@ -16,11 +16,11 @@ class ScheduleSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source='subject.name', read_only=True)
     subject_code = serializers.CharField(source='subject.code', read_only=True)
     teacher_name = serializers.SerializerMethodField()
-    teacher_email = serializers.CharField(source='teacher.email', read_only=True)
-    room_name = serializers.CharField(source='room.name', read_only=True)
-    room_building = serializers.CharField(source='room.building', read_only=True)
+    teacher_email = serializers.SerializerMethodField()
+    room_name = serializers.SerializerMethodField()
+    room_building = serializers.SerializerMethodField()
     academic_year_name = serializers.CharField(source='academic_year.name', read_only=True)
-    semester_display = serializers.CharField(source='semester.get_semester_type_display', read_only=True)
+    semester_display = serializers.SerializerMethodField()
     from .attendance import TimeSlotSerializer
     time_slot_detail = TimeSlotSerializer(source='time_slot', read_only=True)
 
@@ -36,6 +36,18 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
     def get_teacher_name(self, obj):
         return full_name(obj.teacher)
+
+    def get_teacher_email(self, obj):
+        return obj.teacher.email if obj.teacher else None
+
+    def get_room_name(self, obj):
+        return obj.room.name if obj.room else None
+
+    def get_room_building(self, obj):
+        return obj.room.building if obj.room else None
+
+    def get_semester_display(self, obj):
+        return obj.semester.get_semester_type_display() if obj.semester else None
 
     def validate(self, data):
         time_slot = data.get('time_slot', getattr(self.instance, 'time_slot', None))

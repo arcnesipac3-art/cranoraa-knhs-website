@@ -38,3 +38,8 @@ export {
 } from './useAccessibility';
 
 export { useApiLoading } from './useApiLoading';
+
+// Offline data hooks (IndexedDB-backed)
+export { useOfflineQuery } from './useOfflineQuery';
+export { useOfflineFetch, useOfflineParallelFetch } from './useOfflineFetch';
+export { useSyncStatus } from './useSyncStatus';

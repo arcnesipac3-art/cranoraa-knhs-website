@@ -22,17 +22,22 @@ class Notification(models.Model):
     ]
 
     recipient = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='notifications')
+    sender = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='sent_notifications',
+                               help_text="Who triggered this notification (for message consolidation)")
     notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, default='system')
     title = models.CharField(max_length=200)
     message = models.TextField()
     is_read = models.BooleanField(default=False, db_index=True)
     link = models.CharField(max_length=500, blank=True, null=True, help_text="Relative or absolute URL to redirect user when clicked")
+    message_count = models.PositiveIntegerField(default=1, help_text="Number of consolidated messages")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['recipient', 'is_read'], name='notif_recipient_read_idx'),
+            models.Index(fields=['recipient', 'sender', 'is_read', 'notification_type'], name='notif_consolidate_idx'),
         ]
 
     def __str__(self):
@@ -89,7 +94,7 @@ class FCMToken(models.Model):
 
 @receiver(post_save, sender=Notification)
 def broadcast_notification(sender, instance, created, **kwargs):
-    if not created:
+    if not instance.recipient:
         return
 
     prefs = getattr(instance.recipient, 'notification_preferences', None)
@@ -97,6 +102,7 @@ def broadcast_notification(sender, instance, created, **kwargs):
     if prefs and not prefs.is_type_enabled(notif_type):
         return
 
+    # WebSocket broadcast — fires for both new and updated (consolidated) notifications
     if not prefs or prefs.in_app_enabled:
         try:
             channel_layer = get_channel_layer()
@@ -118,14 +124,16 @@ def broadcast_notification(sender, instance, created, **kwargs):
                         'notification_type': instance.notification_type,
                         'link': instance.link,
                         'created_at': instance.created_at.isoformat(),
-                        'unread_count': unread_count
+                        'unread_count': unread_count,
+                        'message_count': instance.message_count,
                     }
                 }
             )
         except Exception as e:
-            logging.getLogger(__name__).error(f"Failed to broadcast notification {instance.id}: {e}")
+            _models_logger.error(f"Failed to broadcast notification {instance.id}: {e}")
 
-    if not prefs or prefs.push_enabled:
+    # FCM push — only for NEW notifications, not consolidated updates
+    if created and (not prefs or prefs.push_enabled):
         try:
             from ..fcm import send_push_notification
             send_push_notification(
@@ -139,7 +147,7 @@ def broadcast_notification(sender, instance, created, **kwargs):
                 }
             )
         except Exception as e:
-            logging.getLogger(__name__).warning(f"FCM push failed for notification {instance.id}: {e}")
+            _models_logger.warning(f"FCM push failed for notification {instance.id}: {e}")
 
 
 @receiver(post_save, sender=User)
@@ -151,3 +159,41 @@ def ensure_notification_preferences(sender, instance, created, **kwargs):
     per-user opt-outs from working on first notification)."""
     if created:
         NotificationPreference.objects.get_or_create(user=instance)
+
+
+def consolidate_message_notification(recipient, sender, room_label, preview):
+    """
+    Create or update a notification for a chat message.
+
+    If there's an existing unread message notification from the same sender
+    to the same recipient, update it (increment count, update preview) instead
+    of creating a new one. This prevents notification spam when someone sends
+    multiple messages in quick succession.
+
+    Returns the Notification instance (created or updated).
+    """
+    from django.utils import timezone
+
+    existing = Notification.objects.filter(
+        recipient=recipient,
+        sender=sender,
+        notification_type='message',
+        is_read=False,
+    ).first()
+
+    if existing:
+        existing.message_count += 1
+        existing.message = f'{room_label}: {preview}'
+        existing.title = f'{existing.message_count} new messages from {sender.get_full_name() or sender.username}'
+        existing.save(update_fields=['message_count', 'message', 'title', 'updated_at'])
+        return existing
+
+    sender_name = sender.get_full_name() or sender.username
+    return Notification.objects.create(
+        recipient=recipient,
+        sender=sender,
+        notification_type='message',
+        title=f'New message from {sender_name}',
+        message=f'{room_label}: {preview}',
+        link='/communication-center',
+    )

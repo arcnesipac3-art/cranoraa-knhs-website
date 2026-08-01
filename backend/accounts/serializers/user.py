@@ -27,7 +27,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             enrollment = StudentClassEnrollment.objects.filter(student=obj.user).select_related('classroom').first()
             if enrollment and enrollment.classroom:
                 return enrollment.classroom.name
-        except:
+        except Exception:
             pass
         return None
 

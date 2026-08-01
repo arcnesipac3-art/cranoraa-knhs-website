@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import api from '../utils/api';
 import Swal from 'sweetalert2';
@@ -13,28 +14,54 @@ import { generateBreadcrumbs } from '../utils/breadcrumbs';
 import { getNotifConfig, formatNotifTime } from '../utils/notificationConfig';
 
 
-const NavItem = ({ to, label, isActive, icon, onClick }) => (
-  <Link
-    to={to}
-    onClick={onClick}
-    aria-current={isActive(to) ? 'page' : undefined}
-    className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 text-xs group ${
-      isActive(to)
-        ? 'bg-gradient-to-r from-violet-500/90 to-purple-500/90 text-white font-bold shadow-lg shadow-purple-900/30 ring-1 ring-white/10'
-        : 'text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold'
-    }`}
-  >
-    <svg
-      className={`w-4 h-4 mr-2.5 flex-shrink-0 transition-transform duration-150 ${isActive(to) ? 'text-white' : 'text-purple-400/70'}`}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
+const NavItem = ({ to, label, isActive, icon, onClick, href, external }) => {
+  if (external && href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onClick}
+        className="flex items-center px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 text-xs group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold"
+      >
+        <svg
+          className="w-4 h-4 mr-2.5 flex-shrink-0 transition-transform duration-150 text-purple-400/70"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+        </svg>
+        <span className="truncate">{label}</span>
+        <svg className="w-3 h-3 ml-1.5 text-purple-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    );
+  }
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      aria-current={isActive(to) ? 'page' : undefined}
+      className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 text-xs group ${
+        isActive(to)
+          ? 'bg-gradient-to-r from-violet-500/90 to-purple-500/90 text-white font-bold shadow-lg shadow-purple-900/30 ring-1 ring-white/10'
+          : 'text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold'
+      }`}
     >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
-    </svg>
-    <span className="truncate">{label}</span>
-  </Link>
-);
+      <svg
+        className={`w-4 h-4 mr-2.5 flex-shrink-0 transition-transform duration-150 ${isActive(to) ? 'text-white' : 'text-purple-400/70'}`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+      </svg>
+      <span className="truncate">{label}</span>
+    </Link>
+  );
+};
 
 const SectionLabel = ({ label }) => (
   <div className="mt-5 mb-2 px-3 first:mt-0">
@@ -78,6 +105,7 @@ const Layout = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { notifications, setNotifications, unreadCount, setUnreadCount, realtimeConnected, isPolling } = useNotifications();
+  const { academicYear } = useActiveAcademicYear();
   const [showNotifications, setShowNotifications] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -91,10 +119,10 @@ const Layout = () => {
   const userBtnRef = useRef(null);
   const mobileUserMenuRef = useRef(null);
 
-  // Fetch system settings for academic year
+  // Re-fetch system settings on navigation so academic year stays current
   useEffect(() => {
     api.get('/system/settings/').then(r => setSysSettings(r.data)).catch(() => {});
-  }, []);
+  }, [location.pathname]);
 
   // Scroll to top on route change
   useEffect(() => {
@@ -157,6 +185,18 @@ const Layout = () => {
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  // Listen for notification clicks from the service worker (background push)
+  // and navigate to the correct page inside the SPA.
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.data?.type === 'NOTIFICATION_CLICK' && event.data.link) {
+        navigate(event.data.link);
+      }
+    };
+    navigator.serviceWorker?.addEventListener('message', handler);
+    return () => navigator.serviceWorker?.removeEventListener('message', handler);
+  }, [navigate]);
 
   const handleLogout = async () => {
     playSound('click');
@@ -239,25 +279,11 @@ const Layout = () => {
     if (path === '/backups') return 'Backups';
     if (path === '/website-content') return 'Website Editor';
     if (path === '/settings') return 'Settings';
+    if (path === '/settings') return 'My Profile';
     if (path === '/password-reset') return 'Change Password';
     if (path === '/schedule-management') return 'Schedules';
     if (path === '/parent-dashboard') return 'Parent Dashboard';
     if (path === '/parent-management') return 'Parents';
-    if (path === '/grade-input') return 'Grade Input';
-    if (path === '/grade-management') return 'Grade Management';
-    if (path === '/teachers') return 'Teachers';
-    if (path === '/student-management') return 'Students';
-    if (path === '/moderation') return 'Moderation';
-    if (path === '/enrollment-management') return 'Enrollment';
-    if (path === '/audit-logs') return 'Audit Logs';
-    if (path === '/backups') return 'Backups';
-    if (path === '/student-portal') return 'Student Portal';
-    if (path === '/sf1') return 'SF1 - School Register';
-    if (path === '/sf2') return 'SF2 - Attendance';
-    if (path === '/sf5') return 'SF5 - Promotion';
-    if (path === '/sf9') return 'SF9 - Report Card';
-    if (path === '/sf10') return 'SF10 - Permanent Record';
-    if (path === '/school-forms') return 'School Forms';
     return 'Portal';
   }, [location.pathname]);
 
@@ -310,9 +336,6 @@ const Layout = () => {
       staff: [
         { label: 'My Classes', path: '/my-classes', category: 'Teaching', description: 'Your assigned classes' },
         { label: 'My Schedule', path: '/my-schedule', category: 'Teaching', description: 'View your schedule' },
-        { label: 'Quizzes & Exams', path: '/my-classes?view=quizzes', category: 'Teaching', description: 'Manage quizzes and exams' },
-        { label: 'Lesson Plans', path: '/my-classes?view=lesson-plans', category: 'Teaching', description: 'Daily and weekly lesson plans' },
-        { label: 'Grade Analytics', path: '/my-classes?view=analytics', category: 'Teaching', description: 'Student performance analytics' },
         { label: 'Grades', path: '/grade-input', category: 'Teaching', description: 'Input and manage student grades' },
         { label: 'Students', path: '/people?tab=students', category: 'Directory', description: 'Student directory' },
         { label: 'Announcements', path: '/announcements', category: 'Communication', description: 'Post announcements' },
@@ -371,7 +394,8 @@ const Layout = () => {
       {
         header: 'System',
         items: [
-          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-1.065 2.572c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+
         ]
       }
     ],
@@ -389,10 +413,10 @@ const Layout = () => {
         header: 'Operations',
         items: [
           { to: '/analytics',      label: 'Analytics',      icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-          { to: '/academic-setup', label: 'Academic Setup', icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4' },
+          { to: '/academic-setup', label: 'Academic Setup', icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2m6-4h6' },
           { to: '/enrollment', label: 'Enrollment', icon: 'M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' },
           { to: '/classes', label: 'Classes', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
-          { to: '/subjects', label: 'Subjects', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332-.477-4.5-1.253' },
+          { to: '/subjects', label: 'Subjects', icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.747 0-3.332-.477-4.5-1.253' },
           { to: '/schedules', label: 'Schedules', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
           { to: '/announcements', label: 'Announcements', icon: 'M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z' },
           { to: '/school-forms', label: 'School Forms', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
@@ -407,7 +431,8 @@ const Layout = () => {
       {
         header: 'System',
         items: [
-          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-1.065 2.572c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+
         ]
       }
     ],
@@ -433,7 +458,8 @@ const Layout = () => {
         header: 'Account',
         items: [
           { to: '/settings', label: 'My Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
-          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+          { to: '/settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+
         ]
       }
     ],
@@ -453,6 +479,7 @@ const Layout = () => {
         items: [
           { to: '/settings', label: 'My Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
           { to: '/password-reset', label: 'Change Password', icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' },
+
         ]
       }
     ]
@@ -501,7 +528,7 @@ const Layout = () => {
           {/* Academic Year Info */}
           <div className="flex-shrink-0 px-4 py-3 bg-black/20 border-b border-white/5">
             <div className="flex items-center justify-between text-[10px] font-bold text-purple-300/80 uppercase tracking-wider">
-              <span>{sysSettings?.academic_year || 'SY 2025-2026'}</span>
+              <span>{academicYear ? `SY ${academicYear}` : 'No Year Set'}</span>
               <span className="text-purple-200/60">{sysSettings?.current_quarter || 'Current Semester'}</span>
             </div>
           </div>
@@ -537,6 +564,8 @@ const Layout = () => {
                       label={item.label} 
                       isActive={isActive} 
                       icon={item.icon}
+                      href={item.href}
+                      external={item.external}
                       onClick={() => setSidebarOpen(false)}
                     />
                   ))}
@@ -620,39 +649,41 @@ const Layout = () => {
 
                 {showNotifications && (
                   <div
-                    className="fixed z-50 w-96 max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                    className="fixed w-72 max-w-[calc(100vw-1.5rem)] sm:w-96 sm:max-w-[calc(100vw-2rem)] rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
                     style={{ top: notifDropdownPos.top, right: notifDropdownPos.right }}
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-[#1A0B2E] to-[#2D1452] text-white">
+                    <div className="flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-4 bg-gradient-to-r from-[#1A0B2E] to-[#2D1452] text-white">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-sm tracking-tight">Notifications</h3>
+                        <h3 className="font-bold text-xs sm:text-sm tracking-tight">Notifications</h3>
                         {unreadCount > 0 && (
-                          <span className="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase">{unreadCount} New</span>
+                          <span className="bg-rose-500 text-white text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full uppercase">{unreadCount} New</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5">
-                          <div className={`w-2 h-2 rounded-full ${realtimeConnected ? 'bg-green-400' : isPolling ? 'bg-amber-400 animate-pulse' : 'bg-rose-400'}`}></div>
-                          <span className="text-[10px] text-violet-200 font-black uppercase tracking-widest">
-                            {realtimeConnected ? 'Live' : isPolling ? 'Polling' : 'Offline'}
-                          </span>
-                        </div>
+                      <div className="hidden sm:flex items-center gap-1.5">
+                        <div className={`w-2 h-2 rounded-full ${realtimeConnected ? 'bg-green-400' : isPolling ? 'bg-amber-400 animate-pulse' : 'bg-rose-400'}`}></div>
+                        <span className="text-[10px] text-violet-200 font-black uppercase tracking-widest">
+                          {realtimeConnected ? 'Live' : isPolling ? 'Polling' : 'Offline'}
+                        </span>
                       </div>
                     </div>
 
                     {/* List */}
-                    <div className="max-h-[400px] overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
+                    <div className="max-h-[40vh] sm:max-h-[400px] overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
                       {notifications.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 text-slate-300">
-                          <svg className="w-12 h-12 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                          </svg>
-                          <p className="text-xs font-bold uppercase tracking-widest">All caught up!</p>
+                        <div className="flex flex-col items-center justify-center py-6 sm:py-12 text-slate-300">
+                          <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-violet-50 flex items-center justify-center mb-2 sm:mb-4">
+                            <svg className="w-5 h-5 sm:w-8 sm:h-8 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                          </div>
+                          <p className="text-xs sm:text-sm font-bold text-slate-400">All caught up!</p>
+                          <p className="text-[10px] sm:text-xs text-slate-300 mt-0.5">No new notifications</p>
                         </div>
                       ) : (
-                        notifications.map(n => {
+                        notifications.map((n, idx) => {
                           const cfg = getNotifConfig(n.notification_type);
+                          const isFresh = idx < 3 && !n.is_read;
                           return (
                             <div 
                               key={n.id}
@@ -660,22 +691,24 @@ const Layout = () => {
                                 if (!n.is_read) markAsRead(n.id); 
                                 if (n.link) { navigate(n.link); setShowNotifications(false); } 
                               }}
-                              className={`flex items-start gap-4 px-5 py-4 cursor-pointer transition-colors hover:bg-slate-50 group ${!n.is_read ? 'bg-violet-50/40' : ''}`}
+                              className={`flex items-start gap-2.5 sm:gap-4 px-3 sm:px-5 py-2.5 sm:py-4 cursor-pointer transition-all hover:bg-slate-50 group
+                                ${!n.is_read ? 'bg-violet-50/40' : ''}
+                                ${isFresh ? 'animate-[slideIn_0.3s_ease-out]' : ''}`}
                             >
-                              <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm group-hover:scale-110 transition-transform`}>
-                                <svg className={`w-5 h-5 ${cfg.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <div className={`w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl ${cfg.bg} flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm group-hover:scale-110 transition-transform`}>
+                                <svg className={`w-3.5 h-3.5 sm:w-5 sm:h-5 ${cfg.color}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cfg.icon} />
                                 </svg>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className={`text-sm leading-tight mb-1 ${!n.is_read ? 'font-bold text-slate-900' : 'font-medium text-slate-600'}`}>
+                                <p className={`text-xs sm:text-sm leading-tight mb-0.5 ${!n.is_read ? 'font-bold text-slate-900' : 'font-medium text-slate-600'}`}>
                                   {n.title}
                                 </p>
-                                <p className="text-xs text-slate-500 line-clamp-2 mb-2">{n.message}</p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatTime(n.created_at)}</p>
+                                <p className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 mb-1 sm:mb-2">{n.message}</p>
+                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatTime(n.created_at)}</p>
                               </div>
                               {!n.is_read && (
-                                <div className="w-2.5 h-2.5 rounded-full bg-violet-600 flex-shrink-0 mt-1.5 shadow-sm shadow-violet-200" />
+                                <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-violet-600 flex-shrink-0 mt-1.5 shadow-sm shadow-violet-200" />
                               )}
                             </div>
                           );
@@ -684,17 +717,17 @@ const Layout = () => {
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-slate-100 px-5 py-3 bg-slate-50 flex items-center justify-between">
+                    <div className="border-t border-slate-100 px-3 sm:px-5 py-2 sm:py-3 bg-slate-50 flex items-center justify-between">
                       <button 
                         onClick={markAllAsRead}
-                        className="text-[10px] font-black text-violet-600 hover:text-violet-800 uppercase tracking-widest transition-colors"
+                        className="text-[9px] sm:text-[10px] font-black text-violet-600 hover:text-violet-800 uppercase tracking-widest transition-colors"
                       >
                         Mark all as read
                       </button>
                       <Link 
                         to="/notifications" 
                         onClick={() => setShowNotifications(false)}
-                        className="text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
+                        className="text-[9px] sm:text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
                       >
                         View all
                       </Link>

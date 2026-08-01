@@ -20,7 +20,7 @@ class Classroom(models.Model):
         help_text="The advisory teacher for this classroom. Each teacher can only have one advisory classroom."
     )
 
-    academic_year = models.ForeignKey('portal.AcademicYear', on_delete=models.SET_NULL, null=True, blank=True, related_name='classrooms')
+    academic_year = models.ForeignKey('accounts.AcademicYear', on_delete=models.SET_NULL, null=True, blank=True, related_name='classrooms')
     semester = models.ForeignKey('portal.Semester', on_delete=models.SET_NULL, null=True, blank=True, related_name='classrooms')
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -44,17 +44,17 @@ class Classroom(models.Model):
 
 class Subject(models.Model):
     COMPONENT_CHOICES = [
-        ('', 'None'),
-        ('music_arts', 'Music and Arts'),
-        ('pe_health', 'Physical Education and Health'),
+        ('core', 'Core Subject'),
+        ('mapeh', 'MAPEH Component'),
+        ('guidance', 'Homeroom Guidance'),
     ]
 
     name = models.CharField(max_length=100)
     code = models.CharField(max_length=20, unique=True)
     description = models.TextField(blank=True, null=True)
     grade_level = models.CharField(max_length=20, help_text="Grade level this subject is for")
-    component = models.CharField(max_length=20, choices=COMPONENT_CHOICES, blank=True, default='',
-        help_text="For composite subjects like MAPEH. Set to 'music_arts' or 'pe_health' for sub-components.")
+    component = models.CharField(max_length=20, choices=COMPONENT_CHOICES, blank=True, null=True,
+        help_text="Subject component category (core, mapeh, guidance)")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -63,19 +63,6 @@ class Subject(models.Model):
 
     def __str__(self):
         return f"{self.code} - {self.name}"
-
-    @property
-    def has_components(self):
-        return self.component == ''
-
-    def get_components(self):
-        if not self.has_components:
-            return []
-        return list(Subject.objects.filter(
-            grade_level=self.grade_level,
-            component__in=['music_arts', 'pe_health'],
-            name__icontains=self.name.split()[0] if self.name else '',
-        ).order_by('component'))
 
 
 class ClassroomSubject(models.Model):
@@ -120,11 +107,11 @@ class SystemSetting(models.Model):
     ACADEMIC_LEVEL_CHOICES = [
         ('jhs', 'Junior High School (Grades 7-10)'),
         ('shs', 'Senior High School (Grades 11-12)'),
-        ('both', 'Both JHS and SHS (Grades 7-12)'),
+        ('both', 'Both (JHS + SHS)'),
     ]
-    academic_level = models.CharField(max_length=4, choices=ACADEMIC_LEVEL_CHOICES, default='both')
+    academic_level = models.CharField(max_length=4, choices=ACADEMIC_LEVEL_CHOICES, default='jhs')
     current_quarter = models.CharField(max_length=1, default='1', choices=[('1', 'Term 1'), ('2', 'Term 2'), ('3', 'Term 3'), ('4', 'Term 4 (Legacy)')])
-    academic_year = models.CharField(max_length=9, default='2025-2026')
+    academic_year = models.CharField(max_length=9, blank=True, default='')
 
     default_ww_weight = models.DecimalField(max_digits=5, decimal_places=2, default=30.00, help_text="Default Written Work weight (%)")
     default_pt_weight = models.DecimalField(max_digits=5, decimal_places=2, default=50.00, help_text="Default Performance Task weight (%)")
@@ -164,10 +151,10 @@ class StudentClassEnrollment(models.Model):
         return f"{self.student.username} in {self.classroom.name}"
 
     def calculate_general_average(self):
-        terms = [self.q1, self.q2, self.q3]
-        valid_terms = [t for t in terms if t is not None]
-        if valid_terms:
-            return round(sum(valid_terms) / len(valid_terms))
+        quarters = [self.q1, self.q2, self.q3, self.q4]
+        valid_quarters = [q for q in quarters if q is not None]
+        if valid_quarters:
+            return round(sum(valid_quarters) / len(valid_quarters))
         return None
 
     def get_descriptive_equivalent(self):

@@ -10,6 +10,8 @@ from rest_framework.response import Response
 from ..models import (
     ChatMessage,
     ChatRoom,
+    ChatMember,
+    Mention,
     Classroom,
     EmergencyMessage,
     Notification,
@@ -20,6 +22,7 @@ from ..models import (
 )
 from ..permissions import IsAdmin
 from ..serializers import (
+    ChatMemberSerializer,
     ChatMessageSerializer,
     ChatRoomSerializer,
     EmergencyMessageSerializer,
@@ -62,9 +65,17 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied(reason)
 
-        room = serializer.save(created_by=self.request.user)
+        room = serializer.save(created_by=self.request.user, owner=self.request.user)
         room.participants.add(self.request.user)
-        
+
+        # Create owner ChatMember for group chats
+        if room.is_group:
+            ChatMember.objects.create(
+                chat_room=room,
+                user=self.request.user,
+                role='owner',
+            )
+
         # If participants were provided in the request, add them and notify them
         participant_ids = self.request.data.get('participants', [])
         if participant_ids:
@@ -73,7 +84,15 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             if participant_ids:
                 users = User.objects.filter(id__in=participant_ids)
                 room.participants.add(*users)
-                
+
+                # Create ChatMember entries for group chats
+                if room.is_group:
+                    members_to_create = [
+                        ChatMember(chat_room=room, user=u, role='member')
+                        for u in users
+                    ]
+                    ChatMember.objects.bulk_create(members_to_create, ignore_conflicts=True)
+
                 serialized = ChatRoomSerializer(room, context={'request': self.request}).data
                 # Notify ALL participants about the new room
                 for participant in room.participants.all():
@@ -122,15 +141,25 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             return Response({'error': 'user_ids is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         users = User.objects.filter(id__in=user_ids)
-        room.participants.add(*users)
-        
+        # Filter out already-members
+        existing_ids = set(room.participants.values_list('id', flat=True))
+        new_users = [u for u in users if u.id not in existing_ids]
+        if new_users:
+            room.participants.add(*new_users)
+            # Create ChatMember entries
+            members_to_create = [
+                ChatMember(chat_room=room, user=u, role='member')
+                for u in new_users
+            ]
+            ChatMember.objects.bulk_create(members_to_create, ignore_conflicts=True)
+
         serialized = ChatRoomSerializer(room, context={'request': request}).data
         # Notify existing members of update
         _broadcast_room_update(room.id, serialized)
         # Notify NEW members about the new room live
-        for user in users:
+        for user in (new_users if new_users else users):
             _notify_user_of_new_room(user.id, serialized)
-            
+
         return Response(serialized)
 
     @action(detail=True, methods=['post'])
@@ -163,13 +192,20 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def remove_participant(self, request, pk=None):
-        """Remove a member from a group (creator only)"""
+        """Remove a member from a group (owner/admin only)"""
         room = self.get_object()
         if not room.is_group:
             return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
-        if room.created_by != request.user:
+
+        # Check permissions: owner or admin
+        is_owner = room.owner == request.user or room.created_by == request.user
+        is_admin = ChatMember.objects.filter(
+            chat_room=room, user=request.user, role__in=['owner', 'admin']
+        ).exists()
+        if not is_owner and not is_admin:
             from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Only the group creator can remove members")
+            raise PermissionDenied("Only the group owner or admin can remove members")
+
         user_id = request.data.get('user_id')
         if not user_id:
             return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -179,25 +215,240 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             target = User.objects.get(id=user_id)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
         room.participants.remove(target)
+        ChatMember.objects.filter(chat_room=room, user=target).delete()
+
         serialized = ChatRoomSerializer(room, context={'request': request}).data
         _broadcast_room_update(room.id, serialized)
+
+        # Notify removed user
+        _notify_user_of_new_room(target.id, {'id': room.id, 'removed': True})
+
         return Response(serialized)
 
     @action(detail=True, methods=['delete'])
     def delete_group(self, request, pk=None):
-        """Permanently delete a group and all its messages (creator only)"""
+        """Permanently delete a group and all its messages (owner only)"""
         room = self.get_object()
         if not room.is_group:
             return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
-        if room.created_by != request.user:
+        is_owner = room.owner == request.user or room.created_by == request.user
+        if not is_owner:
             from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Only the group creator can delete the group")
+            raise PermissionDenied("Only the group owner can delete the group")
         room_id = room.id
+        ChatMember.objects.filter(chat_room=room).delete()
         room.delete()
         # Notify all connected members the group is gone
         _broadcast_room_update(room_id, None, event_type='group_deleted')
         return Response({'status': 'group deleted'})
+
+    @action(detail=True, methods=['post'])
+    def leave_group(self, request, pk=None):
+        """Leave a group chat"""
+        room = self.get_object()
+        if not room.is_group:
+            return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Owner cannot leave — must transfer ownership first
+        if room.owner == request.user:
+            return Response({'error': 'Owner cannot leave. Transfer ownership first.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        room.participants.remove(request.user)
+        ChatMember.objects.filter(chat_room=room, user=request.user).delete()
+
+        serialized = ChatRoomSerializer(room, context={'request': request}).data
+        _broadcast_room_update(room.id, serialized)
+        return Response({'status': 'left group'})
+
+    @action(detail=True, methods=['patch'])
+    def update_description(self, request, pk=None):
+        """Update group description (owner/admin only)"""
+        room = self.get_object()
+        if not room.is_group:
+            return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_owner = room.owner == request.user or room.created_by == request.user
+        is_admin = ChatMember.objects.filter(
+            chat_room=room, user=request.user, role__in=['owner', 'admin']
+        ).exists()
+        if not is_owner and not is_admin:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only owner or admin can update description")
+
+        description = request.data.get('description', '')
+        room.description = description
+        room.save()
+        serialized = ChatRoomSerializer(room, context={'request': request}).data
+        _broadcast_room_update(room.id, serialized)
+        return Response(serialized)
+
+    @action(detail=True, methods=['post'], parser_classes=[parsers.MultiPartParser, parsers.FormParser])
+    def change_avatar(self, request, pk=None):
+        """Change group avatar (owner/admin only)"""
+        room = self.get_object()
+        if not room.is_group:
+            return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_owner = room.owner == request.user or room.created_by == request.user
+        is_admin = ChatMember.objects.filter(
+            chat_room=room, user=request.user, role__in=['owner', 'admin']
+        ).exists()
+        if not is_owner and not is_admin:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only owner or admin can change avatar")
+
+        avatar_file = request.FILES.get('avatar')
+        if not avatar_file:
+            return Response({'error': 'avatar file is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        url, err = upload_file(avatar_file, bucket_key='chat-avatars', folder=f'room-{room.id}')
+        if err:
+            return Response({'error': err}, status=status.HTTP_400_BAD_REQUEST)
+
+        room.avatar = url
+        room.save()
+        serialized = ChatRoomSerializer(room, context={'request': request}).data
+        _broadcast_room_update(room.id, serialized)
+        return Response(serialized)
+
+    @action(detail=True, methods=['get', 'patch'])
+    def members(self, request, pk=None):
+        """List or update member roles"""
+        room = self.get_object()
+        if not room.is_group:
+            return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.method == 'GET':
+            members = ChatMember.objects.filter(chat_room=room).select_related(
+                'user', 'user__profile', 'last_read_message'
+            )
+            return Response(ChatMemberSerializer(members, many=True).data)
+
+        # PATCH: update member role
+        is_owner = room.owner == request.user or room.created_by == request.user
+        if not is_owner:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only owner can update member roles")
+
+        user_id = request.data.get('user_id')
+        new_role = request.data.get('role')
+        if not user_id or new_role not in ['admin', 'member']:
+            return Response({'error': 'user_id and valid role (admin/member) are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        member = ChatMember.objects.filter(chat_room=room, user_id=user_id).first()
+        if not member:
+            return Response({'error': 'Member not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        member.role = new_role
+        member.save()
+
+        serialized = ChatMemberSerializer(member).data
+        _broadcast_room_update(room.id, ChatRoomSerializer(room, context={'request': request}).data)
+        return Response(serialized)
+
+    @action(detail=True, methods=['post'])
+    def transfer_ownership(self, request, pk=None):
+        """Transfer group ownership (owner only)"""
+        room = self.get_object()
+        if not room.is_group:
+            return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if room.owner != request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only the owner can transfer ownership")
+
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            new_owner = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not room.participants.filter(id=new_owner.id).exists():
+            return Response({'error': 'User must be a member'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Demote old owner
+        ChatMember.objects.filter(chat_room=room, user=request.user).update(role='admin')
+        # Promote new owner
+        ChatMember.objects.filter(chat_room=room, user=new_owner).update(role='owner')
+        room.owner = new_owner
+        room.save()
+
+        serialized = ChatRoomSerializer(room, context={'request': request}).data
+        _broadcast_room_update(room.id, serialized)
+        return Response(serialized)
+
+    @action(detail=True, methods=['post'])
+    def toggle_mute(self, request, pk=None):
+        """Toggle mute for a member"""
+        room = self.get_object()
+        if not room.is_group:
+            return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
+
+        member = ChatMember.objects.filter(chat_room=room, user=request.user).first()
+        if not member:
+            return Response({'error': 'Not a member'}, status=status.HTTP_404_NOT_FOUND)
+
+        member.muted = not member.muted
+        member.save()
+        return Response({'muted': member.muted})
+
+    @action(detail=True, methods=['post'])
+    def update_nickname(self, request, pk=None):
+        """Update own nickname in a group"""
+        room = self.get_object()
+        if not room.is_group:
+            return Response({'error': 'Not a group chat'}, status=status.HTTP_400_BAD_REQUEST)
+
+        member = ChatMember.objects.filter(chat_room=room, user=request.user).first()
+        if not member:
+            return Response({'error': 'Not a member'}, status=status.HTTP_404_NOT_FOUND)
+
+        nickname = request.data.get('nickname', '')
+        member.nickname = nickname if nickname else None
+        member.save()
+        return Response({'nickname': member.nickname})
+
+    @action(detail=True, methods=['post'])
+    def mark_read(self, request, pk=None):
+        """Mark all messages in a room as read"""
+        room = self.get_object()
+        message_id = request.data.get('message_id')
+        if message_id:
+            try:
+                last_msg = ChatMessage.objects.get(id=message_id, room=room)
+                ChatMessage.objects.filter(
+                    room=room, timestamp__lte=last_msg.timestamp
+                ).exclude(sender=request.user).update(is_read=True, is_delivered=True)
+                # Update ChatMember last_read_message
+                ChatMember.objects.filter(
+                    chat_room=room, user=request.user
+                ).update(last_read_message=last_msg)
+            except ChatMessage.DoesNotExist:
+                pass
+        return Response({'status': 'marked as read'})
+
+    @action(detail=True, methods=['get'])
+    def files(self, request, pk=None):
+        """Get all file attachments in a room"""
+        room = self.get_object()
+        messages = ChatMessage.objects.filter(
+            room=room, message_type='file', attachment_url__isnull=False
+        ).select_related('sender').order_by('-timestamp')[:50]
+        return Response(ChatMessageSerializer(messages, many=True).data)
+
+    @action(detail=True, methods=['get'])
+    def media(self, request, pk=None):
+        """Get all media (images) in a room"""
+        room = self.get_object()
+        messages = ChatMessage.objects.filter(
+            room=room, message_type='image', attachment_url__isnull=False
+        ).select_related('sender').order_by('-timestamp')[:50]
+        return Response(ChatMessageSerializer(messages, many=True).data)
 
     @action(detail=True, methods=['delete'])
     def delete_conversation(self, request, pk=None):
@@ -223,28 +474,14 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             classroom = Classroom.objects.get(id=classroom_id)
         except Classroom.DoesNotExist:
             return Response({'error': 'Classroom not found'}, status=404)
-        # Check if class chat already exists
-        room = ChatRoom.objects.filter(
-            is_group=True, name=f"Class: {classroom.name}"
-        ).first()
-        if room:
-            return Response(ChatRoomSerializer(room, context={'request': request}).data)
-        # Create room and add all enrolled students + advisers
-        room = ChatRoom.objects.create(
-            is_group=True,
-            name=f"Class: {classroom.name}",
-            created_by=request.user,
-        )
-        enrolled_students = StudentClassEnrollment.objects.filter(classroom=classroom).values_list('student_id', flat=True)
-        participant_ids = list(enrolled_students)
-        if classroom.teacher_id:
-            participant_ids.append(classroom.teacher_id)
-        participant_ids = list(set(participant_ids))
-        if participant_ids:
-            room.participants.add(*User.objects.filter(id__in=participant_ids))
+
+        # Use the system group sync service
+        from ..system_groups import sync_classroom_group
+        room = sync_classroom_group(classroom)
+        if not room:
+            return Response({'error': 'Classroom has no teacher assigned'}, status=400)
+
         serialized = ChatRoomSerializer(room, context={'request': request}).data
-        for p in room.participants.all():
-            _notify_user_of_new_room(p.id, serialized)
         return Response(serialized)
 
     @action(detail=False, methods=['post'])
@@ -298,6 +535,20 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             }
         )
         return Response({'message': f'Emergency broadcast sent to {count} users', 'emergency_id': em.id})
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAdmin])
+    def sync_system_groups(self, request):
+        """Manually trigger system group sync (admin only)"""
+        from ..system_groups import sync_all_system_groups
+        try:
+            stats = sync_all_system_groups()
+            return Response({
+                'message': 'System groups synced',
+                'stats': stats,
+            })
+        except Exception as e:
+            logger.error(f"System group sync failed: {e}")
+            return Response({'error': str(e)}, status=500)
 
 
 class ChatMessageViewSet(viewsets.ModelViewSet):
