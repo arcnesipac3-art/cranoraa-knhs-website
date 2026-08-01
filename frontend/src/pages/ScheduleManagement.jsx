@@ -20,6 +20,9 @@ const SLOT_TYPES = [
 ];
 const SLOT_TYPE_MAP = Object.fromEntries(SLOT_TYPES.map(t => [t.value, t]));
 
+// All slot types that are NOT assignable class periods
+const BREAK_SLOT_TYPES = new Set(['recess', 'lunch', 'vacant', 'assembly', 'pe']);
+
 const DEFAULT_PERIODS = [
   { start_time: '07:30', end_time: '08:30', label: 'Period 1', slot_type: 'class' },
   { start_time: '08:30', end_time: '09:30', label: 'Period 2', slot_type: 'class' },
@@ -211,7 +214,9 @@ export default function ScheduleManagement() {
       const k = periodKey(ts.start_time, ts.end_time);
       if (!map.has(k)) map.set(k, {
         start_time: ts.start_time, end_time: ts.end_time, label: ts.label,
-        slot_type: ts.slot_type || 'class',
+        // Preserve the actual slot_type — only fall back to 'class' if the field
+        // is completely absent (undefined). An empty string still means unknown.
+        slot_type: ts.slot_type != null && ts.slot_type !== '' ? ts.slot_type : 'class',
         start_display: ts.start_time_display || normalizeTime(ts.start_time),
         end_display: ts.end_time_display || normalizeTime(ts.end_time),
       });
@@ -265,7 +270,7 @@ export default function ScheduleManagement() {
   const openCreateAtCell = useCallback(async (day, period) => {
     if (!filterClassroom) { toast.error('Select a section first'); return; }
     // Break periods (lunch, recess, etc.) do not need subject assignment
-    if (period.slot_type && period.slot_type !== 'class') return;
+    if (BREAK_SLOT_TYPES.has(period.slot_type)) return;
     setAddingCell(`${day}-${period.start_time}-${period.end_time}`);
     try {
       const slot = await ensureTimeSlot(day, period);
@@ -297,7 +302,7 @@ export default function ScheduleManagement() {
       // Prevent assigning subjects to non-class slots (lunch, recess, etc.)
       if (payload.time_slot) {
         const slot = timeSlots.find(ts => String(ts.id) === String(payload.time_slot));
-        if (slot && slot.slot_type && slot.slot_type !== 'class') {
+        if (slot && BREAK_SLOT_TYPES.has(slot.slot_type)) {
           toast.error('Cannot assign a subject to a break period (lunch, recess, etc.)');
           setSaving(false);
           return;
@@ -832,7 +837,7 @@ export default function ScheduleManagement() {
                 const ready = hasSlotForCell(mobileSelectedDay, period);
                 const cellKey = `${mobileSelectedDay}-${period.start_time}-${period.end_time}`;
                 const isAdding = addingCell === cellKey;
-                const isBreak = period.slot_type !== 'class';
+                const isBreak = BREAK_SLOT_TYPES.has(period.slot_type);
                 const typeStyle = SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class;
 
                 if (isBreak) {
@@ -845,7 +850,7 @@ export default function ScheduleManagement() {
                   );
                 }
 
-                if (entries.length === 0) {
+                if (entries.length === 0 && !isBreak) {
                   return (
                     <button key={cellKey} type="button" onClick={() => openCreateAtCell(mobileSelectedDay, period)} disabled={isAdding}
                       className={`w-full py-3 px-3 rounded-lg border text-left transition-all ${ready ? 'border-dashed border-slate-200 hover:border-violet-300 hover:bg-violet-50/50 active:bg-violet-50' : 'border-dashed border-amber-200 bg-amber-50/30 hover:border-amber-400 active:bg-amber-50'}`}>
@@ -895,7 +900,7 @@ export default function ScheduleManagement() {
               </thead>
               <tbody>
                 {uniquePeriods.map((period, ri) => {
-                  const isBreak = period.slot_type !== 'class';
+                  const isBreak = BREAK_SLOT_TYPES.has(period.slot_type);
                   const typeStyle = SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class;
                   const colCount = filterDay ? 1 : DAYS.length;
 
@@ -944,7 +949,7 @@ export default function ScheduleManagement() {
                                 </button>
                               </div>
                             ))}
-                            {entries.length === 0 && (
+                            {entries.length === 0 && !isBreak && (
                               <button type="button" onClick={() => openCreateAtCell(d, period)} disabled={isAdding}
                                 title={ready ? 'Assign class' : 'Enable period & assign'}
                                 className={`w-full py-1.5 border border-dashed rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all text-[9px] font-bold uppercase tracking-wide ${
