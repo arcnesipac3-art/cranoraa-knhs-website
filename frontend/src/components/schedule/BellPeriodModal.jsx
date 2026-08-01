@@ -302,11 +302,28 @@ const BellPeriodModal = ({
         : 'Configure class periods for this section'}
     >
       {/* ── Two-column layout ── */}
-      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden" style={{ maxHeight: 'calc(88vh - 130px)' }}>
+      {/* On mobile: stacked with collapsible left panel. On desktop: side-by-side. */}
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
 
-        {/* LEFT PANEL */}
-        <div className="w-full md:w-[300px] shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/60 overflow-y-auto">
-          <div className="p-4 space-y-4">
+        {/* LEFT PANEL — fixed width on desktop, collapsible drawer on mobile */}
+        <div className="w-full md:w-[280px] lg:w-[300px] shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/60 md:overflow-y-auto md:max-h-full">
+
+          {/* Mobile: collapsed quick actions bar always visible */}
+          <div className="flex items-center gap-2 px-4 py-3 md:hidden border-b border-slate-100 bg-white">
+            <button type="button" onClick={() => applyStandardBell(false)} disabled={savingSlot}
+              className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 disabled:opacity-50 transition-all">
+              <svg className="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              Standard Schedule
+            </button>
+            <button type="button" onClick={fillMissingSlots} disabled={savingSlot || !uniquePeriods.length}
+              className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-xs font-bold hover:bg-amber-100 disabled:opacity-50 transition-all">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+              Fill
+            </button>
+          </div>
+
+          {/* Desktop: full left panel */}
+          <div className="hidden md:block p-4 space-y-4">
 
             {/* Section badge */}
             {sectionName && (
@@ -460,10 +477,11 @@ const BellPeriodModal = ({
               )}
             </div>
           </div>
+          </div>{/* end hidden md:block desktop left panel */}
         </div>
 
         {/* RIGHT PANEL */}
-        <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
+        <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden" style={{ minHeight: '0px' }}>
           {/* Panel header */}
           <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
@@ -484,7 +502,7 @@ const BellPeriodModal = ({
           </div>
 
           {/* Scrollable period list */}
-          <div className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4">
             {uniquePeriods.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-16">
                 <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-4">

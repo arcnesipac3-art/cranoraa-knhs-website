@@ -64,7 +64,7 @@ const COLORS = [
   'bg-orange-50 border-orange-200 text-orange-800',
 ];
 
-const emptyForm = { classroom:'', subject:'', teacher:'', room:'', time_slot:'', academic_year:'', semester:'', notes:'' };
+const emptyForm = { classroom:'', subject:'', teacher:'', room:'', time_slot:'', academic_year:'', semester:'', notes:'', is_vacant: false };
 
 const Field = ({ label, required, children }) => (
   <div className="space-y-1.5">
@@ -311,6 +311,13 @@ export default function ScheduleManagement() {
       const payload = { ...form };
       if (!payload.room) delete payload.room;
       if (!payload.semester) delete payload.semester;
+      // Vacant slots don't need subject/teacher
+      if (payload.is_vacant) {
+        delete payload.subject;
+        delete payload.teacher;
+        payload.notes = payload.notes || 'Vacant';
+      }
+      delete payload.is_vacant;
       // Prevent assigning subjects to non-class slots (lunch, recess, etc.)
       if (payload.time_slot) {
         const slot = timeSlots.find(ts => String(ts.id) === String(payload.time_slot));
@@ -1029,7 +1036,24 @@ export default function ScheduleManagement() {
               </div>
             </div>
 
+            {/* Vacant toggle */}
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-slate-50 border border-slate-200">
+              <input
+                type="checkbox"
+                id="is-vacant"
+                checked={form.is_vacant || false}
+                onChange={e => setForm(f => ({ ...f, is_vacant: e.target.checked, subject: '', teacher: '' }))}
+                className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+              />
+              <label htmlFor="is-vacant" className="flex-1 cursor-pointer">
+                <span className="text-sm font-bold text-slate-700">Mark as Vacant</span>
+                <p className="text-[10px] text-slate-500 mt-0.5">No subject or teacher assigned to this slot</p>
+              </label>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[10px] font-bold border border-slate-200">Vacant</span>
+            </div>
+
             {/* Subject */}
+            {!form.is_vacant && (
             <div>
               <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
                 Subject <span className="text-red-600">*</span>
@@ -1041,7 +1065,7 @@ export default function ScheduleManagement() {
                 </div>
               ) : (
                 <>
-                  <select required value={form.subject} onChange={e => {
+                  <select required={!form.is_vacant} value={form.subject} onChange={e => {
                     const sid = e.target.value;
                     const match = classroomAssignments.find(a => String(a.subject) === sid);
                     if (match) { setTeacherLocked(true); setForm(f => ({...f, subject: sid, teacher: String(match.teacher)})); }
@@ -1059,8 +1083,10 @@ export default function ScheduleManagement() {
                 </>
               )}
             </div>
+            )}
 
             {/* Teacher */}
+            {!form.is_vacant && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider">
@@ -1073,7 +1099,7 @@ export default function ScheduleManagement() {
                   </button>
                 )}
               </div>
-              <select required value={form.teacher} onChange={e => setForm(f => ({...f, teacher: e.target.value}))}
+              <select required={!form.is_vacant} value={form.teacher} onChange={e => setForm(f => ({...f, teacher: e.target.value}))}
                 disabled={teacherLocked}
                 className={`w-full px-3 py-2.5 border rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 ${teacherLocked ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-slate-300'}`}>
                 <option value="">— Select Teacher —</option>
@@ -1085,6 +1111,7 @@ export default function ScheduleManagement() {
                 <p className="text-[10px] text-slate-500 mt-1">Auto-filled from subject assignment. Click Override to change.</p>
               )}
             </div>
+            )}
 
             {/* Room */}
             <div>
