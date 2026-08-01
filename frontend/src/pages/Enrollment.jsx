@@ -2,6 +2,9 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import Swal from 'sweetalert2';
+import { validateLRN, validateEmail, validatePhone, validateAge } from '../utils/validation';
+import { EnhancedFileUpload } from '../components/enrollment/EnhancedFileUpload';
+import { FieldError } from '../components/enrollment/FieldError';
 
 const DRAFT_KEY = 'enrollment-draft';
 
@@ -183,6 +186,36 @@ const Enrollment = () => {
   const [emergencyContactName, setEmergencyContactName] = useState(d('emergencyContactName', ''));
   const [emergencyContactRelationship, setEmergencyContactRelationship] = useState(d('emergencyContactRelationship', ''));
   const [emergencyContactPhone, setEmergencyContactPhone] = useState(d('emergencyContactPhone', ''));
+
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
+
+  const touchField = (name) => setTouchedFields(prev => ({ ...prev, [name]: true }));
+
+  const getValidationError = (name, value) => {
+    switch (name) {
+      case 'lrn': return validateLRN(value).message;
+      case 'email': return validateEmail(value).message;
+      case 'phoneNumber': return validatePhone(value).message;
+      case 'fatherEmail': case 'motherEmail': case 'guardianEmail': case 'emergencyContactPhone':
+        return name.endsWith('Email') ? validateEmail(value).message : validatePhone(value).message;
+      default: return '';
+    }
+  };
+
+  const onFieldBlur = (name, value) => {
+    touchField(name);
+    const err = getValidationError(name, value);
+    setFieldErrors(prev => ({ ...prev, [name]: err }));
+  };
+
+  const onFieldChange = (name, value, setter) => {
+    setter(value);
+    if (touchedFields[name]) {
+      const err = getValidationError(name, value);
+      setFieldErrors(prev => ({ ...prev, [name]: err }));
+    }
+  };
 
   const [birthCertificate, setBirthCertificate] = useState(null);
   const [reportCard, setReportCard] = useState(null);
@@ -561,7 +594,26 @@ const Enrollment = () => {
                   </Select>
                 </Field>
                 <Field label="Date of Birth" required><Input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} /></Field>
-                <Field label="Age"><Input value={getAge(dateOfBirth) || ''} disabled className="bg-slate-50 text-slate-500 font-bold" /></Field>
+                <Field label="Age">
+                  <Input value={getAge(dateOfBirth) || ''} disabled className="bg-slate-50 text-slate-500 font-bold" />
+                  {dateOfBirth && getAge(dateOfBirth) > 0 && (
+                    <p className={`text-[10px] mt-1 flex items-center gap-1 font-semibold ${
+                      getAge(dateOfBirth) < 10 ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      {getAge(dateOfBirth) < 10 ? (
+                        <>
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
+                          Must be at least 10 years old
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                          Age requirement met
+                        </>
+                      )}
+                    </p>
+                  )}
+                </Field>
                 <Field label="Place of Birth"><Input value={placeOfBirth} onChange={e => setPlaceOfBirth(e.target.value)} placeholder="City, Province" /></Field>
                 <Field label="Nationality"><Input value={nationality} onChange={e => setNationality(e.target.value)} /></Field>
                 <Field label="Religion"><Input value={religion} onChange={e => setReligion(e.target.value)} placeholder="Optional" /></Field>
@@ -598,7 +650,14 @@ const Enrollment = () => {
                     <Field label="Guardian's Full Name" required><Input value={guardianName} onChange={e => setGuardianName(e.target.value)} /></Field>
                     <Field label="Relationship" required><Input value={guardianRelationship} onChange={e => setGuardianRelationship(e.target.value)} placeholder="e.g. Parent, Aunt" /></Field>
                     <Field label="Contact Number" required><Input value={guardianContact} onChange={e => setGuardianContact(e.target.value)} /></Field>
-                    <Field label="Email"><Input type="email" value={guardianEmail} onChange={e => setGuardianEmail(e.target.value)} placeholder="Optional" /></Field>
+                    <Field label="Email">
+                      <Input type="email" value={guardianEmail}
+                        onChange={e => onFieldChange('guardianEmail', e.target.value, setGuardianEmail)}
+                        onBlur={() => onFieldBlur('guardianEmail', guardianEmail)}
+                        placeholder="Optional"
+                        className={touchedFields.guardianEmail && fieldErrors.guardianEmail ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : ''} />
+                      <FieldError error={touchedFields.guardianEmail ? fieldErrors.guardianEmail : ''} />
+                    </Field>
                   </div>
                 </div>
               ) : (
@@ -609,7 +668,14 @@ const Enrollment = () => {
                       <Field label="Father's Name" required><Input value={fatherName} onChange={e => setFatherName(e.target.value)} /></Field>
                       <Field label="Occupation"><Input value={fatherOccupation} onChange={e => setFatherOccupation(e.target.value)} placeholder="Optional" /></Field>
                       <Field label="Contact Number"><Input value={fatherContact} onChange={e => setFatherContact(e.target.value)} /></Field>
-                      <Field label="Email"><Input type="email" value={fatherEmail} onChange={e => setFatherEmail(e.target.value)} placeholder="Optional" /></Field>
+                      <Field label="Email">
+                        <Input type="email" value={fatherEmail}
+                          onChange={e => onFieldChange('fatherEmail', e.target.value, setFatherEmail)}
+                          onBlur={() => onFieldBlur('fatherEmail', fatherEmail)}
+                          placeholder="Optional"
+                          className={touchedFields.fatherEmail && fieldErrors.fatherEmail ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : ''} />
+                        <FieldError error={touchedFields.fatherEmail ? fieldErrors.fatherEmail : ''} />
+                      </Field>
                     </div>
                   </div>
                   <div className="bg-gray-50 border border-gray-200 p-5 space-y-4">
@@ -618,7 +684,14 @@ const Enrollment = () => {
                       <Field label="Mother's Name" required><Input value={motherName} onChange={e => setMotherName(e.target.value)} /></Field>
                       <Field label="Occupation"><Input value={motherOccupation} onChange={e => setMotherOccupation(e.target.value)} placeholder="Optional" /></Field>
                       <Field label="Contact Number"><Input value={motherContact} onChange={e => setMotherContact(e.target.value)} /></Field>
-                      <Field label="Email"><Input type="email" value={motherEmail} onChange={e => setMotherEmail(e.target.value)} placeholder="Optional" /></Field>
+                      <Field label="Email">
+                        <Input type="email" value={motherEmail}
+                          onChange={e => onFieldChange('motherEmail', e.target.value, setMotherEmail)}
+                          onBlur={() => onFieldBlur('motherEmail', motherEmail)}
+                          placeholder="Optional"
+                          className={touchedFields.motherEmail && fieldErrors.motherEmail ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : ''} />
+                        <FieldError error={touchedFields.motherEmail ? fieldErrors.motherEmail : ''} />
+                      </Field>
                     </div>
                   </div>
                   <div className="bg-gray-50 border border-gray-200 p-5 space-y-4">
@@ -627,7 +700,14 @@ const Enrollment = () => {
                       <Field label="Guardian's Name"><Input value={guardianName} onChange={e => setGuardianName(e.target.value)} /></Field>
                       <Field label="Relationship"><Input value={guardianRelationship} onChange={e => setGuardianRelationship(e.target.value)} /></Field>
                       <Field label="Contact Number"><Input value={guardianContact} onChange={e => setGuardianContact(e.target.value)} /></Field>
-                      <Field label="Email"><Input type="email" value={guardianEmail} onChange={e => setGuardianEmail(e.target.value)} placeholder="Optional" /></Field>
+                      <Field label="Email">
+                        <Input type="email" value={guardianEmail}
+                          onChange={e => onFieldChange('guardianEmail', e.target.value, setGuardianEmail)}
+                          onBlur={() => onFieldBlur('guardianEmail', guardianEmail)}
+                          placeholder="Optional"
+                          className={touchedFields.guardianEmail && fieldErrors.guardianEmail ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : ''} />
+                        <FieldError error={touchedFields.guardianEmail ? fieldErrors.guardianEmail : ''} />
+                      </Field>
                     </div>
                   </div>
                 </>
@@ -666,10 +746,18 @@ const Enrollment = () => {
                     </Select>
                   </Field>
                   <Field label="LRN (Learner Reference Number)" required={!noLrn}>
-                    <Input value={lrn} onChange={e => setLrn(e.target.value)} placeholder="12-digit LRN"
-                      disabled={noLrn} className={noLrn ? 'bg-slate-100 text-slate-400' : ''} />
-                    {!noLrn && lrn && lrn.length !== 12 && (
-                      <p className="text-[10px] text-red-500 mt-1">LRN must be exactly 12 digits</p>
+                    <Input value={lrn} onChange={e => onFieldChange('lrn', e.target.value, setLrn)}
+                      onBlur={() => onFieldBlur('lrn', lrn)}
+                      placeholder="12-digit LRN" disabled={noLrn}
+                      className={`${noLrn ? 'bg-slate-100 text-slate-400' : ''} ${
+                        touchedFields.lrn && fieldErrors.lrn ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : ''
+                      }`} />
+                    <FieldError error={touchedFields.lrn ? fieldErrors.lrn : ''} />
+                    {!noLrn && lrn && !fieldErrors.lrn && lrn.length === 12 && (
+                      <p className="text-[10px] text-green-600 mt-1 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                        Valid LRN format
+                      </p>
                     )}
                   </Field>
                   <div className="sm:col-span-2">
@@ -720,8 +808,21 @@ const Enrollment = () => {
               <div className="bg-gray-50 border border-gray-200 p-5 space-y-4">
                 <p className="text-xs font-black text-gray-600 uppercase tracking-widest border-b border-gray-300 pb-2">Contact Information</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Email" required><Input type="email" value={email} onChange={e => setEmail(e.target.value)} /></Field>
-                  <Field label="Phone Number" required><Input value={phoneNumber} onChange={e => setPhoneNumber(e.target.value)} /></Field>
+                  <Field label="Email" required>
+                    <Input type="email" value={email}
+                      onChange={e => onFieldChange('email', e.target.value, setEmail)}
+                      onBlur={() => onFieldBlur('email', email)}
+                      className={touchedFields.email && fieldErrors.email ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : ''} />
+                    <FieldError error={touchedFields.email ? fieldErrors.email : ''} />
+                  </Field>
+                  <Field label="Phone Number" required>
+                    <Input value={phoneNumber}
+                      onChange={e => onFieldChange('phoneNumber', e.target.value, setPhoneNumber)}
+                      onBlur={() => onFieldBlur('phoneNumber', phoneNumber)}
+                      placeholder="09XX XXX XXXX"
+                      className={touchedFields.phoneNumber && fieldErrors.phoneNumber ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : ''} />
+                    <FieldError error={touchedFields.phoneNumber ? fieldErrors.phoneNumber : ''} />
+                  </Field>
                 </div>
               </div>
               <div className="bg-gray-50 border border-gray-200 p-5 space-y-4">
@@ -729,7 +830,15 @@ const Enrollment = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field label="Name" required><Input value={emergencyContactName} onChange={e => setEmergencyContactName(e.target.value)} /></Field>
                   <Field label="Relationship" required><Input value={emergencyContactRelationship} onChange={e => setEmergencyContactRelationship(e.target.value)} /></Field>
-                  <div className="sm:col-span-2"><Field label="Phone Number" required><Input value={emergencyContactPhone} onChange={e => setEmergencyContactPhone(e.target.value)} /></Field></div>
+                  <div className="sm:col-span-2">
+                  <Field label="Phone Number" required>
+                    <Input value={emergencyContactPhone}
+                      onChange={e => onFieldChange('emergencyContactPhone', e.target.value, setEmergencyContactPhone)}
+                      onBlur={() => onFieldBlur('emergencyContactPhone', emergencyContactPhone)}
+                      className={touchedFields.emergencyContactPhone && fieldErrors.emergencyContactPhone ? 'border-red-400 focus:ring-red-500 focus:border-red-500' : ''} />
+                    <FieldError error={touchedFields.emergencyContactPhone ? fieldErrors.emergencyContactPhone : ''} />
+                  </Field>
+                </div>
                 </div>
               </div>
             </div>
@@ -751,7 +860,7 @@ const Enrollment = () => {
               </div>
               <div className="space-y-3">
                 {getRequirementsForGrade().map(req => (
-                  <FileUpload key={req.key} label={req.label} required={req.required} note={req.note}
+                  <EnhancedFileUpload key={req.key} label={req.label} required={req.required} note={req.note}
                     file={fileMap[req.key]} onFile={f => setFileMap[req.key](f)} onRemove={() => setFileMap[req.key](null)} />
                 ))}
               </div>
