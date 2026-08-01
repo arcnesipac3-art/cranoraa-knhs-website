@@ -457,6 +457,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             existing_by_email = User.objects.filter(email=email).first() if email else None
             if existing_by_email:
                 student_user = existing_by_email
+                username = student_user.username
                 student_user.first_name = application.first_name
                 student_user.last_name = application.last_name
                 student_user.role = 'student'
