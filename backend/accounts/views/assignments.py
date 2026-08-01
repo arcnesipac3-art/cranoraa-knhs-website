@@ -425,9 +425,9 @@ class SubmissionViewSet(viewsets.ModelViewSet):
             # Calculate percentage score
             percentage = round((grade_value / assignment.points) * 100, 2) if assignment.points > 0 else 0
 
-            # Use the current quarter from system settings
+            # Use the current term from system settings
             settings = SystemSetting.get_settings()
-            quarter = int(settings.current_quarter)
+            quarter = int(settings.current_term)
             academic_year = settings.academic_year
 
             grade_record, _ = Grade.objects.update_or_create(

@@ -256,7 +256,20 @@ const EnrollmentManagement = () => {
 
   const bulkAction = async (action) => {
     if (!selectedIds.length) { Swal.fire({ icon: 'warning', text: 'Select applications first.' }); return; }
-    const confirmed = await Swal.fire({ title: `${action} ${selectedIds.length} application(s)?`, showCancelButton: true, confirmButtonText: 'Confirm', confirmButtonColor: action === 'reject' ? '#EF4444' : '#7C3AED' });
+    
+    // Get selected application details for confirmation
+    const selectedApps = applications.filter(app => selectedIds.includes(app.id));
+    const appList = selectedApps.slice(0, 5).map(a => `• ${a.first_name} ${a.last_name} (${a.enrollment_number || 'N/A'})`).join('<br>');
+    const remaining = selectedIds.length > 5 ? `<br><em>...and ${selectedIds.length - 5} more</em>` : '';
+    
+    const confirmed = await Swal.fire({ 
+      title: `${action.charAt(0).toUpperCase() + action.slice(1)} ${selectedIds.length} application(s)?`,
+      html: `<div class="text-left text-sm mt-2">${appList}${remaining}</div>`,
+      icon: 'question',
+      showCancelButton: true, 
+      confirmButtonText: 'Confirm', 
+      confirmButtonColor: action === 'reject' ? '#EF4444' : '#7C3AED' 
+    });
     if (!confirmed.isConfirmed) return;
     try {
       if (action === 'approve') {

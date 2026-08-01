@@ -269,11 +269,11 @@ const StudentEnrollment = () => {
                 <thead className="bg-slate-50">
                   <tr className="text-[6px] md:text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                     <th className="text-left px-2 py-1 md:px-6 md:py-3">Student</th>
-                    <th className="text-center px-1 py-1 md:px-6 md:py-3">T1</th>
-                    <th className="text-center px-1 py-1 md:px-6 md:py-3">T2</th>
-                    <th className="text-center px-1 py-1 md:px-6 md:py-3">T3</th>
+                    <th className="text-center px-1 py-1 md:px-6 md:py-3" title="Term 1">T1</th>
+                    <th className="text-center px-1 py-1 md:px-6 md:py-3" title="Term 2">T2</th>
+                    <th className="text-center px-1 py-1 md:px-6 md:py-3" title="Term 3">T3</th>
                     <th className="text-center px-1 py-1 md:px-6 md:py-3">AVG</th>
-                    <th className="text-center px-2 py-1 md:px-6 md:py-3">OPT</th>
+                    <th className="text-center px-2 py-1 md:px-6 md:py-3">ACT</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -286,8 +286,8 @@ const StudentEnrollment = () => {
                           <div className="text-[6px] md:text-xs text-slate-400 font-bold truncate max-w-[100px] md:max-w-none leading-none">{e.student_email}</div>
                           {e.student_lrn && <div className="text-[5px] md:text-[10px] text-slate-300 font-bold">LRN: {e.student_lrn}</div>}
                         </td>
-                        {['q1','q2','q3'].map(q => (
-                          <td key={q} className="px-1 py-1 md:px-6 md:py-4 text-center text-[8px] md:text-sm font-bold text-slate-600">
+                        {['q1','q2','q3'].map((q, idx) => (
+                          <td key={q} className="px-1 py-1 md:px-6 md:py-4 text-center text-[8px] md:text-sm font-bold text-slate-600" title={`Term ${idx + 1}`}>
                             {e[q] ?? <span className="text-slate-300">—</span>}
                           </td>
                         ))}
@@ -304,8 +304,9 @@ const StudentEnrollment = () => {
                           <button
                             onClick={() => handleRemove(e)}
                             className="p-0.5 md:px-3 md:py-1.5 text-[7px] md:text-xs font-black text-red-700 bg-red-100 hover:bg-red-200 rounded transition-all active:scale-90 uppercase tracking-widest"
+                            title="Remove student from this section"
                           >
-                            Rem
+                            Remove
                           </button>
                         </td>
                       </tr>

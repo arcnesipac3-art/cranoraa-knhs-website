@@ -382,8 +382,8 @@ const AcademicSetup = () => {
     try {
       // Activate the academic year (this also syncs SystemSetting.academic_year)
       await api.post(`/admin/academic-years/${activeAY.id}/activate/`);
-      // Optionally set current quarter to 1st
-      await api.patch('/system/settings/', { current_quarter: '1' }).catch(() => {});
+      // Optionally set current term to 1st
+      await api.patch('/system/settings/', { current_term: '1' }).catch(() => {});
       toast.success('Academic setup published — SY ' + activeAY.name + ' is now active');
       goToNextStep();
     } catch (err) { toast.error(parseBackendErrors(err)); }

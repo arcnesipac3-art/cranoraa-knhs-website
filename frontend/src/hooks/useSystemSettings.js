@@ -56,7 +56,7 @@ export function useSystemSettings() {
     periodOptions,
     periodShortLabels,
     periodValues,
-    currentQuarter: settings?.current_quarter || '1',
+    currentTerm: settings?.current_term || '1',
     defaultWeights: {
       ww: Number(settings?.default_ww_weight) || 30,
       pt: Number(settings?.default_pt_weight) || 50,

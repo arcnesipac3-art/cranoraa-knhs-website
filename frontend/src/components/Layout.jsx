@@ -529,7 +529,7 @@ const Layout = () => {
           <div className="flex-shrink-0 px-4 py-3 bg-black/20 border-b border-white/5">
             <div className="flex items-center justify-between text-[10px] font-bold text-purple-300/80 uppercase tracking-wider">
               <span>{academicYear ? `SY ${academicYear}` : 'No Year Set'}</span>
-              <span className="text-purple-200/60">{sysSettings?.current_quarter || 'Current Semester'}</span>
+              <span className="text-purple-200/60">{sysSettings?.current_term || 'Term'}</span>
             </div>
           </div>
 

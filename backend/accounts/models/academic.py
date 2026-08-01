@@ -110,7 +110,7 @@ class SystemSetting(models.Model):
         ('both', 'Both (JHS + SHS)'),
     ]
     academic_level = models.CharField(max_length=4, choices=ACADEMIC_LEVEL_CHOICES, default='jhs')
-    current_quarter = models.CharField(max_length=1, default='1', choices=[('1', 'Term 1'), ('2', 'Term 2'), ('3', 'Term 3'), ('4', 'Term 4 (Legacy)')])
+    current_term = models.CharField(max_length=1, default='1', choices=[('1', 'Term 1'), ('2', 'Term 2'), ('3', 'Term 3')], help_text="Current term for both JHS and SHS (3-term curriculum)")
     academic_year = models.CharField(max_length=9, blank=True, default='')
 
     default_ww_weight = models.DecimalField(max_digits=5, decimal_places=2, default=30.00, help_text="Default Written Work weight (%)")

@@ -7,7 +7,7 @@ from .user import SimplifiedStudentSerializer
 class SystemSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemSetting
-        fields = ['id', 'academic_year', 'academic_level', 'current_quarter',
+        fields = ['id', 'academic_year', 'academic_level', 'current_term',
                   'passing_grade', 'site_name',
                   'school_address', 'school_phone', 'school_email',
                   'maintenance_mode', 'maintenance_message']

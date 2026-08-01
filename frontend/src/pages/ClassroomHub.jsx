@@ -1700,8 +1700,8 @@ const GradeInputView = ({ classroom, onBack }) => {
         if (res.data?.academic_year) {
           setCurrentAcademicYear(res.data.academic_year);
         }
-        if (res.data?.current_quarter) {
-          setSelectedQuarter(parseInt(res.data.current_quarter, 10));
+        if (res.data?.current_term) {
+          setSelectedQuarter(parseInt(res.data.current_term, 10));
         }
       } catch {
         toast.error('Failed to load system settings. Cannot submit grades.');

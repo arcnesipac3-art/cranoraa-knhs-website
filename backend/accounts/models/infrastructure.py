@@ -25,14 +25,8 @@ class AcademicYear(models.Model):
 
 
 class Semester(models.Model):
+    # New DepEd curriculum: JHS and SHS both use 3 terms
     SEMESTER_CHOICES = [
-        ('1st', 'First Semester'),
-        ('2nd', 'Second Semester'),
-        ('summer', 'Summer'),
-        ('1st Quarter', 'First Quarter'),
-        ('2nd Quarter', 'Second Quarter'),
-        ('3rd Quarter', 'Third Quarter'),
-        ('4th Quarter', 'Fourth Quarter'),
         ('1st Term', 'First Term'),
         ('2nd Term', 'Second Term'),
         ('3rd Term', 'Third Term'),

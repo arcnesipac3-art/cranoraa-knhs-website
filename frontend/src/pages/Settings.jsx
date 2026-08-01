@@ -707,15 +707,15 @@ const PortalSettingsTab = () => {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field label="Academic Level" hint="Determines grading period structure">
-              <select value={settings.academic_level} onChange={e => setSettings(p => ({...p, academic_level: e.target.value, current_quarter: '1'}))}
+              <select value={settings.academic_level} onChange={e => setSettings(p => ({...p, academic_level: e.target.value, current_term: '1'}))}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
                 <option value="jhs">Junior High School (Grades 7-10)</option>
                 <option value="shs">Senior High School (Grades 11-12)</option>
                 <option value="both">Both (JHS + SHS)</option>
               </select>
             </Field>
-            <Field label={settings.academic_level === 'shs' ? 'Current Semester' : 'Current Term'} hint="Used as default when entering grades">
-              <select value={settings.current_quarter} onChange={e => setSettings(p => ({...p, current_quarter: e.target.value}))}
+            <Field label="Current Term" hint="Used as default when entering grades">
+              <select value={settings.current_term} onChange={e => setSettings(p => ({...p, current_term: e.target.value}))}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
                 {settings.academic_level === 'shs' ? (
                   <>
@@ -748,12 +748,12 @@ const PortalSettingsTab = () => {
                 : ['1st Term', '2nd Term', '3rd Term']
               ).map((label, i) => (
                 <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
-                  String(i + 1) === settings.current_quarter 
+                  String(i + 1) === settings.current_term 
                     ? 'bg-violet-100 border-violet-300 text-violet-800' 
                     : 'bg-white border-slate-200 text-slate-600'
                 }`}>
                   <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                    String(i + 1) === settings.current_quarter 
+                    String(i + 1) === settings.current_term 
                       ? 'bg-violet-600 text-white' 
                       : 'bg-slate-200 text-slate-600'
                   }`}>{i + 1}</span>
