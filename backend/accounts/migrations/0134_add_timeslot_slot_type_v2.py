@@ -15,7 +15,4 @@ class Migration(migrations.Migration):
             name='slot_type',
             field=models.CharField(choices=[('class', 'Class Period'), ('recess', 'Recess'), ('lunch', 'Lunch Break'), ('vacant', 'Vacant'), ('assembly', 'Assembly'), ('pe', 'PE / Sports')], default='class', help_text='Type of this time slot.', max_length=20),
         ),
-        migrations.DeleteModel(
-            name='Friendship',
-        ),
     ]
