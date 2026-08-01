@@ -171,17 +171,21 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             ]
             uploaded_urls = {}
             upload_errors = []
+            logger.info(f"Enrollment submit: {len(request.FILES)} files in request: {list(request.FILES.keys())}")
             for field_name in doc_fields:
                 if field_name in request.FILES:
                     f = request.FILES[field_name]
+                    logger.info(f"  Uploading {field_name}: {f.name} ({f.size} bytes, {getattr(f, 'content_type', 'unknown')})")
                     url, err = upload_file(f, bucket_key='enrollment-docs',
                                            folder=f"applications/{field_name}")
                     if err:
                         upload_errors.append(f"{field_name}: {err}")
+                        logger.error(f"  Upload FAILED for {field_name}: {err}")
                     elif url:
                         if not url.startswith(('http://', 'https://')):
                             url = 'https://' + url
                         uploaded_urls[field_name] = url
+                        logger.info(f"  Upload OK for {field_name}: {url[:80]}...")
 
             if upload_errors:
                 return Response(
@@ -230,6 +234,9 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                     file_url=url,
                     file_name=getattr(request.FILES[field_name], 'name', ''),
                 )
+                logger.info(f"  EnrollmentDocument created: {doc_type} for app {application.enrollment_number}")
+
+            logger.info(f"Enrollment submit complete: {application.enrollment_number} — {len(uploaded_urls)} docs stored, {application.documents.count()} EnrollmentDocument records")
 
             EnrollmentStatusHistory.objects.create(
                 application=application,
