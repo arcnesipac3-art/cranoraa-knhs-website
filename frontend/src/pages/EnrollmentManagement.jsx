@@ -3,6 +3,7 @@ import api from '../utils/api';
 import Swal from 'sweetalert2';
 import { useParallelFetch } from '../hooks/useFetch';
 import { LoadingSpinner } from '../components/ui';
+import { ApplicationsTableSkeleton } from '../components/enrollment/Skeletons';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 
 const STATUS_CONFIG = {
@@ -289,11 +290,7 @@ const EnrollmentManagement = () => {
     setSelectedIds([]);
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <LoadingSpinner />
-    </div>
-  );
+  if (loading) return <ApplicationsTableSkeleton />;
 
   return (
     <div className="page-bottom-safe bg-slate-50/50">
