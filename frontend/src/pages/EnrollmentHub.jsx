@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { LoadingSpinner, Button } from '../components/ui';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
+import { ApplicationDrawer } from '../components/enrollment/ApplicationDrawer';
 
 const STATUS_CONFIG = {
   pending: { color: 'bg-amber-100 text-amber-800 border-amber-200', label: 'Pending' },
@@ -490,67 +491,21 @@ function ApplicationsTab({ refetch }) {
         </div>
 
         {selected && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
-            <div className="bg-white w-full max-w-3xl border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-              <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">
-                      {selected.full_name || `${selected.first_name} ${selected.last_name}`}
-                    </h2>
-                    <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">
-                      {selected.enrollment_number} — Enrollment Application
-                    </p>
-                  </div>
-                </div>
-                <button type="button" onClick={() => setSelected(null)}
-                  className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                  </svg>
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-5 space-y-6">
-                <div className="flex items-center justify-between">
-                  <span className={`px-3 py-1 text-xs font-bold uppercase rounded-lg border ${(STATUS_CONFIG[selected.status] || STATUS_CONFIG.pending).color}`}>
-                    {(STATUS_CONFIG[selected.status] || STATUS_CONFIG.pending).label}
-                  </span>
-                  {selected.assigned_classroom_name && <span className="text-xs font-bold text-violet-600">Section: {selected.assigned_classroom_name}</span>}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">Type</p><p className="font-bold text-slate-800">{selected.enrollment_type?.replace('_', ' ') || 'New'}</p></div>
-                  <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">Grade</p><p className="font-bold text-slate-800">Grade {selected.grade_level}{selected.strand ? ` - ${selected.strand}` : ''}</p></div>
-                  <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">School Year</p><p className="font-bold text-slate-800">{selected.school_year || 'N/A'}</p></div>
-                  <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">Sex</p><p className="font-bold text-slate-800">{selected.sex}</p></div>
-                  <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">DOB</p><p className="font-bold text-slate-800">{selected.date_of_birth} ({selected.age || '?'} yrs)</p></div>
-                  <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">LRN</p><p className="font-bold text-slate-800">{selected.lrn || (selected.lrn_request_reason ? `Requested: ${selected.lrn_request_reason.replace(/_/g, ' ')}` : 'N/A')}</p></div>
-                  <div className="col-span-2 bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">Address</p><p className="font-bold text-slate-800">{selected.street_address}, {selected.barangay}, {selected.city_municipality}, {selected.province}</p></div>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Parents / Guardian</p>
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="bg-emerald-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-emerald-600 uppercase">Father</p><p className="font-bold text-slate-800">{selected.father_name || 'N/A'}</p><p className="text-xs text-slate-500">{selected.father_contact || ''}</p>{selected.father_email && <p className="text-[10px] text-slate-400">{selected.father_email}</p>}</div>
-                    <div className="bg-rose-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-rose-600 uppercase">Mother</p><p className="font-bold text-slate-800">{selected.mother_name || 'N/A'}</p><p className="text-xs text-slate-500">{selected.mother_contact || ''}</p>{selected.mother_email && <p className="text-[10px] text-slate-400">{selected.mother_email}</p>}</div>
-                    {selected.guardian_name && <div className="bg-amber-50 p-3 rounded-xl col-span-2"><p className="text-[9px] font-bold text-amber-600 uppercase">Guardian</p><p className="font-bold text-slate-800">{selected.guardian_name} ({selected.guardian_relationship})</p><p className="text-xs text-slate-500">{selected.guardian_contact || ''}</p></div>}
-                    {selected.linked_parent_email && <div className="bg-violet-50 p-3 rounded-xl col-span-2 border border-violet-200"><p className="text-[9px] font-bold text-violet-600 uppercase">Linked Parent Account</p><p className="text-xs text-violet-700 font-semibold">{selected.linked_parent_email}</p></div>}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Documents</p>
-                  {selected.status === 'under_review' && selected.documents && selected.documents.length > 0 &&
-                    !selected.documents.every(d => d.verification_status === 'verified') && (
-                    <p className="text-[10px] text-amber-600 font-bold mb-2">
-                      Verify all documents to enable the Approve button.
-                    </p>
-                  )}
+          <ApplicationDrawer
+            application={selected}
+            onClose={() => setSelected(null)}
+            onAction={handleAction}
+            classrooms={classrooms}
+            onRequestDocs={promptRequestDocs}
+            onAssignSection={assignSection}
+            onReject={promptReject}
+            onApprove={promptApproveApplication}
+            onEnroll={(app) => { setEnrollApp(app); setShowEnrollModal(true); }}
+            onWithdraw={promptWithdraw}
+            onDelete={promptDelete}
+            onVerifyDoc={verifyDoc}
+          />
+        )}
                   {selected.documents && selected.documents.length > 0 ? (
                     <div className="space-y-2">
                       {selected.documents.map(doc => (

@@ -12,7 +12,8 @@ const FieldError = ({ error, className }) => {
   if (!error) return null;
   return (
     <p className={cn(
-      'flex items-start gap-1 mt-1 text-[10px] font-semibold text-red-600 animate-in',
+      'flex items-start gap-1 mt-1 text-[10px] font-semibold text-red-600',
+      'transition-all duration-200 ease-out',
       className
     )}>
       <svg className="w-3 h-3 flex-shrink-0 mt-px" fill="currentColor" viewBox="0 0 20 20">
