@@ -28,10 +28,6 @@ class Migration(migrations.Migration):
                 'ordering': ['-quarter', 'value_type'],
             },
         ),
-        migrations.AlterUniqueTogether(
-            name='friendship',
-            unique_together=None,
-        ),
         migrations.RemoveField(
             model_name='friendship',
             name='from_user',
