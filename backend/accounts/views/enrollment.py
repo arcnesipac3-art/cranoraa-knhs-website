@@ -741,7 +741,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
 
         from_status = application.status
-        application.status = 'rejected'
+        application.status = 'withdrawn'
         application.remarks = f'Withdrawn: {reason}'
         application.reviewed_by = request.user
         application.reviewed_at = timezone.now()
@@ -750,7 +750,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         EnrollmentStatusHistory.objects.create(
             application=application,
             from_status=from_status,
-            to_status='rejected',
+            to_status='withdrawn',
             changed_by=request.user,
             notes=f'Withdrawn ({reason_type}): {reason}',
         )

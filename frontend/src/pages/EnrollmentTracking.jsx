@@ -12,6 +12,7 @@ const STATUS_CONFIG = {
   rejected:             { color: 'bg-red-600',     light: 'bg-red-50 border-red-300',       text: 'text-red-800',     label: 'Rejected',               desc: 'Your application was not approved. See remarks for details.',     icon: '❌' },
   cancelled:            { color: 'bg-gray-500',     light: 'bg-gray-50 border-gray-300',     text: 'text-gray-700',    label: 'Cancelled',              desc: 'Your application has been cancelled.',                            icon: '🚫' },
   enrolled:             { color: 'bg-violet-950',  light: 'bg-slate-50 border-violet-300', text: 'text-slate-900',  label: 'Enrolled',               desc: 'You are officially enrolled at Kiwalan National High School!',    icon: '🎓' },
+  withdrawn:            { color: 'bg-orange-500',  light: 'bg-orange-50 border-orange-300', text: 'text-orange-800', label: 'Withdrawn',              desc: 'Your enrollment has been withdrawn. Contact the office for details.', icon: '🚪' },
 };
 
 const TIMELINE_STEPS = [

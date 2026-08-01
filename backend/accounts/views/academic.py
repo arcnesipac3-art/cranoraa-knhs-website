@@ -360,9 +360,14 @@ class ClassroomViewSet(viewsets.ModelViewSet):
         enrolled_count = 0
         already_enrolled = []
         not_found = []
+        capacity_exceeded = []
 
         with transaction.atomic():
+            current_count = classroom.enrollments.count()
             for student_id in student_ids:
+                if current_count + enrolled_count >= classroom.capacity:
+                    capacity_exceeded.append(student_id)
+                    continue
                 try:
                     student = User.objects.get(id=student_id, role='student')
                     _, created = StudentClassEnrollment.objects.get_or_create(
@@ -390,7 +395,8 @@ class ClassroomViewSet(viewsets.ModelViewSet):
             'status': 'success',
             'enrolled': enrolled_count,
             'already_enrolled': already_enrolled,
-            'not_found': not_found
+            'not_found': not_found,
+            'capacity_exceeded': capacity_exceeded,
         })
 
 
@@ -473,13 +479,14 @@ class StudentClassEnrollmentViewSet(viewsets.ModelViewSet):
 
         if enrollment.student:
             if any([enrollment.q1, enrollment.q2, enrollment.q3, enrollment.q4]):
-                Notification.objects.create(
-                    recipient=enrollment.student,
-                    notification_type='grade',
-                    title='Grades Updated',
-                    message=f'Your grades for {enrollment.classroom.name} have been updated.',
-                    link='/result-checker'
-                )
+                try:
+                    from ..services.notification_service import notify
+                    notify(enrollment.student, 'grade', 'Grades Updated',
+                        f'Your grades for {enrollment.classroom.name} have been updated.',
+                        '/result-checker')
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).error(f"Notification error: {e}")
 
     @action(detail=False, methods=['post'], url_path='assign-classroom')
     def assign_classroom(self, request):
@@ -494,7 +501,10 @@ class StudentClassEnrollmentViewSet(viewsets.ModelViewSet):
             classroom = Classroom.objects.get(pk=classroom_id)
         except (User.DoesNotExist, Classroom.DoesNotExist):
             return Response({'error': 'Student or classroom not found'}, status=404)
-        existing = StudentClassEnrollment.objects.filter(student=student).first()
+        existing = StudentClassEnrollment.objects.filter(
+            student=student,
+            classroom__academic_year=classroom.academic_year,
+        ).first()
         if existing:
             if existing.classroom_id == classroom.id:
                 return Response({'status': 'Already assigned to this section'})

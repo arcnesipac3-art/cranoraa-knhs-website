@@ -31,6 +31,7 @@ class EnrollmentApplication(models.Model):
         ('rejected', 'Rejected'),
         ('cancelled', 'Cancelled'),
         ('enrolled', 'Enrolled'),
+        ('withdrawn', 'Withdrawn'),
     ]
 
     SEX_CHOICES = [

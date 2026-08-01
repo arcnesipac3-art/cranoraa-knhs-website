@@ -12,7 +12,9 @@ const STATUS_CONFIG = {
   pending_requirements: { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Pending Req' },
   approved: { color: 'bg-emerald-100 text-emerald-800 border-emerald-200', label: 'Approved' },
   rejected: { color: 'bg-rose-100 text-rose-800 border-rose-200', label: 'Rejected' },
+  cancelled: { color: 'bg-gray-100 text-gray-700 border-gray-200', label: 'Cancelled' },
   enrolled: { color: 'bg-violet-100 text-violet-800 border-violet-200', label: 'Enrolled' },
+  withdrawn: { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Withdrawn' },
 };
 
 const GRADE_LEVELS = ['','7','8','9','10','11','12'];
@@ -85,7 +87,7 @@ const EnrollmentManagement = () => {
 
   const handleView = async (app) => {
     setSelected(app);
-    setChecklist(null);
+    setChecklist(app.checklist || null);
     if (app.status === 'pending') {
       try {
         await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
@@ -93,10 +95,6 @@ const EnrollmentManagement = () => {
         refetch();
       } catch { /* ignore */ }
     }
-    try {
-      const res = await api.get(`/enrollment-applications/${app.id}/checklist/`);
-      setChecklist(res.data);
-    } catch { /* checklist not available */ }
   };
 
   const promptApproveApplication = async (id) => {
@@ -274,13 +272,17 @@ const EnrollmentManagement = () => {
     if (!confirmed.isConfirmed) return;
     try {
       if (action === 'approve') {
-        await api.post('/enrollment-applications/bulk-approve/', { application_ids: selectedIds, remarks: 'Bulk approved by admin' });
+        for (const id of selectedIds) {
+          await api.post(`/enrollment-applications/${id}/approve_application/`, { remarks: 'Bulk approved by admin' });
+        }
       } else if (action === 'reject') {
         for (const id of selectedIds) {
           await handleAction(id, 'reject', { remarks: 'Bulk rejected by admin' });
         }
       } else if (action === 'enroll') {
-        await api.post('/enrollment-applications/bulk-enroll/', { application_ids: selectedIds });
+        for (const id of selectedIds) {
+          await api.post(`/enrollment-applications/${id}/enroll_student/`);
+        }
       }
       Swal.fire({ icon: 'success', title: 'Done', text: `${action} completed for ${selectedIds.length} application(s)`, timer: 2000, showConfirmButton: false });
       refetch();

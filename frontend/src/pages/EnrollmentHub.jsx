@@ -16,6 +16,7 @@ const STATUS_CONFIG = {
   rejected: { color: 'bg-rose-100 text-rose-800 border-rose-200', label: 'Rejected' },
   cancelled: { color: 'bg-gray-100 text-gray-700 border-gray-200', label: 'Cancelled' },
   enrolled: { color: 'bg-violet-100 text-violet-800 border-violet-200', label: 'Enrolled' },
+  withdrawn: { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Withdrawn' },
 };
 
 const GRADE_LEVELS = ['', '7', '8', '9', '10', '11', '12'];
