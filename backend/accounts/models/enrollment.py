@@ -29,6 +29,7 @@ class EnrollmentApplication(models.Model):
         ('pending_requirements', 'Pending Requirements'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
+        ('cancelled', 'Cancelled'),
         ('enrolled', 'Enrolled'),
     ]
 

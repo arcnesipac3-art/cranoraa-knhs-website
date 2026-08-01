@@ -120,7 +120,6 @@ export const protectedRoutes = [
   { path: 'school-forms/sf5', element: SF5Page, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'school-forms/sf9', element: SF9Page, roles: Role.ALL },
   { path: 'school-forms/sf10', element: SF10Page, roles: [Role.ADMIN, Role.STAFF] },
-  { path: 'my-schedule', element: MySchedule, roles: [Role.STAFF, Role.STUDENT] },
 
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },

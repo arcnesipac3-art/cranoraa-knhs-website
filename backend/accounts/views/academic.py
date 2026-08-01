@@ -17,7 +17,7 @@ from ..models import (
     User, Profile, Classroom, StudentClassEnrollment, Announcement, AnnouncementAttachment,
     AnnouncementComment, Attendance, LearningMaterial, Subject, ClassroomSubject, ScratchCard,
     Fee, Notification, EnrollmentApplication, SystemSetting, Schedule, FCMToken,
-    AbsenceExcuse, EnrollmentWaitlist,
+    AbsenceExcuse, EnrollmentWaitlist, EnrollmentStatusHistory,
 )
 from ..permissions import IsAdmin
 from ..throttles import CsvImportRateThrottle
@@ -504,6 +504,50 @@ class StudentClassEnrollmentViewSet(viewsets.ModelViewSet):
             StudentClassEnrollment.objects.create(student=student, classroom=classroom)
             msg = f'Assigned to {classroom.name}'
         return Response({'status': msg})
+
+    @action(detail=True, methods=['post'])
+    def withdraw_student(self, request, pk=None):
+        enrollment = self.get_object()
+        reason = request.data.get('reason', '').strip()
+        reason_type = request.data.get('reason_type', 'other')
+        if not reason:
+            return Response({'error': 'A reason is required to withdraw a student'}, status=400)
+
+        student = enrollment.student
+        classroom_name = enrollment.classroom.name if enrollment.classroom else 'unknown'
+        enrollment.delete()
+
+        from ..models import Profile, EnrollmentApplication
+        profile, _ = Profile.objects.get_or_create(user=student)
+        profile.enrollment_status = reason_type
+        profile.enrollment_status_reason = reason
+        profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
+
+        app = EnrollmentApplication.objects.filter(enrolled_student=student).order_by('-submitted_at').first()
+        if app:
+            from_status = app.status
+            app.status = 'rejected'
+            app.remarks = f'Withdrawn: {reason}'
+            app.reviewed_by = request.user
+            app.reviewed_at = timezone.now()
+            app.save()
+            EnrollmentStatusHistory.objects.create(
+                application=app, from_status=from_status, to_status='rejected',
+                changed_by=request.user, notes=f'Withdrawn ({reason_type}): {reason}',
+            )
+
+        try:
+            log_audit_action(
+                user=request.user, action='withdraw',
+                model_name='StudentClassEnrollment', object_id=enrollment.id,
+                object_repr=classroom_name,
+                description=f'Withdrew {student.username} from {classroom_name} — {reason_type}: {reason}',
+                request=request,
+            )
+        except Exception as e:
+            logger.error(f"Audit log failed on withdraw_student: {e}")
+
+        return Response({'status': 'Student withdrawn', 'reason_type': reason_type})
 
 
 class UserViewSet(viewsets.ModelViewSet):

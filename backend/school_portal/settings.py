@@ -373,40 +373,6 @@ CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = False  # SPA needs to read CSRF cookie for double-submit pattern
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-# ─── Logging ──────────────────────────────────────────────────────────────────
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': os.environ.get('DJANGO_LOG_LEVEL', 'WARNING'),
-            'propagate': False,
-        },
-        'accounts': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-    },
-}
-
 # Frontend URL for verification links
 FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:5173')
 
@@ -473,14 +439,19 @@ SPECTACULAR_SETTINGS = {
 }
 
 # ─── Structured Logging ──────────────────────────────────────────────────────
+try:
+    import pythonjsonlogger  # noqa: F401
+    _json_formatter = {"()": "pythonjsonlogger.jsonlogger.JsonFormatter", "format": "%(asctime)s %(levelname)s %(name)s %(message)s"}
+    _console_formatter = "json" if not DEBUG else "verbose"
+except ImportError:
+    _json_formatter = None
+    _console_formatter = "verbose"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "json": {
-            "()": "pythonjsonlogger.jsonlogger.JsonFormatter",
-            "format": "%(asctime)s %(levelname)s %(name)s %(message)s",
-        },
+        **({"json": _json_formatter} if _json_formatter else {}),
         "verbose": {
             "format": "{asctime} [{levelname}] {name}: {message}",
             "style": "{",
@@ -489,7 +460,7 @@ LOGGING = {
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "json" if not DEBUG else "verbose",
+            "formatter": _console_formatter,
         },
     },
     "loggers": {

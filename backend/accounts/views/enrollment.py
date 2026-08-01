@@ -237,15 +237,12 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                 notes='Application submitted',
             )
 
-            admin_users = User.objects.filter(role='admin', is_active=True)
-            for admin in admin_users:
-                Notification.objects.create(
-                    recipient=admin,
-                    notification_type='system',
-                    title='New Enrollment Application',
-                    message=f'{application.full_name} submitted a Grade {application.grade_level} application ({application.enrollment_number}).',
-                    link='/enrollment-management',
-                )
+            try:
+                from ..services.notification_service import notify_enrollment_submitted
+                admin_users = User.objects.filter(role='admin', is_active=True)
+                notify_enrollment_submitted(admin_users, application)
+            except Exception as notif_err:
+                logger.error(f"Admin notification failed: {notif_err}")
 
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
@@ -359,29 +356,9 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         user = request.user
         remarks = request.data.get('remarks', 'Provide reason for rejection.')
         if application.status == 'enrolled':
-            # Treat rejection of enrolled student as a withdrawal/unenrollment
-            from ..models import StudentClassEnrollment, Profile
-            reason_type = request.data.get('reason_type', 'transfer_out')
-            enrolled_count = StudentClassEnrollment.objects.filter(student=application.enrolled_student).delete()[0]
-            profile, _ = Profile.objects.get_or_create(user=application.enrolled_student)
-            profile.enrollment_status = reason_type
-            profile.enrollment_status_reason = remarks
-            profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
-            from_status = application.status
-            application.status = 'rejected'
-            application.remarks = f'Withdrawn/Unenrolled: {remarks}'
-            application.reviewed_by = user
-            application.reviewed_at = timezone.now()
-            application.save()
-            EnrollmentStatusHistory.objects.create(application=application, from_status=from_status,
-                to_status='rejected', changed_by=user, notes=f'Unenrolled ({reason_type}): {remarks}')
-            try:
-                log_audit_action(user=request.user, action='unenroll', model_name='EnrollmentApplication',
-                    object_id=application.id, object_repr=application.enrollment_number or str(application),
-                    description=f'Unenrolled student {application.full_name} — {reason_type}: {remarks}', request=request)
-            except Exception as audit_err:
-                logger.error(f"Audit log failed on unenroll: {audit_err}")
-            return Response({'status': 'Student unenrolled', 'enrollments_removed': enrolled_count, 'reason_type': reason_type})
+            return Response({'error': 'Cannot reject an enrolled student. Use withdraw_student instead.'}, status=400)
+        if application.status == 'rejected':
+            return Response({'error': 'Application is already rejected'}, status=400)
         from_status = application.status
         application.status = 'rejected'
         application.remarks = remarks
@@ -402,12 +379,42 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         return Response({'status': 'Application rejected'})
 
     @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        application = self.get_object()
+        if application.submitted_by != request.user and request.user.role != 'admin':
+            return Response({'error': 'You can only cancel your own application'}, status=403)
+        if application.status not in ('pending', 'under_review', 'pending_requirements'):
+            return Response({'error': f'Cannot cancel: status is {application.status}'}, status=400)
+        from_status = application.status
+        application.status = 'cancelled'
+        application.remarks = request.data.get('remarks', 'Cancelled by applicant')
+        application.reviewed_by = request.user
+        application.reviewed_at = timezone.now()
+        application.save()
+        EnrollmentStatusHistory.objects.create(application=application, from_status=from_status,
+            to_status='cancelled', changed_by=request.user, notes='Application cancelled by applicant')
+        try:
+            log_audit_action(user=request.user, action='cancel', model_name='EnrollmentApplication',
+                object_id=application.id, object_repr=application.enrollment_number or str(application),
+                description=f'Cancelled application {application.enrollment_number} ({application.full_name})',
+                request=request)
+        except Exception as audit_err:
+            logger.error(f"Audit log failed on cancel: {audit_err}")
+        return Response({'status': 'Application cancelled'})
+
+    @action(detail=True, methods=['post'])
     def approve_application(self, request, pk=None):
         application = self.get_object()
         user = request.user
         remarks = request.data.get('remarks', '')
         if application.status not in ('under_review', 'pending_requirements', 'pending'):
             return Response({'error': f'Cannot approve: status is {application.status}'}, status=400)
+        docs = application.documents.all()
+        if docs.exists():
+            unverified = docs.exclude(verification_status='verified')
+            if unverified.exists():
+                missing_types = list(unverified.values_list('document_type', flat=True))
+                return Response({'error': f'Documents not fully verified: {", ".join(missing_types)}'}, status=400)
         from_status = application.status
         application.status = 'approved'
         application.remarks = remarks or application.remarks
@@ -870,10 +877,11 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
 
     def _safe_notify_user(self, recipient, title, message, link=''):
         try:
+            from ..services.notification_service import notify
             if not recipient or not hasattr(recipient, 'id'): return
             if hasattr(recipient, 'email') and recipient.email:
                 user = User.objects.filter(email=recipient.email).first()
-                if user: Notification.objects.create(recipient=user, notification_type='system', title=title, message=message, link=link)
+                if user: notify(user, 'system', title, message, link)
             elif hasattr(recipient, 'username'):
-                Notification.objects.create(recipient=recipient, notification_type='system', title=title, message=message, link=link)
+                notify(recipient, 'system', title, message, link)
         except Exception as e: logger.error(f"Notification error: {e}")

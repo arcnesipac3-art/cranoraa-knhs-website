@@ -12,6 +12,7 @@ const STATUS_CONFIG = {
   pending_requirements: { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Pending Req' },
   approved: { color: 'bg-emerald-100 text-emerald-800 border-emerald-200', label: 'Approved' },
   rejected: { color: 'bg-rose-100 text-rose-800 border-rose-200', label: 'Rejected' },
+  cancelled: { color: 'bg-gray-100 text-gray-700 border-gray-200', label: 'Cancelled' },
   enrolled: { color: 'bg-violet-100 text-violet-800 border-violet-200', label: 'Enrolled' },
 };
 
@@ -133,7 +134,7 @@ function ApplicationsTab({ refetch }) {
         }, inputPlaceholder: 'Select reason type', showCancelButton: true,
         confirmButtonText: 'Confirm', confirmButtonColor: '#F59E0B',
       });
-      if (reasonType !== undefined) handleAction(id, 'reject', { remarks: reason, reason_type: reasonType });
+      if (reasonType !== undefined) handleAction(id, 'withdraw_student', { remarks: reason, reason_type: reasonType });
     }
   };
 

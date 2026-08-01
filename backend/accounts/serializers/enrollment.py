@@ -105,6 +105,47 @@ class EnrollmentApplicationSerializer(serializers.ModelSerializer):
             'reviewed_by', 'reviewed_at', 'documents', 'status_history', 'checklist',
         ]
 
+    def validate(self, attrs):
+        errors = {}
+        date_of_birth = attrs.get('date_of_birth') or (self.instance.date_of_birth if self.instance else None)
+        grade_level = attrs.get('grade_level') or (self.instance.grade_level if self.instance else None)
+        strand = attrs.get('strand') if 'strand' in attrs else (self.instance.strand if self.instance else None)
+        lrn = attrs.get('lrn') if 'lrn' in attrs else (self.instance.lrn if self.instance else None)
+        no_lrn = not lrn
+        lrn_request_reason = attrs.get('lrn_request_reason') if 'lrn_request_reason' in attrs else (self.instance.lrn_request_reason if self.instance else None)
+        email = attrs.get('email') or (self.instance.email if self.instance else None)
+        first_name = attrs.get('first_name') or (self.instance.first_name if self.instance else None)
+        last_name = attrs.get('last_name') or (self.instance.last_name if self.instance else None)
+
+        if date_of_birth:
+            from datetime import date
+            today = date.today()
+            age = today.year - date_of_birth.year - ((today.month, today.day) < (date_of_birth.month, date_of_birth.day))
+            if age < 10:
+                errors['date_of_birth'] = 'Applicant must be at least 10 years old.'
+
+        if grade_level in ('11', '12') and not strand:
+            errors['strand'] = 'SHS applicants (Grades 11-12) must select a strand/track.'
+
+        if lrn and len(lrn) == 12 and lrn.isdigit():
+            dup = EnrollmentApplication.objects.filter(
+                lrn=lrn, status__in=['pending', 'under_review', 'pending_requirements', 'approved', 'enrolled']
+            )
+            if self.instance:
+                dup = dup.exclude(pk=self.instance.pk)
+            if dup.exists():
+                errors['lrn'] = 'This LRN is already associated with another application.'
+
+        if email:
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            if User.objects.filter(email=email).exclude(role='student').exists():
+                errors['email'] = 'This email is already in use by a staff/admin account.'
+
+        if errors:
+            raise serializers.ValidationError(errors)
+        return attrs
+
     def get_full_name(self, obj):
         return obj.full_name
 

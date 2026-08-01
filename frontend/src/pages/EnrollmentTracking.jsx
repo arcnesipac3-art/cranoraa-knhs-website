@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../utils/api';
+import toast from 'react-hot-toast';
+import Swal from 'sweetalert2';
 
 const STATUS_CONFIG = {
   pending:              { color: 'bg-amber-500',   light: 'bg-amber-50 border-amber-300',   text: 'text-amber-800',   label: 'Pending',               desc: 'Your application is awaiting review by the admissions office.',   icon: '⏳' },
@@ -8,14 +10,16 @@ const STATUS_CONFIG = {
   pending_requirements: { color: 'bg-orange-500',  light: 'bg-orange-50 border-orange-300', text: 'text-orange-800',  label: 'Pending Requirements',   desc: 'Additional documents are required. Please check the remarks.',    icon: '📋' },
   approved:             { color: 'bg-green-600',   light: 'bg-green-50 border-green-300',   text: 'text-green-800',   label: 'Approved',               desc: 'Your application has been approved. Enrollment will proceed shortly.', icon: '✅' },
   rejected:             { color: 'bg-red-600',     light: 'bg-red-50 border-red-300',       text: 'text-red-800',     label: 'Rejected',               desc: 'Your application was not approved. See remarks for details.',     icon: '❌' },
+  cancelled:            { color: 'bg-gray-500',     light: 'bg-gray-50 border-gray-300',     text: 'text-gray-700',    label: 'Cancelled',              desc: 'Your application has been cancelled.',                            icon: '🚫' },
   enrolled:             { color: 'bg-violet-950',  light: 'bg-slate-50 border-violet-300', text: 'text-slate-900',  label: 'Enrolled',               desc: 'You are officially enrolled at Kiwalan National High School!',    icon: '🎓' },
 };
 
 const TIMELINE_STEPS = [
-  { key: 'pending',      label: 'Application Submitted', desc: 'Received by admissions office' },
-  { key: 'under_review', label: 'Under Review',          desc: 'Documents being evaluated' },
-  { key: 'approved',     label: 'Application Approved',  desc: 'Application accepted' },
-  { key: 'enrolled',     label: 'Officially Enrolled',   desc: 'Student account created' },
+  { key: 'pending',               label: 'Application Submitted', desc: 'Received by admissions office' },
+  { key: 'under_review',          label: 'Under Review',          desc: 'Documents being evaluated' },
+  { key: 'pending_requirements',  label: 'Additional Documents',  desc: 'Missing documents requested' },
+  { key: 'approved',              label: 'Application Approved',  desc: 'Application accepted' },
+  { key: 'enrolled',              label: 'Officially Enrolled',   desc: 'Student account created' },
 ];
 
 const EnrollmentTracking = () => {
@@ -51,6 +55,44 @@ const EnrollmentTracking = () => {
   const cfg = data ? STATUS_CONFIG[data.status] : null;
   const currentIdx = data ? TIMELINE_STEPS.findIndex(s => s.key === data.status) : -1;
   const isRejected = data?.status === 'rejected';
+  const isPendingReqs = data?.status === 'pending_requirements';
+  const canCancel = data && ['pending', 'under_review', 'pending_requirements'].includes(data.status);
+
+  const handleCancel = async () => {
+    const { value } = await Swal.fire({
+      title: 'Cancel Application?',
+      input: 'textarea', inputLabel: 'Reason (optional)',
+      inputPlaceholder: 'Reason for cancelling...',
+      showCancelButton: true, confirmButtonText: 'Yes, Cancel',
+      confirmButtonColor: '#EF4444',
+    });
+    if (value === undefined) return;
+    try {
+      await api.post(`/enrollment-applications/${data.id}/cancel/`, { remarks: value || 'Cancelled by applicant' });
+      toast.success('Application cancelled');
+      handleTrack(null, number);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to cancel');
+    }
+  };
+
+  const isStepCompleted = (stepIdx, stepKey) => {
+    if (!data) return false;
+    // pending_requirements is a branch — only completed if we came from it or are past it
+    if (stepKey === 'pending_requirements') {
+      return isPendingReqs || currentIdx > stepIdx;
+    }
+    // For steps before pending_requirements (index 2), completed if status is at or past them
+    // For steps after pending_requirements, completed only if status is approved or enrolled
+    if (stepIdx < 2) return currentIdx >= stepIdx || isPendingReqs || currentIdx >= 2;
+    if (stepIdx >= 3) return currentIdx >= 3;
+    return stepIdx <= currentIdx;
+  };
+
+  const isStepCurrent = (stepIdx, stepKey) => {
+    if (!data) return false;
+    return stepIdx === currentIdx;
+  };
 
   return (
     <div className="bg-gray-100 min-h-screen py-6 sm:py-8 md:py-12 lg:py-16">
@@ -171,20 +213,21 @@ const EnrollmentTracking = () => {
               ) : (
                 <div>
                   {TIMELINE_STEPS.map((tStep, i) => {
-                    const isDone = i <= currentIdx;
-                    const isCurrent = i === currentIdx;
+                    const isDone = isStepCompleted(i, tStep.key);
+                    const isCurrent = isStepCurrent(i, tStep.key);
+                    const showConnector = tStep.key !== 'pending_requirements' || isPendingReqs;
                     return (
-                      <div key={tStep.key} className="flex gap-3 sm:gap-4">
+                      <div key={tStep.key} className={`flex gap-3 sm:gap-4 ${!showConnector && !isDone ? 'opacity-40' : ''}`}>
                         <div className="flex flex-col items-center">
                           <div className={`w-7 h-7 border-2 flex items-center justify-center flex-shrink-0 ${isCurrent ? 'border-violet-800 bg-slate-50' : isDone ? 'border-violet-900 bg-violet-950' : 'border-gray-300 bg-white'}`}>
                             {isDone && !isCurrent && <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/></svg>}
                             {isCurrent && <div className="w-2.5 h-2.5 rounded-full bg-violet-900 animate-pulse"/>}
                           </div>
-                          {i < TIMELINE_STEPS.length - 1 && <div className={`w-0.5 h-10 ${isDone && i < currentIdx ? 'bg-violet-950' : 'bg-gray-200'}`}/>}
+                          {i < TIMELINE_STEPS.length - 1 && showConnector && <div className={`w-0.5 h-10 ${isDone && !isCurrent ? 'bg-violet-950' : 'bg-gray-200'}`}/>}
                         </div>
                         <div className="pb-4 sm:pb-5">
-                          <p className={`text-sm font-black uppercase ${isDone ? 'text-gray-900' : 'text-gray-400'}`}>{tStep.label}</p>
-                          <p className={`text-xs sm:text-sm mt-0.5 ${isDone ? 'text-gray-600' : 'text-gray-300'}`}>{tStep.desc}</p>
+                          <p className={`text-sm font-black uppercase ${isDone || isCurrent ? 'text-gray-900' : 'text-gray-400'}`}>{tStep.label}</p>
+                          <p className={`text-xs sm:text-sm mt-0.5 ${isDone || isCurrent ? 'text-gray-600' : 'text-gray-300'}`}>{tStep.desc}</p>
                         </div>
                       </div>
                     );
@@ -247,6 +290,9 @@ const EnrollmentTracking = () => {
 
             {/* Actions */}
             <div className="bg-gray-50 border border-t-0 border-gray-300 p-4 flex flex-col sm:flex-row gap-3">
+              {canCancel && (
+                <button onClick={handleCancel} className="flex-1 py-2.5 sm:py-3 bg-red-600 text-white text-xs sm:text-sm font-black text-center hover:bg-red-700 uppercase tracking-widest rounded-sm">Cancel Application</button>
+              )}
               <Link to="/enroll" className="flex-1 py-2.5 sm:py-3 bg-violet-950 text-white text-xs sm:text-sm font-black text-center hover:bg-violet-950 uppercase tracking-widest rounded-sm">New Application</Link>
               <Link to="/" className="flex-1 py-2.5 sm:py-3 border border-gray-300 bg-white text-gray-700 text-xs sm:text-sm font-black text-center hover:bg-gray-50 uppercase tracking-widest rounded-sm">Return to Home</Link>
             </div>

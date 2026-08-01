@@ -174,6 +174,7 @@ const Enrollment = () => {
   const [lrn, setLrn] = useState(d('lrn', ''));
   const [noLrn, setNoLrn] = useState(d('noLrn', false));
   const [lrnRequestReason, setLrnRequestReason] = useState(d('lrnRequestReason', ''));
+  const [lrnRequestOtherText, setLrnRequestOtherText] = useState(d('lrnRequestOtherText', ''));
   const [isAls, setIsAls] = useState(d('isAls', false));
 
   const [email, setEmail] = useState(d('email', ''));
@@ -316,6 +317,10 @@ const Enrollment = () => {
         Swal.fire({ icon: 'error', title: 'Reason Required', text: 'Please provide a reason for not having an LRN.' });
         return false;
       }
+      if (noLrn && lrnRequestReason === 'other' && !lrnRequestOtherText.trim()) {
+        Swal.fire({ icon: 'error', title: 'Details Required', text: 'Please describe your situation.' });
+        return false;
+      }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         Swal.fire({ icon: 'error', title: 'Invalid Email', text: 'Enter a valid email address.' });
         return false;
@@ -362,7 +367,7 @@ const Enrollment = () => {
         emergency_contact_name: emergencyContactName,
         emergency_contact_relationship: emergencyContactRelationship,
         emergency_contact_phone: emergencyContactPhone,
-        lrn_request_reason: noLrn ? lrnRequestReason : '',
+        lrn_request_reason: noLrn ? (lrnRequestReason === 'other' ? lrnRequestOtherText : lrnRequestReason) : '',
       };
       Object.entries(fields).forEach(([k, v]) => formData.append(k, v));
 
@@ -690,7 +695,7 @@ const Enrollment = () => {
                         </Field>
                         {lrnRequestReason === 'other' && (
                           <Field label="Please specify">
-                            <Input value={lrnRequestReason} onChange={e => setLrnRequestReason(e.target.value)} placeholder="Describe your situation" />
+                            <Input value={lrnRequestOtherText} onChange={e => setLrnRequestOtherText(e.target.value)} placeholder="Describe your situation" />
                           </Field>
                         )}
                       </div>
@@ -792,7 +797,7 @@ const Enrollment = () => {
 
               <ReviewSection title="Academic">
                 <ReviewRow label="Grade Level" value={`Grade ${gradeLevel}${strand ? ` / ${strand}` : ''}`} />
-                <ReviewRow label="LRN" value={noLrn ? `Not available (${lrnRequestReason.replace(/_/g, ' ')})` : (lrn || 'N/A')} />
+                <ReviewRow label="LRN" value={noLrn ? `Not available (${lrnRequestReason === 'other' ? lrnRequestOtherText || 'Other' : lrnRequestReason.replace(/_/g, ' ')})` : (lrn || 'N/A')} />
                 <ReviewRow label="Previous School" value={previousSchool || 'N/A'} />
                 <ReviewRow label="ALS Applicant" value={isAls ? 'Yes' : 'No'} />
               </ReviewSection>
