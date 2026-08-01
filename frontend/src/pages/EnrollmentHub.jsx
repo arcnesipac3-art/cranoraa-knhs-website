@@ -742,6 +742,8 @@ function EnrollStudentsTab({ refetch }) {
   const [studentSearch,      setStudentSearch]      = useState('');
   const [enrollSearch,       setEnrollSearch]       = useState('');
   const [selectedStudents,   setSelectedStudents]   = useState([]);
+  const [showAssignModal,    setShowAssignModal]    = useState(false);
+  const [assignEnrollment,   setAssignEnrollment]   = useState(null);
 
   useEffect(() => {
     if (!selectedClassroom) { setEnrollments([]); return; }
@@ -856,6 +858,29 @@ function EnrollStudentsTab({ refetch }) {
       setEnrollments(prev => prev.filter(e => e.id !== enrollment.id));
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to withdraw student');
+    }
+  };
+
+  const openAssignSection = (enrollment) => {
+    setAssignEnrollment(enrollment);
+    setShowAssignModal(true);
+  };
+
+  const handleConfirmReassign = async (classroomId) => {
+    if (!assignEnrollment) return;
+    const t = toast.loading('Moving student to new section…');
+    try {
+      await api.post('/enrollments/assign-classroom/', {
+        student: assignEnrollment.student,
+        classroom: classroomId,
+      });
+      toast.success(`${assignEnrollment.student_name} moved successfully`, { id: t });
+      setShowAssignModal(false);
+      setAssignEnrollment(null);
+      const res = await api.get(`/enrollments/?classroom=${selectedClassroom}`);
+      setEnrollments(res.data.results || res.data);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to move student', { id: t });
     }
   };
 
@@ -1001,13 +1026,22 @@ function EnrollStudentsTab({ refetch }) {
                     <td className="px-4 py-3 hidden sm:table-cell text-xs text-slate-500 font-mono">{e.student_lrn || '—'}</td>
                     <td className="px-4 py-3 hidden md:table-cell text-xs text-slate-400">{e.student_email || '—'}</td>
                     <td className="px-4 py-3 text-center">
-                      <button onClick={() => handleRemove(e)}
-                        className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg transition-colors">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Withdraw
-                      </button>
+                      <div className="inline-flex items-center gap-1">
+                        <button onClick={() => openAssignSection(e)}
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-violet-600 hover:bg-violet-50 border border-violet-200 px-2.5 py-1 rounded-lg transition-colors">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                          </svg>
+                          Change Section
+                        </button>
+                        <button onClick={() => handleRemove(e)}
+                          className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg transition-colors">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Withdraw
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -1107,6 +1141,20 @@ function EnrollStudentsTab({ refetch }) {
           </div>
         </div>
       )}
+
+      <AssignSectionModal
+        isOpen={showAssignModal}
+        onClose={() => { setShowAssignModal(false); setAssignEnrollment(null); }}
+        onConfirm={handleConfirmReassign}
+        student={assignEnrollment ? {
+          first_name: (assignEnrollment.student_name || '').split(' ')[0],
+          last_name: (assignEnrollment.student_name || '').split(' ').slice(1).join(' '),
+          profile: { grade_level: currentClassroom?.grade_level || '', classroom_name: currentClassroom?.name || '' }
+        } : null}
+        classrooms={classrooms}
+        title="Change Section"
+        confirmText="Move Student"
+      />
     </div>
   );
 }

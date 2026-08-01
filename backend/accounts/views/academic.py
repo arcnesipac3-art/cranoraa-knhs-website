@@ -483,6 +483,8 @@ class StudentClassEnrollmentViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='assign-classroom')
     def assign_classroom(self, request):
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
         student_id = request.data.get('student')
         classroom_id = request.data.get('classroom')
         if not student_id or not classroom_id:
