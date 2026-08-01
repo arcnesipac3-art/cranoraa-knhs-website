@@ -707,9 +707,6 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
     def withdraw_student(self, request, pk=None):
         """Withdraw/unenroll a student from their classroom with a reason."""
         application = self.get_object()
-        if not application.enrolled_student:
-            return Response({'error': 'This application has no enrolled student'}, status=400)
-
         reason = request.data.get('reason', '').strip()
         reason_type = request.data.get('reason_type', 'other')
         if not reason:
@@ -717,18 +714,16 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
 
         from ..models import StudentClassEnrollment, Profile
 
-        # Remove classroom enrollment
-        removed_count = StudentClassEnrollment.objects.filter(
-            student=application.enrolled_student
-        ).delete()[0]
+        removed_count = 0
+        if application.enrolled_student:
+            removed_count = StudentClassEnrollment.objects.filter(
+                student=application.enrolled_student
+            ).delete()[0]
+            profile, _ = Profile.objects.get_or_create(user=application.enrolled_student)
+            profile.enrollment_status = reason_type
+            profile.enrollment_status_reason = reason
+            profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
 
-        # Update profile enrollment status
-        profile, _ = Profile.objects.get_or_create(user=application.enrolled_student)
-        profile.enrollment_status = reason_type
-        profile.enrollment_status_reason = reason
-        profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
-
-        # Create status history
         from_status = application.status
         application.status = 'rejected'
         application.remarks = f'Withdrawn: {reason}'
