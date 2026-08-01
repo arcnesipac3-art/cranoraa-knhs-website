@@ -5,40 +5,21 @@ import { cn } from '../../styles/designSystem';
 
 const QUICK_ACTIONS = [
   {
-    id: 'attendance',
-    title: 'Mark Attendance',
-    description: 'Record today\'s attendance',
+    id: 'my-classes',
+    title: 'My Classes',
+    description: 'Attendance, grades, quizzes & more',
     path: '/my-classes',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    color: 'emerald',
-    gradient: 'from-emerald-500 to-emerald-600',
-    bg: 'bg-emerald-50',
-    text: 'text-emerald-600',
-    border: 'border-emerald-200',
-    hoverBorder: 'hover:border-emerald-400',
-    priority: 1,
-  },
-  {
-    id: 'grades',
-    title: 'Input Grades',
-    description: 'Submit and manage grades',
-    path: '/grade-input',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
       </svg>
     ),
     color: 'violet',
-    gradient: 'from-violet-500 to-violet-600',
     bg: 'bg-violet-50',
     text: 'text-violet-600',
     border: 'border-violet-200',
     hoverBorder: 'hover:border-violet-400',
-    priority: 2,
+    priority: 1,
   },
   {
     id: 'announce',
@@ -51,12 +32,11 @@ const QUICK_ACTIONS = [
       </svg>
     ),
     color: 'amber',
-    gradient: 'from-amber-500 to-orange-500',
     bg: 'bg-amber-50',
     text: 'text-amber-600',
     border: 'border-amber-200',
     hoverBorder: 'hover:border-amber-400',
-    priority: 3,
+    priority: 2,
   },
   {
     id: 'schedule',
@@ -69,12 +49,11 @@ const QUICK_ACTIONS = [
       </svg>
     ),
     color: 'blue',
-    gradient: 'from-blue-500 to-blue-600',
     bg: 'bg-blue-50',
     text: 'text-blue-600',
     border: 'border-blue-200',
     hoverBorder: 'hover:border-blue-400',
-    priority: 4,
+    priority: 3,
   },
   {
     id: 'communication',
@@ -87,66 +66,11 @@ const QUICK_ACTIONS = [
       </svg>
     ),
     color: 'rose',
-    gradient: 'from-rose-500 to-rose-600',
     bg: 'bg-rose-50',
     text: 'text-rose-600',
     border: 'border-rose-200',
     hoverBorder: 'hover:border-rose-400',
-    priority: 5,
-  },
-  {
-    id: 'quiz',
-    title: 'Create Quiz',
-    description: 'Build assessments for classes',
-    path: '/my-classes?view=quizzes',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-    color: 'indigo',
-    gradient: 'from-indigo-500 to-indigo-600',
-    bg: 'bg-indigo-50',
-    text: 'text-indigo-600',
-    border: 'border-indigo-200',
-    hoverBorder: 'hover:border-indigo-400',
-    priority: 6,
-  },
-  {
-    id: 'lesson-plan',
-    title: 'Lesson Plans',
-    description: 'Manage teaching plans',
-    path: '/my-classes?view=lesson-plans',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-    color: 'teal',
-    gradient: 'from-teal-500 to-teal-600',
-    bg: 'bg-teal-50',
-    text: 'text-teal-600',
-    border: 'border-teal-200',
-    hoverBorder: 'hover:border-teal-400',
-    priority: 7,
-  },
-  {
-    id: 'analytics',
-    title: 'Analytics',
-    description: 'View class performance data',
-    path: '/my-classes?view=analytics',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-    color: 'sky',
-    gradient: 'from-sky-500 to-sky-600',
-    bg: 'bg-sky-50',
-    text: 'text-sky-600',
-    border: 'border-sky-200',
-    hoverBorder: 'hover:border-sky-400',
-    priority: 8,
+    priority: 4,
   },
 ];
 
@@ -193,7 +117,7 @@ const QuickActionCards = memo(({ pendingGrades = 0, unmarkedCount = 0 }) => {
         variants={container}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5"
+        className="grid grid-cols-2 sm:grid-cols-4 gap-2.5"
       >
         {sortedActions.map(action => (
           <motion.button

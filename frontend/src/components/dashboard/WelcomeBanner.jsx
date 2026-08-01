@@ -31,10 +31,7 @@ const WelcomeBanner = memo(({ user, classrooms = [], data }) => {
   const formattedDate = currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const formattedTime = currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   const currentTerm = sysSettings?.current_term || null;
-  const titlePrefix = user?.staff_title || '';
-  const displayName = titlePrefix
-    ? `${titlePrefix} ${user?.last_name || ''}`
-    : (user?.first_name || 'Teacher');
+  const displayName = user?.first_name || 'Teacher';
 
   return (
     <motion.div
