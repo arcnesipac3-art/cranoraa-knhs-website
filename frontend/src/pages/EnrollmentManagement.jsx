@@ -292,6 +292,30 @@ const EnrollmentManagement = () => {
     setSelectedIds([]);
   };
 
+  const URL_DOC_FIELDS = [
+    { field: 'birth_certificate', type: 'PSA Birth Certificate' },
+    { field: 'report_card', type: 'Report Card' },
+    { field: 'form_138', type: 'Form 138 / Grade 6 Certificate' },
+    { field: 'certificate_of_completion', type: 'Certificate of Completion' },
+    { field: 'good_moral_certificate', type: 'Good Moral Certificate' },
+    { field: 'id_picture', type: 'ID Picture' },
+    { field: 'last_school_attended_cert', type: 'Last School Attended Certificate' },
+  ];
+
+  const getAppDocs = (app) => {
+    if (app?.documents && app.documents.length > 0) return app.documents;
+    return URL_DOC_FIELDS
+      .filter(({ field }) => app?.[field])
+      .map(({ field, type }) => ({
+        id: `url-${field}`,
+        document_type_display: type,
+        file_url: app[field],
+        verification_status: 'submitted',
+        verification_status_display: 'Submitted',
+        _fromUrlField: true,
+      }));
+  };
+
   if (loading) return <ApplicationsTableSkeleton />;
 
   return (
@@ -585,46 +609,53 @@ const EnrollmentManagement = () => {
 
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Documents</p>
-                {selected.status === 'under_review' && selected.documents && selected.documents.length > 0 &&
-                  !selected.documents.every(d => d.verification_status === 'verified') && (
-                  <p className="text-[10px] text-amber-600 font-bold mb-2">
-                    Verify all documents to enable the Approve button.
-                  </p>
-                )}
-                {selected.documents && selected.documents.length > 0 ? (
-                  <div className="space-y-2">
-                    {selected.documents.map(doc => (
-                      <div key={doc.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-sm font-medium text-slate-700 truncate">{doc.document_type_display}</span>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                            doc.verification_status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
-                            doc.verification_status === 'rejected' ? 'bg-rose-100 text-rose-700' :
-                            doc.verification_status === 'missing' ? 'bg-amber-100 text-amber-700' :
-                            'bg-slate-200 text-slate-600'
-                          }`}>{doc.verification_status_display}</span>
+                {(() => {
+                  const docs = getAppDocs(selected);
+                  return (
+                    <>
+                      {selected.status === 'under_review' && docs.length > 0 &&
+                        !docs.every(d => d.verification_status === 'verified') && (
+                        <p className="text-[10px] text-amber-600 font-bold mb-2">
+                          Verify all documents to enable the Approve button.
+                        </p>
+                      )}
+                      {docs.length > 0 ? (
+                        <div className="space-y-2">
+                          {docs.map(doc => (
+                            <div key={doc.id} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-sm font-medium text-slate-700 truncate">{doc.document_type_display}</span>
+                                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
+                                  doc.verification_status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
+                                  doc.verification_status === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                                  doc.verification_status === 'missing' ? 'bg-amber-100 text-amber-700' :
+                                  'bg-slate-200 text-slate-600'
+                                }`}>{doc.verification_status_display}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <a href={doc.file_url} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-violet-600 rounded-lg" title="View">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                </a>
+                                {!doc._fromUrlField && doc.verification_status !== 'verified' && (
+                                  <button onClick={() => verifyDoc(selected.id, doc.id, 'verified')} className="p-1.5 text-emerald-400 hover:text-emerald-600 rounded-lg" title="Verify">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                                  </button>
+                                )}
+                                {!doc._fromUrlField && doc.verification_status !== 'rejected' && (
+                                  <button onClick={() => verifyDoc(selected.id, doc.id, 'rejected')} className="p-1.5 text-rose-400 hover:text-rose-600 rounded-lg" title="Reject">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <a href={doc.file_url} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-violet-600 rounded-lg" title="View">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                          </a>
-                          {doc.verification_status !== 'verified' && (
-                            <button onClick={() => verifyDoc(selected.id, doc.id, 'verified')} className="p-1.5 text-emerald-400 hover:text-emerald-600 rounded-lg" title="Verify">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                            </button>
-                          )}
-                          {doc.verification_status !== 'rejected' && (
-                            <button onClick={() => verifyDoc(selected.id, doc.id, 'rejected')} className="p-1.5 text-rose-400 hover:text-rose-600 rounded-lg" title="Reject">
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-400">No documents uploaded</p>
-                )}
+                      ) : (
+                        <p className="text-sm text-slate-400">No documents uploaded</p>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
               {checklist && (
@@ -694,8 +725,9 @@ const EnrollmentManagement = () => {
                   <>
                     <button onClick={() => { promptReject(selected.id); }} className="px-4 py-2 border border-red-300 bg-white text-red-600 text-xs font-black uppercase tracking-widest hover:bg-red-50 rounded-sm">Reject</button>
                     {selected.status === 'under_review' && (() => {
-                      const allDocsVerified = !selected.documents || selected.documents.length === 0 ||
-                        selected.documents.every(d => d.verification_status === 'verified');
+                      const selDocs = getAppDocs(selected);
+                      const allDocsVerified = selDocs.length === 0 ||
+                        selDocs.every(d => d.verification_status === 'verified');
                       return (
                         <button
                           onClick={() => { if (allDocsVerified) promptApproveApplication(selected.id); }}

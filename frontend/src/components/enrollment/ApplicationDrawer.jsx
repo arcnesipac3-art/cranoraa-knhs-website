@@ -37,9 +37,33 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
   if (!app) return null;
 
   const status = app.status;
-  const docsVerified = app.documents?.every(d => d.verification_status === 'verified') ?? true;
-  const docsTotal = app.documents?.length || 0;
-  const docsVerifiedCount = app.documents?.filter(d => d.verification_status === 'verified').length || 0;
+
+  const URL_DOC_FIELDS = [
+    { field: 'birth_certificate', type: 'PSA Birth Certificate' },
+    { field: 'report_card', type: 'Report Card' },
+    { field: 'form_138', type: 'Form 138 / Grade 6 Certificate' },
+    { field: 'certificate_of_completion', type: 'Certificate of Completion' },
+    { field: 'good_moral_certificate', type: 'Good Moral Certificate' },
+    { field: 'id_picture', type: 'ID Picture' },
+    { field: 'last_school_attended_cert', type: 'Last School Attended Certificate' },
+  ];
+
+  const docs = (app.documents && app.documents.length > 0)
+    ? app.documents
+    : URL_DOC_FIELDS
+        .filter(({ field }) => app[field])
+        .map(({ field, type }) => ({
+          id: `url-${field}`,
+          document_type_display: type,
+          file_url: app[field],
+          verification_status: 'submitted',
+          verification_status_display: 'Submitted',
+          _fromUrlField: true,
+        }));
+
+  const docsVerified = docs.every(d => d.verification_status === 'verified') ?? true;
+  const docsTotal = docs.length || 0;
+  const docsVerifiedCount = docs.filter(d => d.verification_status === 'verified').length || 0;
 
   return (
     <div className="fixed inset-0 z-[10010] flex justify-end">
@@ -177,8 +201,8 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
                   Verify all documents to enable the Approve button.
                 </p>
               )}
-              {app.documents && app.documents.length > 0 ? (
-                app.documents.map(doc => (
+              {docs.length > 0 ? (
+                docs.map(doc => (
                   <div key={doc.id} className="bg-slate-50 p-3 rounded-xl">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
