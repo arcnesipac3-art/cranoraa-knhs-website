@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=Classroom)
 def classroom_post_save(sender, instance, created, **kwargs):
     """Sync classroom group when a classroom is saved."""
-    from .system_groups import sync_classroom_group
+    from ..system_groups import sync_classroom_group
     if instance.teacher:
         try:
             sync_classroom_group(instance)
@@ -33,7 +33,7 @@ def classroom_post_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=Classroom)
 def classroom_post_delete(sender, instance, **kwargs):
     """Remove classroom group when a classroom is deleted."""
-    from .system_groups import remove_classroom_group
+    from ..system_groups import remove_classroom_group
     try:
         remove_classroom_group(instance)
     except Exception as e:
@@ -45,7 +45,7 @@ def classroom_post_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=ClassroomSubject)
 def classroom_subject_post_save(sender, instance, created, **kwargs):
     """Sync subject group when a classroom-subject is saved."""
-    from .system_groups import sync_subject_group
+    from ..system_groups import sync_subject_group
     if instance.teacher:
         try:
             sync_subject_group(instance)
@@ -56,7 +56,7 @@ def classroom_subject_post_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=ClassroomSubject)
 def classroom_subject_post_delete(sender, instance, **kwargs):
     """Remove subject group when a classroom-subject is deleted."""
-    from .system_groups import remove_subject_group
+    from ..system_groups import remove_subject_group
     try:
         remove_subject_group(instance)
     except Exception as e:
@@ -68,7 +68,7 @@ def classroom_subject_post_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=Department)
 def department_post_save(sender, instance, created, **kwargs):
     """Sync department group when a department is saved."""
-    from .system_groups import sync_department_group
+    from ..system_groups import sync_department_group
     if instance.head and instance.is_active:
         try:
             sync_department_group(instance)
@@ -79,7 +79,7 @@ def department_post_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=Department)
 def department_post_delete(sender, instance, **kwargs):
     """Remove department group when a department is deleted."""
-    from .system_groups import remove_department_group
+    from ..system_groups import remove_department_group
     try:
         remove_department_group(instance)
     except Exception as e:
@@ -91,7 +91,7 @@ def department_post_delete(sender, instance, **kwargs):
 @receiver(post_save, sender=StudentClassEnrollment)
 def enrollment_post_save(sender, instance, created, **kwargs):
     """Re-sync classroom group when a student enrolls."""
-    from .system_groups import sync_classroom_group
+    from ..system_groups import sync_classroom_group
     classroom = instance.classroom
     if classroom.teacher:
         try:
@@ -103,7 +103,7 @@ def enrollment_post_save(sender, instance, created, **kwargs):
 @receiver(post_delete, sender=StudentClassEnrollment)
 def enrollment_post_delete(sender, instance, **kwargs):
     """Re-sync classroom group when a student unenrolls."""
-    from .system_groups import sync_classroom_group
+    from ..system_groups import sync_classroom_group
     classroom = instance.classroom
     if classroom.teacher:
         try:
