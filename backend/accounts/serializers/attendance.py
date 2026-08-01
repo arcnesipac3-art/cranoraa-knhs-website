@@ -14,7 +14,7 @@ class TimeSlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeSlot
         fields = ['id', 'classroom', 'classroom_name', 'day', 'day_display', 'start_time', 'end_time',
-                  'start_time_display', 'end_time_display', 'label']
+                  'start_time_display', 'end_time_display', 'label', 'slot_type']
         extra_kwargs = {
             'classroom': {'required': False, 'allow_null': True},
         }

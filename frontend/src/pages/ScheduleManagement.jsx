@@ -23,6 +23,14 @@ const SLOT_TYPE_MAP = Object.fromEntries(SLOT_TYPES.map(t => [t.value, t]));
 // All slot types that are NOT assignable class periods
 const BREAK_SLOT_TYPES = new Set(['recess', 'lunch', 'vacant', 'assembly', 'pe']);
 
+// Detect break period from either slot_type or label (fallback for legacy data)
+const BREAK_LABELS = /recess|lunch|break|vacant|assembly|pe\b|sport/i;
+const isBreakPeriod = (slot_type, label) => {
+  if (slot_type && BREAK_SLOT_TYPES.has(slot_type)) return true;
+  if (!slot_type && label && BREAK_LABELS.test(label)) return true;
+  return false;
+};
+
 const DEFAULT_PERIODS = [
   { start_time: '07:30', end_time: '08:30', label: 'Period 1', slot_type: 'class' },
   { start_time: '08:30', end_time: '09:30', label: 'Period 2', slot_type: 'class' },
@@ -212,14 +220,18 @@ export default function ScheduleManagement() {
     const map = new Map();
     sortedSlots.forEach(ts => {
       const k = periodKey(ts.start_time, ts.end_time);
-      if (!map.has(k)) map.set(k, {
-        start_time: ts.start_time, end_time: ts.end_time, label: ts.label,
-        // Preserve the actual slot_type — only fall back to 'class' if the field
-        // is completely absent (undefined). An empty string still means unknown.
-        slot_type: ts.slot_type != null && ts.slot_type !== '' ? ts.slot_type : 'class',
-        start_display: ts.start_time_display || normalizeTime(ts.start_time),
-        end_display: ts.end_time_display || normalizeTime(ts.end_time),
-      });
+      if (!map.has(k)) {
+        // Derive the effective slot_type: use the stored value if present,
+        // otherwise infer from the label for legacy slots saved without slot_type.
+        const rawType = ts.slot_type != null && ts.slot_type !== '' ? ts.slot_type : null;
+        const effectiveType = rawType ?? (BREAK_LABELS.test(ts.label || '') ? ts.label.toLowerCase().replace(/\s+break$/, '').trim() : 'class');
+        map.set(k, {
+          start_time: ts.start_time, end_time: ts.end_time, label: ts.label,
+          slot_type: effectiveType,
+          start_display: ts.start_time_display || normalizeTime(ts.start_time),
+          end_display: ts.end_time_display || normalizeTime(ts.end_time),
+        });
+      }
     });
     return [...map.values()].sort((a, b) => a.start_time.localeCompare(b.start_time));
   }, [sortedSlots]);
@@ -270,7 +282,7 @@ export default function ScheduleManagement() {
   const openCreateAtCell = useCallback(async (day, period) => {
     if (!filterClassroom) { toast.error('Select a section first'); return; }
     // Break periods (lunch, recess, etc.) do not need subject assignment
-    if (BREAK_SLOT_TYPES.has(period.slot_type)) return;
+    if (isBreakPeriod(period.slot_type, period.label)) return;
     setAddingCell(`${day}-${period.start_time}-${period.end_time}`);
     try {
       const slot = await ensureTimeSlot(day, period);
@@ -302,7 +314,7 @@ export default function ScheduleManagement() {
       // Prevent assigning subjects to non-class slots (lunch, recess, etc.)
       if (payload.time_slot) {
         const slot = timeSlots.find(ts => String(ts.id) === String(payload.time_slot));
-        if (slot && BREAK_SLOT_TYPES.has(slot.slot_type)) {
+        if (slot && isBreakPeriod(slot.slot_type, slot.label)) {
           toast.error('Cannot assign a subject to a break period (lunch, recess, etc.)');
           setSaving(false);
           return;
@@ -837,7 +849,7 @@ export default function ScheduleManagement() {
                 const ready = hasSlotForCell(mobileSelectedDay, period);
                 const cellKey = `${mobileSelectedDay}-${period.start_time}-${period.end_time}`;
                 const isAdding = addingCell === cellKey;
-                const isBreak = BREAK_SLOT_TYPES.has(period.slot_type);
+                const isBreak = isBreakPeriod(period.slot_type, period.label);
                 const typeStyle = SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class;
 
                 if (isBreak) {
@@ -900,7 +912,7 @@ export default function ScheduleManagement() {
               </thead>
               <tbody>
                 {uniquePeriods.map((period, ri) => {
-                  const isBreak = BREAK_SLOT_TYPES.has(period.slot_type);
+                  const isBreak = isBreakPeriod(period.slot_type, period.label);
                   const typeStyle = SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class;
                   const colCount = filterDay ? 1 : DAYS.length;
 
@@ -1001,7 +1013,7 @@ export default function ScheduleManagement() {
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">— Select Time Slot —</option>
                   {DAYS.map(d => {
-                    const daySlots = sortedSlots.filter(ts => ts.day === d && (ts.slot_type || 'class') === 'class');
+                    const daySlots = sortedSlots.filter(ts => ts.day === d && !isBreakPeriod(ts.slot_type, ts.label));
                     if (!daySlots.length) return null;
                     return (
                       <optgroup key={d} label={`── ${DAY_FULL[d]} ──`}>

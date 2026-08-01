@@ -48,6 +48,19 @@ class TimeSlot(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     label = models.CharField(max_length=50, blank=True, null=True, help_text="Optional label, e.g. '1st Period'")
+    slot_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('class',    'Class Period'),
+            ('recess',   'Recess'),
+            ('lunch',    'Lunch Break'),
+            ('vacant',   'Vacant'),
+            ('assembly', 'Assembly'),
+            ('pe',       'PE / Sports'),
+        ],
+        default='class',
+        help_text="Type of this time slot."
+    )
 
     class Meta:
         ordering = ['day', 'start_time']
