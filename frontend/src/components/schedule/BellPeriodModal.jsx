@@ -302,11 +302,11 @@ const BellPeriodModal = ({
         : 'Configure class periods for this section'}
     >
       {/* ── Two-column layout ── */}
-      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden" style={{ maxHeight: 'calc(90vh - 130px)' }}>
+      <div className="flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden" style={{ maxHeight: 'calc(88vh - 130px)' }}>
 
         {/* LEFT PANEL */}
-        <div className="w-full md:w-[300px] shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/60 overflow-y-auto" style={{ maxHeight: '45vh' }}>
-          <div className="p-4 space-y-4 md:max-h-none">
+        <div className="w-full md:w-[300px] shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/60 overflow-y-auto">
+          <div className="p-4 space-y-4">
 
             {/* Section badge */}
             {sectionName && (

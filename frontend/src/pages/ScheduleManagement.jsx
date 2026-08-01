@@ -37,10 +37,10 @@ const DEFAULT_PERIODS = [
   { start_time: '09:30', end_time: '09:45', label: 'Recess',   slot_type: 'recess' },
   { start_time: '09:45', end_time: '10:45', label: 'Period 3', slot_type: 'class' },
   { start_time: '10:45', end_time: '11:45', label: 'Period 4', slot_type: 'class' },
-  { start_time: '11:45', end_time: '12:45', label: 'Lunch',    slot_type: 'lunch' },
-  { start_time: '12:45', end_time: '13:45', label: 'Period 5', slot_type: 'class' },
-  { start_time: '13:45', end_time: '14:45', label: 'Period 6', slot_type: 'class' },
-  { start_time: '14:45', end_time: '15:45', label: 'Period 7', slot_type: 'class' },
+  { start_time: '11:45', end_time: '13:00', label: 'Lunch',    slot_type: 'lunch' },
+  { start_time: '13:00', end_time: '14:00', label: 'Period 5', slot_type: 'class' },
+  { start_time: '14:00', end_time: '15:00', label: 'Period 6', slot_type: 'class' },
+  { start_time: '15:00', end_time: '16:00', label: 'Period 7', slot_type: 'class' },
 ];
 
 const normalizeTime = (v) => {
