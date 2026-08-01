@@ -38,6 +38,8 @@ const normalizeTime = (v) => {
 };
 const periodKey = (s, e) => `${normalizeTime(s)}-${normalizeTime(e)}`;
 const slotExists = (slots, day, s, e) => slots.some(t => t.day === day && periodKey(t.start_time, t.end_time) === periodKey(s, e));
+const durationMinutes = (s, e) => { const [sh,sm] = normalizeTime(s).split(':').map(Number); const [eh,em] = normalizeTime(e).split(':').map(Number); return (eh*60+em)-(sh*60+sm); };
+const formatDuration = (min) => min >= 60 ? `${Math.floor(min/60)}h ${min%60 ? min%60+'m' : ''}`.trim() : `${min}m`;
 
 const COLORS = [
   'bg-violet-50 border-violet-200 text-violet-800',
@@ -261,6 +263,8 @@ export default function ScheduleManagement() {
 
   const openCreateAtCell = useCallback(async (day, period) => {
     if (!filterClassroom) { toast.error('Select a section first'); return; }
+    // Break periods (lunch, recess, etc.) do not need subject assignment
+    if (period.slot_type && period.slot_type !== 'class') return;
     setAddingCell(`${day}-${period.start_time}-${period.end_time}`);
     try {
       const slot = await ensureTimeSlot(day, period);
@@ -289,6 +293,15 @@ export default function ScheduleManagement() {
       const payload = { ...form };
       if (!payload.room) delete payload.room;
       if (!payload.semester) delete payload.semester;
+      // Prevent assigning subjects to non-class slots (lunch, recess, etc.)
+      if (payload.time_slot) {
+        const slot = timeSlots.find(ts => String(ts.id) === String(payload.time_slot));
+        if (slot && slot.slot_type && slot.slot_type !== 'class') {
+          toast.error('Cannot assign a subject to a break period (lunch, recess, etc.)');
+          setSaving(false);
+          return;
+        }
+      }
       if (editItem) {
         await api.patch(`/schedules/${editItem.id}/`, payload);
         toast.success('Schedule updated');
@@ -325,6 +338,20 @@ export default function ScheduleManagement() {
       fetchAll();
     } catch { toast.error('Failed to clear schedules'); }
     finally { setSaving(false); }
+  };
+
+  const clearAllTimeSlots = async () => {
+    const count = timeSlots.length;
+    if (!count) return;
+    const r = await fireStackedAlert({ title:'Delete all time slots?', text:`This will remove ${count} time slot${count === 1 ? '' : 's'} and any linked schedules. This cannot be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete All', customClass:{popup:'rounded-2xl'} });
+    if (!r.isConfirmed) return;
+    setSavingSlot(true);
+    try {
+      await Promise.all(timeSlots.map(s => api.delete(`/time-slots/${s.id}/`)));
+      setTimeSlots([]);
+      toast.success(`Deleted ${count} time slot${count === 1 ? '' : 's'}`);
+    } catch { toast.error('Failed to delete time slots'); }
+    finally { setSavingSlot(false); }
   };
 
   const applyStandardBell = async (incSat = false) => {
@@ -1120,6 +1147,12 @@ export default function ScheduleManagement() {
                 className="w-full py-2.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-xs font-bold hover:bg-amber-100 disabled:opacity-50 transition-all">
                 Fill Missing Day Gaps
               </button>
+              {timeSlots.length > 0 && (
+                <button type="button" onClick={clearAllTimeSlots} disabled={savingSlot}
+                  className="w-full py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-[10px] font-bold hover:bg-rose-100 disabled:opacity-50 transition-all">
+                  Delete All Slots ({timeSlots.length})
+                </button>
+              )}
             </div>
 
             <div className="border-t border-slate-200 pt-4">
@@ -1193,11 +1226,13 @@ export default function ScheduleManagement() {
 
             {uniquePeriods.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
-                <p className="text-sm font-bold text-slate-600">No periods yet</p>
-                <p className="text-xs text-slate-400 mt-1">Use quick setup on the left to get started</p>
+                <p className="text-sm font-bold text-slate-700 mb-1">No periods configured</p>
+                <p className="text-xs text-slate-400 max-w-[260px] mx-auto leading-relaxed">
+                  Click <span className="font-bold text-violet-600">Apply Standard Day</span> on the left to set up a typical 7-period schedule, or add custom periods manually.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1206,18 +1241,22 @@ export default function ScheduleManagement() {
                   const isEditing = editingSlot && periodKey(editingSlot.start_time, editingSlot.end_time) === pk;
                   const dayCount = DAYS.filter(d => hasSlotForCell(d, period)).length;
                   const isFull = dayCount === DAYS.length;
+                  const isBreakPeriod = period.slot_type !== 'class';
+                  const typeStyle = SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class;
                   return (
-                    <div key={pk} className={`rounded-xl border transition-all ${isEditing ? 'border-violet-300 bg-violet-50/30 ring-2 ring-violet-200/50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                    <div key={pk} className={`rounded-xl border transition-all ${isBreakPeriod ? 'border-dashed' : isEditing ? 'border-violet-300 bg-violet-50/30 ring-2 ring-violet-200/50' : 'border-slate-200 bg-white hover:border-slate-300'}`}
+                      style={isBreakPeriod ? { borderColor: typeStyle.barBorder, background: typeStyle.barBg } : undefined}>
                       {/* Period header */}
                       <div className="flex items-center justify-between gap-2 px-4 py-3">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className={`w-1.5 h-8 rounded-full flex-shrink-0 ${(SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class).color.split(' ')[0]}`} />
+                          <div className="w-1.5 h-8 rounded-full flex-shrink-0" style={{ background: typeStyle.barText }} />
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-bold text-slate-900">{period.start_display} – {period.end_display}</p>
-                              {period.slot_type !== 'class' && (
-                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full border ${(SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class).color}`}>
-                                  {(SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class).label}
+                              <span className="text-[9px] font-semibold text-slate-400">{formatDuration(durationMinutes(period.start_time, period.end_time))}</span>
+                              {isBreakPeriod && (
+                                <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full border" style={{ background: typeStyle.barBg, borderColor: typeStyle.barBorder, color: typeStyle.barText }}>
+                                  {typeStyle.label}
                                 </span>
                               )}
                             </div>
@@ -1225,21 +1264,25 @@ export default function ScheduleManagement() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          {!isFull && dayCount > 0 && (
+                          {!isBreakPeriod && !isFull && dayCount > 0 && (
                             <button type="button" onClick={() => applyToAllDays(period)} disabled={savingSlot}
                               className="px-2 py-1 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-[9px] font-bold hover:bg-amber-100 disabled:opacity-50 transition-all">
                               Fill days
                             </button>
                           )}
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isFull ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                            {dayCount}/{DAYS.length}
-                          </span>
-                          <button type="button" onClick={() => {
-                            if (isEditing) cancelEditSlot();
-                            else { const s = sortedSlots.find(ts => periodKey(ts.start_time, ts.end_time) === pk && hasSlotForCell(ts.day, period)); if (s) startEditSlot(s); }
-                          }} className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-all" title={isEditing ? 'Cancel edit' : 'Edit periods'}>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                          </button>
+                          {!isBreakPeriod && (
+                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isFull ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                              {dayCount}/{DAYS.length}
+                            </span>
+                          )}
+                          {!isBreakPeriod && (
+                            <button type="button" onClick={() => {
+                              if (isEditing) cancelEditSlot();
+                              else { const s = sortedSlots.find(ts => periodKey(ts.start_time, ts.end_time) === pk && hasSlotForCell(ts.day, period)); if (s) startEditSlot(s); }
+                            }} className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-all" title={isEditing ? 'Cancel edit' : 'Edit periods'}>
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -1252,9 +1295,10 @@ export default function ScheduleManagement() {
                             const slot = slots[0];
                             const isBeingEdited = isEditing && editingSlot?.day === d;
                             return (
-                              <div key={d} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${isBeingEdited ? 'bg-violet-100 border-violet-400 text-violet-900 ring-1 ring-violet-400' : has ? `${(SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class).color} border` : 'bg-slate-50 border-dashed border-slate-200 text-slate-400'}`}>
+                              <div key={d} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${isBeingEdited ? 'bg-violet-100 border-violet-400 text-violet-900 ring-1 ring-violet-400' : has ? '' : 'bg-slate-50 border-dashed border-slate-200 text-slate-400'}`}
+                                style={has && !isBeingEdited ? { background: typeStyle.barBg, borderColor: typeStyle.barBorder, color: typeStyle.barText } : undefined}>
                                 <span>{DAY_SHORT[d]}</span>
-                                {has && slot ? (
+                                {has && slot && !isBreakPeriod ? (
                                   <div className="flex items-center gap-0.5 ml-0.5">
                                     {isBeingEdited ? (
                                       <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
@@ -1271,6 +1315,8 @@ export default function ScheduleManagement() {
                                       </>
                                     )}
                                   </div>
+                                ) : has ? (
+                                  <span className="ml-0.5 w-1.5 h-1.5 rounded-full" style={{ background: typeStyle.barText, opacity: 0.4 }} />
                                 ) : null}
                               </div>
                             );
@@ -1279,7 +1325,7 @@ export default function ScheduleManagement() {
                       </div>
 
                       {/* Inline edit form for this period */}
-                      {isEditing && (
+                      {isEditing && !isBreakPeriod && (
                         <div className="px-4 pb-4 pt-0 border-t border-violet-200 mt-1">
                           <div className="pt-3 flex flex-wrap items-end gap-3">
                             <div>
