@@ -707,7 +707,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
     def withdraw_student(self, request, pk=None):
         """Withdraw/unenroll a student from their classroom with a reason."""
         application = self.get_object()
-        reason = request.data.get('reason', '').strip()
+        reason = request.data.get('reason', request.data.get('remarks', '')).strip()
         reason_type = request.data.get('reason_type', 'other')
         if not reason:
             return Response({'error': 'A reason is required to withdraw a student'}, status=400)
