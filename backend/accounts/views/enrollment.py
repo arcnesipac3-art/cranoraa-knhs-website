@@ -451,15 +451,31 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
 
             import re, secrets
             lrn = (application.lrn or '').strip()
-            if lrn and len(lrn) == 12 and lrn.isdigit():
+            email = (application.email or '').strip() or None
+
+            # Check if a user with this email already exists
+            existing_by_email = User.objects.filter(email=email).first() if email else None
+            if existing_by_email:
+                student_user = existing_by_email
+                student_user.first_name = application.first_name
+                student_user.last_name = application.last_name
+                student_user.role = 'student'
+                student_user.is_verified = True
+                student_user.is_approved = True
+                student_user.must_change_password = True
+                student_user.account_status = 'active'
+                temp_password = secrets.token_urlsafe(12)
+                student_user.set_password(temp_password)
+                student_user.save()
+            elif lrn and len(lrn) == 12 and lrn.isdigit():
                 username = lrn
                 existing_user = User.objects.filter(username=username).first()
                 if existing_user:
-                    # Reuse existing user regardless of role - update to student
                     student_user = existing_user
                     student_user.first_name = application.first_name
                     student_user.last_name = application.last_name
-                    student_user.email = application.email or student_user.email
+                    if email and not User.objects.filter(email=email).exclude(pk=student_user.pk).exists():
+                        student_user.email = email
                     student_user.role = 'student'
                     student_user.is_verified = True
                     student_user.is_approved = True
@@ -470,18 +486,17 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                     student_user.save()
                 else:
                     temp_password = secrets.token_urlsafe(12)
-                    student_user = User(username=username, email=application.email or None,
+                    student_user = User(username=username, email=email,
                         first_name=application.first_name, last_name=application.last_name,
                         role='student', is_verified=True, is_approved=True, must_change_password=True, account_status='active')
                     student_user.set_password(temp_password)
                     student_user.save()
             else:
-                # Keep a non-name fallback only for applications without a usable LRN.
                 username = f"student.{secrets.token_hex(4)}"
                 while User.objects.filter(username=username).exists():
                     username = f"student.{secrets.token_hex(4)}"
                 temp_password = secrets.token_urlsafe(12)
-                student_user = User(username=username, email=application.email or None,
+                student_user = User(username=username, email=email,
                     first_name=application.first_name, last_name=application.last_name,
                     role='student', is_verified=True, is_approved=True, must_change_password=True, account_status='active')
                 student_user.set_password(temp_password)
