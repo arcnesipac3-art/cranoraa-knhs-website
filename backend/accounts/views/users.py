@@ -317,6 +317,41 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return Response({'status': f'Successfully deleted {count} users'})
 
+    @action(detail=False, methods=['post'], url_path='bulk-update-status')
+    def bulk_update_status(self, request):
+        """Update account_status for multiple users at once."""
+        if request.user.role not in ['admin']:
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        user_ids = request.data.get('user_ids', [])
+        new_status = request.data.get('status')
+
+        if not user_ids:
+            return Response({'error': 'No users selected'}, status=400)
+        if new_status not in [s[0] for s in User.STATUS_CHOICES]:
+            return Response({'error': 'Invalid status'}, status=400)
+
+        queryset = User.objects.filter(id__in=user_ids)
+        count = queryset.count()
+
+        is_active = new_status not in ['suspended', 'inactive']
+        queryset.update(account_status=new_status, is_active=is_active)
+
+        try:
+            log_audit_action(
+                user=request.user,
+                action='update',
+                model_name='User',
+                object_id=None,
+                object_repr=f'Bulk status update to {new_status}',
+                description=f'{request.user.role.capitalize()} changed status to {new_status} for {count} users',
+                request=request
+            )
+        except Exception:
+            pass
+
+        return Response({'status': f'Updated {count} users to {new_status}'})
+
     @action(detail=True, methods=['post'])
     def assign_section(self, request, pk=None):
         """Assign a student to a classroom/section."""
@@ -914,6 +949,86 @@ class UserViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.error(f"Error in reject action: {str(e)}")
             return Response({'error': 'Failed to reject account.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['get'], url_path='activity')
+    def user_activity(self, request, pk=None):
+        """Return recent audit log entries for a specific user."""
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        target_user = self.get_object()
+        limit = int(request.query_params.get('limit', 20))
+
+        from ..models.infrastructure import AuditLog
+        logs = AuditLog.objects.filter(user=target_user).order_by('-timestamp')[:limit]
+
+        data = []
+        for log in logs:
+            data.append({
+                'id': log.id,
+                'action': log.action,
+                'action_type': log.action_type,
+                'model_name': log.model_name,
+                'object_id': log.object_id,
+                'object_repr': log.object_repr,
+                'description': log.description,
+                'timestamp': log.timestamp.isoformat(),
+            })
+
+        return Response(data)
+
+    @action(detail=True, methods=['get'], url_path='profile-completeness')
+    def profile_completeness(self, request, pk=None):
+        """Return profile completeness score and missing fields for a user."""
+        target_user = self.get_object()
+        profile, _ = Profile.objects.get_or_create(user=target_user)
+
+        if target_user.role == 'student':
+            fields = {
+                'first_name': bool(target_user.first_name),
+                'last_name': bool(target_user.last_name),
+                'email': bool(target_user.email),
+                'sex': bool(profile.sex),
+                'date_of_birth': bool(profile.date_of_birth),
+                'phone_number': bool(profile.phone_number),
+                'address': bool(profile.address),
+                'nationality': bool(profile.nationality),
+                'registration_number': bool(profile.registration_number),
+                'profile_picture': bool(profile.profile_picture),
+            }
+        elif target_user.role == 'staff':
+            fields = {
+                'first_name': bool(target_user.first_name),
+                'last_name': bool(target_user.last_name),
+                'email': bool(target_user.email),
+                'sex': bool(profile.sex),
+                'phone_number': bool(profile.phone_number),
+                'address': bool(profile.address),
+                'date_of_birth': bool(profile.date_of_birth),
+                'employee_id': bool(profile.employee_id),
+                'profile_picture': bool(profile.profile_picture),
+            }
+        else:
+            fields = {
+                'first_name': bool(target_user.first_name),
+                'last_name': bool(target_user.last_name),
+                'email': bool(target_user.email),
+                'phone_number': bool(profile.phone_number),
+                'address': bool(profile.address),
+            }
+
+        filled = sum(1 for v in fields.values() if v)
+        total = len(fields)
+        percentage = round((filled / total) * 100) if total > 0 else 0
+        missing = [k for k, v in fields.items() if not v]
+
+        return Response({
+            'percentage': percentage,
+            'filled': filled,
+            'total': total,
+            'missing': missing,
+            'fields': fields,
+        })
 
     @action(detail=False, methods=['get'])
     def search(self, request):

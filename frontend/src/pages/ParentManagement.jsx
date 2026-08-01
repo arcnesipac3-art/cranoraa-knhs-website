@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { useParallelFetch } from '../hooks/useFetch';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { LoadingSpinner, EmptyState, Button } from '../components/ui';
+import ParentProfileDrawer from '../components/people/ParentProfileDrawer';
 
 const emptyForm = { first_name: '', last_name: '', email: '', password: '' };
 
@@ -16,6 +17,7 @@ export default function ParentManagement() {
   const parents = Array.isArray(data.parents) ? data.parents : [];
   const students = Array.isArray(data.students) ? data.students : [];
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [selectedParent, setSelectedParent] = useState(null);
@@ -25,8 +27,9 @@ export default function ParentManagement() {
   const [linkedIds, setLinkedIds] = useState([]);
   const [linkSaving, setLinkSaving] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [viewingParent, setViewingParent] = useState(null);
 
-  useScrollLock(showAddModal || showLinkModal);
+  useScrollLock(showAddModal || showLinkModal || viewingParent);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -142,9 +145,11 @@ export default function ParentManagement() {
     return parents.filter(p => {
       const name = `${p.first_name} ${p.last_name}`.toLowerCase();
       const email = (p.email || '').toLowerCase();
-      return name.includes(q) || email.includes(q);
+      const matchesSearch = name.includes(q) || email.includes(q);
+      const matchesStatus = !statusFilter || p.account_status === statusFilter;
+      return matchesSearch && matchesStatus;
     });
-  }, [parents, search]);
+  }, [parents, search, statusFilter]);
 
   const filteredStudents = useMemo(() => {
     const q = linkSearch.toLowerCase();
@@ -212,9 +217,9 @@ export default function ParentManagement() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="bg-white p-2.5 border border-slate-200">
-        <div className="relative max-w-md">
+      {/* Search + Filters */}
+      <div className="bg-white p-2.5 border border-slate-200 flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -224,6 +229,19 @@ export default function ParentManagement() {
             className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 text-xs font-medium focus:outline-none focus:ring-1 focus:ring-violet-500 focus:bg-white transition-colors"
           />
         </div>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+          className="py-1.5 pl-3 pr-8 bg-white border border-slate-200 rounded text-xs font-semibold text-slate-600 focus:outline-none focus:ring-1 focus:ring-violet-500">
+          <option value="">All statuses</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="suspended">Suspended</option>
+        </select>
+        {(search || statusFilter) && (
+          <button onClick={() => { setSearch(''); setStatusFilter(''); }}
+            className="text-[10px] font-bold text-violet-600 hover:underline whitespace-nowrap">
+            Clear
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -308,6 +326,16 @@ export default function ParentManagement() {
                             <>
                               <div className="fixed inset-0 z-40" onClick={() => setOpenMenuId(null)} />
                               <div className="absolute right-0 top-full mt-1 w-44 bg-white border border-slate-200 shadow-lg py-1 z-50">
+                                <button
+                                  onClick={() => { setViewingParent(p); setOpenMenuId(null); }}
+                                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left"
+                                >
+                                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  </svg>
+                                  View Profile
+                                </button>
                                 <button
                                   onClick={() => { openLinkModal(p); setOpenMenuId(null); }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left"
@@ -503,6 +531,17 @@ export default function ParentManagement() {
         </div>
       )}
       </div>
+
+      {/* Parent Profile Drawer */}
+      {viewingParent && (
+        <ParentProfileDrawer
+          parent={viewingParent}
+          students={students}
+          onClose={() => setViewingParent(null)}
+          onResetPassword={handleResetPassword}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 }

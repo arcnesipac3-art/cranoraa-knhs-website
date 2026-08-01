@@ -9,6 +9,7 @@ import * as XLSX from 'xlsx';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { LoadingSpinner, EmptyState, Button } from '../components/ui';
 import { administration, faculty, getInitials } from '../data/facultyData';
+import TeacherProfileDrawer from '../components/people/TeacherProfileDrawer';
 
 // ── Build a lookup: lowercase last name → photo path from facultyData ─────────
 const FACULTY_PHOTO_MAP = (() => {
@@ -27,7 +28,7 @@ const FACULTY_PHOTO_MAP = (() => {
 })();
 
 /** Resolve the best available photo for a portal teacher object */
-function resolvePhoto(teacher) {
+export function resolvePhoto(teacher) {
   // 1. profile_picture set by seed command (Vercel URL)
   if (teacher.profile?.profile_picture) return teacher.profile.profile_picture;
   // 2. local fallback: match by last name in facultyData
@@ -98,11 +99,14 @@ const Teachers = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
   const [editingRolesId, setEditingRolesId] = useState(null);
   const [roleForm, setRoleForm] = useState({ staff_title: '', additional_roles: [] });
+  const [viewingTeacher, setViewingTeacher] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
   const [newTeacher, setNewTeacher] = useState({
     title: '',
     first_name: '',
@@ -112,7 +116,7 @@ const Teachers = () => {
     staff_title: 'teacher'
   });
 
-  useScrollLock(showAddModal || showEditModal || showImportModal);
+  useScrollLock(showAddModal || showEditModal || showImportModal || viewingTeacher);
 
   const STAFF_TITLES = [
     // ── DepEd teaching ranks ──────────────────────────────────────────────
@@ -316,6 +320,27 @@ const Teachers = () => {
       refetch();
     } catch (err) {
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleBulkStatus = async (newStatus) => {
+    if (selectedIds.length === 0) return;
+    const result = await Swal.fire({
+      title: `Bulk ${newStatus}?`,
+      text: `This will change ${selectedIds.length} teacher(s) to ${newStatus}.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: newStatus === 'active' ? '#10b981' : newStatus === 'suspended' ? '#ef4444' : '#6b7280',
+      confirmButtonText: `Yes, ${newStatus} all`,
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await api.post('/v1/users/bulk-update-status/', { user_ids: selectedIds, status: newStatus });
+      toast.success(`${selectedIds.length} teacher(s) updated to ${newStatus}`);
+      setSelectedIds([]);
+      refetch();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update status');
     }
   };
 
@@ -528,7 +553,8 @@ const Teachers = () => {
         const matchesSearch = !search || email.includes(search) || fullName.includes(search);
         const matchesRole = !roleFilter || t.staff_title === roleFilter ||
           (t.additional_roles || '').split(',').filter(Boolean).includes(roleFilter);
-        return matchesSearch && matchesRole;
+        const matchesStatus = !statusFilter || t.account_status === statusFilter;
+        return matchesSearch && matchesRole && matchesStatus;
       })
       .sort((a, b) => {
         const rankA = RANK_ORDER[a.staff_title] ?? 99;
@@ -619,6 +645,13 @@ const Teachers = () => {
               <option value="">All roles</option>
               {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+              className="py-2 pl-3 pr-8 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-slate-600 font-semibold">
+              <option value="">All statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
+            </select>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <button onClick={() => { setNewTeacher({ email: '', first_name: '', last_name: '', title: '', sex: '', staff_title: 'teacher' }); setShowAddModal(true); }}
@@ -643,11 +676,12 @@ const Teachers = () => {
           </div>
         </div>
 
-        {(searchQuery || roleFilter) && (
+        {(searchQuery || roleFilter || statusFilter) && (
           <p className="text-xs text-slate-400 font-semibold">
             {filteredTeachers.length} result{filteredTeachers.length !== 1 ? 's' : ''}
             {searchQuery && <> for "<span className="text-slate-600">{searchQuery}</span>"</>}
             {roleFilter && <> · <span className="text-violet-600">{STAFF_TITLES.find(t => t.value === roleFilter)?.label}</span></>}
+            {statusFilter && <> · <span className="text-slate-600">{statusFilter}</span></>}
           </p>
         )}
 
@@ -657,16 +691,87 @@ const Teachers = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <p className="text-slate-400 font-semibold text-sm">No staff found</p>
-            {(searchQuery || roleFilter) && (
-              <button onClick={() => { setSearchQuery(''); setRoleFilter(''); }} className="mt-2 text-xs font-bold text-violet-600 hover:underline">
+            {(searchQuery || roleFilter || statusFilter) && (
+              <button onClick={() => { setSearchQuery(''); setRoleFilter(''); setStatusFilter(''); }} className="mt-2 text-xs font-bold text-violet-600 hover:underline">
                 Clear filters
               </button>
             )}
           </div>
         ) : (
+          <>
+            {/* Bulk action bar */}
+            {selectedIds.length > 0 && (
+              <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-2.5 flex items-center gap-3">
+                <span className="text-xs font-bold text-violet-700">{selectedIds.length} selected</span>
+                <button onClick={() => handleBulkStatus('active')}
+                  className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded hover:bg-emerald-100 transition-colors">
+                  Activate
+                </button>
+                <button onClick={() => handleBulkStatus('inactive')}
+                  className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded hover:bg-amber-100 transition-colors">
+                  Deactivate
+                </button>
+                <button onClick={() => handleBulkStatus('suspended')}
+                  className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-3 py-1 rounded hover:bg-rose-100 transition-colors">
+                  Suspend
+                </button>
+                <button onClick={() => setSelectedIds([])}
+                  className="ml-auto text-[10px] font-bold text-slate-500 hover:text-slate-700">
+                  Clear
+                </button>
+              </div>
+            )}
+
+            {/* Select all row */}
+            <div className="flex items-center gap-2 px-1">
+              <button
+                onClick={() => {
+                  if (selectedIds.length === filteredTeachers.length) {
+                    setSelectedIds([]);
+                  } else {
+                    setSelectedIds(filteredTeachers.map(t => t.id));
+                  }
+                }}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 hover:text-slate-700"
+              >
+                <div className={`w-4 h-4 border-2 flex items-center justify-center transition-colors ${
+                  selectedIds.length === filteredTeachers.length && filteredTeachers.length > 0
+                    ? 'bg-violet-600 border-violet-600'
+                    : selectedIds.length > 0
+                    ? 'bg-violet-200 border-violet-400'
+                    : 'border-slate-300'
+                }`}>
+                  {selectedIds.length === filteredTeachers.length && filteredTeachers.length > 0 ? (
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                  ) : selectedIds.length > 0 ? (
+                    <div className="w-2 h-0.5 bg-violet-600 rounded" />
+                  ) : null}
+                </div>
+                Select all
+              </button>
+            </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {filteredTeachers.map((teacher) => (
-              <div key={teacher.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 group relative flex flex-col">
+            {filteredTeachers.map((teacher) => {
+              const isSelected = selectedIds.includes(teacher.id);
+              return (
+              <div key={teacher.id} className={`bg-white border rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 group relative flex flex-col ${isSelected ? 'border-violet-400 ring-1 ring-violet-200' : 'border-slate-200'}`}>
+                {/* Select checkbox */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedIds(prev => isSelected ? prev.filter(id => id !== teacher.id) : [...prev, teacher.id]);
+                  }}
+                  className="absolute top-2 left-2 z-10"
+                >
+                  <div className={`w-4.5 h-4.5 border-2 flex items-center justify-center transition-colors ${
+                    isSelected ? 'bg-violet-600 border-violet-600' : 'border-white/60 bg-black/20 hover:border-white'
+                  }`} style={{ width: '18px', height: '18px' }}>
+                    {isSelected && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    )}
+                  </div>
+                </button>
 
                 {/* ── Portrait photo ── */}
                 <TeacherAvatar teacher={teacher} size="card" />
@@ -746,6 +851,12 @@ const Teachers = () => {
                           <div className="fixed inset-0 z-[100]" onClick={() => setActiveMenu(null)} />
                           <div className="absolute right-0 bottom-full mb-1 w-44 bg-white border border-slate-200 rounded-lg shadow-xl z-[110] py-1">
 
+                            <button onClick={() => { setActiveMenu(null); setViewingTeacher(teacher); }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left">
+                              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                              View Profile
+                            </button>
+
                             <button onClick={() => { setActiveMenu(null); setEditingTeacher({ ...teacher, profile: { title: teacher.profile?.title || '', phone_number: teacher.profile?.phone_number || '', sex: teacher.profile?.sex || '' } }); setShowEditModal(true); }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left">
                               <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -791,6 +902,7 @@ const Teachers = () => {
               </div>
             ))}
           </div>
+          </>
         )}
       </div>
 
@@ -1117,6 +1229,19 @@ const Teachers = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Teacher Profile Drawer */}
+      {viewingTeacher && (
+        <TeacherProfileDrawer
+          teacher={viewingTeacher}
+          classrooms={classrooms}
+          onClose={() => setViewingTeacher(null)}
+          onResetPassword={handleResetPassword}
+          onDelete={handleDelete}
+          onStartChat={handleStartChat}
+          currentUser={user}
+        />
       )}
     </div>
   );
