@@ -900,6 +900,7 @@ const Teachers = () => {
                   </div>
                 </div>
               </div>
+              );
             })}
           </div>
           </>
