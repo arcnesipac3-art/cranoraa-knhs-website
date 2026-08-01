@@ -23,11 +23,13 @@ const SLOT_TYPE_MAP = Object.fromEntries(SLOT_TYPES.map(t => [t.value, t]));
 // All slot types that are NOT assignable class periods
 const BREAK_SLOT_TYPES = new Set(['recess', 'lunch', 'vacant', 'assembly', 'pe']);
 
-// Detect break period from either slot_type or label (fallback for legacy data)
-const BREAK_LABELS = /recess|lunch|break|vacant|assembly|pe\b|sport/i;
+// Detect break period from either slot_type or label (covers legacy slots defaulted to 'class')
+const BREAK_LABELS = /^(recess|lunch|break|lunch\s*break|recess\s*break|vacant|assembly|pe|sports?)$/i;
 const isBreakPeriod = (slot_type, label) => {
+  // Explicit break type set
   if (slot_type && BREAK_SLOT_TYPES.has(slot_type)) return true;
-  if (!slot_type && label && BREAK_LABELS.test(label)) return true;
+  // Label clearly identifies a break (even if slot_type was defaulted to 'class')
+  if (label && BREAK_LABELS.test(label.trim())) return true;
   return false;
 };
 
@@ -224,7 +226,10 @@ export default function ScheduleManagement() {
         // Derive the effective slot_type: use the stored value if present,
         // otherwise infer from the label for legacy slots saved without slot_type.
         const rawType = ts.slot_type != null && ts.slot_type !== '' ? ts.slot_type : null;
-        const effectiveType = rawType ?? (BREAK_LABELS.test(ts.label || '') ? ts.label.toLowerCase().replace(/\s+break$/, '').trim() : 'class');
+        // If slot_type is 'class' but label indicates a break, correct it
+        const effectiveType = (rawType && rawType !== 'class')
+          ? rawType
+          : (BREAK_LABELS.test((ts.label || '').trim()) ? ts.label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z_]/g, '').replace(/_break$/, '') : (rawType || 'class'));
         map.set(k, {
           start_time: ts.start_time, end_time: ts.end_time, label: ts.label,
           slot_type: effectiveType,
