@@ -3,6 +3,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { LoadingSpinner, Modal, getModalZ } from '../components/ui';
+import BellPeriodModal from '../components/schedule/BellPeriodModal';
 
 const DAYS = ['monday','tuesday','wednesday','thursday','friday'];
 const WEEKDAYS = ['monday','tuesday','wednesday','thursday','friday'];
@@ -1125,305 +1126,40 @@ export default function ScheduleManagement() {
       </Modal>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          TIME SLOTS MODAL
+          BELL PERIODS MODAL
       ══════════════════════════════════════════════════════════════════════ */}
-      <Modal open={showSlotPanel} onClose={() => { setShowSlotPanel(false); cancelEditSlot(); }} size="lg"
-        title="Bell Periods" subtitle={filterClassroom ? `${classrooms.find(c => String(c.id) === filterClassroom)?.name || 'Section'} — ${timeSlots.length} slots` : `${timeSlots.length} slots configured · Mon–Fri`}>
-        <div className="flex flex-col md:flex-row flex-1 min-h-0 max-h-[75vh] overflow-hidden">
-          {/* Left: Setup panel */}
-          <div className="w-full md:w-[280px] shrink-0 p-4 border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/50 overflow-y-auto space-y-4 max-h-64 md:max-h-none">
-            <div className="space-y-2">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Quick Setup</p>
-              {filterClassroom && (
-                <p className="text-[10px] text-violet-600 font-semibold bg-violet-50 px-2 py-1 rounded-lg">
-                  Scoping to: {classrooms.find(c => String(c.id) === filterClassroom)?.name}
-                </p>
-              )}
-              <button type="button" onClick={() => applyStandardBell(false)} disabled={savingSlot}
-                className="w-full py-2.5 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 disabled:opacity-50 transition-all shadow-sm">
-                Apply Standard Day (Mon-Fri)
-              </button>
-              <button type="button" onClick={fillMissingSlots} disabled={savingSlot || !uniquePeriods.length}
-                className="w-full py-2.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 text-xs font-bold hover:bg-amber-100 disabled:opacity-50 transition-all">
-                Fill Missing Day Gaps
-              </button>
-              {timeSlots.length > 0 && (
-                <button type="button" onClick={clearAllTimeSlots} disabled={savingSlot}
-                  className="w-full py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-[10px] font-bold hover:bg-rose-100 disabled:opacity-50 transition-all">
-                  Delete All Slots ({timeSlots.length})
-                </button>
-              )}
-            </div>
-
-            <div className="border-t border-slate-200 pt-4">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-3">Add Custom Period</p>
-              <form onSubmit={saveSlotBulk} className="space-y-3">
-                <input value={slotForm.label} onChange={e => setSlotForm(f => ({...f, label: e.target.value}))}
-                  placeholder="Label (e.g. Period 1)"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
-                <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Type</label>
-                  <div className="flex flex-wrap gap-1">
-                    {SLOT_TYPES.map(t => (
-                      <button key={t.value} type="button"
-                        onClick={() => setSlotForm(f => ({...f, slot_type: t.value, label: f.label || t.label}))}
-                        className={`px-2 py-1 rounded-lg text-[9px] font-bold border transition-colors ${slotForm.slot_type === t.value ? t.color + ' ring-1 ring-offset-1' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}>
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Start</label>
-                    <input required type="time" value={slotForm.start_time} onChange={e => setSlotForm(f => ({...f, start_time: e.target.value}))}
-                      className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
-                  </div>
-                  <div>
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">End</label>
-                    <input required type="time" value={slotForm.end_time} onChange={e => setSlotForm(f => ({...f, end_time: e.target.value}))}
-                      className="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Days</label>
-                  <div className="flex flex-wrap gap-1">
-                    {DAYS.map(d => {
-                      const sel = slotForm.days.includes(d);
-                      return (
-                        <button key={d} type="button"
-                          onClick={() => setSlotForm(f => ({...f, days: sel ? f.days.filter(x => x !== d) : [...f.days, d]}))}
-                          className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase border transition-colors ${sel ? 'bg-violet-600 text-white border-violet-700' : 'bg-white text-slate-500 border-slate-200 hover:border-violet-300'}`}>
-                          {DAY_SHORT[d]}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="flex gap-2 mt-1.5">
-                    <button type="button" onClick={() => setSlotForm(f => ({...f, days: [...WEEKDAYS]}))} className="text-[9px] font-bold text-violet-600 hover:underline">Mon-Fri</button>
-                    <button type="button" onClick={() => setSlotForm(f => ({...f, days: [...DAYS]}))} className="text-[9px] font-bold text-violet-600 hover:underline">Select All</button>
-                    <button type="button" onClick={() => setSlotForm(f => ({...f, days: []}))} className="text-[9px] font-bold text-slate-500 hover:underline">Clear</button>
-                  </div>
-                </div>
-                <button type="submit" disabled={savingSlot}
-                  className="w-full py-2 rounded-lg bg-violet-600 text-white text-[10px] font-bold hover:bg-violet-700 disabled:opacity-50 transition-all">
-                  {savingSlot ? 'Adding...' : `Add to ${slotForm.days.length} day(s)`}
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* Right: Visual weekly grid with edit capability */}
-          <div className="flex-1 overflow-y-auto p-4 bg-white min-h-0">
-            <div className="flex items-center justify-between gap-3 mb-4">
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Period Overview</p>
-              <button type="button" onClick={() => { setShowTutorial(true); setTutorialStep(0); }}
-                className="text-[9px] font-bold text-violet-600 hover:text-violet-800 flex items-center gap-1">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                Tutorial
-              </button>
-            </div>
-
-            {uniquePeriods.length === 0 ? (
-              <div className="text-center py-16">
-                <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-7 h-7 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <p className="text-sm font-bold text-slate-700 mb-1">No periods configured</p>
-                <p className="text-xs text-slate-400 max-w-[260px] mx-auto leading-relaxed">
-                  Click <span className="font-bold text-violet-600">Apply Standard Day</span> on the left to set up a typical 7-period schedule, or add custom periods manually.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {uniquePeriods.map(period => {
-                  const pk = periodKey(period.start_time, period.end_time);
-                  const isEditing = editingSlot && periodKey(editingSlot.start_time, editingSlot.end_time) === pk;
-                  const dayCount = DAYS.filter(d => hasSlotForCell(d, period)).length;
-                  const isFull = dayCount === DAYS.length;
-                  const isBreakPeriod = period.slot_type !== 'class';
-                  const typeStyle = SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class;
-                  return (
-                    <div key={pk} className={`rounded-xl border transition-all ${isBreakPeriod ? 'border-dashed' : isEditing ? 'border-violet-300 bg-violet-50/30 ring-2 ring-violet-200/50' : 'border-slate-200 bg-white hover:border-slate-300'}`}
-                      style={isBreakPeriod ? { borderColor: typeStyle.barBorder, background: typeStyle.barBg } : undefined}>
-                      {/* Period header */}
-                      <div className="flex items-center justify-between gap-2 px-4 py-3">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-1.5 h-8 rounded-full flex-shrink-0" style={{ background: typeStyle.barText }} />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm font-bold text-slate-900">{period.start_display} – {period.end_display}</p>
-                              <span className="text-[9px] font-semibold text-slate-400">{formatDuration(durationMinutes(period.start_time, period.end_time))}</span>
-                              {isBreakPeriod && (
-                                <span className="text-[8px] font-bold px-1.5 py-0.5 rounded-full border" style={{ background: typeStyle.barBg, borderColor: typeStyle.barBorder, color: typeStyle.barText }}>
-                                  {typeStyle.label}
-                                </span>
-                              )}
-                            </div>
-                            {period.label && <p className="text-[9px] font-bold text-violet-600 uppercase tracking-wide">{period.label}</p>}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          {!isBreakPeriod && !isFull && dayCount > 0 && (
-                            <button type="button" onClick={() => applyToAllDays(period)} disabled={savingSlot}
-                              className="px-2 py-1 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-[9px] font-bold hover:bg-amber-100 disabled:opacity-50 transition-all">
-                              Fill days
-                            </button>
-                          )}
-                          {!isBreakPeriod && (
-                            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isFull ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                              {dayCount}/{DAYS.length}
-                            </span>
-                          )}
-                          {!isBreakPeriod && (
-                            <button type="button" onClick={() => {
-                              if (isEditing) cancelEditSlot();
-                              else { const s = sortedSlots.find(ts => periodKey(ts.start_time, ts.end_time) === pk && hasSlotForCell(ts.day, period)); if (s) startEditSlot(s); }
-                            }} className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-all" title={isEditing ? 'Cancel edit' : 'Edit periods'}>
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Day cells row */}
-                      <div className="px-4 pb-3">
-                        <div className="flex flex-wrap gap-1.5">
-                          {DAYS.map(d => {
-                            const has = hasSlotForCell(d, period);
-                            const slots = sortedSlots.filter(ts => ts.day === d && periodKey(ts.start_time, ts.end_time) === pk);
-                            const slot = slots[0];
-                            const isBeingEdited = isEditing && editingSlot?.day === d;
-                            return (
-                              <div key={d} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${isBeingEdited ? 'bg-violet-100 border-violet-400 text-violet-900 ring-1 ring-violet-400' : has ? '' : 'bg-slate-50 border-dashed border-slate-200 text-slate-400'}`}
-                                style={has && !isBeingEdited ? { background: typeStyle.barBg, borderColor: typeStyle.barBorder, color: typeStyle.barText } : undefined}>
-                                <span>{DAY_SHORT[d]}</span>
-                                {has && slot && !isBreakPeriod ? (
-                                  <div className="flex items-center gap-0.5 ml-0.5">
-                                    {isBeingEdited ? (
-                                      <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
-                                    ) : (
-                                      <>
-                                        <button type="button" onClick={() => startEditSlot(slot)}
-                                          className="text-violet-400 hover:text-violet-600 transition-colors" title="Edit this slot">
-                                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        </button>
-                                        <button type="button" onClick={() => deleteSlot(slot.id, `${DAY_SHORT[d]} ${normalizeTime(slot.start_time)}`)}
-                                          className="text-rose-300 hover:text-rose-500 transition-colors" title="Delete this slot">
-                                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/></svg>
-                                        </button>
-                                      </>
-                                    )}
-                                  </div>
-                                ) : has ? (
-                                  <span className="ml-0.5 w-1.5 h-1.5 rounded-full" style={{ background: typeStyle.barText, opacity: 0.4 }} />
-                                ) : null}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Inline edit form for this period */}
-                      {isEditing && !isBreakPeriod && (
-                        <div className="px-4 pb-4 pt-0 border-t border-violet-200 mt-1">
-                          <div className="pt-3 flex flex-wrap items-end gap-3">
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Day</label>
-                              <select value={editSlotForm.day} onChange={e => setEditSlotForm(f => ({...f, day: e.target.value}))}
-                                className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30">
-                                {DAYS.map(d => <option key={d} value={d}>{DAY_FULL[d]}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Start</label>
-                              <input type="time" value={editSlotForm.start_time} onChange={e => setEditSlotForm(f => ({...f, start_time: e.target.value}))}
-                                className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
-                            </div>
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">End</label>
-                              <input type="time" value={editSlotForm.end_time} onChange={e => setEditSlotForm(f => ({...f, end_time: e.target.value}))}
-                                className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
-                            </div>
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Type</label>
-                              <select value={editSlotForm.slot_type || 'class'} onChange={e => setEditSlotForm(f => ({...f, slot_type: e.target.value}))}
-                                className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30">
-                                {SLOT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Label</label>
-                              <input value={editSlotForm.label} onChange={e => setEditSlotForm(f => ({...f, label: e.target.value}))}
-                                placeholder="Period label"
-                                className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 w-28" />
-                            </div>
-                            <div className="flex gap-1.5">
-                              <button type="button" onClick={saveEditSlot} disabled={savingSlot}
-                                className="px-3 py-1.5 rounded-lg bg-violet-600 text-white text-[10px] font-bold hover:bg-violet-700 disabled:opacity-50 transition-all">
-                                {savingSlot ? '...' : 'Save'}
-                              </button>
-                              <button type="button"
-                                onClick={() => deleteSlot(editingSlot.id, `${DAY_SHORT[editingSlot.day]} ${normalizeTime(editingSlot.start_time)}`)}
-                                disabled={savingSlot}
-                                className="px-3 py-1.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-bold hover:bg-rose-100 disabled:opacity-50 transition-all">
-                                Delete Slot
-                              </button>
-                              <button type="button" onClick={cancelEditSlot}
-                                className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-500 text-[10px] font-bold hover:bg-slate-50 transition-all">
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Tutorial overlay */}
-        {showTutorial && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-            <div className="w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-              {/* Progress bar */}
-              <div className="h-1 w-full bg-slate-100">
-                <div className="h-full bg-gradient-to-r from-violet-600 to-violet-400 transition-all duration-300" style={{ width: `${((tutorialStep + 1) / tutorialSteps.length) * 100}%` }} />
-              </div>
-              <div className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={tutorialSteps[tutorialStep].icon}/></svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-slate-900">{tutorialSteps[tutorialStep].title}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Step {tutorialStep + 1} of {tutorialSteps.length}</p>
-                  </div>
-                  <button type="button" onClick={dismissTutorial} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
-                  </button>
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed">{tutorialSteps[tutorialStep].desc}</p>
-                <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
-                  <button type="button" onClick={dismissTutorial} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-wider">Skip</button>
-                  <div className="flex items-center gap-2">
-                    {tutorialStep > 0 && (
-                      <button type="button" onClick={prevTutorial} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 transition-all uppercase tracking-wider">Back</button>
-                    )}
-                    <button type="button" onClick={nextTutorial}
-                      className="px-5 py-2 rounded-lg bg-violet-600 text-white text-[10px] font-bold hover:bg-violet-700 transition-all uppercase tracking-wider shadow-md shadow-violet-200">
-                      {tutorialStep < tutorialSteps.length - 1 ? 'Next' : 'Got it!'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+      <BellPeriodModal
+        open={showSlotPanel}
+        onClose={() => { setShowSlotPanel(false); cancelEditSlot(); }}
+        sectionName={filterClassroom ? classrooms.find(c => String(c.id) === filterClassroom)?.name : null}
+        uniquePeriods={uniquePeriods}
+        sortedSlots={sortedSlots}
+        timeSlots={timeSlots}
+        filterClassroom={filterClassroom}
+        slotForm={slotForm}
+        setSlotForm={setSlotForm}
+        savingSlot={savingSlot}
+        editingSlot={editingSlot}
+        editSlotForm={editSlotForm}
+        setEditSlotForm={setEditSlotForm}
+        startEditSlot={startEditSlot}
+        cancelEditSlot={cancelEditSlot}
+        saveEditSlot={saveEditSlot}
+        deleteSlot={deleteSlot}
+        applyStandardBell={applyStandardBell}
+        fillMissingSlots={fillMissingSlots}
+        clearAllTimeSlots={clearAllTimeSlots}
+        applyToAllDays={applyToAllDays}
+        saveSlotBulk={saveSlotBulk}
+        showTutorial={showTutorial}
+        setShowTutorial={setShowTutorial}
+        tutorialStep={tutorialStep}
+        setTutorialStep={setTutorialStep}
+        tutorialSteps={tutorialSteps}
+        dismissTutorial={dismissTutorial}
+        nextTutorial={nextTutorial}
+        prevTutorial={prevTutorial}
+      />
 
       {/* ══════════════════════════════════════════════════════════════════════
           ROOMS MODAL
