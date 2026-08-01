@@ -6,6 +6,7 @@ import Swal from 'sweetalert2';
 import { LoadingSpinner, Button } from '../components/ui';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 import { ApplicationDrawer } from '../components/enrollment/ApplicationDrawer';
+import { ApplicationsTableSkeleton, ClassroomGridSkeleton, EnrolledListSkeleton } from '../components/enrollment/Skeletons';
 
 const STATUS_CONFIG = {
   pending: { color: 'bg-amber-100 text-amber-800 border-amber-200', label: 'Pending' },
@@ -304,7 +305,7 @@ function ApplicationsTab({ refetch }) {
     setSelectedIds([]);
   };
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <ApplicationsTableSkeleton />;
 
   return (
     <div className="page-bottom-safe bg-slate-50/50">
@@ -378,7 +379,35 @@ function ApplicationsTab({ refetch }) {
             </div>
           )}
 
-          <div className="overflow-x-auto">
+          {/* Mobile card view */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {filtered.length === 0 ? (
+              <div className="px-6 py-12 text-center text-sm text-slate-400 font-bold">No applications found</div>
+            ) : filtered.map(app => (
+              <button key={app.id} onClick={() => setSelected(app)}
+                className="w-full text-left px-4 py-3 hover:bg-slate-50/50 transition-colors active:bg-slate-100">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-slate-900 truncate">{app.first_name} {app.last_name}</p>
+                    <p className="text-[10px] text-slate-400 truncate">{app.email}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border flex-shrink-0 ${(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).color}`}>
+                    {(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).label}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 mt-2 text-[10px]">
+                  <span className="font-bold text-violet-700">{app.enrollment_number || '—'}</span>
+                  <span className="text-slate-300">|</span>
+                  <span className="font-bold text-slate-600">G{app.grade_level}{app.strand ? ` ${app.strand}` : ''}</span>
+                  <span className="text-slate-300">|</span>
+                  <span className="text-slate-400">{app.enrollment_type?.replace('_', ' ') || '—'}</span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Desktop table view */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
               <thead className="bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                 <tr>
@@ -839,7 +868,7 @@ function EnrollStudentsTab({ refetch }) {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><LoadingSpinner /></div>;
+  if (loading) return <div className="space-y-4"><ClassroomGridSkeleton /></div>;
 
   // View 1: Classroom grid (default)
   if (!selectedClassroom) {
@@ -943,7 +972,7 @@ function EnrollStudentsTab({ refetch }) {
           </div>
         </div>
         {loadingEnrollments ? (
-          <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
+          <EnrolledListSkeleton rows={3} />
         ) : filteredEnrollments.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <svg className="w-10 h-10 text-slate-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
