@@ -107,7 +107,7 @@ export const protectedRoutes = [
   { path: 'classes', element: ClassesHub, roles: [Role.ADMIN] },
   { path: 'enrollment', element: EnrollmentHub, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'subjects', element: SubjectsHub, roles: [Role.ADMIN] },
-  { path: 'schedules', element: ScheduleManagement, roles: [Role.ADMIN] },
+  { path: 'schedules', element: ScheduleManagement, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'academic-setup', element: AcademicSetup, roles: [Role.ADMIN] },
   { path: 'analytics',      element: Analytics,     roles: [Role.ADMIN] },
   { path: 'my-classes', element: ClassroomHub, roles: [Role.STAFF, Role.STUDENT] },

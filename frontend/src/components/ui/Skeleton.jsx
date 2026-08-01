@@ -63,7 +63,7 @@ Skeleton.StatCard = ({ className }) => (
     aria-busy="true"
     aria-label="Loading…"
     className={cn(
-      'rounded-lg border border-slate-200 border-l-4 border-l-slate-300 bg-white',
+      'rounded-xl border border-slate-200 border-l-4 border-l-slate-300 bg-white',
       'p-4 md:p-5 flex flex-col justify-between min-h-[110px] md:min-h-[130px]',
       className,
     )}
@@ -85,7 +85,7 @@ Skeleton.AnnouncementRow = ({ className }) => (
     role="status"
     aria-busy="true"
     aria-label="Loading…"
-    className={cn('p-3 rounded-md border-2 border-slate-100 bg-white space-y-2', className)}
+    className={cn('p-3 rounded-xl border border-slate-200 bg-white space-y-2', className)}
   >
     <div className="skeleton-shimmer h-3.5 w-3/4 rounded bg-slate-200" />
     <div className="skeleton-shimmer h-3 w-full rounded bg-slate-200" />
@@ -100,7 +100,7 @@ Skeleton.ScheduleRow = ({ className }) => (
     role="status"
     aria-busy="true"
     aria-label="Loading…"
-    className={cn('flex items-center gap-3 p-3 rounded-md border-2 border-slate-100 bg-white', className)}
+    className={cn('flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white', className)}
   >
     {/* time block */}
     <div className="space-y-1.5 min-w-[56px] shrink-0">
@@ -122,7 +122,7 @@ Skeleton.ClassCard = ({ className }) => (
     aria-busy="true"
     aria-label="Loading…"
     className={cn(
-      'p-4 rounded-md border-2 border-slate-100 bg-white space-y-3',
+      'p-4 rounded-xl border border-slate-200 bg-white space-y-3',
       className,
     )}
   >

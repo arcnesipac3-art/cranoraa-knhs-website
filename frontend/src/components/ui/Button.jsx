@@ -3,7 +3,7 @@ import { cn } from '../../styles/designSystem';
 
 /**
  * Professional Button Component
- * Variants: primary, secondary, ghost, danger
+ * Variants: primary, secondary, outline, ghost, danger, success
  * Sizes: sm, md, lg
  */
 
@@ -20,12 +20,13 @@ const Button = React.forwardRef(({
   ...props
 }, ref) => {
   
-  const baseStyles = 'inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]';
+  const baseStyles = 'inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2';
   
   const variants = {
     primary: 'bg-violet-600 text-white border border-violet-700 hover:bg-violet-700 shadow-sm',
     secondary: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 shadow-sm',
-    ghost: 'text-slate-700 hover:bg-slate-100',
+    outline: 'bg-transparent text-violet-700 border-2 border-violet-300 hover:bg-violet-50 hover:border-violet-400',
+    ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-800',
     danger: 'bg-red-600 text-white border border-red-700 hover:bg-red-700 shadow-sm',
     success: 'bg-emerald-600 text-white border border-emerald-700 hover:bg-emerald-700 shadow-sm',
   };
@@ -46,6 +47,7 @@ const Button = React.forwardRef(({
       )}
       fill="none"
       viewBox="0 0 24 24"
+      aria-hidden="true"
     >
       <circle
         className="opacity-25"
@@ -74,6 +76,7 @@ const Button = React.forwardRef(({
         className
       )}
       disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
     >
       {loading && spinner}

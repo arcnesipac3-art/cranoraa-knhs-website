@@ -4,13 +4,15 @@ import { cn } from '../../styles/designSystem';
 /**
  * Professional Card Component
  * For consistent container styling across the portal
+ * 
+ * Standardized: rounded-xl for cards, border-slate-200, shadow-sm
  */
 
 export const Card = ({ children, className = '', interactive = false, highlighted = false, ...props }) => {
   return (
     <div
       className={cn(
-        'bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden',
+        'bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden',
         interactive && 'hover:shadow-md hover:border-slate-300 transition-all duration-200 cursor-pointer',
         highlighted && 'bg-violet-50 border-violet-200',
         className

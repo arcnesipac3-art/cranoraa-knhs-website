@@ -4,11 +4,13 @@ import { cn } from '../../styles/designSystem';
 /**
  * Professional Table Component
  * For data tables with consistent styling
+ * 
+ * Standardized: rounded-xl container, border-slate-200, consistent header/body
  */
 
 export const Table = ({ children, className = '', ...props }) => {
   return (
-    <div className="overflow-x-auto rounded-lg border border-slate-200">
+    <div className="overflow-x-auto rounded-xl border border-slate-200">
       <table
         className={cn('min-w-full divide-y divide-slate-200', className)}
         {...props}

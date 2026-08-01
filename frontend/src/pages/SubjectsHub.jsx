@@ -1,10 +1,12 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import Swal from 'sweetalert2';
 import { useParallelFetch } from '../hooks/useFetch';
 import { LoadingSpinner, EmptyState, Button, Badge } from '../components/ui';
+import { SearchInput, Select, Textarea } from '../components/ui/Input';
+import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter } from '../components/ui/Modal';
+import ConfirmationDialog from '../components/ui/ConfirmationDialog';
 
 const GRADE_LEVELS = ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'];
 const EMPTY_SUBJECT = { name: '', code: '', description: '', grade_level: '' };
@@ -21,14 +23,15 @@ function SubjectsTab() {
   const [form, setForm] = useState(EMPTY_SUBJECT);
   const [search, setSearch] = useState('');
   const [filterLevel, setFilterLevel] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const openCreate = () => { setEditing(null); setForm(EMPTY_SUBJECT); setShowModal(true); };
   const openEdit = (s) => { setEditing(s); setForm({ name: s.name, code: s.code, description: s.description || '', grade_level: s.grade_level }); setShowModal(true); };
 
-  const handleDelete = async (subject) => {
-    const result = await Swal.fire({ title: 'Delete Subject?', text: `"${subject.name}" will be permanently removed.`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#6b7280', confirmButtonText: 'Delete' });
-    if (!result.isConfirmed) return;
-    try { await api.delete(`/subjects/${subject.id}/`); toast.success('Subject deleted'); refetch(); } catch { toast.error('Failed to delete subject'); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try { await api.delete(`/subjects/${deleteTarget.id}/`); toast.success('Subject deleted'); refetch(); } catch { toast.error('Failed to delete subject'); }
+    setDeleteTarget(null);
   };
 
   const handleSubmit = async (e) => {
@@ -78,14 +81,13 @@ function SubjectsTab() {
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            <input type="text" placeholder="Search by name or code..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all" />
+          <div className="flex-1">
+            <SearchInput placeholder="Search by name or code..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} className="px-4 py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
+          <Select value={filterLevel} onChange={e => setFilterLevel(e.target.value)} containerClassName="sm:w-52">
             <option value="">All Grade Levels</option>
             {gradeLevels.map(l => <option key={l} value={l}>{l}</option>)}
-          </select>
+          </Select>
         </div>
       </div>
 
@@ -123,7 +125,7 @@ function SubjectsTab() {
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <Button variant="secondary" size="sm" onClick={() => openEdit(s)}>Edit</Button>
-                            <Button variant="danger" size="sm" onClick={() => handleDelete(s)}>Delete</Button>
+                            <Button variant="danger" size="sm" onClick={() => setDeleteTarget(s)}>Delete</Button>
                           </div>
                         </td>
                       </tr>
@@ -137,64 +139,48 @@ function SubjectsTab() {
         </div>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332-.477-4.5-1.253" />
-                  </svg>
-                </div>
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="md">
+        <ModalHeader onClose={() => setShowModal(false)}>
+          <ModalTitle title={editing ? 'Edit Subject' : 'New Subject'} subtitle="Subject Management" />
+        </ModalHeader>
+        <form onSubmit={handleSubmit}>
+          <ModalBody>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">{editing ? 'Edit Subject' : 'New Subject'}</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Subject Management</p>
+                  <label className="block text-xs font-medium text-slate-700 mb-1.5">Subject Code <span className="text-red-500">*</span></label>
+                  <input type="text" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="e.g. MATH7" className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required />
                 </div>
+                <Select label="Grade Level" required value={form.grade_level} onChange={e => setForm({ ...form, grade_level: e.target.value })}>
+                  <option value="">— Select —</option>
+                  {GRADE_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                </Select>
               </div>
-              <button onClick={() => setShowModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
+              <div>
+                <label className="block text-xs font-medium text-slate-700 mb-1.5">Subject Name <span className="text-red-500">*</span></label>
+                <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Mathematics" className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required />
+              </div>
+              <Textarea label="Description" rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Brief subject overview (optional)" />
             </div>
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-              <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Subject Code <span className="text-red-500">*</span></label>
-                    <input type="text" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="e.g. MATH7" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Grade Level <span className="text-red-500">*</span></label>
-                    <select value={form.grade_level} onChange={e => setForm({ ...form, grade_level: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required>
-                      <option value="">— Select —</option>
-                      {GRADE_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Subject Name <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Mathematics" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Description</label>
-                  <textarea rows={3} value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Brief subject overview (optional)" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 resize-none" />
-                </div>
-              </div>
-              <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
-                <button type="button" onClick={() => setShowModal(false)}
-                  className="px-4 sm:px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
-                  Cancel
-                </button>
-                <button type="submit" disabled={saving}
-                  className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm disabled:opacity-50">
-                  {saving ? 'Saving...' : editing ? 'Save Changes' : 'Create Subject'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </ModalBody>
+          <ModalFooter>
+            <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button type="submit" variant="primary" loading={saving}>
+              {editing ? 'Save Changes' : 'Create Subject'}
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
+
+      <ConfirmationDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Delete Subject?"
+        message={`"${deleteTarget?.name}" will be permanently removed from the curriculum. This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+      />
     </div>
   );
 }
@@ -218,14 +204,15 @@ function AssignmentsTab() {
   const [search, setSearch] = useState('');
   const [filterClassroom, setFilterClassroom] = useState('');
   const [form, setForm] = useState({ classroom: '', subject: '', teacher: '' });
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const openCreate = () => { setEditing(null); setForm({ classroom: '', subject: '', teacher: '' }); setShowModal(true); };
   const openEdit = (a) => { setEditing(a); setForm({ classroom: a.classroom, subject: a.subject, teacher: a.teacher }); setShowModal(true); };
 
-  const handleDelete = async (assignment) => {
-    const result = await Swal.fire({ title: 'Remove Assignment?', text: `Remove "${assignment.subject_name}" from "${assignment.classroom_name}"?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#6b7280', confirmButtonText: 'Remove' });
-    if (!result.isConfirmed) return;
-    try { await api.delete(`/classroom-subjects/${assignment.id}/`); toast.success('Assignment removed'); refetch(); } catch { toast.error('Failed to remove assignment'); }
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try { await api.delete(`/classroom-subjects/${deleteTarget.id}/`); toast.success('Assignment removed'); refetch(); } catch { toast.error('Failed to remove assignment'); }
+    setDeleteTarget(null);
   };
 
   const handleSubmit = async (e) => {
@@ -244,6 +231,42 @@ function AssignmentsTab() {
       toast.error(msg);
     } finally { setSaving(false); }
   };
+
+  // Group classrooms by grade level
+  const groupedClassrooms = useMemo(() => {
+    const groups = {};
+    classrooms.forEach(c => {
+      const key = c.grade_level || 'Other';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(c);
+    });
+    return Object.entries(groups).sort(([a], [b]) => {
+      const na = parseInt(a.replace(/\D/g, '')) || 999;
+      const nb = parseInt(b.replace(/\D/g, '')) || 999;
+      return na - nb;
+    });
+  }, [classrooms]);
+
+  // Group subjects by grade level
+  const groupedSubjects = useMemo(() => {
+    const groups = {};
+    subjects.forEach(s => {
+      const key = s.grade_level || 'Other';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(s);
+    });
+    return Object.entries(groups).sort(([a], [b]) => {
+      const na = parseInt(a.replace(/\D/g, '')) || 999;
+      const nb = parseInt(b.replace(/\D/g, '')) || 999;
+      return na - nb;
+    });
+  }, [subjects]);
+
+  // Teachers sorted by name
+  const sortedTeachers = useMemo(() =>
+    [...teachers].sort((a, b) => `${a.last_name}${a.first_name}`.localeCompare(`${b.last_name}${b.first_name}`)),
+    [teachers]
+  );
 
   const filtered = useMemo(() => assignments.filter(a => {
     const q = search.toLowerCase();
@@ -273,14 +296,17 @@ function AssignmentsTab() {
 
       <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4 md:mb-6">
         <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-            <input type="text" placeholder="Search by subject, section, or teacher..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all" />
+          <div className="flex-1">
+            <SearchInput placeholder="Search by subject, section, or teacher..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <select value={filterClassroom} onChange={e => setFilterClassroom(e.target.value)} className="px-4 py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
+          <Select value={filterClassroom} onChange={e => setFilterClassroom(e.target.value)} containerClassName="sm:w-64">
             <option value="">All Sections</option>
-            {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
+            {groupedClassrooms.map(([level, items]) => (
+              <optgroup key={level} label={level}>
+                {items.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </optgroup>
+            ))}
+          </Select>
         </div>
       </div>
 
@@ -314,7 +340,7 @@ function AssignmentsTab() {
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <Button variant="secondary" size="sm" onClick={() => openEdit(a)}>Edit</Button>
-                        <Button variant="danger" size="sm" onClick={() => handleDelete(a)}>Remove</Button>
+                        <Button variant="danger" size="sm" onClick={() => setDeleteTarget(a)}>Remove</Button>
                       </div>
                     </td>
                   </tr>
@@ -328,66 +354,57 @@ function AssignmentsTab() {
         </div>
       )}
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">{editing ? 'Edit Assignment' : 'New Assignment'}</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Subject Assignments</p>
-                </div>
+      <Modal isOpen={showModal} onClose={() => setShowModal(false)} size="md">
+        <ModalHeader onClose={() => setShowModal(false)}>
+          <ModalTitle title={editing ? 'Edit Assignment' : 'New Assignment'} subtitle="Subject Assignments" />
+        </ModalHeader>
+        <form onSubmit={handleSubmit}>
+          <ModalBody>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Select label="Section" required value={form.classroom} onChange={e => setForm({ ...form, classroom: e.target.value })}>
+                  <option value="">— Select —</option>
+                  {groupedClassrooms.map(([level, items]) => (
+                    <optgroup key={level} label={level}>
+                      {items.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </optgroup>
+                  ))}
+                </Select>
+                <Select label="Subject" required value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}>
+                  <option value="">— Select —</option>
+                  {groupedSubjects.map(([level, items]) => (
+                    <optgroup key={level} label={level}>
+                      {items.map(s => <option key={s.id} value={s.id}>{s.code} — {s.name}</option>)}
+                    </optgroup>
+                  ))}
+                </Select>
               </div>
-              <button onClick={() => setShowModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
+              <Select label="Teacher" required value={form.teacher} onChange={e => setForm({ ...form, teacher: e.target.value })}>
+                <option value="">— Select —</option>
+                {sortedTeachers.map(t => (
+                  <option key={t.id} value={t.id}>{t.last_name}, {t.first_name}{t.staff_title ? ` (${t.staff_title})` : ''}</option>
+                ))}
+              </Select>
             </div>
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
-              <div className="px-6 py-4 space-y-4 overflow-y-auto flex-1">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Section <span className="text-red-500">*</span></label>
-                    <select value={form.classroom} onChange={e => setForm({ ...form, classroom: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required>
-                      <option value="">— Select —</option>
-                      {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Subject <span className="text-red-500">*</span></label>
-                    <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required>
-                      <option value="">— Select —</option>
-                      {subjects.map(s => <option key={s.id} value={s.id}>{s.code} — {s.name}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Teacher <span className="text-red-500">*</span></label>
-                  <select value={form.teacher} onChange={e => setForm({ ...form, teacher: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required>
-                    <option value="">— Select —</option>
-                    {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
-                <button type="button" onClick={() => setShowModal(false)}
-                  className="px-4 sm:px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
-                  Cancel
-                </button>
-                <button type="submit" disabled={saving}
-                  className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm disabled:opacity-50">
-                  {saving ? 'Saving...' : editing ? 'Save Changes' : 'Create Assignment'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+          </ModalBody>
+          <ModalFooter>
+            <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>Cancel</Button>
+            <Button type="submit" variant="primary" loading={saving}>
+              {editing ? 'Save Changes' : 'Create Assignment'}
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
+
+      <ConfirmationDialog
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        title="Remove Assignment?"
+        message={`Remove "${deleteTarget?.subject_name}" from "${deleteTarget?.classroom_name}"? This action cannot be undone.`}
+        confirmLabel="Remove"
+        variant="danger"
+      />
     </div>
   );
 }

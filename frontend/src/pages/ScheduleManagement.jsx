@@ -9,14 +9,26 @@ const WEEKDAYS = ['monday','tuesday','wednesday','thursday','friday'];
 const DAY_FULL = { monday:'Monday', tuesday:'Tuesday', wednesday:'Wednesday', thursday:'Thursday', friday:'Friday' };
 const DAY_SHORT = { monday:'Mon', tuesday:'Tue', wednesday:'Wed', thursday:'Thu', friday:'Fri' };
 
+const SLOT_TYPES = [
+  { value: 'class',     label: 'Class Period', color: 'bg-violet-100 text-violet-700 border-violet-200', barBg: '#f5f3ff', barBorder: '#c4b5fd', barText: '#6d28d9' },
+  { value: 'recess',    label: 'Recess',       color: 'bg-emerald-100 text-emerald-700 border-emerald-200', barBg: '#ecfdf5', barBorder: '#6ee7b7', barText: '#047857' },
+  { value: 'lunch',     label: 'Lunch Break',  color: 'bg-amber-100 text-amber-700 border-amber-200', barBg: '#fffbeb', barBorder: '#fcd34d', barText: '#b45309' },
+  { value: 'vacant',    label: 'Vacant',       color: 'bg-slate-100 text-slate-500 border-slate-200', barBg: '#f8fafc', barBorder: '#e2e8f0', barText: '#64748b' },
+  { value: 'assembly',  label: 'Assembly',     color: 'bg-indigo-100 text-indigo-700 border-indigo-200', barBg: '#eef2ff', barBorder: '#a5b4fc', barText: '#4338ca' },
+  { value: 'pe',        label: 'PE / Sports',  color: 'bg-rose-100 text-rose-700 border-rose-200', barBg: '#fff1f2', barBorder: '#fda4af', barText: '#be123c' },
+];
+const SLOT_TYPE_MAP = Object.fromEntries(SLOT_TYPES.map(t => [t.value, t]));
+
 const DEFAULT_PERIODS = [
-  { start_time: '07:30', end_time: '08:30', label: 'Period 1' },
-  { start_time: '08:30', end_time: '09:30', label: 'Period 2' },
-  { start_time: '09:45', end_time: '10:45', label: 'Period 3' },
-  { start_time: '10:45', end_time: '11:45', label: 'Period 4' },
-  { start_time: '13:00', end_time: '14:00', label: 'Period 5' },
-  { start_time: '14:00', end_time: '15:00', label: 'Period 6' },
-  { start_time: '15:00', end_time: '16:00', label: 'Period 7' },
+  { start_time: '07:30', end_time: '08:30', label: 'Period 1', slot_type: 'class' },
+  { start_time: '08:30', end_time: '09:30', label: 'Period 2', slot_type: 'class' },
+  { start_time: '09:30', end_time: '09:45', label: 'Recess',   slot_type: 'recess' },
+  { start_time: '09:45', end_time: '10:45', label: 'Period 3', slot_type: 'class' },
+  { start_time: '10:45', end_time: '11:45', label: 'Period 4', slot_type: 'class' },
+  { start_time: '11:45', end_time: '12:45', label: 'Lunch',    slot_type: 'lunch' },
+  { start_time: '12:45', end_time: '13:45', label: 'Period 5', slot_type: 'class' },
+  { start_time: '13:45', end_time: '14:45', label: 'Period 6', slot_type: 'class' },
+  { start_time: '14:45', end_time: '15:45', label: 'Period 7', slot_type: 'class' },
 ];
 
 const normalizeTime = (v) => {
@@ -78,7 +90,7 @@ export default function ScheduleManagement() {
   const [showSlotPanel, setShowSlotPanel] = useState(false);
   const [showRoomPanel, setShowRoomPanel] = useState(false);
   const [roomForm, setRoomForm] = useState({ name:'', building:'', capacity:40, room_type:'classroom' });
-  const [slotForm, setSlotForm] = useState({ days: [...WEEKDAYS], start_time:'07:30', end_time:'08:30', label:'' });
+  const [slotForm, setSlotForm] = useState({ days: [...WEEKDAYS], start_time:'07:30', end_time:'08:30', label:'', slot_type:'class' });
   const [savingSlot, setSavingSlot] = useState(false);
   const [savingRoom, setSavingRoom] = useState(false);
   const [classroomAssignments, setClassroomAssignments] = useState([]);
@@ -89,7 +101,7 @@ export default function ScheduleManagement() {
   const [showConflicts, setShowConflicts] = useState(false);
 
   const [editingSlot, setEditingSlot] = useState(null);
-  const [editSlotForm, setEditSlotForm] = useState({ start_time:'', end_time:'', label:'', day:'' });
+  const [editSlotForm, setEditSlotForm] = useState({ start_time:'', end_time:'', label:'', day:'', slot_type:'class' });
   const [showTutorial, setShowTutorial] = useState(() => !localStorage.getItem('schedTutorialDone'));
   const [tutorialStep, setTutorialStep] = useState(0);
   const [mobileSelectedDay, setMobileSelectedDay] = useState(() => {
@@ -196,6 +208,7 @@ export default function ScheduleManagement() {
       const k = periodKey(ts.start_time, ts.end_time);
       if (!map.has(k)) map.set(k, {
         start_time: ts.start_time, end_time: ts.end_time, label: ts.label,
+        slot_type: ts.slot_type || 'class',
         start_display: ts.start_time_display || normalizeTime(ts.start_time),
         end_display: ts.end_time_display || normalizeTime(ts.end_time),
       });
@@ -323,7 +336,7 @@ export default function ScheduleManagement() {
       for (const p of DEFAULT_PERIODS) {
         for (const d of days) {
           if (slotExists(timeSlots, d, p.start_time, p.end_time)) continue;
-          const payload = { day: d, ...p };
+          const payload = { day: d, start_time: normalizeTime(p.start_time), end_time: normalizeTime(p.end_time), label: p.label || '', slot_type: p.slot_type || 'class' };
           if (filterClassroom) payload.classroom = filterClassroom;
           const r = await api.post('/time-slots/', payload);
           n.push(r.data); created++;
@@ -362,7 +375,7 @@ export default function ScheduleManagement() {
       for (const p of uniquePeriods) {
         for (const d of WEEKDAYS) {
           if (hasSlotForCell(d, p)) continue;
-          const payload = { day: d, start_time: normalizeTime(p.start_time), end_time: normalizeTime(p.end_time), label: p.label||'' };
+          const payload = { day: d, start_time: normalizeTime(p.start_time), end_time: normalizeTime(p.end_time), label: p.label||'', slot_type: p.slot_type || 'class' };
           if (filterClassroom) payload.classroom = filterClassroom;
           const r = await api.post('/time-slots/', payload);
           n.push(r.data); c++;
@@ -382,7 +395,7 @@ export default function ScheduleManagement() {
     try {
       for (const d of slotForm.days) {
         if (slotExists(timeSlots, d, slotForm.start_time, slotForm.end_time)) { sk++; continue; }
-        const payload = { day: d, start_time: slotForm.start_time, end_time: slotForm.end_time, label: slotForm.label };
+        const payload = { day: d, start_time: slotForm.start_time, end_time: slotForm.end_time, label: slotForm.label, slot_type: slotForm.slot_type || 'class' };
         if (filterClassroom) payload.classroom = filterClassroom;
         const r = await api.post('/time-slots/', payload);
         n.push(r.data); c++;
@@ -433,12 +446,12 @@ export default function ScheduleManagement() {
 
   const startEditSlot = useCallback((slot) => {
     setEditingSlot(slot);
-    setEditSlotForm({ start_time: slot.start_time, end_time: slot.end_time, label: slot.label || '', day: slot.day });
+    setEditSlotForm({ start_time: slot.start_time, end_time: slot.end_time, label: slot.label || '', day: slot.day, slot_type: slot.slot_type || 'class' });
   }, []);
 
   const cancelEditSlot = useCallback(() => {
     setEditingSlot(null);
-    setEditSlotForm({ start_time:'', end_time:'', label:'', day:'' });
+    setEditSlotForm({ start_time:'', end_time:'', label:'', day:'', slot_type:'class' });
   }, []);
 
   const saveEditSlot = async () => {
@@ -450,6 +463,7 @@ export default function ScheduleManagement() {
         end_time: editSlotForm.end_time,
         label: editSlotForm.label,
         day: editSlotForm.day,
+        slot_type: editSlotForm.slot_type || 'class',
       });
       setTimeSlots(prev => prev.map(t => t.id === editingSlot.id ? { ...t, ...res.data } : t));
       toast.success('Time slot updated');
@@ -465,7 +479,7 @@ export default function ScheduleManagement() {
     try {
       for (const d of WEEKDAYS) {
         if (hasSlotForCell(d, period)) continue;
-        const payload = { day: d, start_time: normalizeTime(period.start_time), end_time: normalizeTime(period.end_time), label: period.label||'' };
+        const payload = { day: d, start_time: normalizeTime(period.start_time), end_time: normalizeTime(period.end_time), label: period.label||'', slot_type: period.slot_type || 'class' };
         if (filterClassroom) payload.classroom = filterClassroom;
         const r = await api.post('/time-slots/', payload);
         n.push(r.data); c++;
@@ -790,6 +804,19 @@ export default function ScheduleManagement() {
                 const ready = hasSlotForCell(mobileSelectedDay, period);
                 const cellKey = `${mobileSelectedDay}-${period.start_time}-${period.end_time}`;
                 const isAdding = addingCell === cellKey;
+                const isBreak = period.slot_type !== 'class';
+                const typeStyle = SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class;
+
+                if (isBreak) {
+                  return (
+                    <div key={cellKey} className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ border: `1.5px dashed ${typeStyle.barBorder}`, background: typeStyle.barBg }}>
+                      <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
+                      <div className="flex-1 h-px" style={{ background: typeStyle.barText, opacity: 0.2 }} />
+                      <span className="text-[9px] font-bold text-slate-400">{period.start_display} – {period.end_display}</span>
+                    </div>
+                  );
+                }
+
                 if (entries.length === 0) {
                   return (
                     <button key={cellKey} type="button" onClick={() => openCreateAtCell(mobileSelectedDay, period)} disabled={isAdding}
@@ -839,7 +866,29 @@ export default function ScheduleManagement() {
                 </tr>
               </thead>
               <tbody>
-                {uniquePeriods.map((period, ri) => (
+                {uniquePeriods.map((period, ri) => {
+                  const isBreak = period.slot_type !== 'class';
+                  const typeStyle = SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class;
+                  const colCount = filterDay ? 1 : DAYS.length;
+
+                  if (isBreak) {
+                    return (
+                      <tr key={`${period.start_time}-${period.end_time}`}>
+                        <td colSpan={colCount + 1} className="px-0 py-0" style={{ borderTop: `2px dashed ${typeStyle.barBorder}`, borderBottom: `2px dashed ${typeStyle.barBorder}`, background: typeStyle.barBg }}>
+                          <div className="flex items-center gap-3 px-4 py-2">
+                            <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
+                            <div className="flex-1 h-px" style={{ background: typeStyle.barText, opacity: 0.2 }} />
+                            <span className="text-[9px] font-bold text-slate-400">{period.start_display} – {period.end_display}</span>
+                            {period.label && <span className="text-[8px] font-bold text-slate-400 uppercase">{period.label}</span>}
+                            <div className="flex-1 h-px" style={{ background: typeStyle.barText, opacity: 0.2 }} />
+                            <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  }
+
+                  return (
                   <tr key={`${period.start_time}-${period.end_time}`} className={ri % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
                     <td className="px-3 py-2 border-r border-slate-100 align-top">
                       <p className="text-xs font-bold text-slate-800">{period.start_display}</p>
@@ -883,7 +932,8 @@ export default function ScheduleManagement() {
                       );
                     })}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -901,24 +951,24 @@ export default function ScheduleManagement() {
             {/* Section + Time Slot */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
                   Section / Class <span className="text-red-600">*</span>
                 </label>
                 <select required value={form.classroom} onChange={e => setForm(f => ({...f, classroom: e.target.value, subject:'', teacher:''}))}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">— Select Section —</option>
                   {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
                   Day & Time Slot <span className="text-red-600">*</span>
                 </label>
                 <select required value={form.time_slot} onChange={e => setForm(f => ({...f, time_slot: e.target.value}))}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">— Select Time Slot —</option>
                   {DAYS.map(d => {
-                    const daySlots = sortedSlots.filter(ts => ts.day === d);
+                    const daySlots = sortedSlots.filter(ts => ts.day === d && (ts.slot_type || 'class') === 'class');
                     if (!daySlots.length) return null;
                     return (
                       <optgroup key={d} label={`── ${DAY_FULL[d]} ──`}>
@@ -936,11 +986,11 @@ export default function ScheduleManagement() {
 
             {/* Subject */}
             <div>
-              <label className="block text-[10px] font-black text-gray-600 uppercase tracking-wider mb-1.5">
+              <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
                 Subject <span className="text-red-600">*</span>
               </label>
               {loadingAssignments ? (
-                <div className="w-full px-3 py-2.5 border border-gray-200 rounded-sm text-xs text-gray-400 bg-gray-50 flex items-center gap-2">
+                <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-xs text-slate-400 bg-slate-50 flex items-center gap-2">
                   <svg className="w-4 h-4 animate-spin text-violet-400" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                   Loading subjects...
                 </div>
@@ -952,7 +1002,7 @@ export default function ScheduleManagement() {
                     if (match) { setTeacherLocked(true); setForm(f => ({...f, subject: sid, teacher: String(match.teacher)})); }
                     else { setTeacherLocked(false); setForm(f => ({...f, subject: sid})); }
                   }}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                     <option value="">{!form.classroom ? '— Select a section first —' : classroomAssignments.length === 0 ? '— No subjects assigned to this section —' : '— Select Subject —'}</option>
                     {(form.classroom && classroomAssignments.length > 0 ? classroomAssignments : []).map(a => (
                       <option key={a.subject} value={a.subject}>{a.subject_code} — {a.subject_name}</option>
@@ -968,7 +1018,7 @@ export default function ScheduleManagement() {
             {/* Teacher */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-wider">
+                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider">
                   Teacher <span className="text-red-600">*</span>
                 </label>
                 {teacherLocked && (
@@ -980,43 +1030,43 @@ export default function ScheduleManagement() {
               </div>
               <select required value={form.teacher} onChange={e => setForm(f => ({...f, teacher: e.target.value}))}
                 disabled={teacherLocked}
-                className={`w-full px-3 py-2.5 border rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 ${teacherLocked ? 'border-gray-200 bg-gray-50 text-gray-600' : 'border-gray-300'}`}>
+                className={`w-full px-3 py-2.5 border rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 ${teacherLocked ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-slate-300'}`}>
                 <option value="">— Select Teacher —</option>
                 {teachers.map(t => (
-                  <option key={t.id} value={t.id}>{t.first_name && t.last_name ? `${t.first_name} ${t.last_name}` : t.username} ({t.email})</option>
+                  <option key={t.id} value={t.id}>{t.first_name && t.last_name ? `${t.last_name}, ${t.first_name}` : t.username}{t.staff_title ? ` (${t.staff_title})` : ''}</option>
                 ))}
               </select>
               {teacherLocked && (
-                <p className="text-[10px] text-gray-500 mt-1">Auto-filled from subject assignment. Click Override to change.</p>
+                <p className="text-[10px] text-slate-500 mt-1">Auto-filled from subject assignment. Click Override to change.</p>
               )}
             </div>
 
             {/* Room */}
             <div>
-              <label className="block text-[10px] font-black text-gray-600 uppercase tracking-wider mb-1.5">Room (optional)</label>
+              <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Room (optional)</label>
               <select value={form.room} onChange={e => setForm(f => ({...f, room: e.target.value}))}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                 <option value="">— No Room Assigned —</option>
                 {rooms.map(r => <option key={r.id} value={r.id}>{r.name}{r.building ? ` — ${r.building}` : ''} (Cap: {r.capacity})</option>)}
               </select>
             </div>
 
             {/* Academic Year + Semester */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-gray-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
               <div>
-                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
                   Academic Year <span className="text-red-600">*</span>
                 </label>
                 <select required value={form.academic_year} onChange={e => setForm(f => ({...f, academic_year: e.target.value, semester:''}))}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">— Select Year —</option>
                   {academicYears.map(a => <option key={a.id} value={a.id}>{a.name}{a.is_active ? ' (Active)' : ''}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black text-gray-600 uppercase tracking-wider mb-1.5">Semester (optional)</label>
+                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Semester (optional)</label>
                 <select value={form.semester} onChange={e => setForm(f => ({...f, semester: e.target.value}))}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
+                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">None</option>
                   {semesters.map(s => <option key={s.id} value={s.id}>{s.semester_type}</option>)}
                 </select>
@@ -1025,21 +1075,21 @@ export default function ScheduleManagement() {
 
             {/* Notes */}
             <div>
-              <label className="block text-[10px] font-black text-gray-600 uppercase tracking-wider mb-1.5">Notes (optional)</label>
+              <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Notes (optional)</label>
               <textarea value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))}
                 rows={2} placeholder="Additional notes..."
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 resize-none placeholder:text-gray-400" />
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 resize-none placeholder:text-slate-400" />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="px-4 md:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
+          <div className="px-4 md:px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3 flex-shrink-0">
             <button type="button" onClick={() => setShowForm(false)}
-              className="px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
+              className="px-6 py-2.5 bg-white text-slate-700 text-xs font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-lg">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="px-8 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 disabled:opacity-50 flex items-center gap-2 rounded-sm">
+              className="px-8 py-2.5 bg-violet-600 text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 disabled:opacity-50 flex items-center gap-2 rounded-lg">
               {saving && <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
               {saving ? 'Saving...' : editItem ? 'Save Changes' : 'Assign Class'}
             </button>
@@ -1078,6 +1128,18 @@ export default function ScheduleManagement() {
                 <input value={slotForm.label} onChange={e => setSlotForm(f => ({...f, label: e.target.value}))}
                   placeholder="Label (e.g. Period 1)"
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
+                <div>
+                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Type</label>
+                  <div className="flex flex-wrap gap-1">
+                    {SLOT_TYPES.map(t => (
+                      <button key={t.value} type="button"
+                        onClick={() => setSlotForm(f => ({...f, slot_type: t.value, label: f.label || t.label}))}
+                        className={`px-2 py-1 rounded-lg text-[9px] font-bold border transition-colors ${slotForm.slot_type === t.value ? t.color + ' ring-1 ring-offset-1' : 'bg-white text-slate-500 border-slate-200 hover:border-slate-300'}`}>
+                        {t.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Start</label>
@@ -1149,9 +1211,16 @@ export default function ScheduleManagement() {
                       {/* Period header */}
                       <div className="flex items-center justify-between gap-2 px-4 py-3">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-1.5 h-8 rounded-full bg-violet-400 flex-shrink-0" />
+                          <div className={`w-1.5 h-8 rounded-full flex-shrink-0 ${(SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class).color.split(' ')[0]}`} />
                           <div className="min-w-0">
-                            <p className="text-sm font-bold text-slate-900">{period.start_display} – {period.end_display}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-bold text-slate-900">{period.start_display} – {period.end_display}</p>
+                              {period.slot_type !== 'class' && (
+                                <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full border ${(SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class).color}`}>
+                                  {(SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class).label}
+                                </span>
+                              )}
+                            </div>
                             {period.label && <p className="text-[9px] font-bold text-violet-600 uppercase tracking-wide">{period.label}</p>}
                           </div>
                         </div>
@@ -1183,7 +1252,7 @@ export default function ScheduleManagement() {
                             const slot = slots[0];
                             const isBeingEdited = isEditing && editingSlot?.day === d;
                             return (
-                              <div key={d} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${isBeingEdited ? 'bg-violet-100 border-violet-400 text-violet-900 ring-1 ring-violet-400' : has ? 'bg-violet-50 border-violet-200 text-violet-800' : 'bg-slate-50 border-dashed border-slate-200 text-slate-400'}`}>
+                              <div key={d} className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${isBeingEdited ? 'bg-violet-100 border-violet-400 text-violet-900 ring-1 ring-violet-400' : has ? `${(SLOT_TYPE_MAP[period.slot_type] || SLOT_TYPE_MAP.class).color} border` : 'bg-slate-50 border-dashed border-slate-200 text-slate-400'}`}>
                                 <span>{DAY_SHORT[d]}</span>
                                 {has && slot ? (
                                   <div className="flex items-center gap-0.5 ml-0.5">
@@ -1229,6 +1298,13 @@ export default function ScheduleManagement() {
                               <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">End</label>
                               <input type="time" value={editSlotForm.end_time} onChange={e => setEditSlotForm(f => ({...f, end_time: e.target.value}))}
                                 className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
+                            </div>
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Type</label>
+                              <select value={editSlotForm.slot_type || 'class'} onChange={e => setEditSlotForm(f => ({...f, slot_type: e.target.value}))}
+                                className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30">
+                                {SLOT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                              </select>
                             </div>
                             <div>
                               <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Label</label>

@@ -183,7 +183,7 @@ export const BUTTONS = {
   primary: `
     inline-flex items-center justify-center gap-2
     px-4 py-2.5 md:px-5 md:py-3
-    rounded-md
+    rounded-lg
     bg-violet-600 text-white
     text-sm font-bold
     border border-violet-700
@@ -192,13 +192,14 @@ export const BUTTONS = {
     disabled:opacity-50 disabled:cursor-not-allowed
     transition-all duration-150
     shadow-sm
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2
   `,
 
   // Secondary — White professional
   secondary: `
     inline-flex items-center justify-center gap-2
     px-4 py-2.5 md:px-5 md:py-3
-    rounded-md
+    rounded-lg
     bg-white text-slate-700
     text-sm font-bold
     border border-slate-300
@@ -207,26 +208,28 @@ export const BUTTONS = {
     disabled:opacity-50 disabled:cursor-not-allowed
     transition-all duration-150
     shadow-sm
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2
   `,
 
   // Ghost — Subtle interaction
   ghost: `
     inline-flex items-center justify-center gap-2
     px-4 py-2.5
-    rounded-md
-    text-slate-700
+    rounded-lg
+    text-slate-600
     text-sm font-semibold
-    hover:bg-slate-100
+    hover:bg-slate-100 hover:text-slate-800
     active:scale-[0.98]
     disabled:opacity-50 disabled:cursor-not-allowed
     transition-all duration-150
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2
   `,
 
   // Danger — Destructive actions
   danger: `
     inline-flex items-center justify-center gap-2
     px-4 py-2.5 md:px-5 md:py-3
-    rounded-md
+    rounded-lg
     bg-red-600 text-white
     text-sm font-bold
     border border-red-700
@@ -235,17 +238,19 @@ export const BUTTONS = {
     disabled:opacity-50 disabled:cursor-not-allowed
     transition-all duration-150
     shadow-sm
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2
   `,
 
   // Icon button
   icon: `
     inline-flex items-center justify-center
     w-9 h-9
-    rounded-md
+    rounded-lg
     text-slate-600
-    hover:bg-slate-100
+    hover:bg-slate-100 hover:text-slate-800
     active:scale-95
     transition-all duration-150
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2
   `,
 
   // Small variants
@@ -253,7 +258,7 @@ export const BUTTONS = {
     primary: `
       inline-flex items-center justify-center gap-1.5
       px-3 py-1.5
-      rounded-md
+      rounded-lg
       bg-violet-600 text-white
       text-xs font-bold
       hover:bg-violet-700
@@ -263,7 +268,7 @@ export const BUTTONS = {
     secondary: `
       inline-flex items-center justify-center gap-1.5
       px-3 py-1.5
-      rounded-md
+      rounded-lg
       bg-white text-slate-700
       text-xs font-bold
       border border-slate-300
@@ -282,7 +287,7 @@ export const CARDS = {
   // Standard academic panel (white, subtle border)
   default: `
     bg-white
-    rounded-md
+    rounded-xl
     border border-slate-200
     shadow-sm
     overflow-hidden
@@ -291,10 +296,10 @@ export const CARDS = {
   // Interactive panel
   interactive: `
     bg-white
-    rounded-md
+    rounded-xl
     border border-slate-200
     shadow-sm
-    hover:shadow-md hover:border-violet-300
+    hover:shadow-md hover:border-slate-300
     transition-all duration-200
     cursor-pointer
     overflow-hidden
@@ -303,7 +308,7 @@ export const CARDS = {
   // Highlighted (for official notices, announcements)
   highlighted: `
     bg-violet-50
-    rounded-md
+    rounded-xl
     border border-violet-200
     shadow-sm
     overflow-hidden
@@ -312,7 +317,7 @@ export const CARDS = {
   // Stat panel (academic metrics)
   stat: `
     bg-white
-    rounded-md
+    rounded-xl
     border border-slate-200
     shadow-sm
     p-4 md:p-5
@@ -480,17 +485,17 @@ export const MODALS = {
     bg-slate-900/60 backdrop-blur-sm
     flex items-center justify-center
     p-4
-    animate-fadeIn
+    animate-fade-in
   `,
 
   container: `
     bg-white
-    rounded-2xl
+    rounded-xl
     shadow-2xl
     max-w-md w-full
     max-h-[90vh]
     overflow-hidden
-    animate-slideUp
+    animate-slide-up
   `,
 
   header: `

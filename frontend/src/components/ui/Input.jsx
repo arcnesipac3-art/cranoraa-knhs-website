@@ -4,6 +4,8 @@ import { cn } from '../../styles/designSystem';
 /**
  * Professional Input Component
  * Text inputs, textareas, selects with consistent styling
+ * 
+ * Standardized: rounded-lg, border-slate-300, consistent focus ring
  */
 
 export const Input = React.forwardRef(({
@@ -112,21 +114,28 @@ export const Select = React.forwardRef(({
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-      <select
-        ref={ref}
-        className={cn(
-          'w-full px-4 py-2.5 rounded-lg bg-white text-sm text-slate-900 font-medium',
-          'border border-slate-300',
-          'focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500',
-          'disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed',
-          'cursor-pointer transition-all duration-150',
-          error && 'border-red-300 focus:border-red-500 focus:ring-red-100',
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </select>
+      <div className="relative">
+        <select
+          ref={ref}
+          className={cn(
+            'w-full px-4 py-2.5 pr-10 rounded-lg bg-white text-sm text-slate-900 font-medium',
+            'border border-slate-300',
+            'focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500',
+            'disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed',
+            'cursor-pointer transition-all duration-150 appearance-none',
+            error && 'border-red-300 focus:border-red-500 focus:ring-red-100',
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </select>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
       {hint && !error && (
         <p className="text-[11px] text-slate-500">{hint}</p>
       )}
@@ -151,6 +160,7 @@ export const SearchInput = React.forwardRef(({
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
+        aria-hidden="true"
       >
         <path
           strokeLinecap="round"

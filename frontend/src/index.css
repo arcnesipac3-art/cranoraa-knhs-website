@@ -93,20 +93,20 @@
 
   /* ── Surface / Card ── */
   .ui-surface {
-    @apply bg-white border border-slate-200 rounded-2xl shadow-sm;
+    @apply bg-white border border-slate-200 rounded-xl shadow-sm;
   }
 
   .ui-card {
-    @apply bg-white border border-slate-200 rounded-2xl shadow-sm hover:shadow-md transition-shadow;
+    @apply bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow;
   }
 
   .ui-card-elevated {
-    @apply bg-white border border-slate-200 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5;
+    @apply bg-white border border-slate-200 rounded-xl shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5;
   }
 
   /* ── Table ── */
   .ui-table-wrapper {
-    @apply w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm;
+    @apply w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -136,18 +136,18 @@
 
   /* ── Form Inputs ── */
   .ui-input {
-    @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm text-slate-800
-           placeholder-slate-400 transition-all
-           focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400
-           disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed;
+    @apply w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-900
+           placeholder:text-slate-400 transition-all
+           focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500
+           disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed;
   }
 
   .ui-input-error {
-    @apply border-red-400 bg-red-50 focus:border-red-400 focus:ring-red-400/20;
+    @apply border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100;
   }
 
   .ui-select {
-    @apply ui-input cursor-pointer;
+    @apply ui-input cursor-pointer font-medium;
   }
 
   .ui-textarea {
@@ -156,8 +156,9 @@
 
   /* ── Buttons ── */
   .ui-btn {
-    @apply inline-flex items-center justify-center gap-2 font-bold rounded-xl transition-all
-           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 font-bold rounded-lg transition-all
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2;
   }
 
   .ui-btn-sm  { @apply px-3 py-1.5 text-xs; }
@@ -173,7 +174,7 @@
   }
 
   .ui-btn-danger {
-    @apply bg-red-500 text-white hover:bg-red-600;
+    @apply bg-red-600 text-white hover:bg-red-700;
   }
 
   .ui-btn-ghost {
@@ -182,7 +183,7 @@
 
   /* ── Badges ── */
   .ui-badge {
-    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider;
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-bold;
   }
 
   .ui-badge-violet { @apply bg-violet-100 text-violet-700 border-violet-200; }
@@ -208,7 +209,7 @@
 
   /* ── Section Card ── */
   .ui-section-card {
-    @apply bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden;
+    @apply bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden;
   }
 
   .ui-section-header {
@@ -225,8 +226,9 @@
   }
 
   .ui-pagination-btn {
-    @apply px-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600
-           hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply px-4 py-2 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600
+           hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2;
   }
 
   .ui-pagination-info {
@@ -277,11 +279,11 @@
   }
 
   .public-card {
-    @apply bg-white rounded-3xl border border-slate-200 shadow-sm;
+    @apply bg-white rounded-2xl border border-slate-200 shadow-sm;
   }
 
   .public-card-muted {
-    @apply bg-slate-50 rounded-3xl border border-slate-200 shadow-sm;
+    @apply bg-slate-50 rounded-2xl border border-slate-200 shadow-sm;
   }
 
   .public-title {
@@ -297,11 +299,11 @@
   }
 
   .public-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-violet-900 text-white font-bold hover:bg-violet-950 shadow-sm;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-violet-900 text-white font-bold hover:bg-violet-950 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2;
   }
 
   .public-btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-violet-300 bg-white text-violet-900 font-bold hover:bg-violet-50;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-violet-300 bg-white text-violet-900 font-bold hover:bg-violet-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2;
   }
 
   .public-badge {
@@ -355,7 +357,7 @@
   /* ── Utility: touch-friendly action button ──
      Ensures icon-only buttons meet 44×44 minimum on touch devices */
   .touch-btn {
-    @apply flex items-center justify-center min-h-[44px] min-w-[44px] rounded-xl transition-all active:scale-90;
+    @apply flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg transition-all active:scale-90;
   }
 
   /* ── Utility: mobile-readable text ── */
