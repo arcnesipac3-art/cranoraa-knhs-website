@@ -441,6 +441,16 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         today = datetime.date.today()
 
+        if today.weekday() in (5, 6):  # Saturday=5, Sunday=6
+            return Response({
+                'is_holiday': True,
+                'title': 'Weekend',
+                'description': 'No classes on weekends',
+                'type': 'other',
+                'type_display': 'Weekend',
+                'classes': [],
+            })
+
         holiday = SchoolCalendar.objects.filter(date=today).first()
         if holiday:
             return Response({
@@ -547,6 +557,19 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Unauthorized'}, status=403)
 
         today = datetime.date.today()
+
+        if today.weekday() in (5, 6):  # Saturday=5, Sunday=6
+            return Response({
+                'is_holiday': True,
+                'title': 'Weekend',
+                'description': 'No classes on weekends',
+                'type': 'other',
+                'type_display': 'Weekend',
+                'summary': {'total_classes': 0, 'completed': 0, 'pending': 0, 'total_students': 0, 'total_records': 0, 'present': 0, 'absent': 0, 'late': 0, 'overall_rate': 0},
+                'teacher_stats': [],
+                'daily_trends': [],
+                'grade_rates': [],
+            })
 
         holiday = SchoolCalendar.objects.filter(date=today).first()
         if holiday:
@@ -838,7 +861,37 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             for entry in cal_qs
         ]
 
-        all_records = sorted(records + holiday_records, key=lambda r: r['date'])
+        # Generate weekend (Saturday/Sunday) records for the same period
+        weekend_records = []
+        if month:
+            year, mon = month.split('-')
+            import calendar as cal_mod
+            num_days = cal_mod.monthrange(int(year), int(mon))[1]
+            for day in range(1, num_days + 1):
+                d = datetime.date(int(year), int(mon), day)
+                if d.weekday() in (5, 6):  # Saturday=5, Sunday=6
+                    weekend_records.append({
+                        'id': f'weekend-{d.isoformat()}',
+                        'date': d.isoformat(),
+                        'status': 'no_class',
+                        'remarks': '',
+                        'classroom__name': None,
+                        'subject__name': None,
+                        'subject__code': None,
+                        'minutes_late': None,
+                        'has_excuse': False,
+                        'excuse_verified': False,
+                        'workflow_status': None,
+                        'holiday_title': 'Weekend',
+                        'holiday_type': 'other',
+                        'holiday_type_display': 'Weekend',
+                    })
+
+        # Merge holidays and weekends, exclude dates that already have holiday entries
+        holiday_dates = {r['date'] for r in holiday_records}
+        weekend_records = [r for r in weekend_records if r['date'] not in holiday_dates]
+
+        all_records = sorted(records + holiday_records + weekend_records, key=lambda r: r['date'])
 
         stats = qs.aggregate(
             total=Count('id'),

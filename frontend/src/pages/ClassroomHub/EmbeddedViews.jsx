@@ -1135,6 +1135,20 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     const fetchRecords = async () => {
       setLoading(true);
       setHolidayInfo(null);
+
+      // Check if date is a weekend (Saturday=5, Sunday=6)
+      const dateObj = new Date(selectedDate + 'T00:00:00');
+      if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
+        setHolidayInfo({
+          title: 'Weekend',
+          type_display: 'Weekend',
+          description: 'No classes on weekends',
+        });
+        setRecords([]);
+        setLoading(false);
+        return;
+      }
+
       try {
         // Check if date is a holiday
         try {
