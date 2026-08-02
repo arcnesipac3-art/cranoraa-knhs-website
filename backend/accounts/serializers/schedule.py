@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..models import Room, Schedule
+from ..models import User, Room, Subject, TimeSlot, Schedule
 from ._base import full_name
 
 
@@ -23,6 +23,16 @@ class ScheduleSerializer(serializers.ModelSerializer):
     semester_display = serializers.SerializerMethodField()
     from .attendance import TimeSlotSerializer
     time_slot_detail = TimeSlotSerializer(source='time_slot', read_only=True)
+
+    teacher = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(), allow_null=True, required=False
+    )
+    subject = serializers.PrimaryKeyRelatedField(
+        queryset=Subject.objects.all(), allow_null=True, required=False
+    )
+    room = serializers.PrimaryKeyRelatedField(
+        queryset=Room.objects.all(), allow_null=True, required=False
+    )
 
     class Meta:
         model = Schedule
