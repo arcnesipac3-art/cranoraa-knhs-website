@@ -472,10 +472,6 @@ export default function ParentManagement() {
           <ModalBtnPrimary loading={linkSaving} onClick={saveLinks}>{linkSaving ? 'Saving...' : 'Save Links'}</ModalBtnPrimary>
         </ModalFooter>
       </Modal>
-          </div>
-        </div>
-      )}
-      </div>
 
       {/* Parent Profile Drawer */}
       {viewingParent && (
