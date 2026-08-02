@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useParallelFetch } from '../hooks/useFetch';
@@ -94,12 +94,13 @@ const Teachers = () => {
   });
   const teachers = useMemo(() => Array.isArray(data.teachers) ? data.teachers : [], [data.teachers]);
   const classrooms = useMemo(() => Array.isArray(data.classrooms) ? data.classrooms : [], [data.classrooms]);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [roleFilter, setRoleFilter] = useState(searchParams.get('role') || '');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
@@ -117,6 +118,18 @@ const Teachers = () => {
   });
 
   useScrollLock(showAddModal || showEditModal || showImportModal || viewingTeacher);
+
+  const updateFilter = useCallback((key, value) => {
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (value) {
+        next.set(key, value);
+      } else {
+        next.delete(key);
+      }
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
 
   const STAFF_TITLES = [
     // ── DepEd teaching ranks ──────────────────────────────────────────────
@@ -567,8 +580,42 @@ const Teachers = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner />
+      <div className="page-bottom-safe bg-slate-50 min-h-screen">
+        <div className="bg-white border-b border-slate-200 px-4 md:px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-slate-200 animate-pulse" />
+              <div>
+                <div className="h-5 w-48 bg-slate-200 rounded animate-pulse mb-1" />
+                <div className="h-3 w-32 bg-slate-100 rounded animate-pulse" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse" />
+              <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse" />
+              <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse" />
+            </div>
+          </div>
+        </div>
+        <div className="px-4 md:px-6 py-4 space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="h-9 flex-1 max-w-xs bg-slate-100 rounded-lg animate-pulse" />
+            <div className="h-9 w-24 bg-slate-100 rounded-lg animate-pulse" />
+            <div className="h-9 w-24 bg-slate-100 rounded-lg animate-pulse" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-white border border-slate-200 rounded-xl overflow-hidden animate-pulse">
+                <div className="w-full aspect-[3/4] bg-slate-100" />
+                <div className="px-3 pt-2.5 pb-2 space-y-2">
+                  <div className="h-3 w-3/4 bg-slate-200 rounded" />
+                  <div className="h-2 w-1/2 bg-slate-100 rounded" />
+                  <div className="h-2 w-2/3 bg-slate-100 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -637,15 +684,15 @@ const Teachers = () => {
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input type="text" placeholder="Search name or email…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              <input type="text" placeholder="Search name or email…" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); updateFilter('q', e.target.value); }}
                 className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent" />
             </div>
-            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
+            <select value={roleFilter} onChange={e => { setRoleFilter(e.target.value); updateFilter('role', e.target.value); }}
               className="py-2 pl-3 pr-8 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-slate-600 font-semibold">
               <option value="">All roles</option>
               {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+            <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); updateFilter('status', e.target.value); }}
               className="py-2 pl-3 pr-8 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-slate-600 font-semibold">
               <option value="">All statuses</option>
               <option value="active">Active</option>
@@ -686,13 +733,21 @@ const Teachers = () => {
         )}
 
         {filteredTeachers.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <svg className="w-12 h-12 text-violet-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <p className="text-slate-400 font-semibold text-sm">No staff found</p>
+          <div className="bg-white border border-slate-200 p-10 md:p-16 text-center">
+            <div className="w-12 h-12 bg-slate-100 flex items-center justify-center mx-auto mb-3">
+              <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <h3 className="text-sm font-black text-slate-700 mb-1 uppercase tracking-wide">
+              {(searchQuery || roleFilter || statusFilter) ? 'No staff found' : 'No staff accounts yet'}
+            </h3>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-widest mb-4">
+              {(searchQuery || roleFilter || statusFilter) ? 'Try a different search or filter' : 'Click "Add Staff" to create the first account'}
+            </p>
             {(searchQuery || roleFilter || statusFilter) && (
-              <button onClick={() => { setSearchQuery(''); setRoleFilter(''); setStatusFilter(''); }} className="mt-2 text-xs font-bold text-violet-600 hover:underline">
+              <button onClick={() => { setSearchQuery(''); setRoleFilter(''); setStatusFilter(''); setSearchParams({}, { replace: true }); }}
+                className="text-xs font-bold text-violet-600 hover:underline">
                 Clear filters
               </button>
             )}
@@ -751,11 +806,15 @@ const Teachers = () => {
               </button>
             </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {filteredTeachers.map((teacher) => {
               const isSelected = selectedIds.includes(teacher.id);
               return (
-              <div key={teacher.id} className={`bg-white border rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 group relative flex flex-col ${isSelected ? 'border-violet-400 ring-1 ring-violet-200' : 'border-slate-200'}`}>
+              <div key={teacher.id} className={`bg-white border rounded-xl overflow-hidden transition-all duration-200 group relative flex flex-col cursor-pointer ${
+                isSelected 
+                  ? 'border-violet-400 ring-2 ring-violet-200 shadow-md' 
+                  : 'border-slate-200 hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5'
+              }`} onClick={() => setViewingTeacher(teacher)}>
                 {/* Select checkbox */}
                 <button
                   onClick={(e) => {
@@ -824,7 +883,7 @@ const Teachers = () => {
                     {/* Quick message */}
                     {user?.id !== teacher.id && (
                       <button
-                        onClick={() => handleStartChat(teacher.id)}
+                        onClick={(e) => { e.stopPropagation(); handleStartChat(teacher.id); }}
                         className="p-1.5 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
                         title="Message"
                       >

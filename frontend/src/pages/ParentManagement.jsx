@@ -161,8 +161,41 @@ export default function ParentManagement() {
   }, [students, linkSearch]);
 
   if (loading) return (
-    <div className="flex justify-center items-center h-64">
-      <LoadingSpinner />
+    <div className="page-bottom-safe bg-slate-50 min-h-screen">
+      <div className="bg-white border-b-2 border-slate-200 px-4 md:px-6 py-3 md:py-4 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 md:h-11 md:w-11 bg-slate-200 animate-pulse" />
+          <div>
+            <div className="h-5 w-40 bg-slate-200 rounded animate-pulse mb-1" />
+            <div className="h-3 w-32 bg-slate-100 rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
+      <div className="px-4 md:px-6 space-y-4">
+        <div className="bg-white p-2.5 border border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="h-8 flex-1 max-w-md bg-slate-100 rounded animate-pulse" />
+            <div className="h-8 w-24 bg-slate-100 rounded animate-pulse" />
+          </div>
+        </div>
+        <div className="bg-white border border-slate-200 animate-pulse">
+          <div className="bg-[#5e2a84] px-4 py-2.5">
+            <div className="flex gap-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-3 bg-white/20 rounded" style={{ width: `${60 + i * 20}px` }} />
+              ))}
+            </div>
+          </div>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-slate-100">
+              <div className="h-3 w-32 bg-slate-100 rounded" />
+              <div className="h-3 flex-1 bg-slate-100 rounded hidden md:block" />
+              <div className="h-3 w-20 bg-slate-100 rounded" />
+              <div className="h-3 w-16 bg-slate-100 rounded hidden sm:block" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 
@@ -253,8 +286,12 @@ export default function ParentManagement() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <p className="text-slate-500 font-bold text-sm">No parent accounts yet.</p>
-            <p className="text-slate-400 text-xs mt-1">Click "Add Parent" to create the first one.</p>
+            <p className="text-slate-700 font-black text-sm uppercase tracking-wide mb-1">
+              {(search || statusFilter) ? 'No parents found' : 'No parent accounts yet'}
+            </p>
+            <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">
+              {(search || statusFilter) ? 'Try a different search' : 'Click "Add Parent" to create the first one'}
+            </p>
           </div>
         ) : (
           <div className="">

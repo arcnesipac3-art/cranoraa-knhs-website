@@ -895,8 +895,46 @@ setSelectedIds([]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner />
+      <div className="page-bottom-safe bg-slate-50 min-h-screen">
+        <div className="bg-white border-b-2 border-slate-200 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 bg-slate-200 animate-pulse" />
+            <div>
+              <div className="h-5 w-40 bg-slate-200 rounded animate-pulse mb-1" />
+              <div className="h-3 w-32 bg-slate-100 rounded animate-pulse" />
+            </div>
+          </div>
+        </div>
+        <div className="px-3 sm:px-4 md:px-6 space-y-4">
+          <div className="bg-white p-2.5 border border-slate-200">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="h-8 flex-1 bg-slate-100 rounded animate-pulse" />
+              <div className="h-8 w-24 bg-slate-100 rounded animate-pulse" />
+              <div className="h-8 w-24 bg-slate-100 rounded animate-pulse" />
+            </div>
+          </div>
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-white border border-slate-200 animate-pulse">
+              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-slate-200 rounded" />
+                  <div className="h-4 w-32 bg-slate-200 rounded" />
+                </div>
+                <div className="h-3 w-16 bg-slate-100 rounded" />
+              </div>
+              <div className="p-4 space-y-2">
+                {[...Array(4)].map((_, j) => (
+                  <div key={j} className="flex items-center gap-4 py-2">
+                    <div className="h-3 w-8 bg-slate-100 rounded" />
+                    <div className="h-3 flex-1 bg-slate-100 rounded" />
+                    <div className="h-3 w-16 bg-slate-100 rounded" />
+                    <div className="h-3 w-20 bg-slate-100 rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -1222,14 +1260,18 @@ setSelectedIds([]);
       {/* Organized List */}
       <div className="space-y-3 sm:space-y-4 md:space-y-6 pb-4 sm:pb-6 md:pb-10">
         {organizedData.length === 0 ? (
-          <div className="bg-white border border-slate-200 p-6 sm:p-10 md:p-16 text-center">
+          <div className="bg-white border border-slate-200 p-10 md:p-16 text-center">
             <div className="w-12 h-12 bg-slate-100 flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
-            <h3 className="text-sm font-black text-slate-700 mb-1 uppercase tracking-wide">No Students Found</h3>
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">Try a different search.</p>
+            <h3 className="text-sm font-black text-slate-700 mb-1 uppercase tracking-wide">
+              {(searchQuery || gradeFilter || statusFilter) ? 'No students found' : 'No students yet'}
+            </h3>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">
+              {(searchQuery || gradeFilter || statusFilter) ? 'Try a different search or filter' : 'Import students or add them manually'}
+            </p>
           </div>
         ) : (
           organizedData.map((gradeGroup) => (

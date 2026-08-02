@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useParallelFetch } from '../hooks/useFetch';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -45,7 +45,27 @@ const TABS = [
 ];
 
 export default function PeopleHub() {
-  const [activeTab, setActiveTab] = useState('teachers');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab');
+  const validTab = TABS.find(t => t.id === initialTab) ? initialTab : 'teachers';
+  const [activeTab, setActiveTab] = useState(validTab);
+
+  const { data, loading } = useParallelFetch({
+    teachers: '/users/?role=staff',
+    students: '/users/?role=student',
+    parents: '/users/?role=parent',
+  });
+
+  const counts = useMemo(() => ({
+    teachers: Array.isArray(data.teachers) ? data.teachers.length : 0,
+    students: Array.isArray(data.students) ? data.students.length : 0,
+    parents: Array.isArray(data.parents) ? data.parents.length : 0,
+  }), [data]);
+
+  const handleTabChange = useCallback((tabId) => {
+    setActiveTab(tabId);
+    setSearchParams({ tab: tabId }, { replace: true });
+  }, [setSearchParams]);
 
   return (
     <div className="page-bottom-safe bg-slate-50 min-h-screen">
@@ -56,15 +76,22 @@ export default function PeopleHub() {
           {TABS.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                 activeTab === tab.id
-                  ? 'bg-violet-600 text-white'
+                  ? 'bg-violet-600 text-white shadow-sm'
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
               }`}
             >
               {tab.icon}
               {tab.label}
+              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ml-0.5 ${
+                activeTab === tab.id
+                  ? 'bg-white/20 text-white'
+                  : 'bg-slate-100 text-slate-500'
+              }`}>
+                {loading ? '—' : counts[tab.id]}
+              </span>
             </button>
           ))}
         </div>
