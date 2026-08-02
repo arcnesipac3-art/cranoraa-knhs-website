@@ -245,43 +245,43 @@ const StudentAttendance = () => {
 
           {/* Attendance by subject */}
           {Object.entries(grouped).map(([subject, recs]) => (
-          <Card key={subject}>
-            <CardHeader divider>
-              <CardTitle>{subject}</CardTitle>
-            </CardHeader>
-            <CardBody className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 border-b-2 border-slate-200">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date</th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Class</th>
-                      <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
-                      <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Remarks</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-slate-100">
-                    {recs.map((rec) => (
-                      <tr key={rec.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 text-sm text-slate-900">
-                          {new Date(rec.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-600">{rec.schedule_name || '-'}</td>
-                        <td className="px-4 py-3 text-center">
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${statusColor(rec.status)}`}>
-                            {statusIcon(rec.status)}
-                            {rec.status?.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-slate-500 italic">{rec.remarks || '-'}</td>
+            <Card key={subject}>
+              <CardHeader divider>
+                <CardTitle>{subject}</CardTitle>
+              </CardHeader>
+              <CardBody className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b-2 border-slate-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Class</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Remarks</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardBody>
-          </Card>
-        ))
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-100">
+                      {recs.map((rec) => (
+                        <tr key={rec.id} className="hover:bg-slate-50">
+                          <td className="px-4 py-3 text-sm text-slate-900">
+                            {new Date(rec.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-600">{rec.schedule_name || '-'}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${statusColor(rec.status)}`}>
+                              {statusIcon(rec.status)}
+                              {rec.status?.replace('_', ' ')}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-500 italic">{rec.remarks || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
         </>
       )}
     </div>
