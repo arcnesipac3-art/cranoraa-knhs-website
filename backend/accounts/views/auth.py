@@ -18,16 +18,6 @@ from ._helpers import _set_refresh_cookie, _clear_refresh_cookie
 logger = logging.getLogger(__name__)
 
 
-def _is_axes_locked_out(login_id):
-    try:
-        from axes.models import AccessAttempt
-        return AccessAttempt.objects.filter(
-            Q(username__iexact=login_id) | Q(username='*')
-        ).exists()
-    except Exception:
-        return False
-
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @throttle_classes([AuthRateThrottle])
@@ -37,35 +27,22 @@ def login_view(request):
         password = request.data.get('password')
         required_role = request.data.get('role')
 
-        GENERIC_ERROR = 'Invalid credentials'
+GENERIC_ERROR = 'Invalid credentials'
 
-        if login_id is None or password is None:
-            return Response(
-                {'error': 'Please provide both ID (Email/Student ID) and password'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+if login_id is None or password is None:
+    return Response(
+        {'error': 'Please provide both ID (Email/Student ID) and password'},
+        status=status.HTTP_400_BAD_REQUEST
+    )
 
-        if _is_axes_locked_out(login_id):
-            logger.warning(f"Login blocked for '{login_id}' — Axes lockout active")
-            return Response(
-                {'error': 'Too many failed attempts. Please wait 15 minutes and try again, or contact the administrator.', 'code': 'locked_out'},
-                status=status.HTTP_403_FORBIDDEN
-            )
+user = authenticate(request=request, username=login_id, password=password)
 
-        user = authenticate(request=request, username=login_id, password=password)
-
-        if user is None:
-            if _is_axes_locked_out(login_id):
-                logger.warning(f"Login blocked for '{login_id}' — Axes lockout triggered during attempt")
-                return Response(
-                    {'error': 'Too many failed attempts. Please wait 15 minutes and try again, or contact the administrator.', 'code': 'locked_out'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-            logger.warning(f"Login failed for identifier='{login_id}' — authenticate() returned None")
-            return Response(
-                {'error': GENERIC_ERROR},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+if user is None:
+    logger.warning(f"Login failed for identifier='{login_id}' — authenticate() returned None")
+    return Response(
+        {'error': GENERIC_ERROR},
+        status=status.HTTP_401_UNAUTHORIZED
+    )
 
         logger.info(f"Login success for user='{user.username}' role='{user.role}' status='{user.account_status}' approved={user.is_approved} active={user.is_active}")
 
