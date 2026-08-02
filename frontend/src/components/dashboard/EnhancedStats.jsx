@@ -99,9 +99,13 @@ const EnhancedStats = memo(({ classrooms = [], data = {}, unmarkedCount = 0 }) =
     },
     {
       key: 'grades',
-      value: pendingGrades === 0 ? 'All done' : pendingGrades,
-      sub: pendingGrades > 0 ? `${pendingGrades} missing grade${pendingGrades > 1 ? 's' : ''}` : 'Up to date',
-      progress: totalGrades > 0 ? Math.max(0, ((totalGrades - pendingGrades) / totalGrades) * 100) : 100,
+      value: totalGrades === 0 ? '—' : pendingGrades === 0 ? 'All done' : pendingGrades,
+      sub: totalGrades === 0
+        ? 'No grade records yet'
+        : pendingGrades > 0
+          ? `${pendingGrades} missing grade${pendingGrades > 1 ? 's' : ''}`
+          : 'All submitted ✓',
+      progress: totalGrades > 0 ? Math.max(0, ((totalGrades - pendingGrades) / totalGrades) * 100) : 0,
       alert: pendingGrades > 0 ? { text: `${pendingGrades} pending`, cls: 'bg-rose-50 text-rose-700 border-rose-200' } : null,
       urgent: pendingGrades > 0,
     },
@@ -122,7 +126,7 @@ const EnhancedStats = memo(({ classrooms = [], data = {}, unmarkedCount = 0 }) =
     {
       key: 'gradesTotal',
       value: totalGrades,
-      sub: 'Total entries',
+      sub: totalGrades === 0 ? 'No entries yet' : `Total entries`,
       progress: Math.min(100, (totalGrades / 500) * 100),
       alert: null, urgent: false,
     },
