@@ -458,6 +458,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             .values_list('classroom_id', 'cnt')
         )
 
+        # Schedule-based attendance counts
         attendance_counts = dict(
             Attendance.objects.filter(
                 schedule_id__in=schedule_ids,
@@ -474,10 +475,36 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         for sid, total, present, absent, late in attendance_counts:
             att_map[sid] = {'total': total, 'present': present, 'absent': absent, 'late': late}
 
+        # Classroom-based attendance counts (schedule=null)
+        classroom_att_counts = dict(
+            Attendance.objects.filter(
+                classroom_id__in=classroom_ids,
+                schedule__isnull=True,
+                date=today,
+            ).values('classroom_id')
+            .annotate(
+                total=Count('id'),
+                present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
+                absent=Count(Case(When(status='absent', then=1), output_field=IntegerField())),
+                late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
+            ).values_list('classroom_id', 'total', 'present', 'absent', 'late')
+        )
+        class_att_map = {}
+        for cid, total, present, absent, late in classroom_att_counts:
+            class_att_map[cid] = {'total': total, 'present': present, 'absent': absent, 'late': late}
+
         data = []
         for sch in schedules:
             student_count = enrollment_counts.get(sch.classroom_id, 0)
-            att = att_map.get(sch.id, {'total': 0, 'present': 0, 'absent': 0, 'late': 0})
+            # Merge schedule-based and classroom-based attendance
+            sch_att = att_map.get(sch.id, {'total': 0, 'present': 0, 'absent': 0, 'late': 0})
+            cls_att = class_att_map.get(sch.classroom_id, {'total': 0, 'present': 0, 'absent': 0, 'late': 0})
+            att = {
+                'total': sch_att['total'] or cls_att['total'],
+                'present': sch_att['present'] or cls_att['present'],
+                'absent': sch_att['absent'] or cls_att['absent'],
+                'late': sch_att['late'] or cls_att['late'],
+            }
             completion = round((att['total'] / student_count * 100), 0) if student_count > 0 else 0
 
             data.append({
@@ -538,11 +565,20 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
         )
 
+        # Get attendance counts by schedule_id (for schedule-based attendance)
         attended_schedules = Attendance.objects.filter(
-            Q(schedule_id__in=schedule_ids) | Q(classroom_id__in=classroom_ids, schedule__isnull=True),
+            schedule_id__in=schedule_ids,
             date=today,
         ).values('schedule_id').annotate(cnt=Count('id')).values_list('schedule_id', 'cnt')
         attended_map = dict(attended_schedules)
+
+        # Get attendance counts by classroom_id (for classroom-based attendance, schedule=null)
+        classroom_attendance = Attendance.objects.filter(
+            classroom_id__in=classroom_ids,
+            schedule__isnull=True,
+            date=today,
+        ).values('classroom_id').annotate(cnt=Count('id')).values_list('classroom_id', 'cnt')
+        classroom_attendance_map = dict(classroom_attendance)
 
         completed_count = 0
         pending_count = 0
@@ -563,7 +599,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             teacher_stats[teacher_id]['classes_today'] += 1
 
             stu_count = enrollment_counts.get(sch.classroom_id, 0)
-            recorded = attended_map.get(sch.id, 0)
+            # Check both schedule-based and classroom-based attendance
+            recorded = attended_map.get(sch.id, 0) or classroom_attendance_map.get(sch.classroom_id, 0)
 
             if recorded >= stu_count and stu_count > 0:
                 completed_count += 1
