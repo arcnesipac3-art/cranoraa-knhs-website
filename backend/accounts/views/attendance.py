@@ -564,36 +564,13 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         today_name = today.strftime('%A').lower()
 
+        # Get ALL active schedules so every class/teacher is visible in monitoring
         all_schedules = Schedule.objects.filter(
             is_active=True,
-            time_slot__day=today_name,
-        ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('time_slot__start_time')
+        ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('classroom__name', 'time_slot__start_time')
 
-        # Fall back to the most recent day with data when today has no scheduled
-        # classes (weekends / non-school days) so the summary is never empty.
+        # Reference date = today (or most recent day with attendance data for charts)
         reference_date = today
-        if not all_schedules.exists():
-            for offset in range(1, 8):
-                d = today - datetime.timedelta(days=offset)
-                day_name = d.strftime('%A').lower()
-                if Schedule.objects.filter(is_active=True, time_slot__day=day_name).exists():
-                    reference_date = d
-                    today_name = day_name
-                    break
-                if Attendance.objects.filter(date=d).exists():
-                    reference_date = d
-            if reference_date != today:
-                all_schedules = Schedule.objects.filter(
-                    is_active=True,
-                    time_slot__day=today_name,
-                ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('time_slot__start_time')
-
-        # If still no schedules (no schedule data at all), show all active schedules
-        if not all_schedules.exists():
-            all_schedules = Schedule.objects.filter(
-                is_active=True,
-            ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('classroom__name', 'time_slot__start_time')
-            reference_date = today
 
         total_classes = all_schedules.count()
 
