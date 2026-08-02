@@ -624,6 +624,20 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   useEffect(() => {
     const fetchAttendance = async () => {
       setHolidayInfo(null);
+
+      // Check if date is a weekend (Saturday=5, Sunday=6)
+      const dateObj = new Date(selectedDate + 'T00:00:00');
+      if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
+        setHolidayInfo({
+          title: 'Weekend',
+          type_display: 'Weekend',
+          description: 'No classes on weekends',
+        });
+        setAttendance({});
+        setExistingRecords({});
+        return;
+      }
+
       try {
         // Check if date is a holiday
         const holidayRes = await api.get(`/school-calendar/check/?date=${selectedDate}`);
