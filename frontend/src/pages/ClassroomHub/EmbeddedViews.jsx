@@ -9,7 +9,7 @@ import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } fro
 import {
   ArrowLeft, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
   Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare,
-  BookOpen, AlertTriangle, Send, Lock, Unlock, ChevronLeft, ChevronRight
+  BookOpen, AlertTriangle, Send, Lock, Unlock, ChevronLeft, ChevronRight, Save
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
 
@@ -624,11 +624,14 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
       try {
         const res = await api.get(`/attendance/?classroom=${classroom.id}&date=${selectedDate}`);
         const attendanceMap = {};
+        const recMap = {};
         let wfStatus = 'draft';
         res.data.forEach(a => {
           attendanceMap[a.student] = a.status;
+          recMap[a.student] = a.id;
           if (a.workflow_status) wfStatus = a.workflow_status;
         });
+        setExistingRecords(recMap);
         setWorkflowStatus(wfStatus);
         setAttendance(prev => {
           const next = {};
@@ -644,6 +647,9 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     if (selectedDate) fetchAttendance();
   }, [selectedDate, classroom.id]);
 
+  // Existing records map for detecting new vs existing
+  const [existingRecords, setExistingRecords] = useState({});
+
   const handleStatusChange = (studentId, status) => {
     setAttendance(prev => ({ ...prev, [studentId]: status }));
   };
@@ -653,6 +659,46 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     students.forEach(s => { updated[s.student] = 'present'; });
     setAttendance(updated);
     toast.success('All students marked present');
+  };
+
+  const saveAllRecords = async () => {
+    const markedStudents = Object.entries(attendance).filter(([, status]) => status !== null);
+    if (markedStudents.length === 0) {
+      toast.error('No attendance to save');
+      return false;
+    }
+
+    const savePromises = markedStudents.map(([studentId, status]) => {
+      const payload = {
+        student: parseInt(studentId),
+        classroom: classroom.id,
+        date: selectedDate,
+        status,
+        remarks: remarks[studentId] || '',
+      };
+      if (existingRecords[studentId]) {
+        return api.put(`/attendance/${existingRecords[studentId]}/`, payload);
+      }
+      return api.post('/attendance/', payload);
+    });
+
+    const results = await Promise.allSettled(savePromises);
+    const failed = results.filter(r => r.status === 'rejected').length;
+
+    if (failed > 0) {
+      toast.error(`Failed to save ${failed} record(s)`);
+      return false;
+    }
+
+    // Refresh existing records map
+    try {
+      const res = await api.get(`/attendance/?classroom=${classroom.id}&date=${selectedDate}`);
+      const recMap = {};
+      res.data.forEach(a => { recMap[a.student] = a.id; });
+      setExistingRecords(recMap);
+    } catch { /* ignore */ }
+
+    return true;
   };
 
   const stats = useMemo(() => {
@@ -693,8 +739,20 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
       toast.error('Attendance already submitted');
       return;
     }
+    const markedCount = Object.values(attendance).filter(s => s !== null).length;
+    if (markedCount === 0) {
+      toast.error('No attendance records to submit');
+      return;
+    }
     setSubmitting(true);
     try {
+      // Save all records first
+      const saved = await saveAllRecords();
+      if (!saved) {
+        setSubmitting(false);
+        return;
+      }
+
       await api.post('/attendance/submit/', {
         classroom_id: classroom.id,
         date: selectedDate,
@@ -745,16 +803,31 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
             {workflowStatus}
           </span>
           {!isStudent && workflowStatus === 'draft' && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleSubmitAll}
-              loading={submitting}
-            >
-              <Send className="w-4 h-4 mr-1.5" />
-              <span className="hidden sm:inline">Submit</span>
-              <span className="sm:hidden">Submit</span>
-            </Button>
+            <>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={async () => {
+                  setSubmitting(true);
+                  await saveAllRecords();
+                  setSubmitting(false);
+                }}
+                loading={submitting}
+              >
+                <Save className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Save</span>
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleSubmitAll}
+                loading={submitting}
+              >
+                <Send className="w-4 h-4 mr-1.5" />
+                <span className="hidden sm:inline">Submit</span>
+                <span className="sm:hidden">Submit</span>
+              </Button>
+            </>
           )}
           {!isStudent && workflowStatus === 'submitted' && (
             <Button
