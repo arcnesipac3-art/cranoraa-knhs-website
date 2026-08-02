@@ -63,12 +63,15 @@ export function ServiceProviderUpdate({ children }) {
   const applyUpdate = useCallback(async () => {
     if (!swUpdateFn || isUpdating) return;
     setIsUpdating(true);
+    // Force reload after 3s even if SW update fails
+    const forceReload = setTimeout(() => window.location.reload(), 3000);
     try {
       await swUpdateFn();
-      // Page reloads automatically after SW takes over
     } catch (err) {
       console.error('Failed to apply SW update:', err);
-      setIsUpdating(false);
+    } finally {
+      clearTimeout(forceReload);
+      window.location.reload();
     }
   }, [swUpdateFn, isUpdating]);
 
