@@ -5,10 +5,14 @@ function isStaleChunkError(error) {
   const msg = (error.message || '').toLowerCase();
   return (
     msg.includes('failed to fetch dynamically imported module') ||
+    msg.includes('failed to fetch') ||
     msg.includes('mime type') ||
     msg.includes('text/html') ||
     msg.includes('unexpected token') ||
-    msg.includes('error loading dynamically imported module')
+    msg.includes('error loading dynamically imported module') ||
+    msg.includes('loading chunk') ||
+    msg.includes('cannot find module') ||
+    msg.includes('importscripts failed')
   );
 }
 
@@ -26,17 +30,21 @@ class ErrorBoundary extends Component {
     console.error('ErrorBoundary caught:', error, errorInfo);
     if (isStaleChunkError(error)) {
       const RELOAD_KEY = 'knhs_eb_stale_reloaded';
-      if (!sessionStorage.getItem(RELOAD_KEY)) {
+      const alreadyRetried = sessionStorage.getItem(RELOAD_KEY);
+      if (!alreadyRetried) {
         sessionStorage.setItem(RELOAD_KEY, '1');
         window.location.reload();
       } else {
+        // Already retried — clear the flag so next manual refresh works cleanly
         sessionStorage.removeItem(RELOAD_KEY);
+        // Don't reload again — show the "New version available" UI
       }
     }
   }
 
   render() {
     if (this.state.hasError) {
+      // Always show "New version" UI for stale chunks — never go blank
       if (this.state.isStaleChunk) {
         return (
           <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
