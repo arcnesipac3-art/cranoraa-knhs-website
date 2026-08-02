@@ -13,11 +13,10 @@ import {
   BookOpen, Users, FileText, Award, CheckSquare,
   Upload, Download, Clock, Folder, Trash2, Pencil,
   MessageSquare, Bell, ArrowLeft,
-  Search, ChevronRight, BarChart2, X, Calendar,
-  HelpCircle
+  Search, ChevronRight, BarChart2, X, Calendar
 } from 'lucide-react';
 import { GradeManagementView, AttendanceView, AnalyticsView, AttendanceHistoryView } from './ClassroomHub/EmbeddedViews';
-import { QuizManagementView, StudentQuizzesView, LessonPlansView, ClassroomAnalyticsView } from './ClassroomHub/TeachingViews';
+import { ClassroomAnalyticsView } from './ClassroomHub/TeachingViews';
 
 /**
  * ClassroomHub - Google Classroom-inspired class management
@@ -63,8 +62,8 @@ const ClassroomHub = () => {
   // Sync activeTab with ?view= URL param
   const isTeacher = user?.role === 'staff' || user?.role === 'admin';
   const viewParam = searchParams.get('view');
-  const validTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'attendance-history', 'quizzes'];
-  const teacherTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'attendance-history', 'quizzes', 'lesson-plans', 'analytics'];
+  const validTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'attendance-history'];
+  const teacherTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'attendance-history', 'analytics'];
 
   useEffect(() => {
     if (viewParam && (isTeacher ? teacherTabs : validTabs).includes(viewParam)) {
@@ -494,9 +493,7 @@ const ClassroomHub = () => {
               { key: 'attendance', label: isTeacher ? 'Attendance' : 'My Attendance', icon: CheckSquare },
               { key: 'attendance-history', label: 'History', icon: Calendar },
               { key: 'grades', label: isTeacher ? 'Grades' : 'My Grades', icon: Award },
-              { key: 'quizzes', label: isTeacher ? 'Quiz Management' : 'Quizzes', icon: HelpCircle },
               ...(isTeacher ? [
-                { key: 'lesson-plans', label: 'Lesson Plans', icon: FileText },
                 { key: 'analytics', label: 'Analytics', icon: BarChart2 },
               ] : []),
             ].map(tab => {
@@ -599,18 +596,6 @@ const ClassroomHub = () => {
               isTeacher={isTeacher}
               navigate={navigate}
             />
-          )}
-
-          {activeTab === 'quizzes' && isTeacher && (
-            <QuizManagementView classroom={selectedClass} />
-          )}
-
-          {activeTab === 'quizzes' && !isTeacher && (
-            <StudentQuizzesView classroom={selectedClass} />
-          )}
-
-          {activeTab === 'lesson-plans' && isTeacher && (
-            <LessonPlansView classroom={selectedClass} />
           )}
 
           {activeTab === 'analytics' && isTeacher && (
