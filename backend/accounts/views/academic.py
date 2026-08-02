@@ -2133,30 +2133,50 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
 
         return queryset
 
-    def perform_create(self, serializer):
-        user = self.request.user
+    def create(self, request, *args, **kwargs):
+        """Override create to use update_or_create (handles duplicate classroom+subject)."""
+        user = request.user
         if user.role not in ['admin', 'staff']:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only admins and teachers can assign subjects to classrooms")
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
         classroom = serializer.validated_data.get('classroom')
         subject = serializer.validated_data.get('subject')
         teacher = serializer.validated_data.get('teacher')
 
-        # Use update_or_create so re-assigning the same subject to a section just updates the teacher
-        from ..models import ClassroomSubject
-        instance, created = ClassroomSubject.objects.update_or_create(
+        from ..models import ClassroomSubject as CS
+        instance, created = CS.objects.update_or_create(
             classroom=classroom,
             subject=subject,
             defaults={'teacher': teacher},
         )
-        action = 'create' if created else 'update'
-        log_audit_action(user, action, 'ClassroomSubject',
+
+        action_label = 'create' if created else 'update'
+        log_audit_action(user, action_label, 'ClassroomSubject',
                          object_id=instance.id,
                          object_repr=str(instance),
                          description=f"{'Assigned' if created else 'Updated'} {instance.subject.code} in {instance.classroom.name}",
-                         request=self.request)
-        return instance
+                         request=request)
+
+        response_data = {
+            'id': instance.id,
+            'classroom': instance.classroom_id,
+            'classroom_name': instance.classroom.name if instance.classroom else '',
+            'subject': instance.subject_id,
+            'subject_name': instance.subject.name if instance.subject else '',
+            'subject_code': instance.subject.code if instance.subject else '',
+            'teacher': instance.teacher_id,
+            'teacher_name': full_name(instance.teacher) if instance.teacher else '',
+        }
+        http_status = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        return Response(response_data, status=http_status)
+
+    def perform_create(self, serializer):
+        # Kept for compatibility but create() above handles everything
+        pass
 
     def perform_update(self, serializer):
         user = self.request.user
@@ -2188,7 +2208,6 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
                          request=self.request)
         instance.delete()
 
-    @action(detail=False, methods=['get'])
     def list(self, request, *args, **kwargs):
         """Lightweight list — no students field to avoid N+1."""
         queryset = self.filter_queryset(self.get_queryset())
