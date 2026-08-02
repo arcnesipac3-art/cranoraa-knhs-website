@@ -2231,7 +2231,7 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
         ]
         return Response(data)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='by_classroom')
     def by_classroom(self, request):
         classroom_id = request.query_params.get('classroom_id')
         if not classroom_id:
@@ -2262,7 +2262,7 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
         ]
         return Response(data)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='by_teacher')
     def by_teacher(self, request):
         user = request.user
         teacher_id = request.query_params.get('teacher_id')
