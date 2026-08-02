@@ -2189,6 +2189,29 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
         instance.delete()
 
     @action(detail=False, methods=['get'])
+    def list(self, request, *args, **kwargs):
+        """Lightweight list — no students field to avoid N+1."""
+        queryset = self.filter_queryset(self.get_queryset())
+        data = [
+            {
+                'id': cs.id,
+                'classroom': cs.classroom_id,
+                'classroom_name': cs.classroom.name if cs.classroom else '',
+                'subject': cs.subject_id,
+                'subject_name': cs.subject.name if cs.subject else '',
+                'subject_code': cs.subject.code if cs.subject else '',
+                'teacher': cs.teacher_id,
+                'teacher_name': full_name(cs.teacher) if cs.teacher else '',
+                'teacher_email': cs.teacher.email if cs.teacher else '',
+                'ww_weight': float(cs.ww_weight),
+                'pt_weight': float(cs.pt_weight),
+                'qa_weight': float(cs.qa_weight),
+                'assigned_at': cs.assigned_at.isoformat() if cs.assigned_at else None,
+            }
+            for cs in queryset
+        ]
+        return Response(data)
+
     def by_classroom(self, request):
         classroom_id = request.query_params.get('classroom_id')
         if not classroom_id:
