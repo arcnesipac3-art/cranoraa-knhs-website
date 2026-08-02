@@ -1005,425 +1005,350 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   );
 };
 
-// Attendance History View - Standalone improved component
+// Attendance History View - Date-focused with edit/delete
 export const AttendanceHistoryView = ({ classroom, onBack }) => {
   const [students, setStudents] = useState([]);
-  const [historyData, setHistoryData] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
-  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' | 'students' | 'matrix'
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(null); // record id being edited
+  const [editStatus, setEditStatus] = useState('');
+  const [editRemarks, setEditRemarks] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // Load enrolled students
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchStudents = async () => {
+      try {
+        const res = await api.get(`/enrollments/?classroom=${classroom.id}`);
+        setStudents(res.data.sort((a, b) => (a.student_name || '').localeCompare(b.student_name || '')));
+      } catch {
+        toast.error('Failed to load students');
+      }
+    };
+    fetchStudents();
+  }, [classroom.id]);
+
+  // Load attendance for selected date
+  useEffect(() => {
+    const fetchRecords = async () => {
       setLoading(true);
       try {
-        const [enrollRes, historyRes] = await Promise.all([
-          api.get(`/enrollments/?classroom=${classroom.id}`),
-          api.get(`/attendance/?classroom=${classroom.id}&date_from=${month}-01&date_from=${month}-01&date_to=${month}-31&page_size=1000`)
-        ]);
-        setStudents(enrollRes.data.sort((a, b) => (a.student_name || '').localeCompare(b.student_name || '')));
-        setHistoryData(historyRes.data.results || historyRes.data || []);
+        const res = await api.get(`/attendance/?classroom=${classroom.id}&date=${selectedDate}`);
+        setRecords(res.data.results || res.data || []);
       } catch {
-        toast.error('Failed to load attendance history');
+        toast.error('Failed to load attendance');
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [classroom.id, month]);
+    fetchRecords();
+  }, [classroom.id, selectedDate]);
 
-  // Navigate months
-  const prevMonth = () => {
-    const d = new Date(month + '-01');
-    d.setMonth(d.getMonth() - 1);
-    setMonth(d.toISOString().slice(0, 7));
-  };
-
-  const nextMonth = () => {
-    const d = new Date(month + '-01');
-    d.setMonth(d.getMonth() + 1);
-    if (d <= new Date()) setMonth(d.toISOString().slice(0, 7));
-  };
-
-  // Get all days in the month
-  const getDaysInMonth = () => {
-    const [y, m] = month.split('-').map(Number);
-    const days = [];
-    const date = new Date(y, m - 1, 1);
-    while (date.getMonth() === m - 1) {
-      days.push(date.toISOString().split('T')[0]);
-      date.setDate(date.getDate() + 1);
-    }
-    return days;
-  };
-
-  const daysInMonth = getDaysInMonth();
-
-  // Build per-date stats
-  const dateStats = useMemo(() => {
-    const map = {};
-    daysInMonth.forEach(d => { map[d] = { present: 0, absent: 0, late: 0, excused: 0, school_activity: 0, medical_leave: 0, total: 0 }; });
-    historyData.forEach(r => {
-      if (map[r.date]) {
-        map[r.date][r.status] = (map[r.date][r.status] || 0) + 1;
-        map[r.date].total++;
-      }
-    });
-    return map;
-  }, [historyData, daysInMonth]);
-
-  // Build per-student stats
-  const studentStats = useMemo(() => {
+  // Merge students with records for display
+  const attendanceList = useMemo(() => {
     return students.map(s => {
-      const records = historyData.filter(r => r.student === s.student);
-      const total = records.length;
-      const present = records.filter(r => r.status === 'present').length;
-      const late = records.filter(r => r.status === 'late').length;
-      const excused = records.filter(r => r.status === 'excused').length;
-      const absent = records.filter(r => r.status === 'absent').length;
-      const rate = total > 0 ? Math.round(((present + late + excused) / total) * 100) : null;
-      return { ...s, total, present, late, excused, absent, rate };
-    }).sort((a, b) => (a.rate ?? -1) - (b.rate ?? -1));
-  }, [students, historyData]);
+      const rec = records.find(r => r.student === s.student);
+      return {
+        ...s,
+        recordId: rec?.id || null,
+        status: rec?.status || null,
+        remarks: rec?.remarks || '',
+      };
+    });
+  }, [students, records]);
 
-  // Monthly summary
-  const monthSummary = useMemo(() => {
-    const total = historyData.length;
-    const present = historyData.filter(r => r.status === 'present').length;
-    const absent = historyData.filter(r => r.status === 'absent').length;
-    const late = historyData.filter(r => r.status === 'late').length;
-    const excused = historyData.filter(r => r.status === 'excused').length;
-    const rate = total > 0 ? Math.round(((present + late + excused) / total) * 100) : 0;
-    return { total, present, absent, late, excused, rate };
-  }, [historyData]);
+  const filteredList = useMemo(() => {
+    if (!searchQuery) return attendanceList;
+    const q = searchQuery.toLowerCase();
+    return attendanceList.filter(s =>
+      (s.student_name || '').toLowerCase().includes(q) ||
+      (s.student_email || '').toLowerCase().includes(q) ||
+      (s.student_lrn || '').toLowerCase().includes(q)
+    );
+  }, [attendanceList, searchQuery]);
 
-  // Get status color for heatmap
-  const getHeatmapColor = (date) => {
-    const s = dateStats[date];
-    if (!s || s.total === 0) return 'bg-slate-50';
-    const rate = ((s.present + s.late + s.excused) / s.total) * 100;
-    if (rate >= 95) return 'bg-green-100 border-green-200';
-    if (rate >= 85) return 'bg-green-50 border-green-100';
-    if (rate >= 75) return 'bg-amber-50 border-amber-100';
-    return 'bg-red-50 border-red-100';
+  // Stats
+  const stats = useMemo(() => {
+    const present = records.filter(r => r.status === 'present').length;
+    const absent = records.filter(r => r.status === 'absent').length;
+    const late = records.filter(r => r.status === 'late').length;
+    const excused = records.filter(r => r.status === 'excused').length;
+    const schoolActivity = records.filter(r => r.status === 'school_activity').length;
+    const medicalLeave = records.filter(r => r.status === 'medical_leave').length;
+    const unrecorded = students.length - records.length;
+    return { present, absent, late, excused, schoolActivity, medicalLeave, unrecorded, total: students.length, recorded: records.length };
+  }, [records, students.length]);
+
+  // Save single record
+  const handleSave = async (studentId, status, remarks) => {
+    setSaving(true);
+    try {
+      const existing = records.find(r => r.student === studentId);
+      const payload = { student: studentId, classroom: classroom.id, date: selectedDate, status, remarks };
+      if (existing) {
+        const res = await api.put(`/attendance/${existing.id}/`, payload);
+        setRecords(prev => prev.map(r => r.id === existing.id ? res.data : r));
+      } else {
+        const res = await api.post('/attendance/', payload);
+        setRecords(prev => [...prev, res.data]);
+      }
+      toast.success('Record saved');
+      setEditing(null);
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.response?.data?.detail || 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const monthLabel = new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  // Delete single record
+  const handleDelete = async (recordId) => {
+    if (!window.confirm('Delete this attendance record?')) return;
+    setSaving(true);
+    try {
+      await api.delete(`/attendance/${recordId}/`);
+      setRecords(prev => prev.filter(r => r.id !== recordId));
+      toast.success('Record deleted');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  // Get weekday headers
-  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const firstDay = new Date(month + '-01').getDay();
+  // Delete all records for date
+  const handleDeleteAll = async () => {
+    if (!window.confirm(`Delete ALL ${records.length} attendance records for ${selectedDate}? This cannot be undone.`)) return;
+    setSaving(true);
+    try {
+      await Promise.all(records.map(r => api.delete(`/attendance/${r.id}/`)));
+      setRecords([]);
+      toast.success('All records deleted');
+    } catch {
+      toast.error('Failed to delete some records');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    );
-  }
+  const statusColor = (status) => {
+    switch (status) {
+      case 'present': return 'bg-green-100 text-green-700';
+      case 'absent': return 'bg-red-100 text-red-700';
+      case 'late': return 'bg-amber-100 text-amber-700';
+      case 'excused': return 'bg-blue-100 text-blue-700';
+      case 'school_activity': return 'bg-violet-100 text-violet-700';
+      case 'medical_leave': return 'bg-pink-100 text-pink-700';
+      default: return 'bg-slate-100 text-slate-500';
+    }
+  };
+
+  const dateLabel = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
           <span className="hidden sm:inline">Back</span>
         </Button>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" onClick={prevMonth}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span className="text-sm font-bold text-slate-900 min-w-[140px] text-center">{monthLabel}</span>
-            <Button variant="ghost" size="sm" onClick={nextMonth}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-          <div className="flex bg-slate-100 rounded-lg p-0.5">
-            <button onClick={() => setViewMode('calendar')} className={`px-2.5 py-1 rounded-md text-[10px] md:text-xs font-semibold transition-all ${viewMode === 'calendar' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-              <Calendar className="w-3 h-3 inline mr-1" />
-              Calendar
-            </button>
-            <button onClick={() => setViewMode('students')} className={`px-2.5 py-1 rounded-md text-[10px] md:text-xs font-semibold transition-all ${viewMode === 'students' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-              <Users className="w-3 h-3 inline mr-1" />
-              Students
-            </button>
-            <button onClick={() => setViewMode('matrix')} className={`px-2.5 py-1 rounded-md text-[10px] md:text-xs font-semibold transition-all ${viewMode === 'matrix' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-              <BarChart2 className="w-3 h-3 inline mr-1" />
-              Matrix
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <Button variant="ghost" size="sm" onClick={() => {
+            const d = new Date(selectedDate + 'T00:00:00');
+            d.setDate(d.getDate() - 1);
+            setSelectedDate(d.toISOString().split('T')[0]);
+          }}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => {
+            const d = new Date(selectedDate + 'T00:00:00');
+            d.setDate(d.getDate() + 1);
+            if (d <= new Date()) setSelectedDate(d.toISOString().split('T')[0]);
+          }}>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
-        <Card>
-          <CardBody className="p-3 text-center">
-            <p className="text-xl md:text-2xl font-bold text-slate-900">{monthSummary.total}</p>
-            <p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-semibold">Records</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="p-3 text-center">
-            <p className="text-xl md:text-2xl font-bold text-green-600">{monthSummary.present}</p>
-            <p className="text-[9px] md:text-[10px] text-green-700 uppercase font-semibold">Present</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="p-3 text-center">
-            <p className="text-xl md:text-2xl font-bold text-red-600">{monthSummary.absent}</p>
-            <p className="text-[9px] md:text-[10px] text-red-700 uppercase font-semibold">Absent</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="p-3 text-center">
-            <p className="text-xl md:text-2xl font-bold text-amber-600">{monthSummary.late}</p>
-            <p className="text-[9px] md:text-[10px] text-amber-700 uppercase font-semibold">Late</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="p-3 text-center">
-            <p className="text-xl md:text-2xl font-bold text-blue-600">{monthSummary.excused}</p>
-            <p className="text-[9px] md:text-[10px] text-blue-700 uppercase font-semibold">Excused</p>
-          </CardBody>
-        </Card>
-        <Card>
-          <CardBody className="p-3 text-center">
-            <p className={`text-xl md:text-2xl font-bold ${monthSummary.rate >= 90 ? 'text-green-600' : monthSummary.rate >= 75 ? 'text-amber-600' : 'text-red-600'}`}>{monthSummary.rate}%</p>
-            <p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-semibold">Rate</p>
-          </CardBody>
-        </Card>
-      </div>
-
-      {/* Calendar View */}
-      {viewMode === 'calendar' && (
-        <Card>
-          <CardBody className="p-3 md:p-4">
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1 mb-2">
-              {weekDays.map(d => (
-                <div key={d} className="text-center text-[10px] md:text-xs font-bold text-slate-500 uppercase py-1">{d}</div>
-              ))}
+      {/* Date & Stats */}
+      <Card>
+        <CardBody className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">{dateLabel}</h2>
+              <p className="text-xs text-slate-500">{stats.recorded} of {stats.total} students recorded</p>
             </div>
-            <div className="grid grid-cols-7 gap-1">
-              {/* Empty cells for days before month starts */}
-              {Array.from({ length: firstDay }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square" />
-              ))}
-              {/* Day cells */}
-              {daysInMonth.map(date => {
-                const s = dateStats[date];
-                const d = new Date(date + 'T00:00:00');
-                const dayNum = d.getDate();
-                const isToday = date === new Date().toISOString().split('T')[0];
-                const hasData = s && s.total > 0;
-                const rate = hasData ? Math.round(((s.present + s.late + s.excused) / s.total) * 100) : null;
-                return (
-                  <div
-                    key={date}
-                    className={`aspect-square rounded-lg border p-1 flex flex-col items-center justify-center transition-all ${getHeatmapColor(date)} ${isToday ? 'ring-2 ring-violet-400 ring-offset-1' : ''}`}
-                  >
-                    <span className={`text-[10px] md:text-xs font-bold ${isToday ? 'text-violet-600' : 'text-slate-700'}`}>{dayNum}</span>
-                    {hasData && (
-                      <>
-                        <div className="flex gap-px mt-0.5">
-                          {s.present > 0 && <div className="w-1 h-1 rounded-full bg-green-500" />}
-                          {s.late > 0 && <div className="w-1 h-1 rounded-full bg-amber-500" />}
-                          {s.absent > 0 && <div className="w-1 h-1 rounded-full bg-red-500" />}
-                        </div>
-                        <span className="text-[7px] md:text-[8px] font-semibold text-slate-600 mt-px">{rate}%</span>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            {/* Legend */}
-            <div className="flex items-center justify-center gap-4 mt-3 text-[10px] text-slate-500">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500" /> Present</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> Late</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Absent</span>
-            </div>
-          </CardBody>
-        </Card>
-      )}
-
-      {/* Students View */}
-      {viewMode === 'students' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {studentStats.map(s => {
-            const rateColor = s.rate === null ? 'text-slate-400' : s.rate >= 90 ? 'text-green-600' : s.rate >= 75 ? 'text-amber-600' : 'text-red-600';
-            const rateBg = s.rate === null ? 'bg-slate-100' : s.rate >= 90 ? 'bg-green-100' : s.rate >= 75 ? 'bg-amber-100' : 'bg-red-100';
-            return (
-              <Card key={s.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedStudent(selectedStudent === s.student ? null : s.student)}>
-                <CardBody className="p-3 md:p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-sm shrink-0">
-                      {s.student_name ? s.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate">{s.student_name || 'Unknown'}</p>
-                      <p className="text-[10px] text-slate-400">{s.total} records</p>
-                    </div>
-                    <div className={`px-2.5 py-1 rounded-full ${rateBg}`}>
-                      <span className={`text-xs font-bold ${rateColor}`}>{s.rate !== null ? `${s.rate}%` : '—'}</span>
-                    </div>
-                  </div>
-                  {/* Mini stats bar */}
-                  <div className="flex h-2 rounded-full overflow-hidden bg-slate-100 mb-2">
-                    {s.present > 0 && <div className="bg-green-500" style={{ width: `${(s.present / s.total) * 100}%` }} />}
-                    {s.late > 0 && <div className="bg-amber-500" style={{ width: `${(s.late / s.total) * 100}%` }} />}
-                    {s.excused > 0 && <div className="bg-blue-500" style={{ width: `${(s.excused / s.total) * 100}%` }} />}
-                    {s.absent > 0 && <div className="bg-red-500" style={{ width: `${(s.absent / s.total) * 100}%` }} />}
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px]">
-                    <span className="text-green-600 font-semibold">{s.present}P</span>
-                    <span className="text-red-600 font-semibold">{s.absent}A</span>
-                    <span className="text-amber-600 font-semibold">{s.late}L</span>
-                    {s.excused > 0 && <span className="text-blue-600 font-semibold">{s.excused}E</span>}
-                  </div>
-                </CardBody>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Matrix View */}
-      {viewMode === 'matrix' && (
-        <Card>
-          <CardBody className="p-0 overflow-x-auto">
-            <table className="w-full min-w-[600px]">
-              <thead className="bg-slate-50 border-b-2 border-slate-200">
-                <tr>
-                  <th className="px-3 py-2.5 text-left text-[10px] md:text-xs font-bold text-slate-700 uppercase sticky left-0 bg-slate-50">Student</th>
-                  {daysInMonth.filter((_, i) => {
-                    const d = new Date(month + '-01');
-                    d.setDate(d.getDate() + i);
-                    return d.getDay() !== 0 && d.getDay() !== 6; // Skip weekends
-                  }).map(date => {
-                    const d = new Date(date + 'T00:00:00');
-                    return (
-                      <th key={date} className="px-1 py-2.5 text-center text-[8px] md:text-[10px] font-bold text-slate-500 uppercase" title={date}>
-                        {d.getDate()}
-                      </th>
-                    );
-                  })}
-                  <th className="px-3 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase">Rate</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-100">
-                {studentStats.map(s => {
-                  const rateColor = s.rate === null ? 'text-slate-400' : s.rate >= 90 ? 'text-green-600' : s.rate >= 75 ? 'text-amber-600' : 'text-red-600';
-                  const schoolDays = daysInMonth.filter((_, i) => {
-                    const d = new Date(month + '-01');
-                    d.setDate(d.getDate() + i);
-                    return d.getDay() !== 0 && d.getDay() !== 6;
-                  });
-                  return (
-                    <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-3 py-2 sticky left-0 bg-white">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-[9px] shrink-0">
-                            {s.student_name ? s.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
-                          </div>
-                          <span className="text-[11px] md:text-xs font-semibold text-slate-900 truncate max-w-[100px] md:max-w-none">{s.student_name || '?'}</span>
-                        </div>
-                      </td>
-                      {schoolDays.map(date => {
-                        const rec = historyData.find(r => r.student === s.student && r.date === date);
-                        const dot = rec ? (
-                          <span className={`inline-block w-4 h-4 md:w-5 md:h-5 rounded-full text-[8px] md:text-[9px] font-bold flex items-center justify-center ${
-                            rec.status === 'present' ? 'bg-green-100 text-green-600' :
-                            rec.status === 'absent' ? 'bg-red-100 text-red-600' :
-                            rec.status === 'excused' ? 'bg-blue-100 text-blue-600' :
-                            rec.status === 'school_activity' ? 'bg-violet-100 text-violet-600' :
-                            rec.status === 'medical_leave' ? 'bg-pink-100 text-pink-600' :
-                            'bg-amber-100 text-amber-600'
-                          }`} title={`${date}: ${rec.status}`}>
-                            {rec.status === 'present' ? 'P' : rec.status === 'absent' ? 'A' : rec.status === 'excused' ? 'E' : rec.status === 'school_activity' ? 'SA' : rec.status === 'medical_leave' ? 'ML' : 'L'}
-                          </span>
-                        ) : (
-                          <span className="inline-block w-4 h-4 md:w-5 md:h-5 rounded-full bg-slate-50 text-slate-300 text-[8px] md:text-[9px] font-bold flex items-center justify-center">—</span>
-                        );
-                        return <td key={date} className="px-1 py-2 text-center">{dot}</td>;
-                      })}
-                      <td className="px-3 py-2 text-center">
-                        <span className={`text-[10px] md:text-xs font-bold ${rateColor}`}>{s.rate !== null ? `${s.rate}%` : '—'}</span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </CardBody>
-        </Card>
-      )}
-
-      {/* Student Detail Modal */}
-      {selectedStudent && (
-        <Card>
-          <CardHeader divider>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                {students.find(s => s.student === selectedStudent)?.student_name || 'Student'} - Daily Log
-              </CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setSelectedStudent(null)}>
-                <X className="w-4 h-4" />
+            {records.length > 0 && (
+              <Button variant="danger" size="sm" onClick={handleDeleteAll} disabled={saving}>
+                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                Delete All
               </Button>
+            )}
+          </div>
+          <div className="grid grid-cols-4 md:grid-cols-8 gap-2">
+            <div className="text-center p-2 bg-slate-50 rounded-lg">
+              <div className="text-lg font-bold text-slate-700">{stats.total}</div>
+              <div className="text-[9px] text-slate-500 uppercase">Total</div>
             </div>
-          </CardHeader>
-          <CardBody className="p-0">
-            <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+            <div className="text-center p-2 bg-slate-50 rounded-lg">
+              <div className="text-lg font-bold text-slate-500">{stats.unrecorded}</div>
+              <div className="text-[9px] text-slate-500 uppercase">Unrecorded</div>
+            </div>
+            <div className="text-center p-2 bg-green-50 rounded-lg">
+              <div className="text-lg font-bold text-green-600">{stats.present}</div>
+              <div className="text-[9px] text-green-700 uppercase">Present</div>
+            </div>
+            <div className="text-center p-2 bg-red-50 rounded-lg">
+              <div className="text-lg font-bold text-red-600">{stats.absent}</div>
+              <div className="text-[9px] text-red-700 uppercase">Absent</div>
+            </div>
+            <div className="text-center p-2 bg-amber-50 rounded-lg">
+              <div className="text-lg font-bold text-amber-600">{stats.late}</div>
+              <div className="text-[9px] text-amber-700 uppercase">Late</div>
+            </div>
+            <div className="text-center p-2 bg-blue-50 rounded-lg">
+              <div className="text-lg font-bold text-blue-600">{stats.excused}</div>
+              <div className="text-[9px] text-blue-700 uppercase">Excused</div>
+            </div>
+            <div className="text-center p-2 bg-violet-50 rounded-lg">
+              <div className="text-lg font-bold text-violet-600">{stats.schoolActivity}</div>
+              <div className="text-[9px] text-violet-700 uppercase">Activity</div>
+            </div>
+            <div className="text-center p-2 bg-pink-50 rounded-lg">
+              <div className="text-lg font-bold text-pink-600">{stats.medicalLeave}</div>
+              <div className="text-[9px] text-pink-700 uppercase">Medical</div>
+            </div>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search students..."
+          className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        />
+      </div>
+
+      {/* Attendance Table */}
+      <Card>
+        <CardBody className="p-0">
+          {loading ? (
+            <div className="flex items-center justify-center h-40"><LoadingSpinner /></div>
+          ) : filteredList.length === 0 ? (
+            <EmptyState
+              title="No Students"
+              description={searchQuery ? "No students match your search" : "No students enrolled"}
+              icon={<Users className="w-8 h-8" />}
+            />
+          ) : (
+            <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b sticky top-0">
+                <thead className="bg-slate-50 border-b-2 border-slate-200">
                   <tr>
-                    <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Date</th>
-                    <th className="px-4 py-2 text-center text-[10px] font-bold text-slate-700 uppercase">Status</th>
-                    <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Remarks</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase w-10">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Remarks</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase w-24">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {daysInMonth.filter(d => {
-                    const dt = new Date(d + 'T00:00:00');
-                    return dt.getDay() !== 0 && dt.getDay() !== 6;
-                  }).reverse().map(date => {
-                    const rec = historyData.find(r => r.student === selectedStudent && r.date === date);
-                    const d = new Date(date + 'T00:00:00');
+                <tbody className="bg-white divide-y divide-slate-100">
+                  {filteredList.map((student, idx) => {
+                    const isEditing = editing === student.student;
                     return (
-                      <tr key={date} className="hover:bg-slate-50">
-                        <td className="px-4 py-2 text-xs text-slate-900">
-                          {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      <tr key={student.id} className={`hover:bg-slate-50 transition-colors ${isEditing ? 'bg-violet-50' : ''}`}>
+                        <td className="px-4 py-3 text-sm text-slate-500 font-semibold">{idx + 1}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-xs shrink-0">
+                              {student.student_name ? student.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-900 truncate">{student.student_name || 'Unknown'}</p>
+                              {student.student_lrn && <p className="text-[10px] text-slate-400">LRN: {student.student_lrn}</p>}
+                            </div>
+                          </div>
                         </td>
-                        <td className="px-4 py-2 text-center">
-                          {rec ? (
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              rec.status === 'present' ? 'bg-green-100 text-green-700' :
-                              rec.status === 'absent' ? 'bg-red-100 text-red-700' :
-                              rec.status === 'excused' ? 'bg-blue-100 text-blue-700' :
-                              rec.status === 'school_activity' ? 'bg-violet-100 text-violet-700' :
-                              rec.status === 'medical_leave' ? 'bg-pink-100 text-pink-700' :
-                              'bg-amber-100 text-amber-700'
-                            }`}>
-                              {rec.status.replace('_', ' ')}
+                        <td className="px-4 py-3 text-center">
+                          {isEditing ? (
+                            <div className="flex items-center justify-center gap-1 flex-wrap">
+                              {['present', 'absent', 'late', 'excused', 'school_activity', 'medical_leave'].map(s => (
+                                <button
+                                  key={s}
+                                  onClick={() => setEditStatus(s)}
+                                  className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${editStatus === s ? statusColor(s) + ' ring-2 ring-offset-1 ring-violet-400' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                                >
+                                  {s.replace('_', ' ')}
+                                </button>
+                              ))}
+                            </div>
+                          ) : student.status ? (
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${statusColor(student.status)}`}>
+                              {student.status.replace('_', ' ')}
                             </span>
                           ) : (
-                            <span className="text-slate-300 text-[10px]">No record</span>
+                            <span className="text-slate-300 text-xs">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-2 text-[10px] text-slate-500 italic">{rec?.remarks || '—'}</td>
+                        <td className="px-4 py-3">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editRemarks}
+                              onChange={e => setEditRemarks(e.target.value)}
+                              placeholder="Optional remark..."
+                              className="w-full text-xs px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-violet-400"
+                            />
+                          ) : (
+                            <span className="text-xs text-slate-500 italic">{student.remarks || '—'}</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {isEditing ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <button onClick={() => handleSave(student.student, editStatus, editRemarks)} disabled={saving || !editStatus} className="p-1.5 text-green-600 hover:bg-green-50 rounded disabled:opacity-50">
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => setEditing(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded">
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-1">
+                              <button onClick={() => { setEditing(student.student); setEditStatus(student.status || 'present'); setEditRemarks(student.remarks || ''); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Edit">
+                                <Edit2 className="w-3.5 h-3.5" />
+                              </button>
+                              {student.recordId && (
+                                <button onClick={() => handleDelete(student.recordId)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Delete">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
-          </CardBody>
-        </Card>
-      )}
+          )}
+        </CardBody>
+      </Card>
     </div>
   );
 };
