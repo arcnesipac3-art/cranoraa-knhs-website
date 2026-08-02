@@ -529,7 +529,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         total_students = sum(enrollment_counts.values()) if enrollment_counts else 0
 
         attendance_agg = Attendance.objects.filter(
-            schedule_id__in=schedule_ids,
+            Q(schedule_id__in=schedule_ids) | Q(classroom_id__in=classroom_ids, schedule__isnull=True),
             date=today,
         ).aggregate(
             total_records=Count('id'),
@@ -539,7 +539,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         )
 
         attended_schedules = Attendance.objects.filter(
-            schedule_id__in=schedule_ids,
+            Q(schedule_id__in=schedule_ids) | Q(classroom_id__in=classroom_ids, schedule__isnull=True),
             date=today,
         ).values('schedule_id').annotate(cnt=Count('id')).values_list('schedule_id', 'cnt')
         attended_map = dict(attended_schedules)
@@ -662,16 +662,16 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='reopen')
     def reopen_attendance(self, request):
-        """Admin reopens submitted attendance for editing."""
-        if request.user.role != 'admin':
+        """Teacher or admin reopens submitted attendance for editing."""
+        if request.user.role not in ['staff', 'admin']:
             return Response({'error': 'Unauthorized'}, status=403)
 
-        schedule_id = request.data.get('schedule')
+        classroom_id = request.data.get('classroom_id')
         date_str = request.data.get('date')
         reason = request.data.get('reason', '')
 
-        if not schedule_id or not date_str:
-            return Response({'error': 'schedule and date are required'}, status=400)
+        if not classroom_id or not date_str:
+            return Response({'error': 'classroom_id and date are required'}, status=400)
 
         try:
             att_date = datetime.date.fromisoformat(date_str)
@@ -679,7 +679,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Invalid date format'}, status=400)
 
         updated = Attendance.objects.filter(
-            schedule_id=schedule_id,
+            classroom_id=classroom_id,
             date=att_date,
             workflow_status__in=['submitted', 'locked'],
         ).update(
@@ -691,10 +691,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         AttendanceAuditLog.objects.create(
             user=request.user,
             action='reopen',
-            classroom_id=Schedule.objects.filter(id=schedule_id).values_list('classroom_id', flat=True).first(),
+            classroom_id=classroom_id,
             date=att_date,
             description=f'Reopened {updated} attendance records. Reason: {reason}',
-            metadata={'schedule_id': schedule_id, 'count': updated, 'reason': reason},
+            metadata={'classroom_id': classroom_id, 'count': updated, 'reason': reason},
         )
 
         return Response({'reopened': updated})
