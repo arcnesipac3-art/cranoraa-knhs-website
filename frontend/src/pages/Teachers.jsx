@@ -667,11 +667,13 @@ const Teachers = () => {
             </button>
 
             <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
-              <button onClick={handleExportExcel} className="px-3 py-2 text-emerald-600 hover:bg-emerald-50 transition-colors border-r border-slate-200" title="Export Excel">
+              <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-3 py-2 text-emerald-600 hover:bg-emerald-50 transition-colors border-r border-slate-200" title="Export as Excel spreadsheet">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Excel</span>
               </button>
-              <button onClick={handleExportPDF} className="px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors" title="Export PDF">
+              <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors" title="Export as PDF document">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+                <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">PDF</span>
               </button>
             </div>
           </div>
@@ -702,7 +704,7 @@ const Teachers = () => {
           <>
             {/* Bulk action bar */}
             {selectedIds.length > 0 && (
-              <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-2.5 flex items-center gap-3">
+              <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-2.5 flex items-center gap-3 animate-in slide-in-from-top-2 fade-in duration-200">
                 <span className="text-xs font-bold text-violet-700">{selectedIds.length} selected</span>
                 <button onClick={() => handleBulkStatus('active')}
                   className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded hover:bg-emerald-100 transition-colors">
@@ -850,7 +852,7 @@ const Teachers = () => {
                       {activeMenu === teacher.id && (
                         <>
                           <div className="fixed inset-0 z-[100]" onClick={() => setActiveMenu(null)} />
-                          <div className="absolute right-0 bottom-full mb-1 w-44 bg-white border border-slate-200 rounded-lg shadow-xl z-[110] py-1">
+                          <div className="absolute right-0 bottom-full mb-1 w-44 bg-white border border-slate-200 rounded-xl shadow-2xl z-[110] py-1 animate-in slide-in-from-bottom-2 fade-in duration-150">
 
                             <button onClick={() => { setActiveMenu(null); setViewingTeacher(teacher); }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left">

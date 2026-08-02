@@ -1142,20 +1142,22 @@ setSelectedIds([]);
             </div>
           </div>
           
-          <div className="flex items-center gap-1 bg-white p-0.5 border border-slate-200">
+          <div className="flex items-center gap-1 bg-white p-0.5 border border-slate-200 rounded-lg overflow-hidden">
             <button 
               onClick={handleExportExcel}
-              className="p-1.5 text-emerald-600 hover:bg-emerald-50 transition-colors"
-              title="Export Excel"
+              className="flex items-center gap-1 px-2 py-1.5 text-emerald-600 hover:bg-emerald-50 transition-colors border-r border-slate-200"
+              title="Export as Excel spreadsheet"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Excel</span>
             </button>
             <button 
               onClick={handleExportPDF}
-              className="p-1.5 text-rose-600 hover:bg-rose-50 transition-colors"
-              title="Export PDF"
+              className="flex items-center gap-1 px-2 py-1.5 text-rose-600 hover:bg-rose-50 transition-colors"
+              title="Export as PDF document"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
+              <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">PDF</span>
             </button>
           </div>
           <div className="bg-white px-2.5 py-1.5 sm:px-3 md:px-4 md:py-2 border border-slate-200 flex items-center gap-2">
