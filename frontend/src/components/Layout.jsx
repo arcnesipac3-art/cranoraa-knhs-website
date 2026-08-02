@@ -101,21 +101,48 @@ const MuteButton = () => {
   );
 };
 
+// ── PWA Install instructions fallback ───────────────────────────────────────
+const showInstallInstructions = () => {
+  Swal.fire({
+    title: 'Install KNHS Portal',
+    html: `
+      <div style="text-align:left;font-size:13px;line-height:1.7;color:#475569">
+        <p style="margin-bottom:10px">Add the portal to your home screen for quick access and offline support:</p>
+        <p style="margin-bottom:6px"><b>1.</b> Tap the <b>Share</b> icon in your browser</p>
+        <p style="margin-bottom:6px"><b>2.</b> Tap <b>Add to Home Screen</b></p>
+        <p><b>3.</b> Tap <b>Add</b> to install</p>
+      </div>
+    `,
+    icon: 'info',
+    confirmButtonText: 'Got it',
+    confirmButtonColor: '#7c3aed',
+    background: '#ffffff',
+    customClass: {
+      popup: 'rounded-2xl border border-slate-100 shadow-2xl',
+      confirmButton: 'rounded-xl font-bold uppercase tracking-widest text-xs px-6 py-3'
+    }
+  });
+};
+
 // ── PWA Install Button (header) ─────────────────────────────────────────────
 const HeaderDownloadButton = () => {
-  const { canInstall, isInstalled, install } = useInstallPrompt();
+  const { canInstall, isInstalled, isDismissed, install } = useInstallPrompt();
   const [installing, setInstalling] = useState(false);
 
-  if (isInstalled || !canInstall) return null;
+  if (isInstalled || isDismissed) return null;
 
   const handleInstall = async () => {
     playSound('click');
-    setInstalling(true);
-    try {
-      await install();
-    } finally {
-      setInstalling(false);
+    if (canInstall) {
+      setInstalling(true);
+      try {
+        await install();
+      } finally {
+        setInstalling(false);
+      }
+      return;
     }
+    showInstallInstructions();
   };
 
   return (
@@ -143,18 +170,23 @@ const HeaderDownloadButton = () => {
 
 // ── PWA Install Button (sidebar) ─────────────────────────────────────────────
 const PwaInstallButton = () => {
-  const { canInstall, isInstalled, install } = useInstallPrompt();
+  const { canInstall, isInstalled, isDismissed, install } = useInstallPrompt();
   const [installing, setInstalling] = useState(false);
 
-  if (isInstalled || !canInstall) return null;
+  if (isInstalled || isDismissed) return null;
 
   const handleInstall = async () => {
-    setInstalling(true);
-    try {
-      await install();
-    } finally {
-      setInstalling(false);
+    playSound('click');
+    if (canInstall) {
+      setInstalling(true);
+      try {
+        await install();
+      } finally {
+        setInstalling(false);
+      }
+      return;
     }
+    showInstallInstructions();
   };
 
   return (
