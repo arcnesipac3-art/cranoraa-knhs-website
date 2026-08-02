@@ -141,9 +141,17 @@ class ScheduleViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        if self.request.user.role != 'admin':
+        if self.request.user.role not in ['admin', 'staff']:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only admins can create schedules.")
+
+        # Auto-fill academic_year from active year if not provided
+        if not serializer.validated_data.get('academic_year'):
+            from portal.models import AcademicYear
+            active_ay = AcademicYear.objects.filter(is_active=True).first()
+            if active_ay:
+                serializer.validated_data['academic_year'] = active_ay
+
         schedule = serializer.save()
         log_audit_action(
             user=self.request.user,
@@ -154,19 +162,23 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             description=f'Created schedule: {schedule}',
             request=self.request
         )
-        # Notify teacher of new schedule
-        Notification.objects.create(
-            recipient=schedule.teacher,
-            notification_type='system',
-            title='New Schedule Assigned',
-            message=(
-                f'You have been assigned to teach {schedule.subject.name} '
-                f'for {schedule.classroom.name} on '
-                f'{schedule.time_slot.get_day_display()} '
-                f'{schedule.time_slot.start_time.strftime("%I:%M %p")}.'
-            ),
-            link='/schedule'
-        )
+        # Notify teacher only if a teacher is assigned (not vacant)
+        if schedule.teacher and schedule.subject:
+            try:
+                Notification.objects.create(
+                    recipient=schedule.teacher,
+                    notification_type='system',
+                    title='New Schedule Assigned',
+                    message=(
+                        f'You have been assigned to teach {schedule.subject.name} '
+                        f'for {schedule.classroom.name} on '
+                        f'{schedule.time_slot.get_day_display()} '
+                        f'{schedule.time_slot.start_time.strftime("%I:%M %p")}.'
+                    ),
+                    link='/schedule'
+                )
+            except Exception:
+                pass  # Notification failure should not block schedule creation
 
     def perform_update(self, serializer):
         if self.request.user.role != 'admin':
