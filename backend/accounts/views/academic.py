@@ -561,6 +561,48 @@ class StudentClassEnrollmentViewSet(viewsets.ModelViewSet):
 
         return Response({'status': 'Student withdrawn', 'reason_type': reason_type})
 
+    @action(detail=True, methods=['post'], url_path='remove-student')
+    def remove_student(self, request, pk=None):
+        """Remove a student from a classroom with reason tracking."""
+        enrollment = self.get_object()
+        student = enrollment.student
+        classroom = enrollment.classroom
+
+        reason = request.data.get('reason', '').strip()
+        reason_type = request.data.get('reason_type', 'withdrawn')
+        if not reason:
+            return Response({'error': 'A reason is required to remove a student'}, status=400)
+
+        enrollment.delete()
+
+        valid_statuses = ['enrolled', 'withdrawn', 'transferred_out', 'transferring', 'dropped']
+        profile_status = reason_type if reason_type in valid_statuses else 'withdrawn'
+
+        profile, _ = Profile.objects.get_or_create(user=student)
+        profile.enrollment_status = profile_status
+        profile.enrollment_status_reason = reason
+        profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
+
+        EnrollmentStatusHistory.objects.create(
+            application=None,
+            from_status='enrolled',
+            to_status=profile_status,
+            changed_by=request.user,
+            notes=f'Removed from {classroom.name} ({reason_type}): {reason}',
+        )
+
+        log_audit_action(
+            user=request.user,
+            action='remove_student',
+            model_name='StudentClassEnrollment',
+            object_id=enrollment.id if hasattr(enrollment, 'id') else None,
+            object_repr=f'{student.username} from {classroom.name}',
+            description=f'Removed {student.username} from {classroom.name} — {reason_type}: {reason}',
+            request=request,
+        )
+
+        return Response({'status': 'Student removed', 'reason_type': reason_type})
+
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer

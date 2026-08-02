@@ -86,7 +86,7 @@ const StudentEnrollment = () => {
     }
     setWithdrawing(true);
     try {
-      await api.post(`/enrollment-applications/${withdrawStudent.id}/withdraw_student/`, {
+      await api.post(`/enrollments/${withdrawStudent.id}/remove_student/`, {
         reason_type: withdrawReasonType,
         reason: withdrawReason.trim(),
       });
