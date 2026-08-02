@@ -82,13 +82,6 @@ class ClassroomSubject(models.Model):
         unique_together = ['classroom', 'subject']
         ordering = ['classroom__name', 'subject__name']
 
-    def clean(self):
-        total = self.ww_weight + self.pt_weight + self.qa_weight
-        if total != Decimal('100.00'):
-            raise ValidationError(
-                f'Grade weights must sum to 100%. Current total: {total}%'
-            )
-
 
 class SystemSetting(models.Model):
     site_name = models.CharField(max_length=255, default='School Portal')

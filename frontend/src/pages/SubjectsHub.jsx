@@ -227,8 +227,20 @@ function AssignmentsTab() {
       else { await api.post('/classroom-subjects/', payload); toast.success('Assignment created'); }
       setShowModal(false); refetch();
     } catch (err) {
-      const msg = err.response?.data?.detail || Object.values(err.response?.data || {})[0]?.[0] || 'Failed to save assignment';
-      toast.error(msg);
+      const d = err.response?.data;
+      // unique_together violation
+      const nonFieldErrors = d?.non_field_errors || d?.detail;
+      if (nonFieldErrors) {
+        const msg = Array.isArray(nonFieldErrors) ? nonFieldErrors[0] : nonFieldErrors;
+        if (msg.toLowerCase().includes('unique') || msg.toLowerCase().includes('already')) {
+          toast.error('This subject is already assigned to this section.');
+        } else {
+          toast.error(msg);
+        }
+      } else {
+        const msg = Object.values(d || {})[0];
+        toast.error(Array.isArray(msg) ? msg[0] : msg || 'Failed to save assignment');
+      }
     } finally { setSaving(false); }
   };
 
