@@ -2138,12 +2138,25 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
         if user.role not in ['admin', 'staff']:
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only admins and teachers can assign subjects to classrooms")
-        instance = serializer.save()
-        log_audit_action(user, 'create', 'ClassroomSubject',
+
+        classroom = serializer.validated_data.get('classroom')
+        subject = serializer.validated_data.get('subject')
+        teacher = serializer.validated_data.get('teacher')
+
+        # Use update_or_create so re-assigning the same subject to a section just updates the teacher
+        from ..models import ClassroomSubject
+        instance, created = ClassroomSubject.objects.update_or_create(
+            classroom=classroom,
+            subject=subject,
+            defaults={'teacher': teacher},
+        )
+        action = 'create' if created else 'update'
+        log_audit_action(user, action, 'ClassroomSubject',
                          object_id=instance.id,
                          object_repr=str(instance),
-                         description=f"Assigned {instance.subject.code} to {instance.classroom.name}",
+                         description=f"{'Assigned' if created else 'Updated'} {instance.subject.code} in {instance.classroom.name}",
                          request=self.request)
+        return instance
 
     def perform_update(self, serializer):
         user = self.request.user

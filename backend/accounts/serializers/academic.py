@@ -154,6 +154,8 @@ class ClassroomSubjectSerializer(serializers.ModelSerializer):
                   'teacher', 'teacher_name', 'teacher_email',
                   'ww_weight', 'pt_weight', 'qa_weight', 'assigned_at', 'students']
         read_only_fields = ['assigned_at']
+        # unique_together enforced at view level via update_or_create
+        validators = []
 
     def get_teacher_name(self, obj): return full_name(obj.teacher)
 
