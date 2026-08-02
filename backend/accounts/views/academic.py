@@ -2199,13 +2199,25 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
         ).filter(classroom_id=classroom_id)
 
         user = request.user
-        # Only filter by teacher for pure staff role, not admin users
-        # Admin users should see all subjects even if they also have staff role
         if user.role == 'staff' and not (hasattr(user, 'is_superuser') and user.is_superuser):
             queryset = queryset.filter(teacher=user)
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        # Use lightweight serializer (no students) to avoid N+1 / timeout
+        data = [
+            {
+                'id': cs.id,
+                'classroom': cs.classroom_id,
+                'classroom_name': cs.classroom.name if cs.classroom else '',
+                'subject': cs.subject_id,
+                'subject_name': cs.subject.name if cs.subject else '',
+                'subject_code': cs.subject.code if cs.subject else '',
+                'teacher': cs.teacher_id,
+                'teacher_name': full_name(cs.teacher) if cs.teacher else '',
+                'teacher_email': cs.teacher.email if cs.teacher else '',
+            }
+            for cs in queryset
+        ]
+        return Response(data)
 
     @action(detail=False, methods=['get'])
     def by_teacher(self, request):
@@ -2218,9 +2230,26 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
         if not teacher_id:
             return Response({'error': 'teacher_id parameter required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = self.get_queryset().filter(teacher_id=teacher_id)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        queryset = ClassroomSubject.objects.select_related(
+            'classroom', 'subject', 'teacher'
+        ).filter(teacher_id=teacher_id)
+
+        # Use lightweight serializer (no students) to avoid N+1 / timeout
+        data = [
+            {
+                'id': cs.id,
+                'classroom': cs.classroom_id,
+                'classroom_name': cs.classroom.name if cs.classroom else '',
+                'subject': cs.subject_id,
+                'subject_name': cs.subject.name if cs.subject else '',
+                'subject_code': cs.subject.code if cs.subject else '',
+                'teacher': cs.teacher_id,
+                'teacher_name': full_name(cs.teacher) if cs.teacher else '',
+                'teacher_email': cs.teacher.email if cs.teacher else '',
+            }
+            for cs in queryset
+        ]
+        return Response(data)
 
 
 class ScratchCardViewSet(viewsets.ModelViewSet):

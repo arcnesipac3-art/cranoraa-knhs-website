@@ -163,9 +163,13 @@ class ClassroomSubjectSerializer(serializers.ModelSerializer):
         return obj.subject.has_components if obj.subject else False
 
     def get_students(self, obj):
-        enrollments = obj.classroom.enrollments.all().select_related('student')
-        students = [e.student for e in enrollments]
-        return SimplifiedStudentSerializer(students, many=True).data
+        # Only include students when explicitly requested (detail=True or ?include_students=1)
+        request = self.context.get('request')
+        if request and request.query_params.get('include_students') == '1':
+            enrollments = obj.classroom.enrollments.all().select_related('student')
+            students = [e.student for e in enrollments]
+            return SimplifiedStudentSerializer(students, many=True).data
+        return []
 
     def create(self, validated_data):
         return super().create(validated_data)
