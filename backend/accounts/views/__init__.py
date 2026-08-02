@@ -44,6 +44,7 @@ from .grades import (
 from .attendance import (
     AttendanceViewSet,
     AbsenceExcuseViewSet,
+    SchoolCalendarViewSet,
 )
 
 from .enrollment import (
