@@ -21,7 +21,12 @@ if (_missingKeys.length > 0) {
   );
 }
 
-const app = initializeApp(firebaseConfig);
+let app;
+try {
+  app = initializeApp(firebaseConfig);
+} catch (err) {
+  console.error('[Firebase] initializeApp failed:', err.message);
+}
 
 /**
  * Returns the Firebase Messaging instance if the browser supports it.
@@ -29,10 +34,18 @@ const app = initializeApp(firebaseConfig);
  */
 export async function getMessagingInstance() {
   try {
+    if (_missingKeys.length > 0) {
+      console.warn('[Firebase] Skipping messaging — missing env vars');
+      return null;
+    }
     const supported = await isSupported();
-    if (!supported) return null;
+    if (!supported) {
+      console.warn('[Firebase] Messaging not supported in this browser');
+      return null;
+    }
     return getMessaging(app);
-  } catch {
+  } catch (err) {
+    console.error('[Firebase] getMessagingInstance error:', err.message || err);
     return null;
   }
 }
