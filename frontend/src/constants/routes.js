@@ -65,6 +65,11 @@ const SF10Page = lazy(() => retryImport(() => import('../pages/SF10PermanentReco
 const GradeManagementAdmin = lazy(() => retryImport(() => import('../pages/GradeManagementAdmin')));
 const TeacherGradeDashboard = lazy(() => retryImport(() => import('../pages/TeacherGradeDashboard')));
 
+// Attendance Management
+const AttendanceDashboard = lazy(() => retryImport(() => import('../pages/AttendanceDashboard')));
+const AttendanceMonitoring = lazy(() => retryImport(() => import('../pages/AttendanceMonitoring')));
+const StudentAttendance = lazy(() => retryImport(() => import('../pages/StudentAttendance')));
+
 // ── Route definitions ────────────────────────────────────────────────────────
 
 /**
@@ -128,6 +133,11 @@ export const protectedRoutes = [
   // Grade Management Module
   { path: 'grade-management', element: GradeManagementAdmin, roles: [Role.ADMIN] },
   { path: 'teacher-grade-dashboard', element: TeacherGradeDashboard, roles: [Role.STAFF] },
+
+  // Attendance Management
+  { path: 'attendance-dashboard', element: AttendanceDashboard, roles: [Role.STAFF] },
+  { path: 'attendance-monitoring', element: AttendanceMonitoring, roles: [Role.ADMIN] },
+  { path: 'student-attendance', element: StudentAttendance, roles: [Role.STUDENT, Role.PARENT] },
 
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },

@@ -11,6 +11,7 @@ from rest_framework.response import Response
 from ..models import (
     User, Profile, Classroom, StudentClassEnrollment, Attendance, LearningMaterial,
     Subject, ClassroomSubject, Notification, AbsenceExcuse, Schedule, Room,
+    AttendanceDeadline, AttendanceAuditLog,
 )
 from ..serializers import (
     AttendanceSerializer, AbsenceExcuseSerializer, full_name,
@@ -308,7 +309,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                     errors.append(f'Missing student_id or status for record: {rec}')
                     continue
 
-                if status_val not in ['present', 'absent', 'late', 'excused']:
+                if status_val not in ['present', 'absent', 'late', 'excused', 'school_activity', 'medical_leave']:
                     errors.append(f'Invalid status "{status_val}" for student {student_id}')
                     continue
 
@@ -431,6 +432,353 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 a.marked_by.username if a.marked_by else '',
             ])
         return response
+
+    @action(detail=False, methods=['get'], url_path='teacher-dashboard')
+    def teacher_dashboard(self, request):
+        """Teacher's daily attendance dashboard — shows today's classes with completion status."""
+        if request.user.role not in ['staff', 'admin']:
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        today = datetime.date.today()
+        today_name = today.strftime('%A').lower()
+
+        schedules = Schedule.objects.filter(
+            teacher=request.user,
+            is_active=True,
+            time_slot__day=today_name,
+        ).select_related('classroom', 'subject', 'room', 'time_slot').order_by('time_slot__start_time')
+
+        schedule_ids = [s.id for s in schedules]
+        classroom_ids = [s.classroom_id for s in schedules]
+
+        enrollment_counts = dict(
+            StudentClassEnrollment.objects.filter(classroom_id__in=classroom_ids)
+            .values('classroom_id')
+            .annotate(cnt=Count('id'))
+            .values_list('classroom_id', 'cnt')
+        )
+
+        attendance_counts = dict(
+            Attendance.objects.filter(
+                schedule_id__in=schedule_ids,
+                date=today,
+            ).values('schedule_id')
+            .annotate(
+                total=Count('id'),
+                present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
+                absent=Count(Case(When(status='absent', then=1), output_field=IntegerField())),
+                late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
+            ).values_list('schedule_id', 'total', 'present', 'absent', 'late')
+        )
+        att_map = {}
+        for sid, total, present, absent, late in attendance_counts:
+            att_map[sid] = {'total': total, 'present': present, 'absent': absent, 'late': late}
+
+        data = []
+        for sch in schedules:
+            student_count = enrollment_counts.get(sch.classroom_id, 0)
+            att = att_map.get(sch.id, {'total': 0, 'present': 0, 'absent': 0, 'late': 0})
+            completion = round((att['total'] / student_count * 100), 0) if student_count > 0 else 0
+
+            data.append({
+                'schedule_id': sch.id,
+                'classroom_id': sch.classroom_id,
+                'classroom_name': sch.classroom.name,
+                'subject_id': sch.subject_id,
+                'subject_name': sch.subject.name,
+                'subject_code': sch.subject.code,
+                'room': sch.room.name if sch.room else None,
+                'start_time': sch.time_slot.start_time.strftime('%I:%M %p'),
+                'end_time': sch.time_slot.end_time.strftime('%I:%M %p'),
+                'student_count': student_count,
+                'recorded': att['total'],
+                'present': att['present'],
+                'absent': att['absent'],
+                'late': att['late'],
+                'completion': completion,
+                'status': 'completed' if att['total'] >= student_count and student_count > 0 else 'pending',
+            })
+
+        return Response(data)
+
+    @action(detail=False, methods=['get'], url_path='admin-monitoring')
+    def admin_monitoring(self, request):
+        """Admin attendance monitoring — today's overview with charts."""
+        if request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        today = datetime.date.today()
+        today_name = today.strftime('%A').lower()
+
+        all_schedules = Schedule.objects.filter(
+            is_active=True,
+            time_slot__day=today_name,
+        ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('time_slot__start_time')
+
+        total_classes = all_schedules.count()
+
+        schedule_ids = list(all_schedules.values_list('id', flat=True))
+        classroom_ids = list(all_schedules.values_list('classroom_id', flat=True))
+
+        enrollment_counts = dict(
+            StudentClassEnrollment.objects.filter(classroom_id__in=classroom_ids)
+            .values('classroom_id')
+            .annotate(cnt=Count('id'))
+            .values_list('classroom_id', 'cnt')
+        )
+        total_students = sum(enrollment_counts.values()) if enrollment_counts else 0
+
+        attendance_agg = Attendance.objects.filter(
+            schedule_id__in=schedule_ids,
+            date=today,
+        ).aggregate(
+            total_records=Count('id'),
+            present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
+            absent=Count(Case(When(status='absent', then=1), output_field=IntegerField())),
+            late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
+        )
+
+        attended_schedules = Attendance.objects.filter(
+            schedule_id__in=schedule_ids,
+            date=today,
+        ).values('schedule_id').annotate(cnt=Count('id')).values_list('schedule_id', 'cnt')
+        attended_map = dict(attended_schedules)
+
+        completed_count = 0
+        pending_count = 0
+        late_submissions = 0
+        teacher_stats = {}
+
+        for sch in all_schedules:
+            teacher_id = sch.teacher_id
+            teacher_name = full_name(sch.teacher)
+            if teacher_id not in teacher_stats:
+                teacher_stats[teacher_id] = {
+                    'teacher_id': teacher_id,
+                    'teacher_name': teacher_name,
+                    'classes_today': 0,
+                    'submitted': 0,
+                    'pending': 0,
+                }
+            teacher_stats[teacher_id]['classes_today'] += 1
+
+            stu_count = enrollment_counts.get(sch.classroom_id, 0)
+            recorded = attended_map.get(sch.id, 0)
+
+            if recorded >= stu_count and stu_count > 0:
+                completed_count += 1
+                teacher_stats[teacher_id]['submitted'] += 1
+            else:
+                pending_count += 1
+                teacher_stats[teacher_id]['pending'] += 1
+
+        overall_rate = round(
+            (attendance_agg['present'] / attendance_agg['total_records'] * 100)
+            if attendance_agg['total_records'] > 0 else 0, 1
+        )
+
+        daily_trends = []
+        for day_offset in range(6, -1, -1):
+            d = today - datetime.timedelta(days=day_offset)
+            day_att = Attendance.objects.filter(date=d).aggregate(
+                total=Count('id'),
+                present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
+            )
+            daily_trends.append({
+                'date': d.strftime('%Y-%m-%d'),
+                'day': d.strftime('%a'),
+                'rate': round(day_att['present'] / day_att['total'] * 100, 1) if day_att['total'] > 0 else 0,
+                'total': day_att['total'],
+            })
+
+        grade_rates = []
+        grade_data = Attendance.objects.filter(date=today).values(
+            'student__profile__grade_level'
+        ).annotate(
+            total=Count('id'),
+            present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
+        ).order_by('student__profile__grade_level')
+        for g in grade_data:
+            level = g['student__profile__grade_level'] or 'N/A'
+            grade_rates.append({
+                'grade': str(level),
+                'rate': round(g['present'] / g['total'] * 100, 1) if g['total'] > 0 else 0,
+                'total': g['total'],
+            })
+
+        return Response({
+            'summary': {
+                'total_classes': total_classes,
+                'completed': completed_count,
+                'pending': pending_count,
+                'total_students': total_students,
+                'total_records': attendance_agg['total_records'],
+                'present': attendance_agg['present'],
+                'absent': attendance_agg['absent'],
+                'late': attendance_agg['late'],
+                'overall_rate': overall_rate,
+            },
+            'teacher_stats': list(teacher_stats.values()),
+            'daily_trends': daily_trends,
+            'grade_rates': grade_rates,
+        })
+
+    @action(detail=False, methods=['post'], url_path='submit')
+    def submit_attendance(self, request):
+        """Mark attendance records as submitted for a schedule+date."""
+        if request.user.role not in ['staff', 'admin']:
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        schedule_id = request.data.get('schedule')
+        date_str = request.data.get('date')
+
+        if not schedule_id or not date_str:
+            return Response({'error': 'schedule and date are required'}, status=400)
+
+        try:
+            att_date = datetime.date.fromisoformat(date_str)
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=400)
+
+        updated = Attendance.objects.filter(
+            schedule_id=schedule_id,
+            date=att_date,
+            workflow_status='draft',
+        ).update(
+            workflow_status='submitted',
+            submitted_at=dj_timezone.now(),
+        )
+
+        AttendanceAuditLog.objects.create(
+            user=request.user,
+            action='submit',
+            classroom_id=Schedule.objects.filter(id=schedule_id).values_list('classroom_id', flat=True).first(),
+            date=att_date,
+            description=f'Submitted {updated} attendance records',
+            metadata={'schedule_id': schedule_id, 'count': updated},
+        )
+
+        return Response({'submitted': updated})
+
+    @action(detail=False, methods=['post'], url_path='reopen')
+    def reopen_attendance(self, request):
+        """Admin reopens submitted attendance for editing."""
+        if request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        schedule_id = request.data.get('schedule')
+        date_str = request.data.get('date')
+        reason = request.data.get('reason', '')
+
+        if not schedule_id or not date_str:
+            return Response({'error': 'schedule and date are required'}, status=400)
+
+        try:
+            att_date = datetime.date.fromisoformat(date_str)
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=400)
+
+        updated = Attendance.objects.filter(
+            schedule_id=schedule_id,
+            date=att_date,
+            workflow_status__in=['submitted', 'locked'],
+        ).update(
+            workflow_status='draft',
+            submitted_at=None,
+            locked_at=None,
+        )
+
+        AttendanceAuditLog.objects.create(
+            user=request.user,
+            action='reopen',
+            classroom_id=Schedule.objects.filter(id=schedule_id).values_list('classroom_id', flat=True).first(),
+            date=att_date,
+            description=f'Reopened {updated} attendance records. Reason: {reason}',
+            metadata={'schedule_id': schedule_id, 'count': updated, 'reason': reason},
+        )
+
+        return Response({'reopened': updated})
+
+    @action(detail=False, methods=['get'], url_path='student-history')
+    def student_history(self, request):
+        """Student's own attendance history with stats."""
+        user = request.user
+        if user.role == 'student':
+            student_id = user.id
+        elif user.role in ['admin', 'staff']:
+            student_id = request.query_params.get('student')
+            if not student_id:
+                return Response({'error': 'student parameter required'}, status=400)
+        elif user.role == 'parent':
+            profile = getattr(user, 'profile', None)
+            student_id = request.query_params.get('student')
+            if not student_id and profile:
+                student_id = profile.linked_students.values_list('id', flat=True).first()
+            if not student_id:
+                return Response({'error': 'student parameter required'}, status=400)
+        else:
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+
+        qs = Attendance.objects.filter(student_id=student_id).select_related('classroom', 'subject')
+
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+
+        records = list(qs.values(
+            'id', 'date', 'status', 'remarks', 'classroom__name', 'subject__name',
+            'subject__code', 'minutes_late', 'has_excuse', 'excuse_verified',
+            'workflow_status',
+        ))
+
+        stats = qs.aggregate(
+            total=Count('id'),
+            present=Count(Case(When(status='present', then=1), output_field=IntegerField())),
+            absent=Count(Case(When(status='absent', then=1), output_field=IntegerField())),
+            late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
+            excused=Count(Case(When(status='excused', then=1), output_field=IntegerField())),
+            school_activity=Count(Case(When(status='school_activity', then=1), output_field=IntegerField())),
+            medical_leave=Count(Case(When(status='medical_leave', then=1), output_field=IntegerField())),
+        )
+        total = stats['total']
+        attended = (stats['present'] or 0) + (stats['late'] or 0) + (stats['excused'] or 0) + (stats['school_activity'] or 0) + (stats['medical_leave'] or 0)
+        rate = round(attended / total * 100, 1) if total > 0 else 0
+
+        return Response({
+            'student_id': student_id,
+            'stats': {**stats, 'rate': rate},
+            'records': records,
+        })
+
+    @action(detail=False, methods=['get'], url_path='audit-trail')
+    def audit_trail(self, request):
+        """Attendance audit trail for admin."""
+        if request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        classroom_id = request.query_params.get('classroom')
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+
+        qs = AttendanceAuditLog.objects.select_related('user', 'classroom').all()
+
+        if classroom_id:
+            qs = qs.filter(classroom_id=classroom_id)
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+
+        logs = list(qs[:100].values(
+            'id', 'user__username', 'action', 'date', 'previous_status',
+            'new_status', 'description', 'metadata', 'created_at',
+        ))
+
+        return Response(logs)
 
 
 class AbsenceExcuseViewSet(viewsets.ModelViewSet):

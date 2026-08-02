@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone as dj_timezone
 
 from .user import User
 from .academic import Classroom, Subject
@@ -10,6 +11,14 @@ class Attendance(models.Model):
         ('absent', 'Absent'),
         ('late', 'Late'),
         ('excused', 'Excused'),
+        ('school_activity', 'School Activity'),
+        ('medical_leave', 'Medical Leave'),
+    ]
+
+    WORKFLOW_CHOICES = [
+        ('draft', 'Draft'),
+        ('submitted', 'Submitted'),
+        ('locked', 'Locked'),
     ]
 
     student = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='attendances')
@@ -32,6 +41,11 @@ class Attendance(models.Model):
     has_excuse = models.BooleanField(default=False)
     excuse_verified = models.BooleanField(default=False, help_text="Set to True once admin/teacher verifies the excuse")
 
+    workflow_status = models.CharField(max_length=20, choices=WORKFLOW_CHOICES, default='draft',
+        help_text="Tracks attendance lifecycle: draft → submitted → locked")
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    locked_at = models.DateTimeField(null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -51,6 +65,7 @@ class Attendance(models.Model):
         ordering = ['-date', 'student__username']
         indexes = [
             models.Index(fields=['date', 'classroom'], name='idx_attendance_date_classroom'),
+            models.Index(fields=['workflow_status'], name='idx_attendance_workflow'),
         ]
 
     def __str__(self):
@@ -65,6 +80,61 @@ class Attendance(models.Model):
         if self.status == 'excused':
             self.has_excuse = True
         super().save(*args, **kwargs)
+
+
+class AttendanceDeadline(models.Model):
+    classroom = models.ForeignKey(Classroom, on_delete=models.CASCADE, related_name='attendance_deadlines')
+    date = models.DateField()
+    open_time = models.TimeField(default='07:00', help_text="Time attendance becomes available")
+    deadline_minutes = models.PositiveIntegerField(default=30,
+        help_text="Minutes after class start to submit attendance")
+    lock_minutes = models.PositiveIntegerField(default=60,
+        help_text="Minutes after class start to auto-lock attendance")
+    is_locked = models.BooleanField(default=False)
+    locked_at = models.DateTimeField(null=True, blank=True)
+    locked_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['classroom', 'date']
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"Deadline for {self.classroom.name} on {self.date}"
+
+
+class AttendanceAuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('create', 'Created'),
+        ('update', 'Updated'),
+        ('submit', 'Submitted'),
+        ('reopen', 'Reopened'),
+        ('lock', 'Locked'),
+        ('bulk_action', 'Bulk Action'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='attendance_audit_logs')
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    attendance = models.ForeignKey(Attendance, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
+    classroom = models.ForeignKey(Classroom, on_delete=models.SET_NULL, null=True, blank=True)
+    date = models.DateField(null=True, blank=True)
+    previous_status = models.CharField(max_length=20, blank=True, null=True)
+    new_status = models.CharField(max_length=20, blank=True, null=True)
+    description = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['classroom', 'date'], name='idx_audit_classroom_date'),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.action} - {self.date}"
 
 
 class AbsenceExcuse(models.Model):

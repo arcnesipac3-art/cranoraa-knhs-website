@@ -7,7 +7,7 @@ from .chat import (
     ReportedMessage, UserBlock, EmergencyMessage,
 )
 from .announcements import Announcement, AnnouncementAttachment, AnnouncementComment
-from .attendance import Attendance, AbsenceExcuse
+from .attendance import Attendance, AbsenceExcuse, AttendanceDeadline, AttendanceAuditLog
 from .learning import LearningMaterial
 from .finance import ScratchCard, Fee
 from .notifications import Notification, NotificationPreference, FCMToken
@@ -50,7 +50,7 @@ __all__ = [
     'ChatRoom', 'ChatMessage', 'MessageReaction', 'ChatMember', 'Mention',
     'ReportedMessage', 'UserBlock', 'EmergencyMessage',
     'Announcement', 'AnnouncementAttachment', 'AnnouncementComment',
-    'Attendance', 'AbsenceExcuse',
+    'Attendance', 'AbsenceExcuse', 'AttendanceDeadline', 'AttendanceAuditLog',
     'LearningMaterial',
     'ScratchCard', 'Fee',
     'Notification', 'NotificationPreference', 'FCMToken',

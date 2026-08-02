@@ -8,7 +8,8 @@ import {
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } from '../../components/ui/Modal';
 import {
   ArrowLeft, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
-  Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare, Circle
+  Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare, Circle,
+  BookOpen, AlertTriangle, Send, Lock, Unlock
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
 
@@ -589,7 +590,6 @@ export const GradeManagementView = ({ classroom, onBack }) => {
 export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
-  const [attendanceIds, setAttendanceIds] = useState({});
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -615,7 +615,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
         const initAttendance = {};
         sorted.forEach(s => { initAttendance[s.student] = null; });
         setAttendance(initAttendance);
-        setAttendanceIds({});
       } catch {
         toast.error('Failed to load students');
       } finally {
@@ -630,12 +629,9 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
       try {
         const res = await api.get(`/attendance/?classroom=${classroom.id}&date=${selectedDate}`);
         const attendanceMap = {};
-        const idMap = {};
         res.data.forEach(a => {
           attendanceMap[a.student] = a.status;
-          idMap[a.student] = a.id;
         });
-        setAttendanceIds(idMap);
         setAttendance(prev => {
           const next = {};
           Object.keys(prev).forEach(studentId => {
@@ -688,56 +684,15 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     toast.success('All students marked present');
   };
 
-  const handleSubmit = async () => {
-    const unmarked = students.filter(s => attendance[s.student] === null);
-    if (unmarked.length > 0) {
-      const proceed = window.confirm(`${unmarked.length} student(s) still unmarked. Submit only marked students?`);
-      if (!proceed) return;
-    }
-
-    const markedStudents = students.filter(s => attendance[s.student] !== null);
-    if (markedStudents.length === 0) {
-      toast.error('No students marked yet');
-      return;
-    }
-
-    setSubmitting(true);
-    const results = await Promise.allSettled(
-      markedStudents.map(student => {
-        const existingId = attendanceIds[student.student];
-        const payload = {
-          student: student.student,
-          classroom: classroom.id,
-          date: selectedDate,
-          status: attendance[student.student],
-          schedule_id: null,
-          remarks: remarks[student.student] || '',
-        };
-        return existingId
-          ? api.put(`/attendance/${existingId}/`, payload)
-          : api.post('/attendance/', payload);
-      })
-    );
-
-    const succeeded = results.filter(r => r.status === 'fulfilled').length;
-    const failed = results.filter(r => r.status === 'rejected');
-    setSubmitting(false);
-
-    if (succeeded > 0) toast.success(`Attendance recorded for ${succeeded} student(s)`);
-    if (failed.length > 0) {
-      const firstErr = failed[0].reason?.response?.data;
-      const msg = typeof firstErr === 'string' ? firstErr : firstErr?.error || firstErr?.detail || 'Some records failed';
-      toast.error(msg);
-    }
-  };
-
   const stats = useMemo(() => {
     const present = Object.values(attendance).filter(s => s === 'present').length;
     const absent = Object.values(attendance).filter(s => s === 'absent').length;
     const late = Object.values(attendance).filter(s => s === 'late').length;
     const excused = Object.values(attendance).filter(s => s === 'excused').length;
+    const schoolActivity = Object.values(attendance).filter(s => s === 'school_activity').length;
+    const medicalLeave = Object.values(attendance).filter(s => s === 'medical_leave').length;
     const unmarked = Object.values(attendance).filter(s => s === null).length;
-    return { present, absent, late, excused, unmarked, total: students.length };
+    return { present, absent, late, excused, schoolActivity, medicalLeave, unmarked, total: students.length };
   }, [attendance, students.length]);
 
   const filteredStudents = useMemo(() => {
@@ -786,6 +741,68 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     absent:   { active: 'bg-red-600 text-white',   idle: 'bg-red-50 text-red-700 hover:bg-red-100',   icon: XCircle },
     late:     { active: 'bg-amber-600 text-white',  idle: 'bg-amber-50 text-amber-700 hover:bg-amber-100', icon: ClockIcon },
     excused:  { active: 'bg-blue-600 text-white',   idle: 'bg-blue-50 text-blue-700 hover:bg-blue-100',   icon: ShieldCheck },
+    school_activity: { active: 'bg-violet-600 text-white', idle: 'bg-violet-50 text-violet-700 hover:bg-violet-100', icon: BookOpen },
+    medical_leave: { active: 'bg-pink-600 text-white', idle: 'bg-pink-50 text-pink-700 hover:bg-pink-100', icon: AlertTriangle },
+  };
+
+  // Track workflow status per date
+  const [workflowStatus, setWorkflowStatus] = useState('draft');
+
+  // Check workflow status on date change
+  useEffect(() => {
+    const checkWorkflow = async () => {
+      try {
+        const res = await api.get(`/attendance/?classroom=${classroom.id}&date=${selectedDate}`);
+        if (res.data.results && res.data.results.length > 0) {
+          setWorkflowStatus(res.data.results[0].workflow_status || 'draft');
+        } else {
+          setWorkflowStatus('draft');
+        }
+      } catch {
+        setWorkflowStatus('draft');
+      }
+    };
+    if (selectedDate) checkWorkflow();
+  }, [selectedDate, classroom.id]);
+
+  const handleSubmitAll = async () => {
+    if (workflowStatus !== 'draft') {
+      toast.error('Attendance already submitted');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.post('/attendance/submit/', {
+        classroom_id: classroom.id,
+        date: selectedDate,
+      });
+      toast.success('Attendance submitted for admin review');
+      setWorkflowStatus('submitted');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to submit');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReopen = async () => {
+    if (workflowStatus === 'draft') {
+      toast.error('Attendance is already in draft');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await api.post('/attendance/reopen/', {
+        classroom_id: classroom.id,
+        date: selectedDate,
+      });
+      toast.success('Attendance reopened for editing');
+      setWorkflowStatus('draft');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to reopen');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -796,23 +813,46 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
           <span className="hidden sm:inline">Back to Overview</span>
         </Button>
         <div className="flex items-center gap-2">
+          {/* Workflow Status Badge */}
+          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+            workflowStatus === 'submitted' ? 'bg-green-100 text-green-700' :
+            workflowStatus === 'locked' ? 'bg-red-100 text-red-700' :
+            'bg-slate-100 text-slate-600'
+          }`}>
+            {workflowStatus}
+          </span>
           {stats.unmarked > 0 && !isStudent && (
             <span className="text-xs text-amber-600 font-medium hidden sm:inline">{stats.unmarked} unmarked</span>
           )}
-          <Button 
-            variant="primary" 
-            size="sm" 
-            onClick={handleSubmit} 
-            loading={submitting}
-            disabled={isStudent || stats.unmarked === students.length}
-          >
-            <Check className="w-4 h-4 mr-1.5" />
-            <span className="hidden sm:inline">Submit</span>
-            <span className="sm:hidden">Submit</span>
-            {!isStudent && stats.unmarked < students.length && (
-              <span className="ml-1 text-xs opacity-75">({students.length - stats.unmarked})</span>
-            )}
-          </Button>
+          {!isStudent && workflowStatus === 'draft' && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleSubmitAll}
+              loading={submitting}
+            >
+              <Send className="w-4 h-4 mr-1.5" />
+              <span className="hidden sm:inline">Submit</span>
+              <span className="sm:hidden">Submit</span>
+            </Button>
+          )}
+          {!isStudent && workflowStatus === 'submitted' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReopen}
+              loading={submitting}
+            >
+              <Unlock className="w-4 h-4 mr-1.5" />
+              Reopen
+            </Button>
+          )}
+          {!isStudent && workflowStatus === 'locked' && (
+            <span className="flex items-center gap-1 text-xs text-red-600 font-semibold">
+              <Lock className="w-3.5 h-3.5" />
+              Locked
+            </span>
+          )}
         </div>
       </div>
 
@@ -866,7 +906,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-6 gap-1 sm:gap-1.5 md:gap-3 mb-4 md:mb-6">
+          <div className="grid grid-cols-8 gap-1 sm:gap-1.5 md:gap-3 mb-4 md:mb-6">
             <div className="bg-slate-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-slate-700">{stats.total}</div>
               <div className="text-[7px] sm:text-[9px] md:text-[10px] text-slate-600 uppercase font-semibold mt-0.5">Total</div>
@@ -891,6 +931,14 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
               <div className="text-sm sm:text-lg md:text-xl font-bold text-blue-600">{stats.excused}</div>
               <div className="text-[7px] sm:text-[9px] md:text-[10px] text-blue-700 uppercase font-semibold mt-0.5">Excused</div>
             </div>
+            <div className="bg-violet-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
+              <div className="text-sm sm:text-lg md:text-xl font-bold text-violet-600">{stats.schoolActivity}</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-violet-700 uppercase font-semibold mt-0.5">Activity</div>
+            </div>
+            <div className="bg-pink-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
+              <div className="text-sm sm:text-lg md:text-xl font-bold text-pink-600">{stats.medicalLeave}</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-pink-700 uppercase font-semibold mt-0.5">Medical</div>
+            </div>
           </div>
 
           {/* Attendance List */}
@@ -908,7 +956,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
             <>
               {/* Mobile: card layout */}
               <div className="md:hidden space-y-2">
-                {filteredStudents.map((student, idx) => (
+                {filteredStudents.map((student) => (
                   <div key={student.id} className="p-3 bg-white border border-slate-200 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-xs shrink-0">
