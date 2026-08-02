@@ -51,7 +51,7 @@ export default defineConfig(() => {
         },
       }),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         includeAssets: ['icons/*.png', 'icons/*.svg', 'favicon.ico'],
         manifest: false,
         workbox: {
