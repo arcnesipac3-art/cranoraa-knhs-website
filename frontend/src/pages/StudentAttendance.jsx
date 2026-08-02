@@ -62,6 +62,8 @@ const StudentAttendance = () => {
         return <BookOpen className="w-4 h-4 text-violet-500" />;
       case 'medical_leave':
         return <AlertTriangle className="w-4 h-4 text-pink-500" />;
+      case 'no_class':
+        return <Calendar className="w-4 h-4 text-slate-400" />;
       default:
         return <span className="w-4 h-4 block" />;
     }
@@ -75,25 +77,30 @@ const StudentAttendance = () => {
       case 'excused': return 'bg-blue-100 text-blue-700';
       case 'school_activity': return 'bg-violet-100 text-violet-700';
       case 'medical_leave': return 'bg-pink-100 text-pink-700';
+      case 'no_class': return 'bg-slate-100 text-slate-500';
       default: return 'bg-slate-100 text-slate-500';
     }
   };
 
-  // Group by subject
-  const grouped = records.reduce((acc, rec) => {
+  // Separate holiday records from attendance records
+  const holidays = records.filter(r => r.status === 'no_class');
+  const attendanceRecords = records.filter(r => r.status !== 'no_class');
+
+  // Group by subject (attendance records only)
+  const grouped = attendanceRecords.reduce((acc, rec) => {
     const key = rec.subject_name || 'General';
     if (!acc[key]) acc[key] = [];
     acc[key].push(rec);
     return acc;
   }, {});
 
-  // Overall stats
+  // Overall stats (attendance records only, exclude holidays)
   const stats = {
-    present: records.filter(r => r.status === 'present').length,
-    absent: records.filter(r => r.status === 'absent').length,
-    late: records.filter(r => r.status === 'late').length,
-    excused: records.filter(r => r.status === 'excused').length,
-    total: records.length,
+    present: attendanceRecords.filter(r => r.status === 'present').length,
+    absent: attendanceRecords.filter(r => r.status === 'absent').length,
+    late: attendanceRecords.filter(r => r.status === 'late').length,
+    excused: attendanceRecords.filter(r => r.status === 'excused').length,
+    total: attendanceRecords.length,
   };
   const attendanceRate = stats.total > 0 ? Math.round(((stats.present + stats.late) / stats.total) * 100) : 0;
 
@@ -192,7 +199,52 @@ const StudentAttendance = () => {
           icon={<Calendar className="w-8 h-8" />}
         />
       ) : (
-        Object.entries(grouped).map(([subject, recs]) => (
+        <>
+          {/* Holiday / No Class rows */}
+          {holidays.length > 0 && (
+            <Card>
+              <CardHeader divider>
+                <CardTitle>No Class Days</CardTitle>
+              </CardHeader>
+              <CardBody className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 border-b-2 border-slate-200">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Type</th>
+                        <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
+                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-slate-100">
+                      {holidays.map((rec) => (
+                        <tr key={rec.id} className="hover:bg-slate-50 bg-slate-50/50">
+                          <td className="px-4 py-3 text-sm text-slate-900">
+                            {new Date(rec.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-500">{rec.holiday_type_display}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">
+                              <Calendar className="w-4 h-4 text-slate-400" />
+                              No Class
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-500">
+                            <span className="font-medium text-slate-700">{rec.holiday_title}</span>
+                            {rec.remarks && <span className="ml-1 text-slate-400">— {rec.remarks}</span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+          {/* Attendance by subject */}
+          {Object.entries(grouped).map(([subject, recs]) => (
           <Card key={subject}>
             <CardHeader divider>
               <CardTitle>{subject}</CardTitle>
@@ -230,6 +282,7 @@ const StudentAttendance = () => {
             </CardBody>
           </Card>
         ))
+        </>
       )}
     </div>
   );

@@ -808,6 +808,38 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             'workflow_status',
         ))
 
+        # Also fetch school calendar entries for the same period
+        cal_qs = SchoolCalendar.objects.all()
+        if month:
+            year, mon = month.split('-')
+            cal_qs = cal_qs.filter(date__year=int(year), date__month=int(mon))
+        elif date_from:
+            cal_qs = cal_qs.filter(date__gte=date_from)
+        elif date_to:
+            cal_qs = cal_qs.filter(date__lte=date_to)
+
+        holiday_records = [
+            {
+                'id': f'holiday-{entry.id}',
+                'date': entry.date.isoformat(),
+                'status': 'no_class',
+                'remarks': entry.description or '',
+                'classroom__name': None,
+                'subject__name': None,
+                'subject__code': None,
+                'minutes_late': None,
+                'has_excuse': False,
+                'excuse_verified': False,
+                'workflow_status': None,
+                'holiday_title': entry.title,
+                'holiday_type': entry.type,
+                'holiday_type_display': entry.get_type_display(),
+            }
+            for entry in cal_qs
+        ]
+
+        all_records = sorted(records + holiday_records, key=lambda r: r['date'])
+
         stats = qs.aggregate(
             total=Count('id'),
             present=Count(Case(When(status='present', then=1), output_field=IntegerField())),
@@ -824,7 +856,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         return Response({
             'student_id': student_id,
             'stats': {**stats, 'rate': rate},
-            'records': records,
+            'records': all_records,
         })
 
     @action(detail=False, methods=['get'], url_path='audit-trail')
