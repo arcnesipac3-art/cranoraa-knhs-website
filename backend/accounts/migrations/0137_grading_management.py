@@ -85,9 +85,6 @@ class Migration(migrations.Migration):
             name='grading_period',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='submissions', to='accounts.gradingperiod'),
         ),
-        migrations.DeleteModel(
-            name='Friendship',
-        ),
         migrations.AlterUniqueTogether(
             name='gradesubmission',
             unique_together={('teacher', 'classroom', 'subject', 'grading_period')},

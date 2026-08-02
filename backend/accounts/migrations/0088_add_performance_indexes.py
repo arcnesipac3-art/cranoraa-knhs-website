@@ -26,30 +26,6 @@ class Migration(migrations.Migration):
                 name='idx_chatmsg_room_read_time',
             ),
         ),
-        # Friendship: status filtering (pending/accepted queries)
-        migrations.AddIndex(
-            model_name='friendship',
-            index=models.Index(
-                fields=['status', 'created_at'],
-                name='idx_friendship_status',
-            ),
-        ),
-        # Friendship: lookup by from_user + status
-        migrations.AddIndex(
-            model_name='friendship',
-            index=models.Index(
-                fields=['from_user', 'status'],
-                name='idx_friendship_from_status',
-            ),
-        ),
-        # Friendship: lookup by to_user + status
-        migrations.AddIndex(
-            model_name='friendship',
-            index=models.Index(
-                fields=['to_user', 'status'],
-                name='idx_friendship_to_status',
-            ),
-        ),
         # Announcement: status + category + created_at (main list query)
         migrations.AddIndex(
             model_name='announcement',
