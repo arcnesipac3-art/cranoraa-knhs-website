@@ -1110,6 +1110,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
   const [editStatus, setEditStatus] = useState('');
   const [editRemarks, setEditRemarks] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [holidayInfo, setHolidayInfo] = useState(null);
 
   // Load enrolled students
   useEffect(() => {
@@ -1133,7 +1134,18 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
   useEffect(() => {
     const fetchRecords = async () => {
       setLoading(true);
+      setHolidayInfo(null);
       try {
+        // Check if date is a holiday
+        try {
+          const holidayRes = await api.get(`/school-calendar/check/?date=${selectedDate}`);
+          if (holidayRes.data.is_holiday) {
+            setHolidayInfo(holidayRes.data);
+            setRecords([]);
+            return;
+          }
+        } catch { /* not a holiday or endpoint missing */ }
+
         const res = await api.get(`/attendance/?classroom=${classroom.id}&date=${selectedDate}`);
         setRecords(res.data.results || res.data || []);
       } catch {
@@ -1288,7 +1300,22 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
         </div>
       </div>
 
+      {/* Holiday Banner */}
+      {holidayInfo && (
+        <Card>
+          <CardBody className="p-6 text-center">
+            <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
+              <Calendar className="w-7 h-7 text-amber-500" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">{holidayInfo.title}</h3>
+            <p className="text-sm text-slate-500">{holidayInfo.type_display} — No classes</p>
+            {holidayInfo.description && <p className="text-xs text-slate-400 mt-2">{holidayInfo.description}</p>}
+          </CardBody>
+        </Card>
+      )}
+
       {/* Date & Stats */}
+      {!holidayInfo && (<>
       <Card>
         <CardBody className="p-4">
           <div className="flex items-center justify-between mb-3">
@@ -1478,6 +1505,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
           })}
         </>
       )}
+      </>)}
     </div>
   );
 };
