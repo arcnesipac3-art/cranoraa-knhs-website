@@ -106,16 +106,26 @@ def test_push_notification(request):
         }, status=400)
 
     try:
-        send_push_notification(
+        results = send_push_notification(
             user=request.user,
             title="Test Notification",
             body="If you see this, push notifications are working correctly!",
             data={"link": "/notifications"}
         )
+        if not results:
+            return Response({
+                'status': 'no_tokens',
+                'message': 'No active FCM tokens found. Re-register by toggling notifications off/on.',
+                'token_count': 0,
+            }, status=200)
+        
+        succeeded = [r for r in results if r.get('ok')]
+        failed = [r for r in results if not r.get('ok')]
+        
         return Response({
-            'status': 'success',
-            'message': f'Test push dispatched to {token_count} active device(s).',
-            'note': 'Check your phone in 2-3 seconds. If nothing appears, check Chrome notification permissions.'
+            'status': 'success' if succeeded else 'failed',
+            'message': f'{len(succeeded)} sent, {len(failed)} failed out of {len(results)} token(s)',
+            'results': results,
         })
     except Exception as e:
         logger.error(f"Firebase error: {str(e)}", exc_info=True)

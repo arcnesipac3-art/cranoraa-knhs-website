@@ -97,9 +97,12 @@ def _send_to_token(access_token: str, project_id: str, fcm_token: str,
     return resp.status_code, resp.json()
 
 
-def send_push_notification(user, title: str, body: str, data: dict = None) -> None:
+def send_push_notification(user, title: str, body: str, data: dict = None) -> list:
     """
     Send a push notification to all active FCM tokens for `user`.
+
+    Returns a list of dicts with per-token results:
+      [{'token': '…xxxx', 'status': 200, 'ok': True}, ...]
 
     Silently skips if:
     - FCM_ENABLED env var is 'false'
@@ -108,31 +111,33 @@ def send_push_notification(user, title: str, body: str, data: dict = None) -> No
 
     Marks tokens inactive if FCM reports them as unregistered.
     """
+    results = []
+
     if os.environ.get('FCM_ENABLED', 'true').lower() == 'false':
-        return
+        return results
 
     project_id = os.environ.get('FIREBASE_PROJECT_ID', '')
     if not project_id:
-        logger.warning('FCM: FIREBASE_PROJECT_ID not set — push notifications disabled. See backend .env.example')
-        return
+        logger.warning('FCM: FIREBASE_PROJECT_ID not set — push notifications disabled.')
+        return results
 
     sa_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
     if not sa_json:
-        logger.warning('FCM: FIREBASE_SERVICE_ACCOUNT_JSON not set — push notifications disabled. See backend .env.example')
-        return
+        logger.warning('FCM: FIREBASE_SERVICE_ACCOUNT_JSON not set — push notifications disabled.')
+        return results
 
     # Import here to avoid circular imports at module load time
     from .models import FCMToken
 
     tokens = FCMToken.objects.filter(user=user, is_active=True)
     if not tokens.exists():
-        return
+        return results
 
     try:
         access_token = _get_access_token()
     except Exception as exc:
         logger.error(f'FCM: failed to obtain access token: {exc}')
-        return
+        return results
 
     for token_obj in tokens:
         try:
@@ -142,7 +147,8 @@ def send_push_notification(user, title: str, body: str, data: dict = None) -> No
             )
 
             if status_code == 200:
-                logger.debug(f'FCM: push sent to user {user.id} token …{token_obj.token[-8:]}')
+                logger.info(f'FCM: push sent to user {user.id} token …{token_obj.token[-8:]}')
+                results.append({'token': f'…{token_obj.token[-8:]}', 'status': status_code, 'ok': True})
 
             elif status_code in (400, 404):
                 # Token is invalid / unregistered — deactivate it
@@ -151,25 +157,32 @@ def send_push_notification(user, title: str, body: str, data: dict = None) -> No
                     or response.get('error', {}).get('status', '')
                 )
                 if error_code in ('UNREGISTERED', 'INVALID_ARGUMENT', 'NOT_FOUND'):
-                    logger.info(
+                    logger.warning(
                         f'FCM: deactivating stale token for user {user.id} '
                         f'(reason: {error_code})'
                     )
                     token_obj.is_active = False
                     token_obj.save(update_fields=['is_active'])
-                else:
-                    logger.warning(
-                        f'FCM: unexpected 4xx for user {user.id}: '
-                        f'{status_code} {response}'
-                    )
-
+                results.append({
+                    'token': f'…{token_obj.token[-8:]}',
+                    'status': status_code,
+                    'ok': False,
+                    'error': error_code or response.get('error', {}).get('message', 'unknown'),
+                })
             else:
-                logger.warning(
-                    f'FCM: unexpected response for user {user.id}: '
-                    f'{status_code} {response}'
-                )
+                logger.warning(f'FCM: unexpected response for user {user.id}: {status_code} {response}')
+                results.append({
+                    'token': f'…{token_obj.token[-8:]}',
+                    'status': status_code,
+                    'ok': False,
+                    'error': str(response),
+                })
 
         except requests.Timeout:
             logger.warning(f'FCM: request timed out for user {user.id}')
+            results.append({'token': f'…{token_obj.token[-8:]}', 'status': 0, 'ok': False, 'error': 'timeout'})
         except Exception as exc:
             logger.error(f'FCM: error sending to user {user.id}: {exc}')
+            results.append({'token': f'…{token_obj.token[-8:]}', 'status': 0, 'ok': False, 'error': str(exc)})
+
+    return results
