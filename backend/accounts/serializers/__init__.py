@@ -13,7 +13,7 @@ from .announcements import (
     AnnouncementSerializer,
 )
 from .attendance import (
-    TimeSlotSerializer, AttendanceSerializer, AbsenceExcuseSerializer,
+    TimeSlotSerializer, AttendanceSerializer, AbsenceExcuseSerializer, SchoolCalendarSerializer,
 )
 from .learning import LearningMaterialSerializer
 from .finance import ScratchCardSerializer, FeeSerializer
@@ -83,7 +83,7 @@ __all__ = [
     'SystemSettingSerializer',
     'AnnouncementAttachmentSerializer', 'AnnouncementCommentSerializer',
     'AnnouncementSerializer',
-    'TimeSlotSerializer', 'AttendanceSerializer', 'AbsenceExcuseSerializer',
+    'TimeSlotSerializer', 'AttendanceSerializer', 'AbsenceExcuseSerializer', 'SchoolCalendarSerializer',
     'LearningMaterialSerializer',
     'ScratchCardSerializer', 'FeeSerializer',
     'NotificationSerializer', 'NotificationPreferenceSerializer',

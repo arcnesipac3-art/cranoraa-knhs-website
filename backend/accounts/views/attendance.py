@@ -582,12 +582,18 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                     break
                 if Attendance.objects.filter(date=d).exists():
                     reference_date = d
-                    break
             if reference_date != today:
                 all_schedules = Schedule.objects.filter(
                     is_active=True,
                     time_slot__day=today_name,
                 ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('time_slot__start_time')
+
+        # If still no schedules (no schedule data at all), show all active schedules
+        if not all_schedules.exists():
+            all_schedules = Schedule.objects.filter(
+                is_active=True,
+            ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('classroom__name', 'time_slot__start_time')
+            reference_date = today
 
         total_classes = all_schedules.count()
 
