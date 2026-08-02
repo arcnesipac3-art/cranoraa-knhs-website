@@ -542,6 +542,26 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             time_slot__day=today_name,
         ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('time_slot__start_time')
 
+        # Fall back to the most recent day with data when today has no scheduled
+        # classes (weekends / non-school days) so the summary is never empty.
+        reference_date = today
+        if not all_schedules.exists():
+            for offset in range(1, 8):
+                d = today - datetime.timedelta(days=offset)
+                day_name = d.strftime('%A').lower()
+                if Schedule.objects.filter(is_active=True, time_slot__day=day_name).exists():
+                    reference_date = d
+                    today_name = day_name
+                    break
+                if Attendance.objects.filter(date=d).exists():
+                    reference_date = d
+                    break
+            if reference_date != today:
+                all_schedules = Schedule.objects.filter(
+                    is_active=True,
+                    time_slot__day=today_name,
+                ).select_related('classroom', 'teacher', 'subject', 'time_slot').order_by('time_slot__start_time')
+
         total_classes = all_schedules.count()
 
         schedule_ids = list(all_schedules.values_list('id', flat=True))
@@ -557,7 +577,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         attendance_agg = Attendance.objects.filter(
             Q(schedule_id__in=schedule_ids) | Q(classroom_id__in=classroom_ids, schedule__isnull=True),
-            date=today,
+            date=reference_date,
         ).aggregate(
             total_records=Count('id'),
             present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
@@ -568,7 +588,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         # Get attendance counts by schedule_id (for schedule-based attendance)
         attended_schedules = Attendance.objects.filter(
             schedule_id__in=schedule_ids,
-            date=today,
+            date=reference_date,
         ).values('schedule_id').annotate(cnt=Count('id')).values_list('schedule_id', 'cnt')
         attended_map = dict(attended_schedules)
 
@@ -576,7 +596,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         classroom_attendance = Attendance.objects.filter(
             classroom_id__in=classroom_ids,
             schedule__isnull=True,
-            date=today,
+            date=reference_date,
         ).values('classroom_id').annotate(cnt=Count('id')).values_list('classroom_id', 'cnt')
         classroom_attendance_map = dict(classroom_attendance)
 
@@ -629,7 +649,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             })
 
         grade_rates = []
-        grade_data = Attendance.objects.filter(date=today).values(
+        grade_data = Attendance.objects.filter(date=reference_date).values(
             'student__profile__grade_level'
         ).annotate(
             total=Count('id'),
@@ -654,6 +674,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 'absent': attendance_agg['absent'],
                 'late': attendance_agg['late'],
                 'overall_rate': overall_rate,
+                'reference_date': reference_date.isoformat(),
             },
             'teacher_stats': list(teacher_stats.values()),
             'daily_trends': daily_trends,

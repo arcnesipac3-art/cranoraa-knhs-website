@@ -84,6 +84,11 @@ const AttendanceMonitoring = () => {
             <Calendar className="w-4 h-4 inline mr-1" />
             {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
+          {summary.reference_date && summary.reference_date !== new Date().toISOString().split('T')[0] && (
+            <p className="text-xs text-amber-600 font-semibold mt-1">
+              No classes today — showing data for {new Date(summary.reference_date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={handleRefresh} disabled={refreshing}>
