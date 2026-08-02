@@ -676,6 +676,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
         date: selectedDate,
         status,
         remarks: remarks[studentId] || '',
+        schedule_id: null,
       };
       if (existingRecords[studentId]) {
         return api.put(`/attendance/${existingRecords[studentId]}/`, payload);

@@ -53,6 +53,11 @@ class AttendanceSerializer(serializers.ModelSerializer):
                   'workflow_status', 'submitted_at', 'locked_at',
                   'created_at', 'updated_at']
         read_only_fields = ['marked_by', 'subject', 'time_slot', 'minutes_late', 'workflow_status', 'submitted_at', 'locked_at']
+        extra_kwargs = {
+            'schedule': {'required': False},
+            'subject': {'required': False},
+            'time_slot': {'required': False},
+        }
 
     def get_student_name(self, obj): return full_name(obj.student)
     def get_marked_by_name(self, obj): return full_name(obj.marked_by) if obj.marked_by else ''
