@@ -1273,7 +1273,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
                 <CardHeader divider>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      {sex === 'male' ? '👦' : '👧'} {sex === 'male' ? 'Male' : 'Female'} Students
+                      {sex === 'male' ? 'Male' : 'Female'} Students
                       <span className="text-xs font-normal text-slate-400">({group.length})</span>
                     </CardTitle>
                   </div>
