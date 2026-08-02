@@ -65,6 +65,14 @@ class ScheduleSerializer(serializers.ModelSerializer):
     def get_semester_display(self, obj):
         return obj.semester.get_semester_type_display() if obj.semester else None
 
+    def to_internal_value(self, data):
+        data = super().to_internal_value(data)
+        # Convert empty strings to null for nullable FK fields
+        for field in ('teacher', 'subject', 'room', 'semester'):
+            if data.get(field) == '':
+                data[field] = None
+        return data
+
     def validate(self, data):
         time_slot = data.get('time_slot', getattr(self.instance, 'time_slot', None))
         academic_year = data.get('academic_year', getattr(self.instance, 'academic_year', None))

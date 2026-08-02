@@ -24,7 +24,9 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
         model = NotificationPreference
         fields = [
             'id', 'announcement', 'grade', 'attendance', 'fee',
-            'message', 'system',
+            'message', 'friend_request', 'system',
+            'push_announcement', 'push_grade', 'push_attendance',
+            'push_fee', 'push_message', 'push_friend_request', 'push_system',
             'push_enabled', 'in_app_enabled',
             'updated_at',
         ]

@@ -55,6 +55,15 @@ class NotificationPreference(models.Model):
     friend_request = models.BooleanField(default=True)
     system = models.BooleanField(default=True)
 
+    # Per-type push notification toggles
+    push_announcement = models.BooleanField(default=True)
+    push_grade = models.BooleanField(default=True)
+    push_attendance = models.BooleanField(default=True)
+    push_fee = models.BooleanField(default=True)
+    push_message = models.BooleanField(default=True)
+    push_friend_request = models.BooleanField(default=True)
+    push_system = models.BooleanField(default=True)
+
     push_enabled = models.BooleanField(default=True, help_text="Enable browser push notifications (FCM)")
     in_app_enabled = models.BooleanField(default=True, help_text="Show in-app notification bell")
 
@@ -70,6 +79,9 @@ class NotificationPreference(models.Model):
 
     def is_type_enabled(self, notification_type: str) -> bool:
         return getattr(self, notification_type, True)
+
+    def is_type_push_enabled(self, notification_type: str) -> bool:
+        return getattr(self, f'push_{notification_type}', True)
 
 
 class FCMToken(models.Model):
@@ -133,7 +145,7 @@ def broadcast_notification(sender, instance, created, **kwargs):
             _models_logger.error(f"Failed to broadcast notification {instance.id}: {e}")
 
     # FCM push — only for NEW notifications, not consolidated updates
-    if created and (not prefs or prefs.push_enabled):
+    if created and (not prefs or (prefs.push_enabled and prefs.is_type_push_enabled(notif_type))):
         try:
             from ..fcm import send_push_notification
             send_push_notification(

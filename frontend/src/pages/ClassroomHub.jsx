@@ -581,7 +581,7 @@ const ClassroomHub = () => {
             <AttendanceView
               classroom={selectedClass}
               isStudent={user?.role === 'student'}
-              onBack={() => {}}
+              onBack={() => handleTabChange('stream')}
             />
           )}
 

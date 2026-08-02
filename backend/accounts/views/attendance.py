@@ -1,4 +1,5 @@
 import datetime
+import logging
 from django.db import transaction, IntegrityError
 from django.db.models import Q, Count, Case, When, IntegerField
 from django.utils import timezone
@@ -15,6 +16,8 @@ from ..serializers import (
     AttendanceSerializer, AbsenceExcuseSerializer, full_name,
 )
 from ..utils import log_audit_action
+
+logger = logging.getLogger(__name__)
 
 
 class AttendanceViewSet(viewsets.ModelViewSet):

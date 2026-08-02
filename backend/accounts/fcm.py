@@ -113,12 +113,12 @@ def send_push_notification(user, title: str, body: str, data: dict = None) -> No
 
     project_id = os.environ.get('FIREBASE_PROJECT_ID', '')
     if not project_id:
-        logger.debug('FCM: FIREBASE_PROJECT_ID not set — skipping push')
+        logger.warning('FCM: FIREBASE_PROJECT_ID not set — push notifications disabled. See backend .env.example')
         return
 
     sa_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
     if not sa_json:
-        logger.debug('FCM: FIREBASE_SERVICE_ACCOUNT_JSON not set — skipping push')
+        logger.warning('FCM: FIREBASE_SERVICE_ACCOUNT_JSON not set — push notifications disabled. See backend .env.example')
         return
 
     # Import here to avoid circular imports at module load time

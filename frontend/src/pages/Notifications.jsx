@@ -384,23 +384,35 @@ const Notifications = () => {
               {/* Per-type toggles */}
               <div className="space-y-3">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Notification Types</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {Object.entries(TYPE_LABELS).map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => togglePref(key)}
-                      disabled={prefsSaving}
-                      className={`flex items-center justify-between p-3 rounded-xl border transition-all ${prefs[key] ? 'bg-white border-violet-200' : 'bg-slate-50 border-slate-200 opacity-60'}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${key === 'announcement' ? 'bg-violet-500' : key === 'grade' ? 'bg-emerald-500' : key === 'attendance' ? 'bg-amber-500' : key === 'fee' ? 'bg-red-500' : key === 'message' ? 'bg-blue-500' : 'bg-indigo-500'}`} />
-                        <span className="text-sm font-medium text-slate-700">{label}</span>
+                <div className="grid grid-cols-1 gap-2">
+                  {Object.entries(TYPE_LABELS).map(([key, label]) => {
+                    const dotColor = key === 'announcement' ? 'bg-violet-500' : key === 'grade' ? 'bg-emerald-500' : key === 'attendance' ? 'bg-amber-500' : key === 'fee' ? 'bg-red-500' : key === 'message' ? 'bg-blue-500' : 'bg-indigo-500';
+                    return (
+                      <div key={key} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${prefs[key] ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'}`}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${dotColor}`} />
+                          <span className="text-sm font-medium text-slate-700">{label}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-slate-400">Push</span>
+                          <button
+                            onClick={() => togglePref(`push_${key}`)}
+                            disabled={prefsSaving || !prefs[key]}
+                            className={`w-9 h-5 rounded-full flex items-center transition-all ${prefs[`push_${key}`] && prefs[key] ? 'bg-violet-500 justify-end' : 'bg-slate-300 justify-start'}`}
+                          >
+                            <div className="w-4 h-4 bg-white rounded-full shadow-sm mx-0.5" />
+                          </button>
+                          <button
+                            onClick={() => togglePref(key)}
+                            disabled={prefsSaving}
+                            className={`w-9 h-5 rounded-full flex items-center transition-all ${prefs[key] ? 'bg-violet-500 justify-end' : 'bg-slate-300 justify-start'}`}
+                          >
+                            <div className="w-4 h-4 bg-white rounded-full shadow-sm mx-0.5" />
+                          </button>
+                        </div>
                       </div>
-                      <div className={`w-9 h-5 rounded-full flex items-center transition-all ${prefs[key] ? 'bg-violet-500 justify-end' : 'bg-slate-300 justify-start'}`}>
-                        <div className="w-4 h-4 bg-white rounded-full shadow-sm mx-0.5" />
-                      </div>
-                    </button>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </>

@@ -78,15 +78,32 @@ def test_push_notification(request):
     project_id = os.environ.get('FIREBASE_PROJECT_ID', '')
     sa_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
 
+    missing = []
     if not project_id:
-        return Response({'error': 'Missing FIREBASE_PROJECT_ID in Render environment variables'}, status=400)
+        missing.append('FIREBASE_PROJECT_ID')
     if not sa_json:
-        return Response({'error': 'Missing FIREBASE_SERVICE_ACCOUNT_JSON in Render environment variables'}, status=400)
+        missing.append('FIREBASE_SERVICE_ACCOUNT_JSON')
+
+    if missing:
+        return Response({
+            'error': f'Missing environment variables: {", ".join(missing)}',
+            'setup_guide': (
+                '1. Go to Firebase Console → Project Settings → Service Accounts\n'
+                '2. Click "Generate new private key" to download the JSON file\n'
+                '3. Set FIREBASE_PROJECT_ID to your Firebase project ID\n'
+                '4. Set FIREBASE_SERVICE_ACCOUNT_JSON to the entire contents of the JSON file\n'
+                '5. Redeploy your backend (or restart dev server)'
+            )
+        }, status=400)
 
     tokens = FCMToken.objects.filter(user=request.user, is_active=True)
     token_count = tokens.count()
     if token_count == 0:
-        return Response({'error': 'No active push tokens found for your account. Try refreshing the page.'}, status=400)
+        return Response({
+            'error': 'No active push tokens found for your account.',
+            'hint': 'Open the app in Chrome, allow notifications, then try again. Your browser must support push notifications.',
+            'token_count': 0,
+        }, status=400)
 
     try:
         send_push_notification(
@@ -98,8 +115,8 @@ def test_push_notification(request):
         return Response({
             'status': 'success',
             'message': f'Test push dispatched to {token_count} active device(s).',
-            'note': 'If you still dont see it, check your Windows "Do Not Disturb" settings or Chrome notification permissions.'
+            'note': 'Check your phone in 2-3 seconds. If nothing appears, check Chrome notification permissions.'
         })
     except Exception as e:
         logger.error(f"Firebase error: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to process notification request.'}, status=500)
+        return Response({'error': f'Failed to send: {str(e)}'}, status=500)

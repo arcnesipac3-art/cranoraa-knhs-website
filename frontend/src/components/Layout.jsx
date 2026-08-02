@@ -103,14 +103,38 @@ const MuteButton = () => {
 
 // ── PWA Install instructions fallback ───────────────────────────────────────
 const showInstallInstructions = () => {
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(ua);
+  const isChrome = /Chrome/.test(ua) && !/Edg/.test(ua);
+
+  let steps = '';
+  if (isIOS) {
+    steps = `
+      <p style="margin-bottom:6px"><b>1.</b> Tap the <b>Share</b> icon <span style="font-size:16px">&#8593;</span> at the bottom</p>
+      <p style="margin-bottom:6px"><b>2.</b> Scroll down and tap <b>Add to Home Screen</b></p>
+      <p><b>3.</b> Tap <b>Add</b> to install</p>
+    `;
+  } else if (isAndroid && isChrome) {
+    steps = `
+      <p style="margin-bottom:6px"><b>1.</b> Tap the <b>&#8942;</b> (three dots) menu at the top right</p>
+      <p style="margin-bottom:6px"><b>2.</b> Tap <b>Install app</b> or <b>Add to Home screen</b></p>
+      <p><b>3.</b> Tap <b>Install</b> to confirm</p>
+    `;
+  } else {
+    steps = `
+      <p style="margin-bottom:6px"><b>1.</b> Open your browser's <b>menu</b></p>
+      <p style="margin-bottom:6px"><b>2.</b> Look for <b>Install app</b>, <b>Add to Home screen</b>, or <b>Install</b></p>
+      <p><b>3.</b> Confirm the installation</p>
+    `;
+  }
+
   Swal.fire({
     title: 'Install KNHS Portal',
     html: `
       <div style="text-align:left;font-size:13px;line-height:1.7;color:#475569">
         <p style="margin-bottom:10px">Add the portal to your home screen for quick access and offline support:</p>
-        <p style="margin-bottom:6px"><b>1.</b> Tap the <b>Share</b> icon in your browser</p>
-        <p style="margin-bottom:6px"><b>2.</b> Tap <b>Add to Home Screen</b></p>
-        <p><b>3.</b> Tap <b>Add</b> to install</p>
+        ${steps}
       </div>
     `,
     icon: 'info',

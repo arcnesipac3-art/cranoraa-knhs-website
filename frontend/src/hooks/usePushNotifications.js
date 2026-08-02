@@ -89,18 +89,21 @@ export function usePushNotifications() {
 
         // Register with backend
         try {
-          await api.post('/fcm-tokens/', {
+          const res = await api.post('/fcm-tokens/', {
             token: currentToken,
             device_type: 'web',
           });
+          console.log('FCM token registered with backend:', res.data);
         } catch (err) {
-          console.warn('Failed to register FCM token with backend:', err);
+          console.error('Failed to register FCM token with backend:', err.response?.data || err.message);
         }
 
         return currentToken;
+      } else {
+        console.warn('FCM: getToken returned null — notification permission may have changed');
       }
     } catch (err) {
-      console.warn('Failed to get FCM token:', err);
+      console.error('FCM token error:', err.code || err.message || err);
     }
 
     return null;
