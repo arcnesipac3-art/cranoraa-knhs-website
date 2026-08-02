@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from ..models import User, Room, Subject, TimeSlot, Schedule
+from portal.models import AcademicYear
 from ._base import full_name
 
 
@@ -32,6 +33,10 @@ class ScheduleSerializer(serializers.ModelSerializer):
     )
     room = serializers.PrimaryKeyRelatedField(
         queryset=Room.objects.all(), allow_null=True, required=False
+    )
+    academic_year = serializers.PrimaryKeyRelatedField(
+        queryset=AcademicYear.objects.all(),
+        required=False, allow_null=True
     )
 
     class Meta:
@@ -66,12 +71,16 @@ class ScheduleSerializer(serializers.ModelSerializer):
         return obj.semester.get_semester_type_display() if obj.semester else None
 
     def to_internal_value(self, data):
-        data = super().to_internal_value(data)
+        # Strip empty/invalid academic_year so perform_create can auto-fill it
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        if not data.get('academic_year'):
+            data.pop('academic_year', None)
+        result = super().to_internal_value(data)
         # Convert empty strings to null for nullable FK fields
         for field in ('teacher', 'subject', 'room', 'semester'):
-            if data.get(field) == '':
-                data[field] = None
-        return data
+            if result.get(field) == '':
+                result[field] = None
+        return result
 
     def validate(self, data):
         time_slot = data.get('time_slot', getattr(self.instance, 'time_slot', None))
