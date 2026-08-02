@@ -141,6 +141,9 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             school_year = self.request.query_params.get('school_year')
             if school_year:
                 qs = qs.filter(school_year=school_year)
+            enrolled_student = self.request.query_params.get('enrolled_student')
+            if enrolled_student:
+                qs = qs.filter(enrolled_student_id=enrolled_student)
             date_from = self.request.query_params.get('date_from')
             if date_from:
                 qs = qs.filter(submitted_at__gte=date_from)

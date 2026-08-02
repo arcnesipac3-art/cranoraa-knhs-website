@@ -1120,6 +1120,7 @@ def student_profile(request):
                 'grade_level': grade_level,
                 'registration_number': profile.registration_number,
                 'profile_picture': profile.profile_picture,
+                'enrollment_status': profile.enrollment_status,
                 'mute_until': profile.mute_until,
                 'is_muted': profile.mute_until is not None and profile.mute_until > timezone.now(),
                 'is_suspended': profile.is_suspended or target_user.account_status == 'suspended',
