@@ -190,8 +190,9 @@ export default function ScheduleManagement() {
           const ids = data.map(a => String(a.subject));
           const sub = ids.includes(String(f.subject)) ? f.subject : '';
           const match = data.find(a => String(a.subject) === String(sub));
-          const autoTeacher = match ? String(match.teacher) : '';
+          const autoTeacher = match?.teacher != null ? String(match.teacher) : '';
           if (autoTeacher) setTeacherLocked(true);
+          else setTeacherLocked(false);
           return { ...f, subject: sub, teacher: autoTeacher };
         });
       })
@@ -314,6 +315,14 @@ export default function ScheduleManagement() {
     setSaving(true);
     try {
       const payload = { ...form };
+      const normalizeFK = (v) => (v === 'null' || v === 'undefined') ? '' : v;
+      payload.classroom = normalizeFK(payload.classroom);
+      payload.time_slot = normalizeFK(payload.time_slot);
+      payload.academic_year = normalizeFK(payload.academic_year);
+      payload.semester = normalizeFK(payload.semester);
+      payload.subject = normalizeFK(payload.subject);
+      payload.teacher = normalizeFK(payload.teacher);
+      payload.room = normalizeFK(payload.room);
       if (!payload.room) delete payload.room;
       if (!payload.semester) delete payload.semester;
       // Manual validation (form has noValidate)
@@ -351,7 +360,10 @@ export default function ScheduleManagement() {
       fetchAll();
     } catch (err) {
       const d = err.response?.data;
-      toast.error(d?.non_field_errors?.[0] || d?.detail || Object.values(d||{})?.[0]?.[0] || 'Failed to save');
+      const key = d && typeof d === 'object' ? Object.keys(d)[0] : null;
+      const raw = key ? d[key] : null;
+      const msg = Array.isArray(raw) ? raw[0] : raw;
+      toast.error(d?.non_field_errors?.[0] || d?.detail || (key && msg ? `${key}: ${msg}` : null) || 'Failed to save');
     } finally { setSaving(false); }
   };
 
@@ -1019,7 +1031,7 @@ export default function ScheduleManagement() {
                 <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
                   Section / Class <span className="text-red-600">*</span>
                 </label>
-                <select required value={form.classroom} onChange={e => setForm(f => ({...f, classroom: e.target.value, subject:'', teacher:''}))}
+                <select value={form.classroom} onChange={e => setForm(f => ({...f, classroom: e.target.value, subject:'', teacher:''}))}
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">— Select Section —</option>
                   {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -1029,7 +1041,7 @@ export default function ScheduleManagement() {
                 <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
                   Day & Time Slot <span className="text-red-600">*</span>
                 </label>
-                <select required value={form.time_slot} onChange={e => setForm(f => ({...f, time_slot: e.target.value}))}
+                <select value={form.time_slot} onChange={e => setForm(f => ({...f, time_slot: e.target.value}))}
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">— Select Time Slot —</option>
                   {DAYS.map(d => {
@@ -1078,11 +1090,17 @@ export default function ScheduleManagement() {
                 </div>
               ) : (
                 <>
-                  <select required={!form.is_vacant} value={form.subject} onChange={e => {
+                  <select value={form.subject} onChange={e => {
                     const sid = e.target.value;
                     const match = classroomAssignments.find(a => String(a.subject) === sid);
-                    if (match) { setTeacherLocked(true); setForm(f => ({...f, subject: sid, teacher: String(match.teacher)})); }
-                    else { setTeacherLocked(false); setForm(f => ({...f, subject: sid})); }
+                    const autoTeacher = match?.teacher != null ? String(match.teacher) : '';
+                    if (autoTeacher) {
+                      setTeacherLocked(true);
+                      setForm(f => ({ ...f, subject: sid, teacher: autoTeacher }));
+                    } else {
+                      setTeacherLocked(false);
+                      setForm(f => ({ ...f, subject: sid, teacher: '' }));
+                    }
                   }}
                     className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                     <option value="">{!form.classroom ? '— Select a section first —' : classroomAssignments.length === 0 ? '— No subjects assigned to this section —' : '— Select Subject —'}</option>
@@ -1100,30 +1118,30 @@ export default function ScheduleManagement() {
 
             {/* Teacher */}
             {!form.is_vacant && (
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider">
-                  Teacher <span className="text-red-600">*</span>
-                </label>
-                {teacherLocked && (
-                  <button type="button" onClick={() => setTeacherLocked(false)}
-                    className="text-[10px] text-violet-600 font-bold hover:text-violet-800 underline">
-                    Override
-                  </button>
-                )}
-              </div>
-              <select required={!form.is_vacant} value={form.teacher} onChange={e => setForm(f => ({...f, teacher: e.target.value}))}
-                disabled={teacherLocked}
-                className={`w-full px-3 py-2.5 border rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 ${teacherLocked ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-slate-300'}`}>
-                <option value="">— Select Teacher —</option>
-                {teachers.map(t => (
-                  <option key={t.id} value={t.id}>{t.first_name && t.last_name ? `${t.last_name}, ${t.first_name}` : t.username}{t.staff_title ? ` (${t.staff_title})` : ''}</option>
-                ))}
-              </select>
-              {teacherLocked && (
-                <p className="text-[10px] text-slate-500 mt-1">Auto-filled from subject assignment. Click Override to change.</p>
-              )}
-            </div>
+<div>
+               <div className="flex items-center justify-between mb-1.5">
+                 <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider">
+                   Teacher <span className="text-red-600">*</span>
+                 </label>
+                 {teacherLocked && (
+                   <button type="button" onClick={() => setTeacherLocked(false)}
+                     className="text-[10px] text-violet-600 font-bold hover:text-violet-800 underline">
+                     Override
+                   </button>
+                 )}
+               </div>
+               <select value={form.teacher} onChange={e => setForm(f => ({...f, teacher: e.target.value}))}
+                 disabled={teacherLocked}
+                 className={`w-full px-3 py-2.5 border rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 ${teacherLocked ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-slate-300'}`}>
+                 <option value="">— Select Teacher —</option>
+                 {teachers.map(t => (
+                   <option key={t.id} value={t.id}>{t.first_name && t.last_name ? `${t.last_name}, ${t.first_name}` : t.username}{t.staff_title ? ` (${t.staff_title})` : ''}</option>
+                 ))}
+               </select>
+               {teacherLocked && (
+                 <p className="text-[10px] text-slate-500 mt-1">Auto-filled from subject assignment. Click Override to change.</p>
+               )}
+             </div>
             )}
 
             {/* Room */}
@@ -1142,7 +1160,7 @@ export default function ScheduleManagement() {
                 <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
                   Academic Year <span className="text-red-600">*</span>
                 </label>
-                <select required value={form.academic_year} onChange={e => setForm(f => ({...f, academic_year: e.target.value, semester:''}))}
+                <select value={form.academic_year} onChange={e => setForm(f => ({...f, academic_year: e.target.value, semester:''}))}
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">— Select Year —</option>
                   {academicYears.map(a => <option key={a.id} value={a.id}>{a.name}{a.is_active ? ' (Active)' : ''}</option>)}

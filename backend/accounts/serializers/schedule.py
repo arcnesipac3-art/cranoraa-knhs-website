@@ -150,6 +150,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         # Strip empty/invalid academic_year so perform_create can auto-fill it
         data = data.copy() if hasattr(data, 'copy') else dict(data)
+        for field in ('teacher', 'subject', 'room', 'semester', 'classroom', 'time_slot'):
+            if data.get(field) in ('', None, 'null', 'undefined'):
+                data[field] = None
         resolved_academic_year = self._resolve_portal_academic_year(data.get('academic_year'))
         if not resolved_academic_year:
             data.pop('academic_year', None)
