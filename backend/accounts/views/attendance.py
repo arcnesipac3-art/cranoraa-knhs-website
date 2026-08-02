@@ -646,7 +646,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             workflow_status='draft',
         ).update(
             workflow_status='submitted',
-            submitted_at=dj_timezone.now(),
+            submitted_at=timezone.now(),
         )
 
         AttendanceAuditLog.objects.create(
