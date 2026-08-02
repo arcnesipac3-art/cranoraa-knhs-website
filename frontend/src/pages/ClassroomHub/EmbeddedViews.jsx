@@ -8,7 +8,7 @@ import {
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } from '../../components/ui/Modal';
 import {
   ArrowLeft, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
-  Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare, Circle,
+  Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare,
   BookOpen, AlertTriangle, Send, Lock, Unlock
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
@@ -736,7 +736,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   }, [students, studentHistory]);
 
   const statusConfig = {
-    unmarked: { active: 'bg-slate-600 text-white', idle: 'bg-slate-100 text-slate-500 hover:bg-slate-200', icon: Circle },
     present:  { active: 'bg-green-600 text-white', idle: 'bg-green-50 text-green-700 hover:bg-green-100', icon: CheckCircle },
     absent:   { active: 'bg-red-600 text-white',   idle: 'bg-red-50 text-red-700 hover:bg-red-100',   icon: XCircle },
     late:     { active: 'bg-amber-600 text-white',  idle: 'bg-amber-50 text-amber-700 hover:bg-amber-100', icon: ClockIcon },
@@ -821,9 +820,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
           }`}>
             {workflowStatus}
           </span>
-          {stats.unmarked > 0 && !isStudent && (
-            <span className="text-xs text-amber-600 font-medium hidden sm:inline">{stats.unmarked} unmarked</span>
-          )}
           {!isStudent && workflowStatus === 'draft' && (
             <Button
               variant="primary"
@@ -906,14 +902,10 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-8 gap-1 sm:gap-1.5 md:gap-3 mb-4 md:mb-6">
+          <div className="grid grid-cols-7 gap-1 sm:gap-1.5 md:gap-3 mb-4 md:mb-6">
             <div className="bg-slate-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-slate-700">{stats.total}</div>
               <div className="text-[7px] sm:text-[9px] md:text-[10px] text-slate-600 uppercase font-semibold mt-0.5">Total</div>
-            </div>
-            <div className="bg-slate-100 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
-              <div className="text-sm sm:text-lg md:text-xl font-bold text-slate-500">{stats.unmarked}</div>
-              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-slate-500 uppercase font-semibold mt-0.5">Unmarked</div>
             </div>
             <div className="bg-green-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-green-600">{stats.present}</div>
