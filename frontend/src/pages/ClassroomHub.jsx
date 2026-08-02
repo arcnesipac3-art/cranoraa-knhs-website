@@ -802,6 +802,8 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                     <Field label="Date of Birth" value={profileData?.profile?.date_of_birth} />
                     <Field label="Sex" value={student.student_sex || profileData?.profile?.sex} />
                     <Field label="Nationality" value={profileData?.profile?.nationality} />
+                    <Field label="Religion" value={profileData?.profile?.religion} />
+                    <Field label="Mother Tongue" value={profileData?.profile?.mother_tongue} />
                     <Field label="Address" value={profileData?.profile?.address} />
                     <Field label="Phone Number" value={profileData?.profile?.phone_number} />
                     <Field label="Email" value={email} />
@@ -816,11 +818,12 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                       <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Enrollment Info</p>
                     </div>
                     <div className="px-3">
-                      <Field label="Grade Level" value={profileData?.profile?.grade_level} />
+                      <Field label="Grade Level" value={profileData?.profile?.grade_level || appData?.grade_level} />
                       <Field label="Section / Classroom" value={classroom?.name || '—'} />
                       <Field label="School Year" value={appData?.school_year} />
                       <Field label="Enrollment Type" value={appData?.enrollment_type?.replace(/_/g, ' ')} />
                       <Field label="Strand" value={appData?.strand} />
+                      <Field label="Previous School" value={appData?.previous_school} />
                     </div>
                   </div>
 
@@ -873,9 +876,9 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                 <div className="space-y-3">
                   {[
                     { title: 'Father', color: 'bg-blue-50 border-blue-200', textColor: 'text-blue-700',
-                      fields: [['Name', appData?.father_name], ['Contact', appData?.father_contact], ['Email', appData?.father_email], ['Occupation', appData?.father_occupation]] },
+                      fields: [['Name', appData?.father_name || profileData?.profile?.father_name], ['Contact', appData?.father_contact], ['Email', appData?.father_email], ['Occupation', appData?.father_occupation]] },
                     { title: 'Mother', color: 'bg-rose-50 border-rose-200', textColor: 'text-rose-700',
-                      fields: [['Name', appData?.mother_name], ['Contact', appData?.mother_contact], ['Email', appData?.mother_email], ['Occupation', appData?.mother_occupation]] },
+                      fields: [['Name', appData?.mother_name || profileData?.profile?.mother_name], ['Contact', appData?.mother_contact], ['Email', appData?.mother_email], ['Occupation', appData?.mother_occupation]] },
                     ...(appData?.guardian_name ? [{ title: 'Guardian', color: 'bg-amber-50 border-amber-200', textColor: 'text-amber-700',
                       fields: [['Name', appData?.guardian_name], ['Relationship', appData?.guardian_relationship], ['Contact', appData?.guardian_contact]] }] : []),
                   ].map(({ title, color, textColor, fields }) => (
@@ -889,9 +892,24 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                       </div>
                     </div>
                   ))}
-                  {!appData && !loadingData && (
+
+                  {/* Emergency Contact */}
+                  {(profileData?.profile?.emergency_contact_name || profileData?.profile?.emergency_contact_phone) && (
+                    <div className="rounded-xl border border-orange-200 overflow-hidden bg-orange-50">
+                      <div className="px-3 py-2 bg-orange-50">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-orange-700">Emergency Contact</p>
+                      </div>
+                      <div className="px-3 bg-white divide-y divide-slate-100">
+                        <Field label="Name" value={profileData?.profile?.emergency_contact_name} />
+                        <Field label="Phone" value={profileData?.profile?.emergency_contact_phone} />
+                        <Field label="Relationship" value={profileData?.profile?.emergency_contact_relationship} />
+                      </div>
+                    </div>
+                  )}
+
+                  {(!appData && !profileData?.profile?.father_name && !profileData?.profile?.mother_name && !loadingData) && (
                     <div className="bg-white rounded-xl border border-slate-200 p-6 text-center">
-                      <p className="text-[10px] text-slate-400">No enrollment application found.</p>
+                      <p className="text-[10px] text-slate-400">No family information found.</p>
                     </div>
                   )}
                 </div>
