@@ -101,6 +101,46 @@ const MuteButton = () => {
   );
 };
 
+// ── PWA Install Button (header) ─────────────────────────────────────────────
+const HeaderDownloadButton = () => {
+  const { canInstall, isInstalled, install } = useInstallPrompt();
+  const [installing, setInstalling] = useState(false);
+
+  if (isInstalled || !canInstall) return null;
+
+  const handleInstall = async () => {
+    playSound('click');
+    setInstalling(true);
+    try {
+      await install();
+    } finally {
+      setInstalling(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleInstall}
+      disabled={installing}
+      title="Download App"
+      aria-label="Download app"
+      className="flex items-center gap-2 rounded-xl px-2.5 py-2 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-xs font-bold transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed shadow-md shadow-violet-600/25 border border-violet-400/30 sm:px-3"
+    >
+      {installing ? (
+        <svg className="w-4 h-4 animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+      ) : (
+        <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      )}
+      <span className="hidden md:inline truncate">{installing ? 'Installing...' : 'Download App'}</span>
+    </button>
+  );
+};
+
 // ── PWA Install Button (sidebar) ─────────────────────────────────────────────
 const PwaInstallButton = () => {
   const { canInstall, isInstalled, install } = useInstallPrompt();
@@ -668,6 +708,9 @@ const Layout = () => {
                   className="w-80"
                 />
               </div>
+
+              {/* PWA Download App (header) */}
+              <HeaderDownloadButton />
 
               {/* Notification bell */}
               <div className="relative" data-notif-dropdown ref={notifDropdownRef}>
