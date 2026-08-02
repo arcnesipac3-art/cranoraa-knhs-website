@@ -8,7 +8,8 @@ import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { useScrollLock } from '../hooks/useScrollLock';
-import { LoadingSpinner } from '../components/ui';
+import { LoadingSpinner, Button } from '../components/ui';
+import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalField, ModalBtnPrimary, ModalBtnSecondary, modalInputCls, modalSelectCls } from '../components/ui/Modal';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 
 // ── Student Profile Drawer ─────────────────────────────────────────────────
@@ -895,46 +896,8 @@ setSelectedIds([]);
 
   if (loading) {
     return (
-      <div className="page-bottom-safe bg-slate-50 min-h-screen">
-        <div className="bg-white border-b-2 border-slate-200 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 bg-slate-200 animate-pulse" />
-            <div>
-              <div className="h-5 w-40 bg-slate-200 rounded animate-pulse mb-1" />
-              <div className="h-3 w-32 bg-slate-100 rounded animate-pulse" />
-            </div>
-          </div>
-        </div>
-        <div className="px-3 sm:px-4 md:px-6 space-y-4">
-          <div className="bg-white p-2.5 border border-slate-200">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="h-8 flex-1 bg-slate-100 rounded animate-pulse" />
-              <div className="h-8 w-24 bg-slate-100 rounded animate-pulse" />
-              <div className="h-8 w-24 bg-slate-100 rounded animate-pulse" />
-            </div>
-          </div>
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white border border-slate-200 animate-pulse">
-              <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-slate-200 rounded" />
-                  <div className="h-4 w-32 bg-slate-200 rounded" />
-                </div>
-                <div className="h-3 w-16 bg-slate-100 rounded" />
-              </div>
-              <div className="p-4 space-y-2">
-                {[...Array(4)].map((_, j) => (
-                  <div key={j} className="flex items-center gap-4 py-2">
-                    <div className="h-3 w-8 bg-slate-100 rounded" />
-                    <div className="h-3 flex-1 bg-slate-100 rounded" />
-                    <div className="h-3 w-16 bg-slate-100 rounded" />
-                    <div className="h-3 w-20 bg-slate-100 rounded" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <LoadingSpinner />
       </div>
     );
   }
@@ -1260,18 +1223,14 @@ setSelectedIds([]);
       {/* Organized List */}
       <div className="space-y-3 sm:space-y-4 md:space-y-6 pb-4 sm:pb-6 md:pb-10">
         {organizedData.length === 0 ? (
-          <div className="bg-white border border-slate-200 p-10 md:p-16 text-center">
+          <div className="bg-white border border-slate-200 p-6 sm:p-10 md:p-16 text-center">
             <div className="w-12 h-12 bg-slate-100 flex items-center justify-center mx-auto mb-3">
               <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
-            <h3 className="text-sm font-black text-slate-700 mb-1 uppercase tracking-wide">
-              {(searchQuery || gradeFilter || statusFilter) ? 'No students found' : 'No students yet'}
-            </h3>
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">
-              {(searchQuery || gradeFilter || statusFilter) ? 'Try a different search or filter' : 'Import students or add them manually'}
-            </p>
+            <h3 className="text-sm font-black text-slate-700 mb-1 uppercase tracking-wide">No Students Found</h3>
+            <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">Try a different search.</p>
           </div>
         ) : (
           organizedData.map((gradeGroup) => (
@@ -1380,149 +1339,87 @@ setSelectedIds([]);
       )}
 
       {/* Add Student Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-2 sm:p-3 md:p-4">
-          <div className="bg-white border border-gray-300 shadow-2xl w-full max-w-md flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 bg-white/20 border border-white/30 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Add New Student</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Create Student Account</p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowAddModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} size="md">
+        <ModalHeader onClose={() => setShowAddModal(false)}>
+          <ModalTitle title="Add New Student" subtitle="Create Student Account" />
+        </ModalHeader>
+        <form onSubmit={handleAddStudent}>
+          <ModalBody className="space-y-3">
+            <ModalField label="Student ID (LRN)" required>
+              <input required value={newStudent.username} onChange={e => setNewStudent({...newStudent, username: e.target.value})}
+                placeholder="12-digit LRN" className={modalInputCls} />
+            </ModalField>
+            <div className="grid grid-cols-2 gap-3">
+              <ModalField label="First Name" required>
+                <input required value={newStudent.first_name} onChange={e => setNewStudent({...newStudent, first_name: e.target.value})}
+                  className={modalInputCls} />
+              </ModalField>
+              <ModalField label="Last Name" required>
+                <input required value={newStudent.last_name} onChange={e => setNewStudent({...newStudent, last_name: e.target.value})}
+                  className={modalInputCls} />
+              </ModalField>
             </div>
-            <form onSubmit={handleAddStudent} className="flex flex-col flex-1 overflow-hidden">
-              <div className="px-3 sm:px-4 md:px-5 py-3 sm:py-4 overflow-y-auto flex-1 space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Student ID (LRN) *</label>
-                  <input required value={newStudent.username} onChange={e => setNewStudent({...newStudent, username: e.target.value})}
-                    placeholder="12-digit LRN"
-                    className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">First Name *</label>
-                    <input required value={newStudent.first_name} onChange={e => setNewStudent({...newStudent, first_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Last Name *</label>
-                    <input required value={newStudent.last_name} onChange={e => setNewStudent({...newStudent, last_name: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Email (optional)</label>
-                  <input type="email" value={newStudent.email} onChange={e => setNewStudent({...newStudent, email: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500" />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Grade Level *</label>
-                    <select required value={newStudent.grade_level} onChange={e => setNewStudent({...newStudent, grade_level: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
-                      <option value="">Select Grade</option>
-                      {['7','8','9','10','11','12'].map(g => <option key={g} value={g}>Grade {g}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Sex *</label>
-                    <select required value={newStudent.sex} onChange={e => setNewStudent({...newStudent, sex: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
-                      <option value="">Select Sex</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
-                <button type="button" onClick={() => setShowAddModal(false)}
-                  className="px-5 py-2 bg-white text-gray-700 text-xs font-bold uppercase tracking-wider border border-gray-300 hover:bg-gray-100">
-                  Cancel
-                </button>
-                <button type="submit" disabled={isSubmitting}
-                  className="px-5 py-2 bg-[#5e2a84] text-white text-xs font-bold uppercase tracking-wider hover:bg-violet-700 disabled:opacity-50">
-                  {isSubmitting ? 'Creating...' : 'Create Account'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <ModalField label="Email" hint="Optional">
+              <input type="email" value={newStudent.email} onChange={e => setNewStudent({...newStudent, email: e.target.value})}
+                className={modalInputCls} />
+            </ModalField>
+            <div className="grid grid-cols-2 gap-3">
+              <ModalField label="Grade Level" required>
+                <select required value={newStudent.grade_level} onChange={e => setNewStudent({...newStudent, grade_level: e.target.value})}
+                  className={modalSelectCls}>
+                  <option value="">Select Grade</option>
+                  {['7','8','9','10','11','12'].map(g => <option key={g} value={g}>Grade {g}</option>)}
+                </select>
+              </ModalField>
+              <ModalField label="Sex" required>
+                <select required value={newStudent.sex} onChange={e => setNewStudent({...newStudent, sex: e.target.value})}
+                  className={modalSelectCls}>
+                  <option value="">Select Sex</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </ModalField>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <ModalBtnSecondary onClick={() => setShowAddModal(false)}>Cancel</ModalBtnSecondary>
+            <ModalBtnPrimary loading={isSubmitting}>{isSubmitting ? 'Creating...' : 'Create Account'}</ModalBtnPrimary>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       {/* Import Modal */}
-      {showImportModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-2 sm:p-3 md:p-4">
-          <div className="bg-white border border-gray-300 shadow-2xl w-full max-w-md flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-3 sm:px-4 md:px-5 py-2.5 sm:py-3 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 bg-white/20 border border-white/30 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Import Students</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Upload Excel File</p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowImportModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            </div>
-            <div className="p-3 sm:p-4 md:p-5">
-              <div 
-                className={`border-2 border-dashed p-6 sm:p-8 text-center transition-colors ${
-                  isDragging ? 'border-violet-500 bg-violet-50' : 'border-slate-300 hover:border-slate-400'
-                }`}
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsDragging(false);
-                  if (e.dataTransfer.files.length > 0) {
-                    handleImportExcel({ target: { files: e.dataTransfer.files } });
-                  }
-                }}
-              >
-                <svg className="w-8 h-8 mx-auto text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-                <p className="text-sm font-bold text-slate-700 mb-1">Drop Excel file here or click to browse</p>
-                <p className="text-xs text-slate-400">Supports .xlsx, .xls, .csv</p>
-                <input 
-                  type="file" 
-                  accept=".xlsx,.xls,.csv" 
-                  onChange={handleImportExcel}
-                  className="hidden" 
-                  id="import-input"
-                />
-                <label 
-                  htmlFor="import-input"
-                  className="mt-4 inline-block px-4 py-2 bg-[#5e2a84] text-white text-xs font-bold uppercase tracking-wider hover:bg-violet-700 cursor-pointer transition-colors"
-                >
-                  Select File
-                </label>
-              </div>
-            </div>
+      <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} size="md">
+        <ModalHeader onClose={() => setShowImportModal(false)}>
+          <ModalTitle title="Import Students" subtitle="Upload Excel File" />
+        </ModalHeader>
+        <ModalBody>
+          <div className={`border-2 border-dashed p-6 sm:p-8 text-center transition-colors ${
+            isDragging ? 'border-violet-500 bg-violet-50' : 'border-slate-300 hover:border-slate-400'
+          }`}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+              if (e.dataTransfer.files.length > 0) {
+                handleImportExcel({ target: { files: e.dataTransfer.files } });
+              }
+            }}>
+            <svg className="w-8 h-8 mx-auto text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p className="text-sm font-bold text-slate-700 mb-1">Drop Excel file here or click to browse</p>
+            <p className="text-xs text-slate-400">Supports .xlsx, .xls, .csv</p>
+            <input type="file" accept=".xlsx,.xls,.csv" onChange={handleImportExcel}
+              className="hidden" id="import-input" />
+            <label htmlFor="import-input"
+              className="mt-4 inline-block px-4 py-2 bg-[#5e2a84] text-white text-xs font-bold uppercase tracking-wider hover:bg-violet-700 cursor-pointer transition-colors">
+              Select File
+            </label>
           </div>
-        </div>
-      )}
+        </ModalBody>
+      </Modal>
       </div>
 
       <AssignSectionModal

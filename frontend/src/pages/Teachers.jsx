@@ -1,5 +1,5 @@
-import { useState, useMemo, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useParallelFetch } from '../hooks/useFetch';
@@ -8,6 +8,7 @@ import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { LoadingSpinner, EmptyState, Button } from '../components/ui';
+import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalField, ModalBtnPrimary, ModalBtnSecondary, modalInputCls, modalSelectCls } from '../components/ui/Modal';
 import { administration, faculty, getInitials } from '../data/facultyData';
 import TeacherProfileDrawer from '../components/people/TeacherProfileDrawer';
 
@@ -94,13 +95,12 @@ const Teachers = () => {
   });
   const teachers = useMemo(() => Array.isArray(data.teachers) ? data.teachers : [], [data.teachers]);
   const classrooms = useMemo(() => Array.isArray(data.classrooms) ? data.classrooms : [], [data.classrooms]);
-  const [searchParams, setSearchParams] = useSearchParams();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
-  const [roleFilter, setRoleFilter] = useState(searchParams.get('role') || '');
-  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
@@ -118,18 +118,6 @@ const Teachers = () => {
   });
 
   useScrollLock(showAddModal || showEditModal || showImportModal || viewingTeacher);
-
-  const updateFilter = useCallback((key, value) => {
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      if (value) {
-        next.set(key, value);
-      } else {
-        next.delete(key);
-      }
-      return next;
-    }, { replace: true });
-  }, [setSearchParams]);
 
   const STAFF_TITLES = [
     // ── DepEd teaching ranks ──────────────────────────────────────────────
@@ -580,42 +568,8 @@ const Teachers = () => {
 
   if (loading) {
     return (
-      <div className="page-bottom-safe bg-slate-50 min-h-screen">
-        <div className="bg-white border-b border-slate-200 px-4 md:px-6 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-slate-200 animate-pulse" />
-              <div>
-                <div className="h-5 w-48 bg-slate-200 rounded animate-pulse mb-1" />
-                <div className="h-3 w-32 bg-slate-100 rounded animate-pulse" />
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse" />
-              <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse" />
-              <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse" />
-            </div>
-          </div>
-        </div>
-        <div className="px-4 md:px-6 py-4 space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="h-9 flex-1 max-w-xs bg-slate-100 rounded-lg animate-pulse" />
-            <div className="h-9 w-24 bg-slate-100 rounded-lg animate-pulse" />
-            <div className="h-9 w-24 bg-slate-100 rounded-lg animate-pulse" />
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white border border-slate-200 rounded-xl overflow-hidden animate-pulse">
-                <div className="w-full aspect-[3/4] bg-slate-100" />
-                <div className="px-3 pt-2.5 pb-2 space-y-2">
-                  <div className="h-3 w-3/4 bg-slate-200 rounded" />
-                  <div className="h-2 w-1/2 bg-slate-100 rounded" />
-                  <div className="h-2 w-2/3 bg-slate-100 rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+      <div className="flex justify-center items-center h-64">
+        <LoadingSpinner />
       </div>
     );
   }
@@ -684,15 +638,15 @@ const Teachers = () => {
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input type="text" placeholder="Search name or email…" value={searchQuery} onChange={e => { setSearchQuery(e.target.value); updateFilter('q', e.target.value); }}
+              <input type="text" placeholder="Search name or email…" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent" />
             </div>
-            <select value={roleFilter} onChange={e => { setRoleFilter(e.target.value); updateFilter('role', e.target.value); }}
+            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}
               className="py-2 pl-3 pr-8 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-slate-600 font-semibold">
               <option value="">All roles</option>
               {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
-            <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); updateFilter('status', e.target.value); }}
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
               className="py-2 pl-3 pr-8 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 text-slate-600 font-semibold">
               <option value="">All statuses</option>
               <option value="active">Active</option>
@@ -733,21 +687,13 @@ const Teachers = () => {
         )}
 
         {filteredTeachers.length === 0 ? (
-          <div className="bg-white border border-slate-200 p-10 md:p-16 text-center">
-            <div className="w-12 h-12 bg-slate-100 flex items-center justify-center mx-auto mb-3">
-              <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <h3 className="text-sm font-black text-slate-700 mb-1 uppercase tracking-wide">
-              {(searchQuery || roleFilter || statusFilter) ? 'No staff found' : 'No staff accounts yet'}
-            </h3>
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-widest mb-4">
-              {(searchQuery || roleFilter || statusFilter) ? 'Try a different search or filter' : 'Click "Add Staff" to create the first account'}
-            </p>
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <svg className="w-12 h-12 text-violet-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <p className="text-slate-400 font-semibold text-sm">No staff found</p>
             {(searchQuery || roleFilter || statusFilter) && (
-              <button onClick={() => { setSearchQuery(''); setRoleFilter(''); setStatusFilter(''); setSearchParams({}, { replace: true }); }}
-                className="text-xs font-bold text-violet-600 hover:underline">
+              <button onClick={() => { setSearchQuery(''); setRoleFilter(''); setStatusFilter(''); }} className="mt-2 text-xs font-bold text-violet-600 hover:underline">
                 Clear filters
               </button>
             )}
@@ -806,15 +752,11 @@ const Teachers = () => {
               </button>
             </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {filteredTeachers.map((teacher) => {
               const isSelected = selectedIds.includes(teacher.id);
               return (
-              <div key={teacher.id} className={`bg-white border rounded-xl overflow-hidden transition-all duration-200 group relative flex flex-col cursor-pointer ${
-                isSelected 
-                  ? 'border-violet-400 ring-2 ring-violet-200 shadow-md' 
-                  : 'border-slate-200 hover:shadow-lg hover:border-slate-300 hover:-translate-y-0.5'
-              }`} onClick={() => setViewingTeacher(teacher)}>
+              <div key={teacher.id} className={`bg-white border rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 group relative flex flex-col ${isSelected ? 'border-violet-400 ring-1 ring-violet-200' : 'border-slate-200'}`}>
                 {/* Select checkbox */}
                 <button
                   onClick={(e) => {
@@ -883,7 +825,7 @@ const Teachers = () => {
                     {/* Quick message */}
                     {user?.id !== teacher.id && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); handleStartChat(teacher.id); }}
+                        onClick={() => handleStartChat(teacher.id)}
                         className="p-1.5 rounded text-slate-400 hover:text-violet-600 hover:bg-violet-50 transition-colors"
                         title="Message"
                       >
@@ -967,329 +909,178 @@ const Teachers = () => {
       </div>
 
       {/* Add Staff Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Add New Staff</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Create Staff Account</p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowAddModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} size="md">
+        <ModalHeader onClose={() => setShowAddModal(false)}>
+          <ModalTitle title="Add New Staff" subtitle="Create Staff Account" />
+        </ModalHeader>
+        <form onSubmit={handleAddTeacher}>
+          <ModalBody className="space-y-4">
+            <ModalField label="Staff Role" required>
+              <select required value={newTeacher.staff_title} onChange={(e) => setNewTeacher({ ...newTeacher, staff_title: e.target.value })}
+                className={modalSelectCls}>
+                {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </ModalField>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <ModalField label="Title" required>
+                <select required value={newTeacher.title} onChange={(e) => setNewTeacher({ ...newTeacher, title: e.target.value })}
+                  className={modalSelectCls}>
+                  <option value="">Title</option>
+                  {TITLES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </ModalField>
+              <ModalField label="First Name" required>
+                <input type="text" required value={newTeacher.first_name} onChange={(e) => setNewTeacher({ ...newTeacher, first_name: e.target.value })}
+                  className={modalInputCls} placeholder="First name" />
+              </ModalField>
+              <ModalField label="Last Name" required>
+                <input type="text" required value={newTeacher.last_name} onChange={(e) => setNewTeacher({ ...newTeacher, last_name: e.target.value })}
+                  className={modalInputCls} placeholder="Last name" />
+              </ModalField>
             </div>
-            <form onSubmit={handleAddTeacher} className="flex flex-col flex-1 overflow-hidden">
-              <div className="px-4 sm:px-6 py-5 overflow-y-auto flex-1 space-y-4">
-                <div>
-                  <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                    Staff Role <span className="text-red-600">*</span>
-                  </label>
-                  <select required value={newTeacher.staff_title} onChange={(e) => setNewTeacher({ ...newTeacher, staff_title: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
-                    {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      Title <span className="text-red-600">*</span>
-                    </label>
-                    <select required value={newTeacher.title} onChange={(e) => setNewTeacher({ ...newTeacher, title: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
-                      <option value="">Title</option>
-                      {TITLES.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      First Name <span className="text-red-600">*</span>
-                    </label>
-                    <input type="text" required value={newTeacher.first_name} onChange={(e) => setNewTeacher({ ...newTeacher, first_name: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      Last Name <span className="text-red-600">*</span>
-                    </label>
-                    <input type="text" required value={newTeacher.last_name} onChange={(e) => setNewTeacher({ ...newTeacher, last_name: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      Email Address <span className="text-red-600">*</span>
-                    </label>
-                    <input type="email" required value={newTeacher.email} onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      Sex <span className="text-red-600">*</span>
-                    </label>
-                    <select required value={newTeacher.sex} onChange={(e) => setNewTeacher({ ...newTeacher, sex: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
-                      <option value="">Select Sex</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
-                <button type="button" onClick={() => setShowAddModal(false)}
-                  className="px-4 sm:px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
-                  Cancel
-                </button>
-                <button type="submit" disabled={isSubmitting}
-                  className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm">
-                  {isSubmitting ? 'Creating...' : 'Create Account'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ModalField label="Email Address" required>
+                <input type="email" required value={newTeacher.email} onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
+                  className={modalInputCls} placeholder="teacher@email.com" />
+              </ModalField>
+              <ModalField label="Sex" required>
+                <select required value={newTeacher.sex} onChange={(e) => setNewTeacher({ ...newTeacher, sex: e.target.value })}
+                  className={modalSelectCls}>
+                  <option value="">Select Sex</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </ModalField>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <ModalBtnSecondary onClick={() => setShowAddModal(false)}>Cancel</ModalBtnSecondary>
+            <ModalBtnPrimary loading={isSubmitting}>{isSubmitting ? 'Creating...' : 'Create Account'}</ModalBtnPrimary>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       {/* Manage Roles Modal */}
-      {editingRolesId && (
-        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-md border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[80vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Manage Roles</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">
-                    {teachers.find(t => t.id === editingRolesId)?.first_name} {teachers.find(t => t.id === editingRolesId)?.last_name}
-                  </p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setEditingRolesId(null)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
+      <Modal isOpen={!!editingRolesId} onClose={() => setEditingRolesId(null)} size="md">
+        <ModalHeader onClose={() => setEditingRolesId(null)}>
+          <ModalTitle title="Manage Roles" subtitle={editingRolesId ? `${teachers.find(t => t.id === editingRolesId)?.first_name} ${teachers.find(t => t.id === editingRolesId)?.last_name}` : ''} />
+        </ModalHeader>
+        <ModalBody className="space-y-5">
+          <ModalField label="Primary Role">
+            <select value={roleForm.staff_title} onChange={(e) => setRoleForm({ ...roleForm, staff_title: e.target.value })}
+              className={modalSelectCls}>
+              {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </ModalField>
+          <ModalField label="Additional Roles" hint="Click to toggle. Staff with multiple roles appear in multiple departments.">
+            <div className="flex flex-wrap gap-2">
+              {STAFF_TITLES.filter(t => t.value !== roleForm.staff_title).map(t => {
+                const isActive = roleForm.additional_roles.includes(t.value);
+                return (
+                  <button key={t.value} type="button" onClick={() => toggleAdditionalRole(t.value)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded border transition-colors ${
+                      isActive
+                        ? 'bg-violet-100 text-violet-700 border-violet-300'
+                        : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
+                    }`}>
+                    {t.label}
+                  </button>
+                );
+              })}
             </div>
-            <div className="px-4 sm:px-6 py-5 overflow-y-auto flex-1 space-y-5">
-              <div>
-                <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-2">Primary Role</label>
-                <select
-                  value={roleForm.staff_title}
-                  onChange={(e) => setRoleForm({ ...roleForm, staff_title: e.target.value })}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500"
-                >
-                  {STAFF_TITLES.map(t => (
-                    <option key={t.value} value={t.value}>{t.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-2">Additional Roles</label>
-                <p className="text-[10px] text-slate-400 mb-2">Click to toggle. Staff with multiple roles appear in multiple departments.</p>
-                <div className="flex flex-wrap gap-2">
-                  {STAFF_TITLES.filter(t => t.value !== roleForm.staff_title).map(t => {
-                    const isActive = roleForm.additional_roles.includes(t.value);
-                    return (
-                      <button
-                        key={t.value}
-                        onClick={() => toggleAdditionalRole(t.value)}
-                        className={`text-xs font-bold px-3 py-1.5 rounded border transition-colors ${
-                          isActive
-                            ? 'bg-violet-100 text-violet-700 border-violet-300'
-                            : 'bg-white text-slate-400 border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        {t.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
-              <button type="button" onClick={() => setEditingRolesId(null)}
-                className="px-4 sm:px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSaveRoles(editingRolesId)}
-                className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm">
-                Save Roles
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </ModalField>
+        </ModalBody>
+        <ModalFooter>
+          <ModalBtnSecondary onClick={() => setEditingRolesId(null)}>Cancel</ModalBtnSecondary>
+          <ModalBtnPrimary onClick={() => handleSaveRoles(editingRolesId)}>Save Roles</ModalBtnPrimary>
+        </ModalFooter>
+      </Modal>
 
       {/* Edit Teacher Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Edit Teacher Record</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">{editingTeacher.profile?.title} {editingTeacher.first_name} {editingTeacher.last_name}</p>
-                </div>
-              </div>              <button type="button" onClick={() => setShowEditModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
+      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="md">
+        <ModalHeader onClose={() => setShowEditModal(false)}>
+          <ModalTitle title="Edit Teacher Record" subtitle={editingTeacher.profile?.title ? `${editingTeacher.profile.title} ${editingTeacher.first_name} ${editingTeacher.last_name}` : `${editingTeacher.first_name} ${editingTeacher.last_name}`} />
+        </ModalHeader>
+        <form onSubmit={handleEditTeacher}>
+          <ModalBody className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <ModalField label="Title" required>
+                <select required value={editingTeacher.profile?.title || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, title: e.target.value } })}
+                  className={modalSelectCls}>
+                  <option value="">Title</option>
+                  {TITLES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </ModalField>
+              <ModalField label="First Name" required>
+                <input type="text" required value={editingTeacher.first_name} onChange={(e) => setEditingTeacher({ ...editingTeacher, first_name: e.target.value })}
+                  className={modalInputCls} placeholder="First name" />
+              </ModalField>
+              <ModalField label="Last Name" required>
+                <input type="text" required value={editingTeacher.last_name} onChange={(e) => setEditingTeacher({ ...editingTeacher, last_name: e.target.value })}
+                  className={modalInputCls} placeholder="Last name" />
+              </ModalField>
             </div>
-            <form onSubmit={handleEditTeacher} className="flex flex-col flex-1 overflow-hidden">
-              <div className="px-4 sm:px-6 py-5 overflow-y-auto flex-1 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      Title <span className="text-red-600">*</span>
-                    </label>
-                    <select required value={editingTeacher.profile?.title || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, title: e.target.value } })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
-                      <option value="">Title</option>
-                      {TITLES.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      First Name <span className="text-red-600">*</span>
-                    </label>
-                    <input type="text" required value={editingTeacher.first_name} onChange={(e) => setEditingTeacher({ ...editingTeacher, first_name: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      Last Name <span className="text-red-600">*</span>
-                    </label>
-                    <input type="text" required value={editingTeacher.last_name} onChange={(e) => setEditingTeacher({ ...editingTeacher, last_name: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      Email Address <span className="text-red-600">*</span>
-                    </label>
-                    <input type="email" required value={editingTeacher.email} onChange={(e) => setEditingTeacher({ ...editingTeacher, email: e.target.value })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
-                      Sex <span className="text-red-600">*</span>
-                    </label>
-                    <select required value={editingTeacher.profile?.sex || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, sex: e.target.value } })}
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
-                      <option value="">Select Sex</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
-                <button type="button" onClick={() => setShowEditModal(false)}
-                  className="px-4 sm:px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
-                  Cancel
-                </button>
-                <button type="submit"
-                  className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm">
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ModalField label="Email Address" required>
+                <input type="email" required value={editingTeacher.email} onChange={(e) => setEditingTeacher({ ...editingTeacher, email: e.target.value })}
+                  className={modalInputCls} placeholder="teacher@email.com" />
+              </ModalField>
+              <ModalField label="Sex" required>
+                <select required value={editingTeacher.profile?.sex || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, sex: e.target.value } })}
+                  className={modalSelectCls}>
+                  <option value="">Select Sex</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                </select>
+              </ModalField>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <ModalBtnSecondary onClick={() => setShowEditModal(false)}>Cancel</ModalBtnSecondary>
+            <ModalBtnPrimary type="submit">Save Changes</ModalBtnPrimary>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       {/* Import Modal */}
-      {showImportModal && (
-        <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Bulk Import Teachers</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Upload Excel or CSV</p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowImportModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
+      <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} size="md">
+        <ModalHeader onClose={() => setShowImportModal(false)}>
+          <ModalTitle title="Bulk Import Teachers" subtitle="Upload Excel or CSV" />
+        </ModalHeader>
+        <ModalBody className="space-y-5">
+          <div className="border-2 border-dashed border-gray-300 rounded p-6 sm:p-10 text-center hover:border-violet-400 transition-all group relative">
+            <input type="file" accept=".csv, .xlsx, .xls" onChange={handleImportExcel}
+              className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+            <div className="space-y-4">
+              <div className="w-16 h-16 bg-violet-50 rounded flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
-              </button>
-            </div>
-            <div className="px-4 sm:px-6 py-5 overflow-y-auto flex-1 space-y-5">
-              <div className="border-2 border-dashed border-gray-300 rounded p-6 sm:p-10 text-center hover:border-violet-400 transition-all group relative">
-                <input
-                  type="file"
-                  accept=".csv, .xlsx, .xls"
-                  onChange={handleImportExcel}
-                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                />
-                <div className="space-y-4">
-                  <div className="w-16 h-16 bg-violet-50 rounded flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                    <svg className="w-8 h-8 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-gray-700 uppercase tracking-tight">Click or drag file here</p>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Supports CSV, XLSX</p>
-                  </div>
-                </div>
               </div>
-              <div className="bg-amber-50 border border-amber-100 rounded p-4">
-                <div className="flex gap-3">
-                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-1">Important Note</p>
-                    <p className="text-[9px] font-bold text-amber-700 leading-relaxed uppercase tracking-tight">
-                      Ensure your file follows the official template format to avoid errors.
-                    </p>
-                  </div>
-                </div>
+              <div>
+                <p className="text-sm font-black text-gray-700 uppercase tracking-tight">Click or drag file here</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Supports CSV, XLSX</p>
               </div>
-            </div>
-            <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
-              <button type="button" onClick={() => setShowImportModal(false)}
-                className="px-4 sm:px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
-                Cancel
-              </button>
             </div>
           </div>
-        </div>
-      )}
+          <div className="bg-amber-50 border border-amber-100 rounded p-4">
+            <div className="flex gap-3">
+              <svg className="w-5 h-5 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-1">Important Note</p>
+                <p className="text-[9px] font-bold text-amber-700 leading-relaxed uppercase tracking-tight">
+                  Ensure your file follows the official template format to avoid errors.
+                </p>
+              </div>
+            </div>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <ModalBtnSecondary onClick={() => setShowImportModal(false)}>Cancel</ModalBtnSecondary>
+        </ModalFooter>
+      </Modal>
 
       {/* Teacher Profile Drawer */}
       {viewingTeacher && (

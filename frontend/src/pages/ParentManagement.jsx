@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { useParallelFetch } from '../hooks/useFetch';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { LoadingSpinner, EmptyState, Button } from '../components/ui';
+import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalField, ModalBtnPrimary, ModalBtnSecondary, modalInputCls, modalSelectCls } from '../components/ui/Modal';
 import ParentProfileDrawer from '../components/people/ParentProfileDrawer';
 
 const emptyForm = { first_name: '', last_name: '', email: '', password: '' };
@@ -161,41 +162,8 @@ export default function ParentManagement() {
   }, [students, linkSearch]);
 
   if (loading) return (
-    <div className="page-bottom-safe bg-slate-50 min-h-screen">
-      <div className="bg-white border-b-2 border-slate-200 px-4 md:px-6 py-3 md:py-4 mb-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 md:h-11 md:w-11 bg-slate-200 animate-pulse" />
-          <div>
-            <div className="h-5 w-40 bg-slate-200 rounded animate-pulse mb-1" />
-            <div className="h-3 w-32 bg-slate-100 rounded animate-pulse" />
-          </div>
-        </div>
-      </div>
-      <div className="px-4 md:px-6 space-y-4">
-        <div className="bg-white p-2.5 border border-slate-200">
-          <div className="flex items-center gap-3">
-            <div className="h-8 flex-1 max-w-md bg-slate-100 rounded animate-pulse" />
-            <div className="h-8 w-24 bg-slate-100 rounded animate-pulse" />
-          </div>
-        </div>
-        <div className="bg-white border border-slate-200 animate-pulse">
-          <div className="bg-[#5e2a84] px-4 py-2.5">
-            <div className="flex gap-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="h-3 bg-white/20 rounded" style={{ width: `${60 + i * 20}px` }} />
-              ))}
-            </div>
-          </div>
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-slate-100">
-              <div className="h-3 w-32 bg-slate-100 rounded" />
-              <div className="h-3 flex-1 bg-slate-100 rounded hidden md:block" />
-              <div className="h-3 w-20 bg-slate-100 rounded" />
-              <div className="h-3 w-16 bg-slate-100 rounded hidden sm:block" />
-            </div>
-          ))}
-        </div>
-      </div>
+    <div className="flex justify-center items-center h-64">
+      <LoadingSpinner />
     </div>
   );
 
@@ -286,12 +254,8 @@ export default function ParentManagement() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <p className="text-slate-700 font-black text-sm uppercase tracking-wide mb-1">
-              {(search || statusFilter) ? 'No parents found' : 'No parent accounts yet'}
-            </p>
-            <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">
-              {(search || statusFilter) ? 'Try a different search' : 'Click "Add Parent" to create the first one'}
-            </p>
+            <p className="text-slate-500 font-bold text-sm">No parent accounts yet.</p>
+            <p className="text-slate-400 text-xs mt-1">Click "Add Parent" to create the first one.</p>
           </div>
         ) : (
           <div className="">
@@ -415,155 +379,99 @@ export default function ParentManagement() {
       </div>
 
       {/* Create Parent Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white border border-gray-300 shadow-2xl w-full max-w-md flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 bg-white/20 border border-white/30 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Create Parent Account</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">A temporary password will be generated automatically.</p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowAddModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} size="md">
+        <ModalHeader onClose={() => setShowAddModal(false)}>
+          <ModalTitle title="Create Parent Account" subtitle="A temporary password will be generated automatically." />
+        </ModalHeader>
+        <form onSubmit={handleCreate}>
+          <ModalBody className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <ModalField label="First Name" required>
+                <input required value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
+                  className={modalInputCls} />
+              </ModalField>
+              <ModalField label="Last Name" required>
+                <input required value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
+                  className={modalInputCls} />
+              </ModalField>
             </div>
-            <form onSubmit={handleCreate} className="flex flex-col flex-1 overflow-hidden">
-              <div className="px-5 py-4 overflow-y-auto flex-1 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">First Name *</label>
-                    <input required value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Last Name *</label>
-                    <input required value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
-                      className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500" />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Email Address *</label>
-                  <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                    placeholder="parent@email.com"
-                    className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500" />
-                  <p className="text-[10px] text-slate-400 mt-1">This will also be their username for login.</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-1">Password (optional)</label>
-                  <input type="text" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                    placeholder="Leave blank to auto-generate"
-                    className="w-full px-3 py-2 border border-gray-300 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500" />
-                </div>
-              </div>
-              <div className="px-5 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
-                <button type="button" onClick={() => setShowAddModal(false)}
-                  className="px-5 py-2 bg-white text-gray-700 text-xs font-bold uppercase tracking-wider border border-gray-300 hover:bg-gray-100">
-                  Cancel
-                </button>
-                <button type="submit" disabled={saving}
-                  className="px-5 py-2 bg-[#5e2a84] text-white text-xs font-bold uppercase tracking-wider hover:bg-violet-700 disabled:opacity-50">
-                  {saving ? 'Creating...' : 'Create Account'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <ModalField label="Email Address" required hint="This will also be their username for login.">
+              <input required type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                placeholder="parent@email.com" className={modalInputCls} />
+            </ModalField>
+            <ModalField label="Password" hint="Leave blank to auto-generate (optional)">
+              <input type="text" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                placeholder="Leave blank to auto-generate" className={modalInputCls} />
+            </ModalField>
+          </ModalBody>
+          <ModalFooter>
+            <ModalBtnSecondary onClick={() => setShowAddModal(false)}>Cancel</ModalBtnSecondary>
+            <ModalBtnPrimary loading={saving}>{saving ? 'Creating...' : 'Create Account'}</ModalBtnPrimary>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       {/* Link Children Modal */}
-      {showLinkModal && selectedParent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white border border-gray-300 shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 border-b-2 border-violet-900">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 bg-white/20 border border-white/30 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Link Children</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">
-                    {selectedParent.first_name} {selectedParent.last_name}
-                  </p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setShowLinkModal(false)}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
+      <Modal isOpen={showLinkModal && !!selectedParent} onClose={() => setShowLinkModal(false)} size="lg">
+        <ModalHeader onClose={() => setShowLinkModal(false)}>
+          <ModalTitle title="Link Children" subtitle={selectedParent ? `${selectedParent.first_name} ${selectedParent.last_name}` : ''} />
+        </ModalHeader>
+        <ModalBody className="p-0">
+          <div className="p-3 border-b border-gray-200">
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input type="text" value={linkSearch} onChange={e => setLinkSearch(e.target.value)}
+                placeholder="Search students by name or ID..."
+                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:bg-white" />
             </div>
-            <div className="p-3 border-b border-gray-200">
-              <div className="relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input type="text" value={linkSearch} onChange={e => setLinkSearch(e.target.value)}
-                  placeholder="Search students by name or ID..."
-                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:bg-white" />
-              </div>
-              {linkedIds.length > 0 && (
-                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1.5">
-                  {linkedIds.length} student{linkedIds.length !== 1 ? 's' : ''} selected
-                </p>
-              )}
-            </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
-              {filteredStudents.length === 0 ? (
-                <p className="text-center text-slate-400 text-sm py-8">No students found.</p>
-              ) : filteredStudents.map(s => {
-                const isLinked = linkedIds.includes(s.id);
-                return (
-                  <button key={s.id} onClick={() => toggleLink(s.id)}
-                    className={`w-full flex items-center gap-3 p-2.5 border transition-colors text-left ${
-                      isLinked
-                        ? 'bg-violet-50 border-violet-300'
-                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                    }`}>
-                    <div className={`w-4.5 h-4.5 border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                      isLinked ? 'bg-violet-600 border-violet-600' : 'border-slate-300'
-                    }`} style={{ width: '18px', height: '18px' }}>
-                      {isLinked && (
-                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="w-7 h-7 bg-[#5e2a84] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
-                      {s.first_name?.[0]}{s.last_name?.[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800 truncate">{s.first_name} {s.last_name}</p>
-                      <p className="text-[9px] text-slate-400 truncate">
-                        {s.username} · {s.profile?.grade_level || 'No grade'} · {s.profile?.classroom_name || 'No class'}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="p-3 border-t border-gray-200 bg-gray-50 flex justify-end gap-3">
-              <button type="button" onClick={() => setShowLinkModal(false)}
-                className="px-5 py-2 bg-white text-gray-700 text-xs font-bold uppercase tracking-wider border border-gray-300 hover:bg-gray-100">
-                Cancel
-              </button>
-              <button onClick={saveLinks} disabled={linkSaving}
-                className="px-5 py-2 bg-[#5e2a84] text-white text-xs font-bold uppercase tracking-wider hover:bg-violet-700 disabled:opacity-50">
-                {linkSaving ? 'Saving...' : 'Save Links'}
-              </button>
-            </div>
+            {linkedIds.length > 0 && (
+              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1.5">
+                {linkedIds.length} student{linkedIds.length !== 1 ? 's' : ''} selected
+              </p>
+            )}
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 space-y-1.5 max-h-[50vh]">
+            {filteredStudents.length === 0 ? (
+              <p className="text-center text-slate-400 text-sm py-8">No students found.</p>
+            ) : filteredStudents.map(s => {
+              const isLinked = linkedIds.includes(s.id);
+              return (
+                <button key={s.id} onClick={() => toggleLink(s.id)}
+                  className={`w-full flex items-center gap-3 p-2.5 border transition-colors text-left ${
+                    isLinked
+                      ? 'bg-violet-50 border-violet-300'
+                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  }`}>
+                  <div className={`w-4.5 h-4.5 border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                    isLinked ? 'bg-violet-600 border-violet-600' : 'border-slate-300'
+                  }`} style={{ width: '18px', height: '18px' }}>
+                    {isLinked && (
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="w-7 h-7 bg-[#5e2a84] flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0">
+                    {s.first_name?.[0]}{s.last_name?.[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-slate-800 truncate">{s.first_name} {s.last_name}</p>
+                    <p className="text-[9px] text-slate-400 truncate">
+                      {s.username} · {s.profile?.grade_level || 'No grade'} · {s.profile?.classroom_name || 'No class'}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <ModalBtnSecondary onClick={() => setShowLinkModal(false)}>Cancel</ModalBtnSecondary>
+          <ModalBtnPrimary loading={linkSaving} onClick={saveLinks}>{linkSaving ? 'Saving...' : 'Save Links'}</ModalBtnPrimary>
+        </ModalFooter>
+      </Modal>
           </div>
         </div>
       )}
