@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db import transaction
 
-from ..models import Attendance, AbsenceExcuse, Subject, TimeSlot, Schedule
+from ..models import Attendance, AbsenceExcuse, Subject, TimeSlot, Schedule, SchoolCalendar
 from ._base import full_name
 
 
@@ -153,3 +153,16 @@ class AbsenceExcuseSerializer(serializers.ModelSerializer):
 
     def get_student_name(self, obj): return full_name(obj.student)
     def get_reviewed_by_name(self, obj): return full_name(obj.reviewed_by) if obj.reviewed_by else None
+
+
+class SchoolCalendarSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.SerializerMethodField()
+    type_display = serializers.CharField(source='get_type_display', read_only=True)
+
+    class Meta:
+        model = SchoolCalendar
+        fields = ['id', 'date', 'title', 'description', 'type', 'type_display',
+                  'created_by', 'created_by_name', 'created_at', 'updated_at']
+        read_only_fields = ['created_by']
+
+    def get_created_by_name(self, obj): return full_name(obj.created_by) if obj.created_by else None

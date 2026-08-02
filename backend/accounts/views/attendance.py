@@ -11,10 +11,10 @@ from rest_framework.response import Response
 from ..models import (
     User, Profile, Classroom, StudentClassEnrollment, Attendance, LearningMaterial,
     Subject, ClassroomSubject, Notification, AbsenceExcuse, Schedule, Room,
-    AttendanceDeadline, AttendanceAuditLog,
+    AttendanceDeadline, AttendanceAuditLog, SchoolCalendar,
 )
 from ..serializers import (
-    AttendanceSerializer, AbsenceExcuseSerializer, full_name,
+    AttendanceSerializer, AbsenceExcuseSerializer, SchoolCalendarSerializer, full_name,
 )
 from ..utils import log_audit_action
 
@@ -440,6 +440,18 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Unauthorized'}, status=403)
 
         today = datetime.date.today()
+
+        holiday = SchoolCalendar.objects.filter(date=today).first()
+        if holiday:
+            return Response({
+                'is_holiday': True,
+                'title': holiday.title,
+                'description': holiday.description,
+                'type': holiday.type,
+                'type_display': holiday.get_type_display(),
+                'classes': [],
+            })
+
         today_name = today.strftime('%A').lower()
 
         schedules = Schedule.objects.filter(
@@ -535,6 +547,21 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Unauthorized'}, status=403)
 
         today = datetime.date.today()
+
+        holiday = SchoolCalendar.objects.filter(date=today).first()
+        if holiday:
+            return Response({
+                'is_holiday': True,
+                'title': holiday.title,
+                'description': holiday.description,
+                'type': holiday.type,
+                'type_display': holiday.get_type_display(),
+                'summary': {'total_classes': 0, 'completed': 0, 'pending': 0, 'total_students': 0, 'total_records': 0, 'present': 0, 'absent': 0, 'late': 0, 'overall_rate': 0},
+                'teacher_stats': [],
+                'daily_trends': [],
+                'grade_rates': [],
+            })
+
         today_name = today.strftime('%A').lower()
 
         all_schedules = Schedule.objects.filter(
@@ -901,3 +928,55 @@ class AbsenceExcuseViewSet(viewsets.ModelViewSet):
         except Exception as audit_err:
             logger.warning(f"Audit log failed on excuse review: {audit_err}")
         return Response(AbsenceExcuseSerializer(excuse).data)
+
+
+class SchoolCalendarViewSet(viewsets.ModelViewSet):
+    serializer_class = SchoolCalendarSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'admin':
+            return SchoolCalendar.objects.all()
+        # Students/parents/teachers can read
+        return SchoolCalendar.objects.all()
+
+    def perform_create(self, serializer):
+        if self.request.user.role != 'admin':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage school calendar")
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        if self.request.user.role != 'admin':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage school calendar")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user.role != 'admin':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage school calendar")
+        instance.delete()
+
+    @action(detail=False, methods=['get'], url_path='check')
+    def check_date(self, request):
+        """Check if a specific date is a holiday/no-class day."""
+        date_str = request.query_params.get('date')
+        if not date_str:
+            return Response({'error': 'date parameter required'}, status=400)
+        try:
+            check_date = datetime.date.fromisoformat(date_str)
+        except ValueError:
+            return Response({'error': 'Invalid date format'}, status=400)
+
+        entry = SchoolCalendar.objects.filter(date=check_date).first()
+        if entry:
+            return Response({
+                'is_holiday': True,
+                'title': entry.title,
+                'description': entry.description,
+                'type': entry.type,
+                'type_display': entry.get_type_display(),
+            })
+        return Response({'is_holiday': False})

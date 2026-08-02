@@ -66,6 +66,36 @@ const AttendanceMonitoring = () => {
 
   if (!data) return null;
 
+  if (data.is_holiday) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900">Attendance Monitoring</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              <Calendar className="w-4 h-4 inline mr-1" />
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+        </div>
+        <Card>
+          <CardBody className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-amber-500" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">{data.title}</h2>
+            <p className="text-sm text-slate-500 mb-1">
+              {data.type_display} &mdash; No classes today
+            </p>
+            {data.description && (
+              <p className="text-xs text-slate-400 mt-2">{data.description}</p>
+            )}
+          </CardBody>
+        </Card>
+      </div>
+    );
+  }
+
   const { summary, teacher_stats, daily_trends, grade_rates } = data;
 
   const pieData = [

@@ -160,3 +160,25 @@ class AbsenceExcuse(models.Model):
 
     def __str__(self):
         return f"Excuse for {self.student.username} on {self.attendance.date} - {self.status}"
+
+
+class SchoolCalendar(models.Model):
+    TYPE_CHOICES = [
+        ('holiday', 'Holiday'),
+        ('weather', 'Weather Disruption'),
+        ('break', 'School Break'),
+        ('other', 'Other'),
+    ]
+    date = models.DateField(unique=True)
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default='')
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='holiday')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_holidays')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.get_type_display()}: {self.title} ({self.date})"

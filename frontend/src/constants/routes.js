@@ -69,6 +69,7 @@ const TeacherGradeDashboard = lazy(() => retryImport(() => import('../pages/Teac
 const AttendanceDashboard = lazy(() => retryImport(() => import('../pages/AttendanceDashboard')));
 const AttendanceMonitoring = lazy(() => retryImport(() => import('../pages/AttendanceMonitoring')));
 const StudentAttendance = lazy(() => retryImport(() => import('../pages/StudentAttendance')));
+const SchoolCalendarAdmin = lazy(() => retryImport(() => import('../pages/SchoolCalendarAdmin')));
 
 // ── Route definitions ────────────────────────────────────────────────────────
 
@@ -138,6 +139,7 @@ export const protectedRoutes = [
   { path: 'attendance-dashboard', element: AttendanceDashboard, roles: [Role.STAFF] },
   { path: 'attendance-monitoring', element: AttendanceMonitoring, roles: [Role.ADMIN] },
   { path: 'student-attendance', element: StudentAttendance, roles: [Role.STUDENT, Role.PARENT] },
+  { path: 'school-calendar', element: SchoolCalendarAdmin, roles: [Role.ADMIN] },
 
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },

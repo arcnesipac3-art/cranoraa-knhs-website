@@ -596,6 +596,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [remarks, setRemarks] = useState({}); // student_id -> remark text
+  const [holidayInfo, setHolidayInfo] = useState(null);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -622,7 +623,16 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
 
   useEffect(() => {
     const fetchAttendance = async () => {
+      setHolidayInfo(null);
       try {
+        // Check if date is a holiday
+        const holidayRes = await api.get(`/school-calendar/check/?date=${selectedDate}`);
+        if (holidayRes.data.is_holiday) {
+          setHolidayInfo(holidayRes.data);
+          setAttendance({});
+          setExistingRecords({});
+          return;
+        }
         const res = await api.get(`/attendance/?classroom=${classroom.id}&date=${selectedDate}`);
         const attendanceMap = {};
         const recMap = {};
@@ -935,7 +945,16 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
           </div>
 
           {/* Attendance List */}
-          {loading ? (
+          {holidayInfo ? (
+            <div className="text-center py-8">
+              <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-3">
+                <Calendar className="w-7 h-7 text-amber-500" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1">{holidayInfo.title}</h3>
+              <p className="text-sm text-slate-500">{holidayInfo.type_display} &mdash; No classes</p>
+              {holidayInfo.description && <p className="text-xs text-slate-400 mt-1">{holidayInfo.description}</p>}
+            </div>
+          ) : loading ? (
             <div className="flex items-center justify-center h-64">
               <LoadingSpinner />
             </div>

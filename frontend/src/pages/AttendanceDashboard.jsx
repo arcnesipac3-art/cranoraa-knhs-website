@@ -14,6 +14,7 @@ import {
 const AttendanceDashboard = () => {
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [holiday, setHoliday] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +24,11 @@ const AttendanceDashboard = () => {
   const fetchDashboard = async () => {
     try {
       const res = await api.get('/attendance/teacher-dashboard/');
-      setClasses(res.data);
+      if (res.data.is_holiday) {
+        setHoliday(res.data);
+      } else {
+        setClasses(res.data);
+      }
     } catch {
       toast.error('Failed to load attendance dashboard');
     } finally {
@@ -53,6 +58,36 @@ const AttendanceDashboard = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (holiday) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900">Attendance Dashboard</h1>
+            <p className="text-sm text-slate-500 mt-1">
+              <Calendar className="w-4 h-4 inline mr-1" />
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+        </div>
+        <Card>
+          <CardBody className="p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+              <Calendar className="w-8 h-8 text-amber-500" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">{holiday.title}</h2>
+            <p className="text-sm text-slate-500 mb-1">
+              {holiday.type_display} &mdash; No classes today
+            </p>
+            {holiday.description && (
+              <p className="text-xs text-slate-400 mt-2">{holiday.description}</p>
+            )}
+          </CardBody>
+        </Card>
       </div>
     );
   }
