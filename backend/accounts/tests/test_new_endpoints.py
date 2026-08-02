@@ -17,8 +17,9 @@ from accounts.models import (
     ParentTeacherMeeting, BehavioralRecord, SchoolEvent,
     UserBlock, EmergencyMessage, Department, StaffPerformance,
     Attendance, GradeReport, StudentClassEnrollment, ClassroomSubject,
-    Schedule, TimeSlot, AcademicYear,
+    Schedule, TimeSlot, AcademicYear, Semester,
 )
+from portal.models import AcademicYear as PortalAcademicYear, Semester as PortalSemester
 
 User = get_user_model()
 
@@ -205,6 +206,67 @@ class PTMAPITest(TestCase):
             'scheduled_time': '14:00:00',
         })
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class ScheduleCompatibilityAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.admin = User.objects.create_user(
+            username='admin_sched', password='pass', role='admin', is_staff=True, is_approved=True
+        )
+        self.teacher = User.objects.create_user(
+            username='teacher_sched', password='pass', role='staff', staff_title='teacher', is_approved=True
+        )
+        self.classroom = Classroom.objects.create(name='7-Sampaguita', grade_level='Grade 7')
+        self.subject = Subject.objects.create(name='Mathematics', code='MATH7', grade_level='Grade 7')
+        self.time_slot = TimeSlot.objects.create(
+            classroom=self.classroom,
+            day='monday',
+            start_time='07:30:00',
+            end_time='08:30:00',
+            label='Period 1',
+        )
+        self.accounts_year = AcademicYear.objects.create(
+            name='2026-2027',
+            start_date=date(2026, 6, 1),
+            end_date=date(2027, 3, 31),
+            is_active=True,
+        )
+        self.accounts_semester = Semester.objects.create(
+            academic_year=self.accounts_year,
+            name='1st Term',
+            semester_type='1st Term',
+            start_date=date(2026, 6, 1),
+            end_date=date(2026, 10, 31),
+            is_active=True,
+        )
+
+    def test_schedule_create_accepts_accounts_academic_year_ids(self):
+        self.assertFalse(PortalAcademicYear.objects.filter(name=self.accounts_year.name).exists())
+        self.assertFalse(PortalSemester.objects.filter(name=self.accounts_semester.name).exists())
+
+        self.client.force_authenticate(user=self.admin)
+        response = self.client.post('/api/v1/schedules/', {
+            'classroom': self.classroom.id,
+            'subject': self.subject.id,
+            'teacher': self.teacher.id,
+            'time_slot': self.time_slot.id,
+            'academic_year': self.accounts_year.id,
+            'semester': self.accounts_semester.id,
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+
+        schedule = Schedule.objects.get(pk=response.data['id'])
+        self.assertEqual(schedule.academic_year.name, self.accounts_year.name)
+        self.assertEqual(schedule.semester.semester_type, self.accounts_semester.semester_type)
+        self.assertTrue(PortalAcademicYear.objects.filter(name=self.accounts_year.name).exists())
+        self.assertTrue(
+            PortalSemester.objects.filter(
+                academic_year__name=self.accounts_year.name,
+                semester_type=self.accounts_semester.semester_type,
+            ).exists()
+        )
 
 
 class BehavioralRecordAPITest(TestCase):
