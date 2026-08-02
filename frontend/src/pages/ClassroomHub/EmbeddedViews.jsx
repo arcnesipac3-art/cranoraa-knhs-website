@@ -8,7 +8,7 @@ import {
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } from '../../components/ui/Modal';
 import {
   ArrowLeft, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
-  Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare
+  Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare, Circle
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
 
@@ -613,7 +613,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
         });
         setStudents(sorted);
         const initAttendance = {};
-        sorted.forEach(s => { initAttendance[s.student] = 'present'; });
+        sorted.forEach(s => { initAttendance[s.student] = null; });
         setAttendance(initAttendance);
         setAttendanceIds({});
       } catch {
@@ -637,11 +637,11 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
         });
         setAttendanceIds(idMap);
         setAttendance(prev => {
-          const reset = {};
+          const next = {};
           Object.keys(prev).forEach(studentId => {
-            reset[studentId] = attendanceMap[studentId] || 'present';
+            next[studentId] = studentId in attendanceMap ? attendanceMap[studentId] : null;
           });
-          return reset;
+          return next;
         });
       } catch {
         console.error('Failed to load attendance');
@@ -689,15 +689,27 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   };
 
   const handleSubmit = async () => {
+    const unmarked = students.filter(s => attendance[s.student] === null);
+    if (unmarked.length > 0) {
+      const proceed = window.confirm(`${unmarked.length} student(s) still unmarked. Submit only marked students?`);
+      if (!proceed) return;
+    }
+
+    const markedStudents = students.filter(s => attendance[s.student] !== null);
+    if (markedStudents.length === 0) {
+      toast.error('No students marked yet');
+      return;
+    }
+
     setSubmitting(true);
     const results = await Promise.allSettled(
-      students.map(student => {
+      markedStudents.map(student => {
         const existingId = attendanceIds[student.student];
         const payload = {
           student: student.student,
           classroom: classroom.id,
           date: selectedDate,
-          status: attendance[student.student] || 'present',
+          status: attendance[student.student],
           schedule_id: null,
           remarks: remarks[student.student] || '',
         };
@@ -724,7 +736,8 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     const absent = Object.values(attendance).filter(s => s === 'absent').length;
     const late = Object.values(attendance).filter(s => s === 'late').length;
     const excused = Object.values(attendance).filter(s => s === 'excused').length;
-    return { present, absent, late, excused, total: students.length };
+    const unmarked = Object.values(attendance).filter(s => s === null).length;
+    return { present, absent, late, excused, unmarked, total: students.length };
   }, [attendance, students.length]);
 
   const filteredStudents = useMemo(() => {
@@ -768,10 +781,11 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   }, [students, studentHistory]);
 
   const statusConfig = {
-    present: { active: 'bg-green-600 text-white', idle: 'bg-green-50 text-green-700 hover:bg-green-100', icon: CheckCircle },
-    absent:  { active: 'bg-red-600 text-white',   idle: 'bg-red-50 text-red-700 hover:bg-red-100',   icon: XCircle },
-    late:    { active: 'bg-amber-600 text-white',  idle: 'bg-amber-50 text-amber-700 hover:bg-amber-100', icon: ClockIcon },
-    excused: { active: 'bg-blue-600 text-white',   idle: 'bg-blue-50 text-blue-700 hover:bg-blue-100',   icon: ShieldCheck },
+    unmarked: { active: 'bg-slate-600 text-white', idle: 'bg-slate-100 text-slate-500 hover:bg-slate-200', icon: Circle },
+    present:  { active: 'bg-green-600 text-white', idle: 'bg-green-50 text-green-700 hover:bg-green-100', icon: CheckCircle },
+    absent:   { active: 'bg-red-600 text-white',   idle: 'bg-red-50 text-red-700 hover:bg-red-100',   icon: XCircle },
+    late:     { active: 'bg-amber-600 text-white',  idle: 'bg-amber-50 text-amber-700 hover:bg-amber-100', icon: ClockIcon },
+    excused:  { active: 'bg-blue-600 text-white',   idle: 'bg-blue-50 text-blue-700 hover:bg-blue-100',   icon: ShieldCheck },
   };
 
   return (
@@ -781,18 +795,25 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
           <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
           <span className="hidden sm:inline">Back to Overview</span>
         </Button>
-        <Button 
-          variant="primary" 
-          size="sm" 
-          onClick={handleSubmit} 
-          loading={submitting}
-          disabled={isStudent}
-        >
-          <Check className="w-4 h-4 mr-1.5" />
-          <span className="hidden sm:inline">Submit Attendance</span>
-          <span className="sm:hidden">Submit</span>
-          {isStudent && <span className="ml-1">(View only)</span>}
-        </Button>
+        <div className="flex items-center gap-2">
+          {stats.unmarked > 0 && !isStudent && (
+            <span className="text-xs text-amber-600 font-medium hidden sm:inline">{stats.unmarked} unmarked</span>
+          )}
+          <Button 
+            variant="primary" 
+            size="sm" 
+            onClick={handleSubmit} 
+            loading={submitting}
+            disabled={isStudent || stats.unmarked === students.length}
+          >
+            <Check className="w-4 h-4 mr-1.5" />
+            <span className="hidden sm:inline">Submit</span>
+            <span className="sm:hidden">Submit</span>
+            {!isStudent && stats.unmarked < students.length && (
+              <span className="ml-1 text-xs opacity-75">({students.length - stats.unmarked})</span>
+            )}
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -801,10 +822,20 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
             <CardTitle>Attendance - {classroom.name}</CardTitle>
             <div className="flex items-center gap-2">
               {!isStudent && (
-                <Button variant="ghost" size="sm" onClick={markAllPresent} className="text-xs">
-                  <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                  Mark All Present
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="sm" onClick={markAllPresent} className="text-xs">
+                    <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                    All Present
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    const reset = {};
+                    students.forEach(s => { reset[s.student] = null; });
+                    setAttendance(reset);
+                    toast.success('All cleared');
+                  }} className="text-xs text-slate-500">
+                    Clear
+                  </Button>
+                </div>
               )}
               <div className="relative w-full sm:w-56">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -835,26 +866,30 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-5 gap-1.5 sm:gap-2 md:gap-4 mb-4 md:mb-6">
-            <div className="bg-slate-50 rounded-lg p-1.5 sm:p-2 md:p-4 text-center">
-              <div className="text-base sm:text-lg md:text-2xl font-bold text-slate-700">{stats.total}</div>
-              <div className="text-[8px] sm:text-[9px] md:text-xs text-slate-600 uppercase font-semibold mt-0.5">Total</div>
+          <div className="grid grid-cols-6 gap-1 sm:gap-1.5 md:gap-3 mb-4 md:mb-6">
+            <div className="bg-slate-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
+              <div className="text-sm sm:text-lg md:text-xl font-bold text-slate-700">{stats.total}</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-slate-600 uppercase font-semibold mt-0.5">Total</div>
             </div>
-            <div className="bg-green-50 rounded-lg p-1.5 sm:p-2 md:p-4 text-center">
-              <div className="text-base sm:text-lg md:text-2xl font-bold text-green-600">{stats.present}</div>
-              <div className="text-[8px] sm:text-[9px] md:text-xs text-green-700 uppercase font-semibold mt-0.5">Present</div>
+            <div className="bg-slate-100 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
+              <div className="text-sm sm:text-lg md:text-xl font-bold text-slate-500">{stats.unmarked}</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-slate-500 uppercase font-semibold mt-0.5">Unmarked</div>
             </div>
-            <div className="bg-red-50 rounded-lg p-1.5 sm:p-2 md:p-4 text-center">
-              <div className="text-base sm:text-lg md:text-2xl font-bold text-red-600">{stats.absent}</div>
-              <div className="text-[8px] sm:text-[9px] md:text-xs text-red-700 uppercase font-semibold mt-0.5">Absent</div>
+            <div className="bg-green-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
+              <div className="text-sm sm:text-lg md:text-xl font-bold text-green-600">{stats.present}</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-green-700 uppercase font-semibold mt-0.5">Present</div>
             </div>
-            <div className="bg-amber-50 rounded-lg p-1.5 sm:p-2 md:p-4 text-center">
-              <div className="text-base sm:text-lg md:text-2xl font-bold text-amber-600">{stats.late}</div>
-              <div className="text-[8px] sm:text-[9px] md:text-xs text-amber-700 uppercase font-semibold mt-0.5">Late</div>
+            <div className="bg-red-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
+              <div className="text-sm sm:text-lg md:text-xl font-bold text-red-600">{stats.absent}</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-red-700 uppercase font-semibold mt-0.5">Absent</div>
             </div>
-            <div className="bg-blue-50 rounded-lg p-1.5 sm:p-2 md:p-4 text-center">
-              <div className="text-base sm:text-lg md:text-2xl font-bold text-blue-600">{stats.excused}</div>
-              <div className="text-[8px] sm:text-[9px] md:text-xs text-blue-700 uppercase font-semibold mt-0.5">Excused</div>
+            <div className="bg-amber-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
+              <div className="text-sm sm:text-lg md:text-xl font-bold text-amber-600">{stats.late}</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-amber-700 uppercase font-semibold mt-0.5">Late</div>
+            </div>
+            <div className="bg-blue-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
+              <div className="text-sm sm:text-lg md:text-xl font-bold text-blue-600">{stats.excused}</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-blue-700 uppercase font-semibold mt-0.5">Excused</div>
             </div>
           </div>
 
@@ -1035,70 +1070,52 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
               icon={<Calendar className="w-8 h-8" />}
             />
           ) : historyTab === 'calendar' ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[400px]">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
-                  <tr>
-                    <th className="px-3 md:px-4 py-2.5 text-left text-[10px] md:text-xs font-bold text-slate-700 uppercase">Date</th>
-                    <th className="px-3 md:px-4 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1" />Present
-                    </th>
-                    <th className="px-3 md:px-4 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 mr-1" />Absent
-                    </th>
-                    <th className="px-3 md:px-4 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 mr-1" />Late
-                    </th>
-                    <th className="px-3 md:px-4 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase">
-                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 mr-1" />Excused
-                    </th>
-                    <th className="px-3 md:px-4 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase">Rate</th>
-                    <th className="px-3 md:px-4 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase"></th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-slate-100">
-                  {historyDates.map(date => {
-                    const s = dateStats[date] || {};
-                    const rate = s.total > 0 ? Math.round(((s.present + (s.late || 0)) / s.total) * 100) : 0;
-                    const isSelected = date === selectedDate;
-                    const d = new Date(date + 'T00:00:00');
-                    const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-                    return (
-                      <tr key={date} className={`transition-colors ${isSelected ? 'bg-violet-50' : 'hover:bg-slate-50'}`}>
-                        <td className="px-3 md:px-4 py-2.5">
-                          <p className="text-xs md:text-sm font-semibold text-slate-900">{dayName}, {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                          <p className="text-[10px] md:text-xs text-slate-400">{d.getFullYear()}</p>
-                        </td>
-                        <td className="px-3 md:px-4 py-2.5 text-center">
-                          <span className="text-xs md:text-sm font-bold text-green-600">{s.present || 0}</span>
-                        </td>
-                        <td className="px-3 md:px-4 py-2.5 text-center">
-                          <span className="text-xs md:text-sm font-bold text-red-600">{s.absent || 0}</span>
-                        </td>
-                        <td className="px-3 md:px-4 py-2.5 text-center">
-                          <span className="text-xs md:text-sm font-bold text-amber-600">{s.late || 0}</span>
-                        </td>
-                        <td className="px-3 md:px-4 py-2.5 text-center">
-                          <span className="text-xs md:text-sm font-bold text-blue-600">{s.excused || 0}</span>
-                        </td>
-                        <td className="px-3 md:px-4 py-2.5 text-center">
-                          <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] md:text-xs font-bold ${rate >= 90 ? 'bg-green-100 text-green-700' : rate >= 75 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                            {rate}%
-                          </span>
-                        </td>
-                        <td className="px-3 md:px-4 py-2.5 text-center">
-                          <button
-                            onClick={() => setSelectedDate(date)}
-                            className={`text-[10px] md:text-xs font-semibold px-2 py-1 rounded transition-all ${isSelected ? 'bg-violet-600 text-white' : 'text-violet-600 hover:bg-violet-50'}`}
-                          >
-                            {isSelected ? 'Current' : 'Load'}
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="space-y-2">
+              {historyDates.map(date => {
+                const s = dateStats[date] || {};
+                const total = s.total || 0;
+                const rate = total > 0 ? Math.round(((s.present + (s.late || 0)) / total) * 100) : 0;
+                const isSelected = date === selectedDate;
+                const d = new Date(date + 'T00:00:00');
+                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+                const pPct = total > 0 ? ((s.present || 0) / total) * 100 : 0;
+                const aPct = total > 0 ? ((s.absent || 0) / total) * 100 : 0;
+                const lPct = total > 0 ? ((s.late || 0) / total) * 100 : 0;
+                const ePct = total > 0 ? ((s.excused || 0) / total) * 100 : 0;
+                return (
+                  <div
+                    key={date}
+                    onClick={() => setSelectedDate(date)}
+                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-violet-300 bg-violet-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}
+                  >
+                    <div className="text-center min-w-[48px]">
+                      <p className="text-xs font-bold text-slate-900">{dayName}</p>
+                      <p className="text-[10px] text-slate-500">{d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex h-2 rounded-full overflow-hidden bg-slate-100 mb-1.5">
+                        {pPct > 0 && <div className="bg-green-500" style={{ width: `${pPct}%` }} />}
+                        {lPct > 0 && <div className="bg-amber-500" style={{ width: `${lPct}%` }} />}
+                        {ePct > 0 && <div className="bg-blue-500" style={{ width: `${ePct}%` }} />}
+                        {aPct > 0 && <div className="bg-red-500" style={{ width: `${aPct}%` }} />}
+                      </div>
+                      <div className="flex items-center gap-2 text-[10px]">
+                        <span className="text-green-600 font-semibold">{s.present || 0}P</span>
+                        <span className="text-red-600 font-semibold">{s.absent || 0}A</span>
+                        <span className="text-amber-600 font-semibold">{s.late || 0}L</span>
+                        {(s.excused || 0) > 0 && <span className="text-blue-600 font-semibold">{s.excused}E</span>}
+                        <span className="text-slate-400 ml-auto">{total} total</span>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${rate >= 90 ? 'bg-green-100 text-green-700' : rate >= 75 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                        {rate}%
+                      </span>
+                      {isSelected && <p className="text-[9px] text-violet-600 font-semibold mt-0.5">Viewing</p>}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="overflow-x-auto">
