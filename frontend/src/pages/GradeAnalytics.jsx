@@ -38,11 +38,10 @@ import {
 import toast from 'react-hot-toast';
 
 const QUARTER_OPTIONS = [
-  { value: '', label: 'All Quarters' },
-  { value: 'Q1', label: 'Quarter 1' },
-  { value: 'Q2', label: 'Quarter 2' },
-  { value: 'Q3', label: 'Quarter 3' },
-  { value: 'Q4', label: 'Quarter 4' },
+  { value: '', label: 'All Terms' },
+  { value: 'Q1', label: 'Term 1' },
+  { value: 'Q2', label: 'Term 2' },
+  { value: 'Q3', label: 'Term 3' },
 ];
 
 const GRADE_COLORS = {

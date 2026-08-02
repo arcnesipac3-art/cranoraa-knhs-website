@@ -8,10 +8,9 @@ from .infrastructure import AcademicYear
 
 class GradingPeriod(models.Model):
     QUARTER_CHOICES = [
-        (1, 'Quarter 1'),
-        (2, 'Quarter 2'),
-        (3, 'Quarter 3'),
-        (4, 'Quarter 4'),
+        (1, 'Term 1'),
+        (2, 'Term 2'),
+        (3, 'Term 3'),
     ]
 
     STATUS_CHOICES = [

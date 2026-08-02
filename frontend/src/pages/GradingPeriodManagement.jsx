@@ -173,16 +173,15 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
       <ModalHeader>{editingPeriod ? 'Edit Grading Period' : 'Create Grading Period'}</ModalHeader>
       <ModalBody>
         <div className="space-y-4">
-          <FormField label="Quarter">
+          <FormField label="Term">
             <FormSelect
               value={form.quarter}
               onChange={(e) => setForm({ ...form, quarter: e.target.value })}
               disabled={!!editingPeriod}
             >
-              <option value="1">Quarter 1</option>
-              <option value="2">Quarter 2</option>
-              <option value="3">Quarter 3</option>
-              <option value="4">Quarter 4</option>
+              <option value="1">Term 1</option>
+              <option value="2">Term 2</option>
+              <option value="3">Term 3</option>
             </FormSelect>
           </FormField>
           <FormField label="Start Date">

@@ -348,11 +348,10 @@ export default function LessonPlans() {
           onChange={(e) => handleFilterChange('quarter', e.target.value)}
           className="rounded-lg border-gray-300 text-sm"
         >
-          <option value="">All Quarters</option>
-          <option value="1">Quarter 1</option>
-          <option value="2">Quarter 2</option>
-          <option value="3">Quarter 3</option>
-          <option value="4">Quarter 4</option>
+          <option value="">All Terms</option>
+          <option value="1">Term 1</option>
+          <option value="2">Term 2</option>
+          <option value="3">Term 3</option>
         </select>
         <select
           value={filters.status}
@@ -687,16 +686,15 @@ export default function LessonPlans() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Quarter</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Term</label>
                     <select
                       value={formData.quarter}
                       onChange={(e) => handleFormChange('quarter', Number(e.target.value))}
                       className="w-full rounded-lg border-gray-300 text-sm"
                     >
-                      <option value={1}>Quarter 1</option>
-                      <option value={2}>Quarter 2</option>
-                      <option value={3}>Quarter 3</option>
-                      <option value={4}>Quarter 4</option>
+                      <option value={1}>Term 1</option>
+                      <option value={2}>Term 2</option>
+                      <option value={3}>Term 3</option>
                     </select>
                   </div>
 
