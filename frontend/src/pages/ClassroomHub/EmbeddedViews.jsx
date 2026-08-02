@@ -668,6 +668,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
       return false;
     }
 
+    console.log('[Attendance] Saving', markedStudents.length, 'records. Sample:', { student: parseInt(markedStudents[0][0]), classroom: classroom.id, date: selectedDate, status: markedStudents[0][1] });
     const savePromises = markedStudents.map(([studentId, status]) => {
       const payload = {
         student: parseInt(studentId),
@@ -683,10 +684,11 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     });
 
     const results = await Promise.allSettled(savePromises);
-    const failed = results.filter(r => r.status === 'rejected').length;
-
-    if (failed > 0) {
-      toast.error(`Failed to save ${failed} record(s)`);
+    const failed = results.filter(r => r.status === 'rejected');
+    if (failed.length > 0) {
+      const msgs = failed.map(r => r.reason?.response?.data ? JSON.stringify(r.reason.response.data) : r.reason?.message).join('; ');
+      console.error('Save errors:', msgs);
+      toast.error(`Failed to save ${failed.length} record(s): ${msgs}`);
       return false;
     }
 
