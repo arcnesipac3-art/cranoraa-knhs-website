@@ -45,7 +45,7 @@ const AnnouncementsFeed = memo(() => {
   const markRead = (id) => {
     setReadIds(prev => {
       const next = new Set([...prev, id]);
-      try { localStorage.setItem('dashAnnRead', JSON.stringify([...next])); } catch {}
+      try { localStorage.setItem('dashAnnRead', JSON.stringify([...next])); } catch { /* storage unavailable */ }
       return next;
     });
   };

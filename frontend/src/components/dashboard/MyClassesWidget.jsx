@@ -83,7 +83,7 @@ const MyClassesWidget = memo(({ classrooms = [], todayAttMap = {}, classroomSubj
       <div className="p-3 md:p-4">
         <motion.div variants={container} initial="hidden" animate="show"
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {classrooms.map((c, idx) => {
+          {classrooms.map(c => {
             const att = todayAttMap[c.id];
             const marked = att?.marked ?? false;
             const attRate = att?.totalCount > 0 ? Math.round((att.presentCount / att.totalCount) * 100) : null;
@@ -154,7 +154,7 @@ const MyClassesWidget = memo(({ classrooms = [], todayAttMap = {}, classroomSubj
                   {attRate !== null && (
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] font-semibold text-slate-500">Today's attendance</span>
+                        <span className="text-[10px] font-semibold text-slate-500">Today&apos;s attendance</span>
                         <span className={cn('text-[10px] font-bold', attRate >= 85 ? 'text-emerald-600' : attRate >= 70 ? 'text-amber-600' : 'text-rose-600')}>{attRate}%</span>
                       </div>
                       <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">

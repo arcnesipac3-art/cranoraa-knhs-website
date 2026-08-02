@@ -80,7 +80,7 @@ const stats_config = [
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
 
-const EnhancedStats = memo(({ classrooms = [], data = {}, todayAttMap = {}, classGrades = {}, unmarkedCount = 0 }) => {
+const EnhancedStats = memo(({ classrooms = [], data = {}, unmarkedCount = 0 }) => {
   const navigate = useNavigate();
 
   const attRate = data?.attendance_rate ?? 0;

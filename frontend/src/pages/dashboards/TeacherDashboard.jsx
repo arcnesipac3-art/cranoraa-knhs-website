@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { motion } from 'framer-motion';
@@ -40,7 +39,6 @@ const getLocalDateStr = () => {
 };
 
 const TeacherDashboard = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const { unreadCount: notifUnread } = useNotifications();
 
@@ -62,6 +60,8 @@ const TeacherDashboard = () => {
     });
     return map;
   }, [subjects]);
+
+  const classroomIds = useMemo(() => classrooms.map(c => c.id), [classrooms]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -123,7 +123,7 @@ const TeacherDashboard = () => {
       apiCache.set('/classrooms/', clsRes.data, 60 * 60 * 1000);
       apiCache.set(ck(`/classroom-subjects/by_teacher/?teacher_id=${user?.id}`), subjectsRes.data, 60 * 60 * 1000);
       setUsingCache(false);
-    } catch (err) {
+    } catch {
       const hasCache = cached.stats || cached.classrooms;
       if (!hasCache) setError('Failed to load dashboard data. Please refresh.');
     } finally {
@@ -198,7 +198,7 @@ const TeacherDashboard = () => {
 
       {/* 2. QUICK ACTIONS */}
       <Section label="Quick Actions">
-        <QuickActionCards notifUnread={notifUnread} pendingGrades={pendingGrades} unmarkedCount={unmarkedCount} />
+        <QuickActionCards pendingGrades={pendingGrades} unmarkedCount={unmarkedCount} />
       </Section>
 
       {/* 3. OVERVIEW STATS */}
@@ -237,7 +237,7 @@ const TeacherDashboard = () => {
       {/* 7. CALENDAR · ANALYTICS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <CalendarWidget />
-        <AnalyticsSnapshot data={data} />
+        <AnalyticsSnapshot classroomIds={classroomIds} />
       </div>
 
       {/* 8. ACTIVITY FEED */}

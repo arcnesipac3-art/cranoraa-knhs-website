@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../styles/designSystem';
 import api from '../../utils/api';
@@ -121,10 +121,10 @@ const TodaySchedulePanel = memo(() => {
                   <span className="text-[10px] font-bold text-violet-200 uppercase tracking-widest">Now Teaching</span>
                 </div>
                 <p className="text-sm font-extrabold text-white leading-tight">
-                  {schedule[currentIdx]?.subject_detail?.name || schedule[currentIdx]?.subject_name || 'Subject'}
+                  {schedule[currentIdx]?.subject_name || schedule[currentIdx]?.subject_detail?.name || 'Subject'}
                 </p>
                 <p className="text-xs text-violet-200 mt-0.5">
-                  {schedule[currentIdx]?.classroom_detail?.name || schedule[currentIdx]?.classroom_name || 'Classroom'}
+                  {schedule[currentIdx]?.classroom_name || schedule[currentIdx]?.classroom_detail?.name || 'Classroom'}
                 </p>
                 <div className="flex items-center justify-between mt-2.5">
                   <span className="text-[10px] font-bold text-violet-200">
@@ -151,10 +151,10 @@ const TodaySchedulePanel = memo(() => {
                 <div className="flex-1 min-w-0">
                   <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wide">Up Next</p>
                   <p className="text-xs font-bold text-slate-900 truncate">
-                    {nextClass.subject_detail?.name || nextClass.subject_name}
+                    {nextClass.subject_name || nextClass.subject_detail?.name}
                   </p>
                   <p className="text-[10px] text-amber-600 font-medium">
-                    {nextClass.time_slot_detail?.start_time_display} · {nextClass.classroom_detail?.name || nextClass.classroom_name}
+                    {nextClass.time_slot_detail?.start_time_display} · {nextClass.classroom_name || nextClass.classroom_detail?.name}
                   </p>
                 </div>
               </div>
@@ -191,10 +191,10 @@ const TodaySchedulePanel = memo(() => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn('text-xs font-extrabold truncate', isCurrent ? 'text-white' : 'text-slate-900')}>
-                        {s.subject_detail?.name || s.subject_name || 'Subject'}
+                        {s.subject_name || s.subject_detail?.name || 'Subject'}
                       </p>
                       <p className={cn('text-[10px] font-medium truncate', isCurrent ? 'text-violet-100' : 'text-slate-500')}>
-                        {s.classroom_detail?.name || s.classroom_name}
+                        {s.classroom_name || s.classroom_detail?.name}
                       </p>
                     </div>
                     {isCurrent && (
