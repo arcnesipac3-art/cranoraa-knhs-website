@@ -348,13 +348,14 @@ DEFAULT_FROM_EMAIL = 'noreply@knhsportal.dedyn.io'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Django Axes Configuration (Rate Limiting & Account Lockout)
-# 5 failures per 15-minute window before lockout (matches auth throttle)
-AXES_FAILURE_LIMIT = int(os.environ.get('AXES_FAILURE_LIMIT', 5))
-AXES_COOLOFF_TIME = timedelta(minutes=int(os.environ.get('AXES_COOLOFF_TIME', 15)))
-AXES_RESET_ON_SUCCESS = True
-AXES_LOCKOUT_PARAMETERS = ['username']
-AXES_VERBOSE = False
+    # Django Axes Configuration (Rate Limiting & Account Lockout)
+    # 20 failures per 15-minute window before lockout — much more forgiving for testing/debugging
+    # Can be overridden by AXES_FAILURE_LIMIT env var
+    AXES_FAILURE_LIMIT = int(os.environ.get('AXES_FAILURE_LIMIT', 20))
+    AXES_COOLOFF_TIME = timedelta(minutes=int(os.environ.get('AXES_COOLOFF_TIME', 15)))
+    AXES_RESET_ON_SUCCESS = True
+    AXES_LOCKOUT_PARAMETERS = ['username']
+    AXES_VERBOSE = True  # Show detailed error messages with remaining attempts
 
 # Security Headers
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

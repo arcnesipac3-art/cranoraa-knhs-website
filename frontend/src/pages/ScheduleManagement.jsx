@@ -160,6 +160,21 @@ export default function ScheduleManagement() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // Sync activeAY filter when schedules are created/edited so they appear immediately in the view
+  useEffect(() => {
+    if (editItem) {
+      // When editing, set activeAY to match the edited schedule
+      setActiveAY(String(editItem.academic_year));
+    } else if (showForm && form.academic_year) {
+      // When creating new schedule, set activeAY to match it
+      setActiveAY(form.academic_year);
+    } else if (!showForm && schedules.length > 0) {
+      // When form closes and we have schedules, set activeAY to first schedule's year
+      const firstYear = String(schedules[0].academic_year);
+      if (firstYear) setActiveAY(firstYear);
+    }
+  }, [editItem, showForm, form.academic_year, schedules]);
+
   const fetchTimeSlots = useCallback(async (classroomId) => {
     try {
       const url = classroomId ? `/time-slots/?classroom=${classroomId}` : '/time-slots/';
