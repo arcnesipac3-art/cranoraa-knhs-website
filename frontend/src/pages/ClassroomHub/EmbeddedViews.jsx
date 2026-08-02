@@ -590,7 +590,8 @@ export const GradeManagementView = ({ classroom, onBack }) => {
 export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -1081,7 +1082,8 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
 // Attendance History View - Date-focused with edit/delete
 export const AttendanceHistoryView = ({ classroom, onBack }) => {
   const [students, setStudents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const todayStr2 = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+  const [selectedDate, setSelectedDate] = useState(todayStr2);
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -1243,7 +1245,10 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
           <Button variant="ghost" size="sm" onClick={() => {
             const d = new Date(selectedDate + 'T00:00:00');
             d.setDate(d.getDate() - 1);
-            setSelectedDate(d.toISOString().split('T')[0]);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            setSelectedDate(`${y}-${m}-${day}`);
           }}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -1252,7 +1257,12 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
             d.setDate(d.getDate() + 1);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            if (d <= today) setSelectedDate(d.toISOString().split('T')[0]);
+            if (d <= today) {
+              const y = d.getFullYear();
+              const m = String(d.getMonth() + 1).padStart(2, '0');
+              const day = String(d.getDate()).padStart(2, '0');
+              setSelectedDate(`${y}-${m}-${day}`);
+            }
           }}>
             <ChevronRight className="w-4 h-4" />
           </Button>

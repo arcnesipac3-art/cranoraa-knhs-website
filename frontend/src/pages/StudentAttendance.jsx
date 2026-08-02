@@ -40,8 +40,11 @@ const StudentAttendance = () => {
   const nextMonth = () => {
     const d = new Date(month + '-01');
     d.setMonth(d.getMonth() + 1);
-    if (d <= new Date()) {
-      setMonth(d.toISOString().slice(0, 7));
+    const now = new Date();
+    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const nextMonthStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    if (nextMonthStr <= currentMonth) {
+      setMonth(nextMonthStr);
     }
   };
 
