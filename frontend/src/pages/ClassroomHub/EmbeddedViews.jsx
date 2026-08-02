@@ -1022,7 +1022,12 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     const fetchStudents = async () => {
       try {
         const res = await api.get(`/enrollments/?classroom=${classroom.id}`);
-        setStudents(res.data.sort((a, b) => (a.student_name || '').localeCompare(b.student_name || '')));
+        const sorted = res.data.sort((a, b) => {
+          const nameA = (a.student_name || '').toLowerCase();
+          const nameB = (b.student_name || '').toLowerCase();
+          return nameA.localeCompare(nameB);
+        });
+        setStudents(sorted);
       } catch {
         toast.error('Failed to load students');
       }
@@ -1245,112 +1250,132 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
         />
       </div>
 
-      {/* Attendance Table */}
-      <Card>
-        <CardBody className="p-0">
-          {loading ? (
-            <div className="flex items-center justify-center h-40"><LoadingSpinner /></div>
-          ) : filteredList.length === 0 ? (
+      {/* Attendance Tables - separated by sex */}
+      {loading ? (
+        <div className="flex items-center justify-center h-40"><LoadingSpinner /></div>
+      ) : filteredList.length === 0 ? (
+        <Card>
+          <CardBody>
             <EmptyState
               title="No Students"
               description={searchQuery ? "No students match your search" : "No students enrolled"}
               icon={<Users className="w-8 h-8" />}
             />
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase w-10">#</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Remarks</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase w-24">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-slate-100">
-                  {filteredList.map((student, idx) => {
-                    const isEditing = editing === student.student;
-                    return (
-                      <tr key={student.id} className={`hover:bg-slate-50 transition-colors ${isEditing ? 'bg-violet-50' : ''}`}>
-                        <td className="px-4 py-3 text-sm text-slate-500 font-semibold">{idx + 1}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-xs shrink-0">
-                              {student.student_name ? student.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-slate-900 truncate">{student.student_name || 'Unknown'}</p>
-                              {student.student_lrn && <p className="text-[10px] text-slate-400">LRN: {student.student_lrn}</p>}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {isEditing ? (
-                            <div className="flex items-center justify-center gap-1 flex-wrap">
-                              {['present', 'absent', 'late', 'excused', 'school_activity', 'medical_leave'].map(s => (
-                                <button
-                                  key={s}
-                                  onClick={() => setEditStatus(s)}
-                                  className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${editStatus === s ? statusColor(s) + ' ring-2 ring-offset-1 ring-violet-400' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                                >
-                                  {s.replace('_', ' ')}
-                                </button>
-                              ))}
-                            </div>
-                          ) : student.status ? (
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${statusColor(student.status)}`}>
-                              {student.status.replace('_', ' ')}
-                            </span>
-                          ) : (
-                            <span className="text-slate-300 text-xs">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {isEditing ? (
-                            <input
-                              type="text"
-                              value={editRemarks}
-                              onChange={e => setEditRemarks(e.target.value)}
-                              placeholder="Optional remark..."
-                              className="w-full text-xs px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-violet-400"
-                            />
-                          ) : (
-                            <span className="text-xs text-slate-500 italic">{student.remarks || '—'}</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {isEditing ? (
-                            <div className="flex items-center justify-center gap-1">
-                              <button onClick={() => handleSave(student.student, editStatus, editRemarks)} disabled={saving || !editStatus} className="p-1.5 text-green-600 hover:bg-green-50 rounded disabled:opacity-50">
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => setEditing(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded">
-                                <X className="w-4 h-4" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center justify-center gap-1">
-                              <button onClick={() => { setEditing(student.student); setEditStatus(student.status || 'present'); setEditRemarks(student.remarks || ''); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Edit">
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              {student.recordId && (
-                                <button onClick={() => handleDelete(student.recordId)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Delete">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardBody>
-      </Card>
+          </CardBody>
+        </Card>
+      ) : (
+        <>
+          {['male', 'female'].map(sex => {
+            const group = filteredList.filter(s => (s.student_sex || '').toLowerCase() === sex);
+            if (group.length === 0) return null;
+            return (
+              <Card key={sex}>
+                <CardHeader divider>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      {sex === 'male' ? '👦' : '👧'} {sex === 'male' ? 'Male' : 'Female'} Students
+                      <span className="text-xs font-normal text-slate-400">({group.length})</span>
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardBody className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-slate-50 border-b-2 border-slate-200">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase w-10">#</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
+                          <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Remarks</th>
+                          <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase w-24">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-slate-100">
+                        {group.map((student, idx) => {
+                          const isEditing = editing === student.student;
+                          return (
+                            <tr key={student.id} className={`hover:bg-slate-50 transition-colors ${isEditing ? 'bg-violet-50' : ''}`}>
+                              <td className="px-4 py-3 text-sm text-slate-500 font-semibold">{idx + 1}</td>
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${sex === 'male' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
+                                    {student.student_name ? student.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-semibold text-slate-900 truncate">{student.student_name || 'Unknown'}</p>
+                                    {student.student_lrn && <p className="text-[10px] text-slate-400">LRN: {student.student_lrn}</p>}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {isEditing ? (
+                                  <div className="flex items-center justify-center gap-1 flex-wrap">
+                                    {['present', 'absent', 'late', 'excused', 'school_activity', 'medical_leave'].map(s => (
+                                      <button
+                                        key={s}
+                                        onClick={() => setEditStatus(s)}
+                                        className={`px-2 py-1 rounded text-[10px] font-bold transition-all ${editStatus === s ? statusColor(s) + ' ring-2 ring-offset-1 ring-violet-400' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                                      >
+                                        {s.replace('_', ' ')}
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : student.status ? (
+                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${statusColor(student.status)}`}>
+                                    {student.status.replace('_', ' ')}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-300 text-xs">—</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3">
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    value={editRemarks}
+                                    onChange={e => setEditRemarks(e.target.value)}
+                                    placeholder="Optional remark..."
+                                    className="w-full text-xs px-2 py-1 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-violet-400"
+                                  />
+                                ) : (
+                                  <span className="text-xs text-slate-500 italic">{student.remarks || '—'}</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {isEditing ? (
+                                  <div className="flex items-center justify-center gap-1">
+                                    <button onClick={() => handleSave(student.student, editStatus, editRemarks)} disabled={saving || !editStatus} className="p-1.5 text-green-600 hover:bg-green-50 rounded disabled:opacity-50">
+                                      <Check className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => setEditing(null)} className="p-1.5 text-slate-400 hover:bg-slate-100 rounded">
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-1">
+                                    <button onClick={() => { setEditing(student.student); setEditStatus(student.status || 'present'); setEditRemarks(student.remarks || ''); }} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded" title="Edit">
+                                      <Edit2 className="w-3.5 h-3.5" />
+                                    </button>
+                                    {student.recordId && (
+                                      <button onClick={() => handleDelete(student.recordId)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded" title="Delete">
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardBody>
+              </Card>
+            );
+          })}
+        </>
+      )}
     </div>
   );
 };

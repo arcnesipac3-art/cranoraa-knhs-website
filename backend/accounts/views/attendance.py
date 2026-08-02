@@ -625,15 +625,15 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='submit')
     def submit_attendance(self, request):
-        """Mark attendance records as submitted for a schedule+date."""
+        """Mark attendance records as submitted for a classroom+date."""
         if request.user.role not in ['staff', 'admin']:
             return Response({'error': 'Unauthorized'}, status=403)
 
-        schedule_id = request.data.get('schedule')
+        classroom_id = request.data.get('classroom_id')
         date_str = request.data.get('date')
 
-        if not schedule_id or not date_str:
-            return Response({'error': 'schedule and date are required'}, status=400)
+        if not classroom_id or not date_str:
+            return Response({'error': 'classroom_id and date are required'}, status=400)
 
         try:
             att_date = datetime.date.fromisoformat(date_str)
@@ -641,7 +641,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Invalid date format'}, status=400)
 
         updated = Attendance.objects.filter(
-            schedule_id=schedule_id,
+            classroom_id=classroom_id,
             date=att_date,
             workflow_status='draft',
         ).update(
@@ -652,10 +652,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         AttendanceAuditLog.objects.create(
             user=request.user,
             action='submit',
-            classroom_id=Schedule.objects.filter(id=schedule_id).values_list('classroom_id', flat=True).first(),
+            classroom_id=classroom_id,
             date=att_date,
             description=f'Submitted {updated} attendance records',
-            metadata={'schedule_id': schedule_id, 'count': updated},
+            metadata={'classroom_id': classroom_id, 'count': updated},
         )
 
         return Response({'submitted': updated})
