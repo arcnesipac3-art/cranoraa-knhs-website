@@ -62,11 +62,8 @@ const SF9Page = lazy(() => retryImport(() => import('../pages/SF9ReportCard')));
 const SF10Page = lazy(() => retryImport(() => import('../pages/SF10PermanentRecord')));
 
 // Grade Management
-const GradingPeriodManagement = lazy(() => retryImport(() => import('../pages/GradingPeriodManagement')));
+const GradeManagementAdmin = lazy(() => retryImport(() => import('../pages/GradeManagementAdmin')));
 const TeacherGradeDashboard = lazy(() => retryImport(() => import('../pages/TeacherGradeDashboard')));
-const AdminGradeMonitoring = lazy(() => retryImport(() => import('../pages/AdminGradeMonitoring')));
-const GradeReopeningManagement = lazy(() => retryImport(() => import('../pages/GradeReopeningManagement')));
-const GradeReportsPage = lazy(() => retryImport(() => import('../pages/GradeReportsPage')));
 
 // ── Route definitions ────────────────────────────────────────────────────────
 
@@ -129,11 +126,8 @@ export const protectedRoutes = [
   { path: 'school-forms/sf10', element: SF10Page, roles: [Role.ADMIN, Role.STAFF] },
 
   // Grade Management Module
-  { path: 'grading-periods', element: GradingPeriodManagement, roles: [Role.ADMIN] },
+  { path: 'grade-management', element: GradeManagementAdmin, roles: [Role.ADMIN] },
   { path: 'teacher-grade-dashboard', element: TeacherGradeDashboard, roles: [Role.STAFF] },
-  { path: 'admin-grade-monitoring', element: AdminGradeMonitoring, roles: [Role.ADMIN] },
-  { path: 'grade-reopening', element: GradeReopeningManagement, roles: [Role.ADMIN] },
-  { path: 'grade-reports', element: GradeReportsPage, roles: [Role.ADMIN] },
 
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },
