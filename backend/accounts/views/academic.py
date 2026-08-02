@@ -2231,6 +2231,7 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
         ]
         return Response(data)
 
+    @action(detail=False, methods=['get'])
     def by_classroom(self, request):
         classroom_id = request.query_params.get('classroom_id')
         if not classroom_id:

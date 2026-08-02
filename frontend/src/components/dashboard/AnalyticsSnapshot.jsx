@@ -113,7 +113,7 @@ const AnalyticsSnapshot = memo(({ classroomIds = [] }) => {
               <Skeleton className="w-full h-[80px] rounded" />
             </div>
           ) : hasAttendance ? (
-            <div className="h-[100px]">
+            <div className="h-[100px] min-w-0">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={attendanceData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <defs>
@@ -146,7 +146,7 @@ const AnalyticsSnapshot = memo(({ classroomIds = [] }) => {
               <Skeleton className="w-full h-[64px] rounded" />
             </div>
           ) : hasGrades ? (
-            <div className="h-[80px]">
+            <div className="h-[80px] min-w-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={gradeData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
