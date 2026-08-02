@@ -23,7 +23,7 @@ const StudentAttendance = () => {
     setLoading(true);
     try {
       const res = await api.get('/attendance/student-history/', { params: { month } });
-      setRecords(res.data);
+      setRecords(res.data.records || []);
     } catch {
       toast.error('Failed to load attendance');
     } finally {

@@ -758,12 +758,17 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         date_from = request.query_params.get('date_from')
         date_to = request.query_params.get('date_to')
+        month = request.query_params.get('month')
 
         qs = Attendance.objects.filter(student_id=student_id).select_related('classroom', 'subject')
 
-        if date_from:
+        if month:
+            # month is YYYY-MM format
+            year, mon = month.split('-')
+            qs = qs.filter(date__year=int(year), date__month=int(mon))
+        elif date_from:
             qs = qs.filter(date__gte=date_from)
-        if date_to:
+        elif date_to:
             qs = qs.filter(date__lte=date_to)
 
         records = list(qs.values(
