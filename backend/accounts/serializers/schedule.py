@@ -13,8 +13,8 @@ class RoomSerializer(serializers.ModelSerializer):
 
 class ScheduleSerializer(serializers.ModelSerializer):
     classroom_name = serializers.CharField(source='classroom.name', read_only=True)
-    subject_name = serializers.CharField(source='subject.name', read_only=True)
-    subject_code = serializers.CharField(source='subject.code', read_only=True)
+    subject_name = serializers.SerializerMethodField()
+    subject_code = serializers.SerializerMethodField()
     teacher_name = serializers.SerializerMethodField()
     teacher_email = serializers.SerializerMethodField()
     room_name = serializers.SerializerMethodField()
@@ -33,6 +33,12 @@ class ScheduleSerializer(serializers.ModelSerializer):
             'semester', 'semester_display', 'is_active', 'notes', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+    def get_subject_name(self, obj):
+        return obj.subject.name if obj.subject else None
+
+    def get_subject_code(self, obj):
+        return obj.subject.code if obj.subject else None
 
     def get_teacher_name(self, obj):
         return full_name(obj.teacher)

@@ -316,11 +316,19 @@ export default function ScheduleManagement() {
       const payload = { ...form };
       if (!payload.room) delete payload.room;
       if (!payload.semester) delete payload.semester;
+      // Manual validation (form has noValidate)
+      if (!payload.classroom) { toast.error('Please select a section.'); setSaving(false); return; }
+      if (!payload.time_slot) { toast.error('Please select a time slot.'); setSaving(false); return; }
+      if (!payload.academic_year) { toast.error('Please select an academic year.'); setSaving(false); return; }
       // Vacant slots don't need subject/teacher
       if (payload.is_vacant) {
-        delete payload.subject;
-        delete payload.teacher;
+        payload.subject = null;
+        payload.teacher = null;
         payload.notes = payload.notes || 'Vacant';
+      } else {
+        // Non-vacant requires subject and teacher
+        if (!payload.subject) { toast.error('Please select a subject.'); setSaving(false); return; }
+        if (!payload.teacher) { toast.error('Please select a teacher.'); setSaving(false); return; }
       }
       delete payload.is_vacant;
       // Prevent assigning subjects to non-class slots (lunch, recess, etc.)
@@ -1003,7 +1011,7 @@ export default function ScheduleManagement() {
       <Modal open={showForm} onClose={() => setShowForm(false)} size="md"
         title={editItem ? 'Edit Class Schedule' : 'Assign Class to Schedule'}
         subtitle={editItem ? 'Update this schedule entry' : 'Assign a subject to a time slot'}>
-        <form id="schedule-form" onSubmit={handleSave} className="flex flex-col">
+        <form id="schedule-form" onSubmit={handleSave} noValidate className="flex flex-col">
           <div className="px-4 md:px-6 py-4 md:py-5 space-y-4 overflow-y-auto max-h-[65vh]">
             {/* Section + Time Slot */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
