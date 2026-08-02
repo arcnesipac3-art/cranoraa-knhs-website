@@ -16,7 +16,7 @@ import {
   Search, ChevronRight, BarChart2, X, Calendar,
   HelpCircle
 } from 'lucide-react';
-import { GradeManagementView, AttendanceView, AnalyticsView } from './ClassroomHub/EmbeddedViews';
+import { GradeManagementView, AttendanceView, AnalyticsView, AttendanceHistoryView } from './ClassroomHub/EmbeddedViews';
 import { QuizManagementView, StudentQuizzesView, LessonPlansView, ClassroomAnalyticsView } from './ClassroomHub/TeachingViews';
 
 /**
@@ -63,8 +63,8 @@ const ClassroomHub = () => {
   // Sync activeTab with ?view= URL param
   const isTeacher = user?.role === 'staff' || user?.role === 'admin';
   const viewParam = searchParams.get('view');
-  const validTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'quizzes'];
-  const teacherTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'quizzes', 'lesson-plans', 'analytics'];
+  const validTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'attendance-history', 'quizzes'];
+  const teacherTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'attendance-history', 'quizzes', 'lesson-plans', 'analytics'];
 
   useEffect(() => {
     if (viewParam && (isTeacher ? teacherTabs : validTabs).includes(viewParam)) {
@@ -492,6 +492,7 @@ const ClassroomHub = () => {
               { key: 'materials', label: 'Materials', icon: Folder },
               { key: 'people', label: 'People', icon: Users },
               { key: 'attendance', label: isTeacher ? 'Attendance' : 'My Attendance', icon: CheckSquare },
+              { key: 'attendance-history', label: 'History', icon: Calendar },
               { key: 'grades', label: isTeacher ? 'Grades' : 'My Grades', icon: Award },
               { key: 'quizzes', label: isTeacher ? 'Quiz Management' : 'Quizzes', icon: HelpCircle },
               ...(isTeacher ? [
@@ -582,6 +583,13 @@ const ClassroomHub = () => {
               classroom={selectedClass}
               isStudent={user?.role === 'student'}
               onBack={() => handleTabChange('stream')}
+            />
+          )}
+
+          {activeTab === 'attendance-history' && (
+            <AttendanceHistoryView
+              classroom={selectedClass}
+              onBack={() => handleTabChange('attendance')}
             />
           )}
 

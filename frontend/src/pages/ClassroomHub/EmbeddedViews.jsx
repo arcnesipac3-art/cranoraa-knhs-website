@@ -9,7 +9,7 @@ import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } fro
 import {
   ArrowLeft, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
   Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare,
-  BookOpen, AlertTriangle, Send, Lock, Unlock
+  BookOpen, AlertTriangle, Send, Lock, Unlock, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
 
@@ -594,11 +594,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [historyTab, setHistoryTab] = useState('calendar'); // 'calendar' | 'students'
-  const [historyData, setHistoryData] = useState([]); // recent attendance records
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [studentHistory, setStudentHistory] = useState({}); // student_id -> [{date, status}]
-  const [historyRange, setHistoryRange] = useState(14); // days to show
   const [remarks, setRemarks] = useState({}); // student_id -> remark text
 
   useEffect(() => {
@@ -646,33 +641,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     if (selectedDate) fetchAttendance();
   }, [selectedDate, classroom.id]);
 
-  // Fetch attendance history for the summary panel
-  useEffect(() => {
-    const fetchHistory = async () => {
-      setHistoryLoading(true);
-      try {
-        const dateTo = selectedDate;
-        const dateFrom = new Date(new Date(selectedDate).getTime() - (historyRange - 1) * 86400000).toISOString().split('T')[0];
-        const res = await api.get(`/attendance/?classroom=${classroom.id}&date_from=${dateFrom}&date_to=${dateTo}&page_size=500`);
-        const records = res.data.results || res.data || [];
-        setHistoryData(records);
-
-        // Build per-student history map
-        const map = {};
-        records.forEach(r => {
-          if (!map[r.student]) map[r.student] = [];
-          map[r.student].push({ date: r.date, status: r.status });
-        });
-        setStudentHistory(map);
-      } catch {
-        console.error('Failed to load attendance history');
-      } finally {
-        setHistoryLoading(false);
-      }
-    };
-    fetchHistory();
-  }, [classroom.id, selectedDate, historyRange]);
-
   const handleStatusChange = (studentId, status) => {
     setAttendance(prev => ({ ...prev, [studentId]: status }));
   };
@@ -704,36 +672,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
       (s.student_lrn || '').toLowerCase().includes(q)
     );
   }, [students, searchQuery]);
-
-  // History: unique dates sorted descending
-  const historyDates = useMemo(() => {
-    const dates = [...new Set(historyData.map(r => r.date))].sort().reverse();
-    return dates;
-  }, [historyData]);
-
-  // History: per-date stats
-  const dateStats = useMemo(() => {
-    const map = {};
-    historyData.forEach(r => {
-      if (!map[r.date]) map[r.date] = { present: 0, absent: 0, late: 0, excused: 0, total: 0 };
-      map[r.date][r.status] = (map[r.date][r.status] || 0) + 1;
-      map[r.date].total++;
-    });
-    return map;
-  }, [historyData]);
-
-  // History: per-student attendance rate
-  const studentRates = useMemo(() => {
-    return students.map(s => {
-      const records = studentHistory[s.student] || [];
-      const total = records.length;
-      const present = records.filter(r => r.status === 'present').length;
-      const late = records.filter(r => r.status === 'late').length;
-      const excused = records.filter(r => r.status === 'excused').length;
-      const rate = total > 0 ? Math.round(((present + late + excused) / total) * 100) : null;
-      return { ...s, rate, totalRecords: total, present, late, excused, absent: records.filter(r => r.status === 'absent').length };
-    }).sort((a, b) => (a.rate ?? -1) - (b.rate ?? -1));
-  }, [students, studentHistory]);
 
   const statusConfig = {
     present:  { active: 'bg-green-600 text-white', idle: 'bg-green-50 text-green-700 hover:bg-green-100', icon: CheckCircle },
@@ -1063,162 +1001,429 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
           )}
         </CardBody>
       </Card>
+    </div>
+  );
+};
 
-      {/* Attendance History Panel */}
-      <Card>
-        <CardHeader divider>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <CardTitle>Attendance History</CardTitle>
-              <div className="flex bg-slate-100 rounded-lg p-0.5">
-                <button
-                  onClick={() => setHistoryTab('calendar')}
-                  className={`px-2.5 py-1 rounded-md text-[10px] md:text-xs font-semibold transition-all ${historyTab === 'calendar' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  <Calendar className="w-3 h-3 inline mr-1 -mt-0.5" />
-                  By Date
-                </button>
-                <button
-                  onClick={() => setHistoryTab('students')}
-                  className={`px-2.5 py-1 rounded-md text-[10px] md:text-xs font-semibold transition-all ${historyTab === 'students' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                >
-                  <Users className="w-3 h-3 inline mr-1 -mt-0.5" />
-                  By Student
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5">
-              {[7, 14, 30].map(d => (
-                <button
-                  key={d}
-                  onClick={() => setHistoryRange(d)}
-                  className={`px-2 py-0.5 rounded text-[10px] md:text-xs font-semibold transition-all ${historyRange === d ? 'bg-violet-100 text-violet-700' : 'text-slate-400 hover:text-slate-600'}`}
-                >
-                  {d}d
-                </button>
+// Attendance History View - Standalone improved component
+export const AttendanceHistoryView = ({ classroom, onBack }) => {
+  const [students, setStudents] = useState([]);
+  const [historyData, setHistoryData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' | 'students' | 'matrix'
+  const [selectedStudent, setSelectedStudent] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [enrollRes, historyRes] = await Promise.all([
+          api.get(`/enrollments/?classroom=${classroom.id}`),
+          api.get(`/attendance/?classroom=${classroom.id}&date_from=${month}-01&date_from=${month}-01&date_to=${month}-31&page_size=1000`)
+        ]);
+        setStudents(enrollRes.data.sort((a, b) => (a.student_name || '').localeCompare(b.student_name || '')));
+        setHistoryData(historyRes.data.results || historyRes.data || []);
+      } catch {
+        toast.error('Failed to load attendance history');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [classroom.id, month]);
+
+  // Navigate months
+  const prevMonth = () => {
+    const d = new Date(month + '-01');
+    d.setMonth(d.getMonth() - 1);
+    setMonth(d.toISOString().slice(0, 7));
+  };
+
+  const nextMonth = () => {
+    const d = new Date(month + '-01');
+    d.setMonth(d.getMonth() + 1);
+    if (d <= new Date()) setMonth(d.toISOString().slice(0, 7));
+  };
+
+  // Get all days in the month
+  const getDaysInMonth = () => {
+    const [y, m] = month.split('-').map(Number);
+    const days = [];
+    const date = new Date(y, m - 1, 1);
+    while (date.getMonth() === m - 1) {
+      days.push(date.toISOString().split('T')[0]);
+      date.setDate(date.getDate() + 1);
+    }
+    return days;
+  };
+
+  const daysInMonth = getDaysInMonth();
+
+  // Build per-date stats
+  const dateStats = useMemo(() => {
+    const map = {};
+    daysInMonth.forEach(d => { map[d] = { present: 0, absent: 0, late: 0, excused: 0, school_activity: 0, medical_leave: 0, total: 0 }; });
+    historyData.forEach(r => {
+      if (map[r.date]) {
+        map[r.date][r.status] = (map[r.date][r.status] || 0) + 1;
+        map[r.date].total++;
+      }
+    });
+    return map;
+  }, [historyData, daysInMonth]);
+
+  // Build per-student stats
+  const studentStats = useMemo(() => {
+    return students.map(s => {
+      const records = historyData.filter(r => r.student === s.student);
+      const total = records.length;
+      const present = records.filter(r => r.status === 'present').length;
+      const late = records.filter(r => r.status === 'late').length;
+      const excused = records.filter(r => r.status === 'excused').length;
+      const absent = records.filter(r => r.status === 'absent').length;
+      const rate = total > 0 ? Math.round(((present + late + excused) / total) * 100) : null;
+      return { ...s, total, present, late, excused, absent, rate };
+    }).sort((a, b) => (a.rate ?? -1) - (b.rate ?? -1));
+  }, [students, historyData]);
+
+  // Monthly summary
+  const monthSummary = useMemo(() => {
+    const total = historyData.length;
+    const present = historyData.filter(r => r.status === 'present').length;
+    const absent = historyData.filter(r => r.status === 'absent').length;
+    const late = historyData.filter(r => r.status === 'late').length;
+    const excused = historyData.filter(r => r.status === 'excused').length;
+    const rate = total > 0 ? Math.round(((present + late + excused) / total) * 100) : 0;
+    return { total, present, absent, late, excused, rate };
+  }, [historyData]);
+
+  // Get status color for heatmap
+  const getHeatmapColor = (date) => {
+    const s = dateStats[date];
+    if (!s || s.total === 0) return 'bg-slate-50';
+    const rate = ((s.present + s.late + s.excused) / s.total) * 100;
+    if (rate >= 95) return 'bg-green-100 border-green-200';
+    if (rate >= 85) return 'bg-green-50 border-green-100';
+    if (rate >= 75) return 'bg-amber-50 border-amber-100';
+    return 'bg-red-50 border-red-100';
+  };
+
+  const monthLabel = new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  // Get weekday headers
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const firstDay = new Date(month + '-01').getDay();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 md:space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
+          <span className="hidden sm:inline">Back</span>
+        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={prevMonth}>
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm font-bold text-slate-900 min-w-[140px] text-center">{monthLabel}</span>
+            <Button variant="ghost" size="sm" onClick={nextMonth}>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="flex bg-slate-100 rounded-lg p-0.5">
+            <button onClick={() => setViewMode('calendar')} className={`px-2.5 py-1 rounded-md text-[10px] md:text-xs font-semibold transition-all ${viewMode === 'calendar' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              <Calendar className="w-3 h-3 inline mr-1" />
+              Calendar
+            </button>
+            <button onClick={() => setViewMode('students')} className={`px-2.5 py-1 rounded-md text-[10px] md:text-xs font-semibold transition-all ${viewMode === 'students' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              <Users className="w-3 h-3 inline mr-1" />
+              Students
+            </button>
+            <button onClick={() => setViewMode('matrix')} className={`px-2.5 py-1 rounded-md text-[10px] md:text-xs font-semibold transition-all ${viewMode === 'matrix' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+              <BarChart2 className="w-3 h-3 inline mr-1" />
+              Matrix
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary Stats */}
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
+        <Card>
+          <CardBody className="p-3 text-center">
+            <p className="text-xl md:text-2xl font-bold text-slate-900">{monthSummary.total}</p>
+            <p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-semibold">Records</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody className="p-3 text-center">
+            <p className="text-xl md:text-2xl font-bold text-green-600">{monthSummary.present}</p>
+            <p className="text-[9px] md:text-[10px] text-green-700 uppercase font-semibold">Present</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody className="p-3 text-center">
+            <p className="text-xl md:text-2xl font-bold text-red-600">{monthSummary.absent}</p>
+            <p className="text-[9px] md:text-[10px] text-red-700 uppercase font-semibold">Absent</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody className="p-3 text-center">
+            <p className="text-xl md:text-2xl font-bold text-amber-600">{monthSummary.late}</p>
+            <p className="text-[9px] md:text-[10px] text-amber-700 uppercase font-semibold">Late</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody className="p-3 text-center">
+            <p className="text-xl md:text-2xl font-bold text-blue-600">{monthSummary.excused}</p>
+            <p className="text-[9px] md:text-[10px] text-blue-700 uppercase font-semibold">Excused</p>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody className="p-3 text-center">
+            <p className={`text-xl md:text-2xl font-bold ${monthSummary.rate >= 90 ? 'text-green-600' : monthSummary.rate >= 75 ? 'text-amber-600' : 'text-red-600'}`}>{monthSummary.rate}%</p>
+            <p className="text-[9px] md:text-[10px] text-slate-500 uppercase font-semibold">Rate</p>
+          </CardBody>
+        </Card>
+      </div>
+
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
+        <Card>
+          <CardBody className="p-3 md:p-4">
+            {/* Calendar Grid */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {weekDays.map(d => (
+                <div key={d} className="text-center text-[10px] md:text-xs font-bold text-slate-500 uppercase py-1">{d}</div>
               ))}
             </div>
-          </div>
-        </CardHeader>
-        <CardBody className="p-4 md:p-6">
-          {historyLoading ? (
-            <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
-          ) : historyDates.length === 0 ? (
-            <EmptyState
-              title="No History"
-              description="No attendance records found for this period"
-              icon={<Calendar className="w-8 h-8" />}
-            />
-          ) : historyTab === 'calendar' ? (
-            <div className="space-y-2">
-              {historyDates.map(date => {
-                const s = dateStats[date] || {};
-                const total = s.total || 0;
-                const rate = total > 0 ? Math.round(((s.present + (s.late || 0)) / total) * 100) : 0;
-                const isSelected = date === selectedDate;
+            <div className="grid grid-cols-7 gap-1">
+              {/* Empty cells for days before month starts */}
+              {Array.from({ length: firstDay }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square" />
+              ))}
+              {/* Day cells */}
+              {daysInMonth.map(date => {
+                const s = dateStats[date];
                 const d = new Date(date + 'T00:00:00');
-                const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
-                const pPct = total > 0 ? ((s.present || 0) / total) * 100 : 0;
-                const aPct = total > 0 ? ((s.absent || 0) / total) * 100 : 0;
-                const lPct = total > 0 ? ((s.late || 0) / total) * 100 : 0;
-                const ePct = total > 0 ? ((s.excused || 0) / total) * 100 : 0;
+                const dayNum = d.getDate();
+                const isToday = date === new Date().toISOString().split('T')[0];
+                const hasData = s && s.total > 0;
+                const rate = hasData ? Math.round(((s.present + s.late + s.excused) / s.total) * 100) : null;
                 return (
                   <div
                     key={date}
-                    onClick={() => setSelectedDate(date)}
-                    className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-violet-300 bg-violet-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}
+                    className={`aspect-square rounded-lg border p-1 flex flex-col items-center justify-center transition-all ${getHeatmapColor(date)} ${isToday ? 'ring-2 ring-violet-400 ring-offset-1' : ''}`}
                   >
-                    <div className="text-center min-w-[48px]">
-                      <p className="text-xs font-bold text-slate-900">{dayName}</p>
-                      <p className="text-[10px] text-slate-500">{d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex h-2 rounded-full overflow-hidden bg-slate-100 mb-1.5">
-                        {pPct > 0 && <div className="bg-green-500" style={{ width: `${pPct}%` }} />}
-                        {lPct > 0 && <div className="bg-amber-500" style={{ width: `${lPct}%` }} />}
-                        {ePct > 0 && <div className="bg-blue-500" style={{ width: `${ePct}%` }} />}
-                        {aPct > 0 && <div className="bg-red-500" style={{ width: `${aPct}%` }} />}
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px]">
-                        <span className="text-green-600 font-semibold">{s.present || 0}P</span>
-                        <span className="text-red-600 font-semibold">{s.absent || 0}A</span>
-                        <span className="text-amber-600 font-semibold">{s.late || 0}L</span>
-                        {(s.excused || 0) > 0 && <span className="text-blue-600 font-semibold">{s.excused}E</span>}
-                        <span className="text-slate-400 ml-auto">{total} total</span>
-                      </div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${rate >= 90 ? 'bg-green-100 text-green-700' : rate >= 75 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                        {rate}%
-                      </span>
-                      {isSelected && <p className="text-[9px] text-violet-600 font-semibold mt-0.5">Viewing</p>}
-                    </div>
+                    <span className={`text-[10px] md:text-xs font-bold ${isToday ? 'text-violet-600' : 'text-slate-700'}`}>{dayNum}</span>
+                    {hasData && (
+                      <>
+                        <div className="flex gap-px mt-0.5">
+                          {s.present > 0 && <div className="w-1 h-1 rounded-full bg-green-500" />}
+                          {s.late > 0 && <div className="w-1 h-1 rounded-full bg-amber-500" />}
+                          {s.absent > 0 && <div className="w-1 h-1 rounded-full bg-red-500" />}
+                        </div>
+                        <span className="text-[7px] md:text-[8px] font-semibold text-slate-600 mt-px">{rate}%</span>
+                      </>
+                    )}
                   </div>
                 );
               })}
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[500px]">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-4 mt-3 text-[10px] text-slate-500">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500" /> Present</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> Late</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500" /> Absent</span>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Students View */}
+      {viewMode === 'students' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {studentStats.map(s => {
+            const rateColor = s.rate === null ? 'text-slate-400' : s.rate >= 90 ? 'text-green-600' : s.rate >= 75 ? 'text-amber-600' : 'text-red-600';
+            const rateBg = s.rate === null ? 'bg-slate-100' : s.rate >= 90 ? 'bg-green-100' : s.rate >= 75 ? 'bg-amber-100' : 'bg-red-100';
+            return (
+              <Card key={s.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedStudent(selectedStudent === s.student ? null : s.student)}>
+                <CardBody className="p-3 md:p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-sm shrink-0">
+                      {s.student_name ? s.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-slate-900 truncate">{s.student_name || 'Unknown'}</p>
+                      <p className="text-[10px] text-slate-400">{s.total} records</p>
+                    </div>
+                    <div className={`px-2.5 py-1 rounded-full ${rateBg}`}>
+                      <span className={`text-xs font-bold ${rateColor}`}>{s.rate !== null ? `${s.rate}%` : '—'}</span>
+                    </div>
+                  </div>
+                  {/* Mini stats bar */}
+                  <div className="flex h-2 rounded-full overflow-hidden bg-slate-100 mb-2">
+                    {s.present > 0 && <div className="bg-green-500" style={{ width: `${(s.present / s.total) * 100}%` }} />}
+                    {s.late > 0 && <div className="bg-amber-500" style={{ width: `${(s.late / s.total) * 100}%` }} />}
+                    {s.excused > 0 && <div className="bg-blue-500" style={{ width: `${(s.excused / s.total) * 100}%` }} />}
+                    {s.absent > 0 && <div className="bg-red-500" style={{ width: `${(s.absent / s.total) * 100}%` }} />}
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <span className="text-green-600 font-semibold">{s.present}P</span>
+                    <span className="text-red-600 font-semibold">{s.absent}A</span>
+                    <span className="text-amber-600 font-semibold">{s.late}L</span>
+                    {s.excused > 0 && <span className="text-blue-600 font-semibold">{s.excused}E</span>}
+                  </div>
+                </CardBody>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Matrix View */}
+      {viewMode === 'matrix' && (
+        <Card>
+          <CardBody className="p-0 overflow-x-auto">
+            <table className="w-full min-w-[600px]">
+              <thead className="bg-slate-50 border-b-2 border-slate-200">
+                <tr>
+                  <th className="px-3 py-2.5 text-left text-[10px] md:text-xs font-bold text-slate-700 uppercase sticky left-0 bg-slate-50">Student</th>
+                  {daysInMonth.filter((_, i) => {
+                    const d = new Date(month + '-01');
+                    d.setDate(d.getDate() + i);
+                    return d.getDay() !== 0 && d.getDay() !== 6; // Skip weekends
+                  }).map(date => {
+                    const d = new Date(date + 'T00:00:00');
+                    return (
+                      <th key={date} className="px-1 py-2.5 text-center text-[8px] md:text-[10px] font-bold text-slate-500 uppercase" title={date}>
+                        {d.getDate()}
+                      </th>
+                    );
+                  })}
+                  <th className="px-3 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase">Rate</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-slate-100">
+                {studentStats.map(s => {
+                  const rateColor = s.rate === null ? 'text-slate-400' : s.rate >= 90 ? 'text-green-600' : s.rate >= 75 ? 'text-amber-600' : 'text-red-600';
+                  const schoolDays = daysInMonth.filter((_, i) => {
+                    const d = new Date(month + '-01');
+                    d.setDate(d.getDate() + i);
+                    return d.getDay() !== 0 && d.getDay() !== 6;
+                  });
+                  return (
+                    <tr key={s.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-3 py-2 sticky left-0 bg-white">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-[9px] shrink-0">
+                            {s.student_name ? s.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
+                          </div>
+                          <span className="text-[11px] md:text-xs font-semibold text-slate-900 truncate max-w-[100px] md:max-w-none">{s.student_name || '?'}</span>
+                        </div>
+                      </td>
+                      {schoolDays.map(date => {
+                        const rec = historyData.find(r => r.student === s.student && r.date === date);
+                        const dot = rec ? (
+                          <span className={`inline-block w-4 h-4 md:w-5 md:h-5 rounded-full text-[8px] md:text-[9px] font-bold flex items-center justify-center ${
+                            rec.status === 'present' ? 'bg-green-100 text-green-600' :
+                            rec.status === 'absent' ? 'bg-red-100 text-red-600' :
+                            rec.status === 'excused' ? 'bg-blue-100 text-blue-600' :
+                            rec.status === 'school_activity' ? 'bg-violet-100 text-violet-600' :
+                            rec.status === 'medical_leave' ? 'bg-pink-100 text-pink-600' :
+                            'bg-amber-100 text-amber-600'
+                          }`} title={`${date}: ${rec.status}`}>
+                            {rec.status === 'present' ? 'P' : rec.status === 'absent' ? 'A' : rec.status === 'excused' ? 'E' : rec.status === 'school_activity' ? 'SA' : rec.status === 'medical_leave' ? 'ML' : 'L'}
+                          </span>
+                        ) : (
+                          <span className="inline-block w-4 h-4 md:w-5 md:h-5 rounded-full bg-slate-50 text-slate-300 text-[8px] md:text-[9px] font-bold flex items-center justify-center">—</span>
+                        );
+                        return <td key={date} className="px-1 py-2 text-center">{dot}</td>;
+                      })}
+                      <td className="px-3 py-2 text-center">
+                        <span className={`text-[10px] md:text-xs font-bold ${rateColor}`}>{s.rate !== null ? `${s.rate}%` : '—'}</span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Student Detail Modal */}
+      {selectedStudent && (
+        <Card>
+          <CardHeader divider>
+            <div className="flex items-center justify-between">
+              <CardTitle>
+                {students.find(s => s.student === selectedStudent)?.student_name || 'Student'} - Daily Log
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setSelectedStudent(null)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardBody className="p-0">
+            <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b sticky top-0">
                   <tr>
-                    <th className="px-3 md:px-4 py-2.5 text-left text-[10px] md:text-xs font-bold text-slate-700 uppercase">Student</th>
-                    {historyDates.slice(0, 10).map(date => {
-                      const d = new Date(date + 'T00:00:00');
-                      return (
-                        <th key={date} className="px-1 py-2.5 text-center text-[8px] md:text-[10px] font-bold text-slate-500 uppercase" title={date}>
-                          {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </th>
-                      );
-                    })}
-                    <th className="px-3 md:px-4 py-2.5 text-center text-[10px] md:text-xs font-bold text-slate-700 uppercase">Rate</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Date</th>
+                    <th className="px-4 py-2 text-center text-[10px] font-bold text-slate-700 uppercase">Status</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-bold text-slate-700 uppercase">Remarks</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-slate-100">
-                  {studentRates.map(s => {
-                    const rateColor = s.rate === null ? 'text-slate-400' : s.rate >= 90 ? 'text-green-600' : s.rate >= 75 ? 'text-amber-600' : 'text-red-600';
+                <tbody className="divide-y divide-slate-100">
+                  {daysInMonth.filter(d => {
+                    const dt = new Date(d + 'T00:00:00');
+                    return dt.getDay() !== 0 && dt.getDay() !== 6;
+                  }).reverse().map(date => {
+                    const rec = historyData.find(r => r.student === selectedStudent && r.date === date);
+                    const d = new Date(date + 'T00:00:00');
                     return (
-                      <tr key={s.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-3 md:px-4 py-2.5">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-[9px] shrink-0">
-                              {s.student_name ? s.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
-                            </div>
-                            <span className="text-[11px] md:text-xs font-semibold text-slate-900 truncate max-w-[120px] md:max-w-none">{s.student_name || '?'}</span>
-                          </div>
+                      <tr key={date} className="hover:bg-slate-50">
+                        <td className="px-4 py-2 text-xs text-slate-900">
+                          {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                         </td>
-                        {historyDates.slice(0, 10).map(date => {
-                          const rec = (studentHistory[s.student] || []).find(r => r.date === date);
-                          const dot = rec ? (
-                            <span className={`inline-block w-4 h-4 md:w-5 md:h-5 rounded-full text-[8px] md:text-[9px] font-bold flex items-center justify-center ${
-                              rec.status === 'present' ? 'bg-green-100 text-green-600' :
-                              rec.status === 'absent' ? 'bg-red-100 text-red-600' :
-                              rec.status === 'excused' ? 'bg-blue-100 text-blue-600' :
-                              'bg-amber-100 text-amber-600'
-                            }`} title={`${date}: ${rec.status}`}>
-                              {rec.status === 'present' ? 'P' : rec.status === 'absent' ? 'A' : rec.status === 'excused' ? 'E' : 'L'}
+                        <td className="px-4 py-2 text-center">
+                          {rec ? (
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              rec.status === 'present' ? 'bg-green-100 text-green-700' :
+                              rec.status === 'absent' ? 'bg-red-100 text-red-700' :
+                              rec.status === 'excused' ? 'bg-blue-100 text-blue-700' :
+                              rec.status === 'school_activity' ? 'bg-violet-100 text-violet-700' :
+                              rec.status === 'medical_leave' ? 'bg-pink-100 text-pink-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {rec.status.replace('_', ' ')}
                             </span>
                           ) : (
-                            <span className="inline-block w-4 h-4 md:w-5 md:h-5 rounded-full bg-slate-50 text-slate-300 text-[8px] md:text-[9px] font-bold flex items-center justify-center" title={`${date}: No record`}>—</span>
-                          );
-                          return <td key={date} className="px-1 py-2.5 text-center">{dot}</td>;
-                        })}
-                        <td className="px-3 md:px-4 py-2.5 text-center">
-                          {s.rate !== null ? (
-                            <span className={`text-[10px] md:text-xs font-bold ${rateColor}`}>{s.rate}%</span>
-                          ) : (
-                            <span className="text-[10px] md:text-xs text-slate-400">—</span>
+                            <span className="text-slate-300 text-[10px]">No record</span>
                           )}
                         </td>
+                        <td className="px-4 py-2 text-[10px] text-slate-500 italic">{rec?.remarks || '—'}</td>
                       </tr>
                     );
                   })}
                 </tbody>
               </table>
             </div>
-          )}
-        </CardBody>
-      </Card>
+          </CardBody>
+        </Card>
+      )}
     </div>
   );
 };
