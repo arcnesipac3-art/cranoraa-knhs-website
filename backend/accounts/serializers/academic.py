@@ -166,19 +166,4 @@ class ClassroomSubjectSerializer(serializers.ModelSerializer):
         return SimplifiedStudentSerializer(students, many=True).data
 
     def create(self, validated_data):
-        defaults = SystemSetting.get_settings()
-        validated_data.setdefault('ww_weight', defaults.default_ww_weight)
-        validated_data.setdefault('pt_weight', defaults.default_pt_weight)
-        validated_data.setdefault('qa_weight', defaults.default_qa_weight)
         return super().create(validated_data)
-
-    def validate(self, data):
-        defaults = SystemSetting.get_settings()
-        ww = data.get('ww_weight', self.instance.ww_weight if self.instance else defaults.default_ww_weight)
-        pt = data.get('pt_weight', self.instance.pt_weight if self.instance else defaults.default_pt_weight)
-        qa = data.get('qa_weight', self.instance.qa_weight if self.instance else defaults.default_qa_weight)
-        total = float(ww) + float(pt) + float(qa)
-        if abs(total - 100) > 0.01:
-            raise serializers.ValidationError(
-                f"Weights must sum to 100. Current total: {total}")
-        return data
