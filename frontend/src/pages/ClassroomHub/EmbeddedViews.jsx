@@ -1172,7 +1172,9 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
           <Button variant="ghost" size="sm" onClick={() => {
             const d = new Date(selectedDate + 'T00:00:00');
             d.setDate(d.getDate() + 1);
-            if (d <= new Date()) setSelectedDate(d.toISOString().split('T')[0]);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (d <= today) setSelectedDate(d.toISOString().split('T')[0]);
           }}>
             <ChevronRight className="w-4 h-4" />
           </Button>
