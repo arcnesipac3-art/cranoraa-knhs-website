@@ -1111,6 +1111,7 @@ def student_profile(request):
                 'state': profile.state,
                 'nationality': profile.nationality,
                 'middle_name': profile.middle_name,
+                'extension_name': profile.extension_name,
                 'father_name': profile.father_name,
                 'mother_name': profile.mother_name,
                 'date_of_birth': profile.date_of_birth,
@@ -1119,11 +1120,19 @@ def student_profile(request):
                 'address': profile.address,
                 'grade_level': grade_level,
                 'registration_number': profile.registration_number,
+                'lrn': profile.lrn,
                 'profile_picture': profile.profile_picture,
                 'enrollment_status': profile.enrollment_status,
                 'mute_until': profile.mute_until,
                 'is_muted': profile.mute_until is not None and profile.mute_until > timezone.now(),
                 'is_suspended': profile.is_suspended or target_user.account_status == 'suspended',
+                'mother_tongue': profile.mother_tongue,
+                'indigenous_people': profile.indigenous_people,
+                'religion': profile.religion,
+                'emergency_contact_name': profile.emergency_contact_name,
+                'emergency_contact_phone': profile.emergency_contact_phone,
+                'emergency_contact_relationship': profile.emergency_contact_relationship,
+                'medical_alerts': profile.medical_alerts,
             }
         }
         return Response(profile_data)
