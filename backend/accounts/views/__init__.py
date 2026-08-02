@@ -161,3 +161,9 @@ from .lesson_plan import (
     LessonPlanViewSet,
     WeeklyPlanViewSet,
 )
+
+from .grading_management import (
+    GradingPeriodViewSet,
+    GradeSubmissionViewSet,
+    GradeReopeningRequestViewSet,
+)

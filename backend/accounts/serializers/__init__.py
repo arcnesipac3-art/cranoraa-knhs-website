@@ -27,6 +27,11 @@ from .communication import ParentTeacherMeetingSerializer, BehavioralRecordSeria
 from .events import SchoolEventSerializer, WebsiteContentSerializer
 from .assignments import AssignmentSerializer, SubmissionSerializer
 from .grades import GradeSerializer, GradeReportSerializer
+from .grading_management import (
+    GradingPeriodSerializer, GradeSubmissionSerializer,
+    GradeSubmissionSummarySerializer, GradeReopeningRequestSerializer,
+    AdminMonitoringSerializer, TeacherDashboardSerializer,
+)
 from .chat import (
     MessageReactionSerializer, ChatMemberSerializer, ChatMessageSerializer, ChatRoomSerializer,
     ReportedMessageSerializer,
@@ -89,6 +94,9 @@ __all__ = [
     'SchoolEventSerializer', 'WebsiteContentSerializer',
     'AssignmentSerializer', 'SubmissionSerializer',
     'GradeSerializer', 'GradeReportSerializer',
+    'GradingPeriodSerializer', 'GradeSubmissionSerializer',
+    'GradeSubmissionSummarySerializer', 'GradeReopeningRequestSerializer',
+    'AdminMonitoringSerializer', 'TeacherDashboardSerializer',
     'MessageReactionSerializer', 'ChatMemberSerializer', 'ChatMessageSerializer', 'ChatRoomSerializer',
     'ReportedMessageSerializer',
     'UserBlockSerializer', 'EmergencyMessageSerializer',

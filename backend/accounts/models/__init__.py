@@ -42,6 +42,7 @@ from .school_forms import (
 from .infrastructure import (
     AcademicYear, Semester, AuditLog, APIRequestLog, DatabaseBackup,
 )
+from .grading_management import GradingPeriod, GradeSubmission, GradeReopeningRequest
 
 __all__ = [
     'User', 'OTP', 'Profile', 'OnboardingStatus', 'DashboardPreferences',
@@ -60,6 +61,7 @@ __all__ = [
     'Assignment', 'Submission', 'Grade',
     'Room', 'TimeSlot', 'Schedule',
     'GradeReport', 'CoreValuesGrade',
+    'GradingPeriod', 'GradeSubmission', 'GradeReopeningRequest',
     'Ticket', 'TicketParticipant', 'TicketMessage', 'TicketAttachment', 'DepartmentContact',
     'Department', 'StaffPerformance',
     'Transcript', 'TranscriptLineItem', 'TransferCertificate',

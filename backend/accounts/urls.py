@@ -27,6 +27,7 @@ from .views import (
     DepartmentViewSet, StaffPerformanceViewSet,
     admin_attendance_analytics, admin_grade_analytics,
     data_retention_view, run_backup_view_enhanced,
+    GradingPeriodViewSet, GradeSubmissionViewSet, GradeReopeningRequestViewSet,
 )
 
 app_name = 'accounts'
@@ -71,6 +72,9 @@ router.register(r'v1/user-blocks', UserBlockViewSet, basename='user-block')
 router.register(r'v1/emergency-messages', EmergencyMessageViewSet, basename='emergency-message')
 router.register(r'v1/departments', DepartmentViewSet, basename='department')
 router.register(r'v1/staff-performance', StaffPerformanceViewSet, basename='staff-performance')
+router.register(r'v1/grading-periods', GradingPeriodViewSet, basename='grading-period')
+router.register(r'v1/grade-submissions', GradeSubmissionViewSet, basename='grade-submission')
+router.register(r'v1/grade-reopening-requests', GradeReopeningRequestViewSet, basename='grade-reopening-request')
 
 # NOTE: school_portal/urls.py mounts these under 'api/', so paths here should NOT include 'api/'.
 # Final URL = api/ + path below  e.g. api/v1/login/
