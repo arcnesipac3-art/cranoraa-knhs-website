@@ -12,7 +12,6 @@ const REPORT_TYPES = [
   { id: 'missing', label: 'Missing Grades Report', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z' },
   { id: 'late', label: 'Late Submission Report', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
   { id: 'completion', label: 'Completion Report', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
-  { id: 'department', label: 'Department Report', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
 ];
 
 const ReportCard = ({ report, onClick }) => (
@@ -88,7 +87,6 @@ export default function GradeReportsPage() {
   const [loading, setLoading] = useState(false);
   const [filters] = useState({
     quarter: '',
-    department: '',
     grade_level: '',
   });
 
@@ -117,10 +115,6 @@ export default function GradeReportsPage() {
             by_department: res.data.by_department,
             by_grade_level: res.data.by_grade_level,
           });
-          break;
-        case 'department':
-          res = await api.get('/grade-submissions/admin_monitoring/');
-          setReportData(res.data.by_department || []);
           break;
         case 'late':
           res = await api.get('/grade-submissions/', { params: { status: 'overdue' } });

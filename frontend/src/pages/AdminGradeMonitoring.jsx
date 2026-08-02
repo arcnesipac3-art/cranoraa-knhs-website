@@ -11,7 +11,6 @@ import {
   PieChart, Pie, Cell, LineChart, Line,
 } from 'recharts';
 
-const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316'];
 
 const StatTile = ({ label, value, icon, color, subtitle }) => (
   <motion.div
@@ -100,7 +99,6 @@ const TeacherRow = ({ teacher }) => (
   <tr className="hover:bg-gray-50 transition-colors">
     <td className="px-4 py-3">
       <div className="font-medium text-gray-900">{teacher.name}</div>
-      <div className="text-xs text-gray-500">{teacher.department}</div>
     </td>
     <td className="px-4 py-3 text-sm">{teacher.total_classes}</td>
     <td className="px-4 py-3 text-sm text-green-600">{teacher.submitted}</td>
@@ -129,7 +127,7 @@ export default function AdminGradeMonitoring() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [filters, setFilters] = useState({ department: 'all', status: 'all' });
+  const [filters, setFilters] = useState({ status: 'all' });
   const [selectedTeachers, setSelectedTeachers] = useState([]);
 
   const fetchMonitoring = useCallback(async () => {
@@ -182,13 +180,10 @@ export default function AdminGradeMonitoring() {
   };
 
   const filteredTeachers = data?.teacher_details?.filter(t => {
-    if (filters.department !== 'all' && t.department !== filters.department) return false;
     if (filters.status === 'submitted' && t.submitted === 0) return false;
     if (filters.status === 'pending' && t.pending === 0) return false;
     return true;
   }) || [];
-
-  const departments = [...new Set(data?.teacher_details?.map(t => t.department) || [])];
 
   return (
     <div className="space-y-6">
@@ -232,7 +227,7 @@ export default function AdminGradeMonitoring() {
           </div>
 
           <div className="flex items-center gap-2 border-b border-gray-200">
-            {['overview', 'teachers', 'departments', 'charts'].map((tab) => (
+            {['overview', 'teachers', 'charts'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -276,26 +271,8 @@ export default function AdminGradeMonitoring() {
                 </CardBody>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>By Department</CardTitle>
-                </CardHeader>
-                <CardBody>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={data.by_department}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                      <YAxis tick={{ fontSize: 12 }} />
-                      <Tooltip />
-                      <Bar dataKey="submitted" fill="#22c55e" name="Submitted" radius={[4, 4, 0, 0]} />
-                      <Bar dataKey="pending" fill="#f59e0b" name="Pending" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardBody>
-              </Card>
-
               {data.daily_submissions.length > 0 && (
-                <Card className="lg:col-span-2">
+                <Card>
                   <CardHeader>
                     <CardTitle>Daily Submissions</CardTitle>
                   </CardHeader>
@@ -320,27 +297,15 @@ export default function AdminGradeMonitoring() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Teacher Submissions</CardTitle>
-                  <div className="flex items-center gap-2">
-                    <FormSelect
-                      value={filters.department}
-                      onChange={(e) => setFilters({ ...filters, department: e.target.value })}
-                      className="text-sm"
-                    >
-                      <option value="all">All Departments</option>
-                      {departments.map(d => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </FormSelect>
-                    <FormSelect
-                      value={filters.status}
-                      onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                      className="text-sm"
-                    >
-                      <option value="all">All Status</option>
-                      <option value="submitted">Submitted</option>
-                      <option value="pending">Pending</option>
-                    </FormSelect>
-                  </div>
+                  <FormSelect
+                    value={filters.status}
+                    onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                    className="text-sm"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="pending">Pending</option>
+                  </FormSelect>
                 </div>
               </CardHeader>
               <CardBody className="p-0">
@@ -365,36 +330,6 @@ export default function AdminGradeMonitoring() {
                 </div>
               </CardBody>
             </Card>
-          )}
-
-          {activeTab === 'departments' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {data.by_department.map((dept, idx) => (
-                <Card key={dept.name}>
-                  <CardBody>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{ backgroundColor: COLORS[idx % COLORS.length] }}>
-                        {dept.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-gray-900">{dept.name}</h4>
-                        <p className="text-xs text-gray-500">{dept.submitted}/{dept.total} submissions</p>
-                      </div>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${dept.completion_percentage}%`,
-                          backgroundColor: COLORS[idx % COLORS.length],
-                        }}
-                      />
-                    </div>
-                    <p className="text-right text-xs text-gray-500 mt-1">{dept.completion_percentage}%</p>
-                  </CardBody>
-                </Card>
-              ))}
-            </div>
           )}
 
           {activeTab === 'charts' && (
