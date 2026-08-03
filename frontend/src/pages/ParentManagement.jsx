@@ -378,6 +378,7 @@ export default function ParentManagement() {
           </div>
         )}
       </div>
+      </div>
 
       {/* Create Parent Modal */}
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} size="md">
