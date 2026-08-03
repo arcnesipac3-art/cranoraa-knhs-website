@@ -7,7 +7,7 @@ import {
 } from '../components/ui';
 import {
   Calendar, ChevronLeft, ChevronRight, CheckCircle, XCircle,
-  Clock, ShieldCheck, AlertTriangle, BookOpen, TrendingUp
+  Clock, ShieldCheck, TrendingUp
 } from 'lucide-react';
 
 const StudentAttendance = () => {
@@ -58,10 +58,6 @@ const StudentAttendance = () => {
         return <Clock className="w-4 h-4 text-amber-500" />;
       case 'excused':
         return <ShieldCheck className="w-4 h-4 text-blue-500" />;
-      case 'school_activity':
-        return <BookOpen className="w-4 h-4 text-violet-500" />;
-      case 'medical_leave':
-        return <AlertTriangle className="w-4 h-4 text-pink-500" />;
       case 'no_class':
         return <Calendar className="w-4 h-4 text-slate-400" />;
       default:
@@ -75,8 +71,6 @@ const StudentAttendance = () => {
       case 'absent': return 'bg-red-100 text-red-700';
       case 'late': return 'bg-amber-100 text-amber-700';
       case 'excused': return 'bg-blue-100 text-blue-700';
-      case 'school_activity': return 'bg-violet-100 text-violet-700';
-      case 'medical_leave': return 'bg-pink-100 text-pink-700';
       case 'no_class': return 'bg-slate-100 text-slate-500';
       default: return 'bg-slate-100 text-slate-500';
     }

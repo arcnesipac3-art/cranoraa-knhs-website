@@ -9,7 +9,7 @@ import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } fro
 import {
   ArrowLeft, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
   Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare,
-  BookOpen, AlertTriangle, Send, Lock, Unlock, ChevronLeft, ChevronRight, Save
+  Send, Lock, Unlock, ChevronLeft, ChevronRight, Save
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
 
@@ -720,10 +720,8 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     const absent = Object.values(attendance).filter(s => s === 'absent').length;
     const late = Object.values(attendance).filter(s => s === 'late').length;
     const excused = Object.values(attendance).filter(s => s === 'excused').length;
-    const schoolActivity = Object.values(attendance).filter(s => s === 'school_activity').length;
-    const medicalLeave = Object.values(attendance).filter(s => s === 'medical_leave').length;
     const unmarked = Object.values(attendance).filter(s => s === null).length;
-    return { present, absent, late, excused, schoolActivity, medicalLeave, unmarked, total: students.length };
+    return { present, absent, late, excused, unmarked, total: students.length };
   }, [attendance, students.length]);
 
   const filteredStudents = useMemo(() => {
@@ -741,8 +739,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
     absent:   { active: 'bg-red-600 text-white',   idle: 'bg-red-50 text-red-700 hover:bg-red-100',   icon: XCircle },
     late:     { active: 'bg-amber-600 text-white',  idle: 'bg-amber-50 text-amber-700 hover:bg-amber-100', icon: ClockIcon },
     excused:  { active: 'bg-blue-600 text-white',   idle: 'bg-blue-50 text-blue-700 hover:bg-blue-100',   icon: ShieldCheck },
-    school_activity: { active: 'bg-violet-600 text-white', idle: 'bg-violet-50 text-violet-700 hover:bg-violet-100', icon: BookOpen },
-    medical_leave: { active: 'bg-pink-600 text-white', idle: 'bg-pink-50 text-pink-700 hover:bg-pink-100', icon: AlertTriangle },
+
   };
 
   // Track workflow status per date
@@ -933,14 +930,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
             <div className="bg-blue-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-blue-600">{stats.excused}</div>
               <div className="text-[7px] sm:text-[9px] md:text-[10px] text-blue-700 uppercase font-semibold mt-0.5">Excused</div>
-            </div>
-            <div className="bg-violet-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
-              <div className="text-sm sm:text-lg md:text-xl font-bold text-violet-600">{stats.schoolActivity}</div>
-              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-violet-700 uppercase font-semibold mt-0.5">Activity</div>
-            </div>
-            <div className="bg-pink-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
-              <div className="text-sm sm:text-lg md:text-xl font-bold text-pink-600">{stats.medicalLeave}</div>
-              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-pink-700 uppercase font-semibold mt-0.5">Medical</div>
             </div>
           </div>
 
@@ -1186,10 +1175,8 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     const absent = records.filter(r => r.status === 'absent').length;
     const late = records.filter(r => r.status === 'late').length;
     const excused = records.filter(r => r.status === 'excused').length;
-    const schoolActivity = records.filter(r => r.status === 'school_activity').length;
-    const medicalLeave = records.filter(r => r.status === 'medical_leave').length;
     const unrecorded = students.length - records.length;
-    return { present, absent, late, excused, schoolActivity, medicalLeave, unrecorded, total: students.length, recorded: records.length };
+    return { present, absent, late, excused, unrecorded, total: students.length, recorded: records.length };
   }, [records, students.length]);
 
   // Save single record
@@ -1250,8 +1237,6 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
       case 'absent': return 'bg-red-100 text-red-700';
       case 'late': return 'bg-amber-100 text-amber-700';
       case 'excused': return 'bg-blue-100 text-blue-700';
-      case 'school_activity': return 'bg-violet-100 text-violet-700';
-      case 'medical_leave': return 'bg-pink-100 text-pink-700';
       default: return 'bg-slate-100 text-slate-500';
     }
   };
@@ -1355,14 +1340,6 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
               <div className="text-lg font-bold text-blue-600">{stats.excused}</div>
               <div className="text-[9px] text-blue-700 uppercase">Excused</div>
             </div>
-            <div className="text-center p-2 bg-violet-50 rounded-lg">
-              <div className="text-lg font-bold text-violet-600">{stats.schoolActivity}</div>
-              <div className="text-[9px] text-violet-700 uppercase">Activity</div>
-            </div>
-            <div className="text-center p-2 bg-pink-50 rounded-lg">
-              <div className="text-lg font-bold text-pink-600">{stats.medicalLeave}</div>
-              <div className="text-[9px] text-pink-700 uppercase">Medical</div>
-            </div>
           </div>
         </CardBody>
       </Card>
@@ -1439,7 +1416,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
                               <td className="px-4 py-3 text-center">
                                 {isEditing ? (
                                   <div className="flex items-center justify-center gap-1 flex-wrap">
-                                    {['present', 'absent', 'late', 'excused', 'school_activity', 'medical_leave'].map(s => (
+                                    {['present', 'absent', 'late', 'excused'].map(s => (
                                       <button
                                         key={s}
                                         onClick={() => setEditStatus(s)}
