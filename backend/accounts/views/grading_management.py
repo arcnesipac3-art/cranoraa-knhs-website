@@ -419,26 +419,41 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
         due_today = []
 
         for cs in teacher_classes:
-            sub, _ = GradeSubmission.objects.get_or_create(
-                teacher=request.user,
-                classroom=cs.classroom,
-                subject=cs.subject,
-                grading_period=active_period,
-                defaults={'status': 'draft'}
-            )
-            sub.compute_progress()
+            if active_period:
+                # Only create a draft submission record when a period is actually open
+                sub, _ = GradeSubmission.objects.get_or_create(
+                    teacher=request.user,
+                    classroom=cs.classroom,
+                    subject=cs.subject,
+                    grading_period=active_period,
+                    defaults={'status': 'draft'}
+                )
+                try:
+                    sub.compute_progress()
+                except Exception:
+                    pass
 
-            if sub.status in ('draft', 'in_progress'):
-                if active_period and active_period.days_remaining <= 0:
-                    overdue.append(sub)
-                elif active_period and active_period.days_remaining == 0:
-                    due_today.append(sub)
+                if sub.status in ('draft', 'in_progress'):
+                    if active_period.days_remaining <= 0:
+                        overdue.append(sub)
+                    elif active_period.days_remaining == 0:
+                        due_today.append(sub)
+                    else:
+                        pending.append(sub)
                 else:
-                    pending.append(sub)
-            elif sub.status in ('submitted', 'reviewed'):
-                submitted_list.append(sub)
-            elif sub.status in ('approved', 'locked'):
-                submitted_list.append(sub)
+                    submitted_list.append(sub)
+            else:
+                # No active period — show existing historical submissions for this class/subject
+                existing = GradeSubmission.objects.filter(
+                    teacher=request.user,
+                    classroom=cs.classroom,
+                    subject=cs.subject,
+                ).select_related('grading_period').order_by('-created_at').first()
+                if existing:
+                    if existing.status in ('approved', 'locked', 'submitted', 'reviewed'):
+                        submitted_list.append(existing)
+                    else:
+                        pending.append(existing)
 
         serializer = GradeSubmissionSerializer
         return Response({
