@@ -30,7 +30,7 @@ const FACULTY_PHOTO_MAP = (() => {
 
 /** Resolve the best available photo for a portal teacher object */
 export function resolvePhoto(teacher) {
-  // 1. profile_picture set by seed command (Vercel URL)
+  if (!teacher) return null;
   if (teacher.profile?.profile_picture) return teacher.profile.profile_picture;
   // 2. local fallback: match by last name in facultyData
   const lastName = (teacher.last_name || '').toLowerCase();
@@ -547,6 +547,7 @@ const Teachers = () => {
   const filteredTeachers = useMemo(() => {
     return teachers
       .filter(t => {
+        if (!t) return false;
         const search = searchQuery.toLowerCase();
         const title = t.profile?.title || '';
         const fullName = `${title} ${t.first_name || ''} ${t.last_name || ''}`.trim().toLowerCase();
