@@ -19,21 +19,45 @@ const getFileType = (filename) => {
 };
 
 const FILE_TYPE_ICON = {
-  image:  { emoji: '🖼️', color: 'bg-blue-50 border-blue-100' },
-  pdf:    { emoji: '📕', color: 'bg-red-50 border-red-100' },
-  word:   { emoji: '📘', color: 'bg-blue-50 border-blue-100' },
-  excel:  { emoji: '📗', color: 'bg-emerald-50 border-emerald-100' },
-  ppt:    { emoji: '📙', color: 'bg-orange-50 border-orange-100' },
-  office: { emoji: '📄', color: 'bg-slate-50 border-slate-100' },
-  other:  { emoji: '📁', color: 'bg-slate-50 border-slate-100' },
+  image:  { icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', color: 'bg-blue-50 border-blue-100 text-blue-500' },
+  pdf:    { icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', color: 'bg-red-50 border-red-100 text-red-500' },
+  word:   { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-blue-50 border-blue-100 text-blue-600' },
+  excel:  { icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-emerald-50 border-emerald-100 text-emerald-600' },
+  ppt:    { icon: 'M8 13v-1m4 1v-3m4 3V8M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z', color: 'bg-orange-50 border-orange-100 text-orange-500' },
+  office: { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-slate-50 border-slate-100 text-slate-500' },
+  other:  { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-slate-50 border-slate-100 text-slate-400' },
 };
 
 const FREQUENCY_ICONS = {
-  weekly: { emoji: '📋', color: 'bg-blue-50 text-blue-600 border-blue-200' },
-  monthly: { emoji: '📅', color: 'bg-violet-50 text-violet-600 border-violet-200' },
-  quarterly: { emoji: '📊', color: 'bg-amber-50 text-amber-600 border-amber-200' },
-  yearly: { emoji: '📆', color: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
+  weekly:    { color: 'bg-blue-50 text-blue-600 border-blue-200' },
+  monthly:   { color: 'bg-violet-50 text-violet-600 border-violet-200' },
+  quarterly: { color: 'bg-amber-50 text-amber-600 border-amber-200' },
+  yearly:    { color: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
 };
+
+// SVG icon per frequency (re-used from types page)
+function FrequencyIcon({ frequency, className = 'w-5 h-5' }) {
+  if (frequency === 'weekly') return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+  );
+  if (frequency === 'monthly') return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+  if (frequency === 'quarterly') return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  );
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+}
 
 const FREQUENCY_LABELS = {
   weekly: 'Weekly',
@@ -232,8 +256,8 @@ export default function TeacherCompliancePage() {
               <div className="px-5 py-4">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-11 h-11 rounded-xl border flex items-center justify-center text-xl flex-shrink-0 ${freq.color}`}>
-                      {freq.emoji}
+                    <div className={`w-11 h-11 rounded-xl border flex items-center justify-center flex-shrink-0 ${freq.color}`}>
+                        <FrequencyIcon frequency={type.frequency} />
                     </div>
                     <div className="min-w-0">
                       <h3 className="text-sm font-bold text-slate-900">{type.name}</h3>
@@ -395,7 +419,9 @@ export default function TeacherCompliancePage() {
                                         title={file.original_filename}
                                         className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-medium text-slate-600 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 transition-colors ${icon.color}`}
                                       >
-                                        <span className="text-sm leading-none">{icon.emoji}</span>
+                                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={icon.icon} />
+                                        </svg>
                                         <span className="max-w-[120px] truncate">{file.original_filename}</span>
                                       </button>
                                     );
@@ -495,8 +521,10 @@ export default function TeacherCompliancePage() {
 
             {(previewFile.iframeError || previewFile.type === 'other') && (
               <div className="flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-slate-200 py-16 space-y-4">
-                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-3xl shadow-sm">
-                  {previewFile.type === 'office' ? '📄' : '📁'}
+                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center shadow-sm">
+                  <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-slate-700 mb-1">{previewFile.filename}</p>

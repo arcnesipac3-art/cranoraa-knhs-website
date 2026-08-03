@@ -46,7 +46,8 @@ export function useComplianceTypes() {
   const deleteType = useCallback(async (id) => {
     try {
       await api.delete(`/compliance/types/${id}/`);
-      setTypes(prev => prev.filter(t => t.id !== id));
+      // Backend soft-deletes (sets is_active=false), so update local state instead of removing
+      setTypes(prev => prev.map(t => t.id === id ? { ...t, is_active: false } : t));
       toast.success('Compliance type deactivated');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to deactivate');

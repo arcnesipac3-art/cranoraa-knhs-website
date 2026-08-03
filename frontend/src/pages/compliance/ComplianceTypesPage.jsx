@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useComplianceTypes } from '../../hooks/useCompliance';
 import Modal, { ModalBody, ModalFooter, ModalField, modalInputCls, modalSelectCls, modalTextareaCls, ModalBtnPrimary, ModalBtnSecondary } from '../../components/ui/Modal';
-import ComplianceStatusBadge from '../../components/compliance/ComplianceStatusBadge';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 
@@ -13,12 +12,36 @@ const FREQUENCY_OPTIONS = [
   { value: 'yearly', label: 'Yearly', desc: 'End of school year' },
 ];
 
-const FREQUENCY_ICONS = {
-  weekly: { emoji: '📋', color: 'bg-blue-50 text-blue-600 border-blue-200' },
-  monthly: { emoji: '📅', color: 'bg-violet-50 text-violet-600 border-violet-200' },
-  quarterly: { emoji: '📊', color: 'bg-amber-50 text-amber-600 border-amber-200' },
-  yearly: { emoji: '📆', color: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
+const FREQUENCY_STYLES = {
+  weekly:    { color: 'bg-blue-50 text-blue-600 border-blue-200' },
+  monthly:   { color: 'bg-violet-50 text-violet-600 border-violet-200' },
+  quarterly: { color: 'bg-amber-50 text-amber-600 border-amber-200' },
+  yearly:    { color: 'bg-emerald-50 text-emerald-600 border-emerald-200' },
 };
+
+// SVG icon for each frequency
+function FrequencyIcon({ frequency, className = 'w-5 h-5' }) {
+  if (frequency === 'weekly') return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+    </svg>
+  );
+  if (frequency === 'monthly') return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+  if (frequency === 'quarterly') return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  );
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+}
 
 const defaultForm = {
   name: '',
@@ -89,16 +112,21 @@ export default function ComplianceTypesPage() {
   };
 
   const handleDelete = async (type) => {
-    const result = await Swal.fire({
-      title: `Deactivate "${type.name}"?`,
-      text: 'Teachers will no longer see this compliance type.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#EF4444',
-      confirmButtonText: 'Deactivate',
-    });
-    if (result.isConfirmed) {
-      await deleteType(type.id);
+    if (type.is_active) {
+      const result = await Swal.fire({
+        title: `Deactivate "${type.name}"?`,
+        text: 'Teachers will no longer see this compliance type. You can reactivate it later.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#EF4444',
+        confirmButtonText: 'Deactivate',
+      });
+      if (result.isConfirmed) {
+        await deleteType(type.id);
+      }
+    } else {
+      // Reactivate
+      await updateType(type.id, { ...type, is_active: true });
     }
   };
 
@@ -167,7 +195,7 @@ export default function ComplianceTypesPage() {
         /* Card Grid */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {types.map((type, i) => {
-            const freq = FREQUENCY_ICONS[type.frequency] || FREQUENCY_ICONS.weekly;
+            const style = FREQUENCY_STYLES[type.frequency] || FREQUENCY_STYLES.weekly;
             return (
               <motion.div
                 key={type.id}
@@ -181,8 +209,8 @@ export default function ComplianceTypesPage() {
                 <div className="p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className={`w-10 h-10 rounded-lg border flex items-center justify-center text-lg flex-shrink-0 ${freq.color}`}>
-                        {freq.emoji}
+                      <div className={`w-10 h-10 rounded-lg border flex items-center justify-center flex-shrink-0 ${style.color}`}>
+                        <FrequencyIcon frequency={type.frequency} className="w-5 h-5" />
                       </div>
                       <div className="min-w-0">
                         <h3 className="text-sm font-bold text-slate-900 truncate">{type.name}</h3>
@@ -193,13 +221,13 @@ export default function ComplianceTypesPage() {
                       </div>
                     </div>
 
-                    {/* Toggle */}
+                    {/* Active toggle */}
                     <button
                       onClick={() => handleToggleActive(type)}
                       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${
                         type.is_active ? 'bg-emerald-500' : 'bg-slate-300'
                       }`}
-                      title={type.is_active ? 'Active' : 'Inactive'}
+                      title={type.is_active ? 'Active — click to deactivate' : 'Inactive — click to activate'}
                     >
                       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
                         type.is_active ? 'translate-x-4' : 'translate-x-0.5'
@@ -228,8 +256,15 @@ export default function ComplianceTypesPage() {
 
                 {/* Actions */}
                 <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                  <ComplianceStatusBadge status={type.is_active ? 'reviewed' : 'draft'} size="xs" />
-                  <div className="flex items-center gap-2">
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                    type.is_active
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : 'bg-slate-100 text-slate-500 border-slate-200'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${type.is_active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                    {type.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                  <div className="flex items-center gap-3">
                     <button
                       onClick={() => handleEdit(type)}
                       className="text-xs font-bold text-violet-600 hover:text-violet-700 transition-colors"
@@ -241,7 +276,7 @@ export default function ComplianceTypesPage() {
                       onClick={() => handleDelete(type)}
                       className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors"
                     >
-                      Deactivate
+                      {type.is_active ? 'Deactivate' : 'Reactivate'}
                     </button>
                   </div>
                 </div>

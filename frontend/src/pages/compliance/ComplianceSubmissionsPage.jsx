@@ -17,11 +17,25 @@ const STATUS_OPTIONS = [
 ];
 
 const FREQUENCY_ICONS = {
-  weekly: '📋',
-  monthly: '📅',
-  quarterly: '📊',
-  yearly: '📆',
+  weekly: 'W',
+  monthly: 'M',
+  quarterly: 'Q',
+  yearly: 'Y',
 };
+
+function FreqBadge({ frequency }) {
+  const map = {
+    weekly:    'bg-blue-50 text-blue-600 border-blue-200',
+    monthly:   'bg-violet-50 text-violet-600 border-violet-200',
+    quarterly: 'bg-amber-50 text-amber-600 border-amber-200',
+    yearly:    'bg-emerald-50 text-emerald-600 border-emerald-200',
+  };
+  return (
+    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md border text-[10px] font-black flex-shrink-0 ${map[frequency] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+      {FREQUENCY_ICONS[frequency] || '?'}
+    </span>
+  );
+}
 
 export default function ComplianceSubmissionsPage() {
   const [filters, setFilters] = useState({ status: '', compliance_type_id: '', teacher_id: '' });
@@ -144,13 +158,13 @@ export default function ComplianceSubmissionsPage() {
   };
 
   const FILE_TYPE_ICON = {
-    image: { emoji: '🖼️', color: 'bg-blue-50 border-blue-100' },
-    pdf:   { emoji: '📕', color: 'bg-red-50 border-red-100' },
-    word:  { emoji: '📘', color: 'bg-blue-50 border-blue-100' },
-    excel: { emoji: '📗', color: 'bg-emerald-50 border-emerald-100' },
-    ppt:   { emoji: '📙', color: 'bg-orange-50 border-orange-100' },
-    office:{ emoji: '📄', color: 'bg-slate-50 border-slate-100' },
-    other: { emoji: '📁', color: 'bg-slate-50 border-slate-100' },
+    image: { icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', color: 'bg-blue-50 border-blue-100 text-blue-500' },
+    pdf:   { icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z', color: 'bg-red-50 border-red-100 text-red-500' },
+    word:  { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-blue-50 border-blue-100 text-blue-600' },
+    excel: { icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-emerald-50 border-emerald-100 text-emerald-600' },
+    ppt:   { icon: 'M8 13v-1m4 1v-3m4 3V8M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z', color: 'bg-orange-50 border-orange-100 text-orange-500' },
+    office:{ icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-slate-50 border-slate-100 text-slate-500' },
+    other: { icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-slate-50 border-slate-100 text-slate-400' },
   };
 
   const formatDate = (iso) => {
@@ -358,7 +372,7 @@ export default function ComplianceSubmissionsPage() {
 
                 {/* Type */}
                 <div className="w-32 hidden md:flex items-center gap-1.5">
-                  <span className="text-sm">{FREQUENCY_ICONS[sub.compliance_type_frequency] || '📋'}</span>
+                  <FreqBadge frequency={sub.compliance_type_frequency} />
                   <span className="text-sm text-slate-600 truncate">{sub.compliance_type_name}</span>
                 </div>
 
@@ -443,8 +457,10 @@ export default function ComplianceSubmissionsPage() {
                         const icon = FILE_TYPE_ICON[ftype] || FILE_TYPE_ICON.other;
                         return (
                           <div key={file.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-violet-200 transition-colors">
-                            <div className={`w-9 h-9 rounded-lg border flex items-center justify-center text-base flex-shrink-0 ${icon.color}`}>
-                              {icon.emoji}
+                            <div className={`w-9 h-9 rounded-lg border flex items-center justify-center flex-shrink-0 ${icon.color}`}>
+                              <svg className="w-4.5 h-4.5 w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={icon.icon} />
+                              </svg>
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium text-slate-700 truncate">{file.original_filename}</p>
@@ -690,8 +706,10 @@ export default function ComplianceSubmissionsPage() {
             {/* Error / unsupported fallback */}
             {(previewFile.iframeError || previewFile.type === 'other') && (
               <div className="flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-slate-200 py-16 space-y-4">
-                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-3xl shadow-sm">
-                  {previewFile.type === 'office' ? '📄' : '📁'}
+                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center shadow-sm">
+                  <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-bold text-slate-700 mb-1">{previewFile.filename}</p>
