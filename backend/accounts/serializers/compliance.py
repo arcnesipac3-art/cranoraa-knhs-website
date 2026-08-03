@@ -79,14 +79,15 @@ class ComplianceSubmissionListSerializer(serializers.ModelSerializer):
     compliance_type_frequency = serializers.CharField(source='compliance_type.frequency', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     file_count = serializers.SerializerMethodField()
+    files = ComplianceFileSerializer(many=True, read_only=True)
 
     class Meta:
         model = ComplianceSubmission
         fields = [
             'id', 'teacher', 'teacher_name', 'compliance_type', 'compliance_type_name',
             'compliance_type_frequency', 'academic_year', 'semester', 'period_number',
-            'status', 'status_display', 'submitted_at', 'file_count',
-            'created_at',
+            'status', 'status_display', 'submitted_at', 'file_count', 'files',
+            'remarks', 'created_at',
         ]
 
     def get_teacher_name(self, obj):
