@@ -55,7 +55,7 @@ const defaultForm = {
 };
 
 export default function ComplianceTypesPage() {
-  const { types, loading, fetchTypes, createType, updateType, deleteType } = useComplianceTypes();
+  const { types, loading, fetchTypes, createType, updateType, deleteType, hardDeleteType } = useComplianceTypes();
   const [showModal, setShowModal] = useState(false);
   const [editingType, setEditingType] = useState(null);
   const [form, setForm] = useState(defaultForm);
@@ -127,6 +127,25 @@ export default function ComplianceTypesPage() {
     } else {
       // Reactivate
       await updateType(type.id, { ...type, is_active: true });
+    }
+  };
+
+  const handleHardDelete = async (type) => {
+    const result = await Swal.fire({
+      title: `Permanently delete "${type.name}"?`,
+      html: '<p style="color:#6b7280;font-size:0.875rem">This cannot be undone. The type and all its data will be removed from the database.<br><br>If this type has existing submissions it <strong>cannot</strong> be deleted — deactivate it instead.</p>',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#DC2626',
+      confirmButtonText: 'Yes, delete permanently',
+      cancelButtonText: 'Cancel',
+    });
+    if (result.isConfirmed) {
+      try {
+        await hardDeleteType(type.id);
+      } catch {
+        // error already toasted by hook
+      }
     }
   };
 
@@ -274,9 +293,16 @@ export default function ComplianceTypesPage() {
                     <span className="text-slate-200">|</span>
                     <button
                       onClick={() => handleDelete(type)}
-                      className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors"
+                      className="text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
                     >
                       {type.is_active ? 'Deactivate' : 'Reactivate'}
+                    </button>
+                    <span className="text-slate-200">|</span>
+                    <button
+                      onClick={() => handleHardDelete(type)}
+                      className="text-xs font-bold text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      Delete
                     </button>
                   </div>
                 </div>

@@ -55,7 +55,18 @@ export function useComplianceTypes() {
     }
   }, []);
 
-  return { types, loading, error, fetchTypes, createType, updateType, deleteType };
+  const hardDeleteType = useCallback(async (id) => {
+    try {
+      await api.delete(`/compliance/types/${id}/hard-delete/`);
+      setTypes(prev => prev.filter(t => t.id !== id));
+      toast.success('Compliance type permanently deleted');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete');
+      throw err;
+    }
+  }, []);
+
+  return { types, loading, error, fetchTypes, createType, updateType, deleteType, hardDeleteType };
 }
 
 export function useComplianceSubmissions(params = {}) {

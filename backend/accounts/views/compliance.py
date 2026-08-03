@@ -53,6 +53,23 @@ class ComplianceTypeViewSet(viewsets.ModelViewSet):
         instance.is_active = False
         instance.save(update_fields=['is_active', 'updated_at'])
 
+    @action(detail=True, methods=['delete'], url_path='hard-delete')
+    def hard_delete(self, request, pk=None):
+        if request.user.role != 'admin':
+            return Response(
+                {'error': 'Only admins can delete compliance types.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        instance = self.get_object()
+        submission_count = instance.submissions.count()
+        if submission_count > 0:
+            return Response(
+                {'error': f'Cannot delete — this type has {submission_count} submission(s) linked to it. Deactivate it instead.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        instance.delete()
+        return Response({'message': 'Compliance type permanently deleted.'}, status=status.HTTP_204_NO_CONTENT)
+
 
 class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
     serializer_class = ComplianceSubmissionSerializer
