@@ -30,6 +30,7 @@ export default function ComplianceSubmissionsPage() {
   const [reviewingSubmission, setReviewingSubmission] = useState(null);
   const [reviewForm, setReviewForm] = useState({ status: 'reviewed', remarks: '' });
   const [reviewing, setReviewing] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
 
   const { submissions, loading, fetchSubmissions, reviewSubmission, bulkReview } = useComplianceSubmissions(filters);
   const { data: types } = useFetch('/compliance/types/');
@@ -104,6 +105,26 @@ export default function ComplianceSubmissionsPage() {
     if (freq === 'monthly') return `Month ${sub.period_number}`;
     if (freq === 'quarterly') return `Term ${sub.period_number}`;
     return `Period ${sub.period_number}`;
+  };
+
+  const getPreviewUrl = (fileUrl, filename) => {
+    const ext = filename?.split('.').pop()?.toLowerCase() || '';
+    const inlineTypes = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif'];
+    if (inlineTypes.includes(ext)) return null;
+    return `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+  };
+
+  const openFilePreview = (file) => {
+    const previewUrl = getPreviewUrl(file.file_url, file.original_filename);
+    if (previewUrl) {
+      setPreviewFile({
+        url: previewUrl,
+        filename: file.original_filename,
+        type: 'embedded',
+      });
+    } else {
+      window.open(file.file_url, '_blank');
+    }
   };
 
   const hasActiveFilters = filters.status || filters.compliance_type_id || filters.teacher_id;
@@ -336,18 +357,16 @@ export default function ComplianceSubmissionsPage() {
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-slate-700 truncate">{file.original_filename}</p>
                             <p className="text-xs text-slate-400">{(file.file_size_bytes / 1024).toFixed(1)} KB</p>
-                          </div>
-                          <a
-                            href={file.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-violet-600 hover:bg-violet-50 hover:border-violet-200 transition-colors"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                            View
-                          </a>
+                           </div>
+                           <button
+                             onClick={() => openFilePreview(file)}
+                             className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-violet-600 hover:bg-violet-50 hover:border-violet-200 transition-colors"
+                           >
+                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                             </svg>
+                             View
+                           </button>
                         </div>
                       ))}
                     </div>
@@ -431,6 +450,34 @@ export default function ComplianceSubmissionsPage() {
           </>
         )}
       </Modal>
+
+      {/* File Preview Modal */}
+      {previewFile && (
+        <Modal
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+          title={previewFile.filename}
+          subtitle="Preview (Google Docs Viewer)"
+          size="xl"
+        >
+          <div className="h-96 w-full">
+            <iframe
+              src={previewFile.url}
+              title={previewFile.filename}
+              className="w-full h-full border-0"
+              sandbox="allow-scripts allow-same-origin allow-forms"
+            />
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={() => setPreviewFile(null)}
+              className="px-4 py-2 bg-violet-600 text-white text-sm font-bold rounded-lg hover:bg-violet-700 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
