@@ -1740,6 +1740,18 @@ const GradeInputView = ({ classroom, onBack }) => {
   const [currentAcademicYear, setCurrentAcademicYear] = useState(null);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
 
+  // Grading period gate
+  const [gradingPeriod, setGradingPeriod] = useState(undefined); // undefined=loading, null=none
+  const [periodLoaded, setPeriodLoaded] = useState(false);
+
+  // Load active grading period
+  useEffect(() => {
+    api.get('/grading-periods/active/')
+      .then(r => setGradingPeriod(r.data || null))
+      .catch(() => setGradingPeriod(null))
+      .finally(() => setPeriodLoaded(true));
+  }, []);
+
   // Modal state for replace browser dialogs
   const [modalState, setModalState] = useState({
     open: false,
@@ -1970,6 +1982,69 @@ const GradeInputView = ({ classroom, onBack }) => {
   const highest = scores.length ? Math.max(...scores) : null;
   const lowest = scores.length ? Math.min(...scores) : null;
 
+  // Determine if grade input is locked
+  const isGradingOpen = gradingPeriod && ['open', 'closing_soon'].includes(gradingPeriod.status);
+  const isInputLocked = periodLoaded && !isGradingOpen;
+
+  // Locked gate — show before the normal UI if no open period
+  if (isInputLocked) {
+    const isLocked = gradingPeriod?.status === 'locked';
+    const isClosed = gradingPeriod?.status === 'closed';
+    const isScheduled = gradingPeriod?.status === 'scheduled';
+
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Overview
+        </Button>
+        <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-slate-200 text-center gap-4">
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
+            isLocked ? 'bg-purple-50' : isClosed ? 'bg-amber-50' : isScheduled ? 'bg-blue-50' : 'bg-slate-50'
+          }`}>
+            <Lock className={`w-8 h-8 ${
+              isLocked ? 'text-purple-500' : isClosed ? 'text-amber-500' : isScheduled ? 'text-blue-500' : 'text-slate-400'
+            }`} />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900 mb-1">
+              {!gradingPeriod
+                ? 'Grade Input Not Available'
+                : isLocked
+                ? 'Grades Are Locked'
+                : isClosed
+                ? 'Submission Period Has Closed'
+                : isScheduled
+                ? 'Grading Period Not Yet Open'
+                : 'Grade Input Closed'}
+            </h3>
+            <p className="text-sm text-slate-500 max-w-xs mx-auto">
+              {!gradingPeriod
+                ? 'The administrator has not created a grading period yet. Grade input will be available once it is opened.'
+                : isLocked
+                ? 'Grades for this term have been locked by the administrator. Contact admin to request reopening.'
+                : isClosed
+                ? 'The submission window is closed. Contact your admin if you need to make changes.'
+                : isScheduled
+                ? `The grading period for Term ${gradingPeriod.quarter} is scheduled but not yet open. Wait for your admin to open it.`
+                : 'Grade input is currently not available. Contact your administrator.'}
+            </p>
+            {gradingPeriod && (
+              <p className="text-xs text-slate-400 mt-2">
+                Term {gradingPeriod.quarter} · {gradingPeriod.academic_year_name} ·{' '}
+                <span className={`font-semibold ${
+                  isLocked ? 'text-purple-600' : isClosed ? 'text-amber-600' : 'text-blue-600'
+                }`}>
+                  {gradingPeriod.status_display}
+                </span>
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -2006,7 +2081,19 @@ const GradeInputView = ({ classroom, onBack }) => {
             <div>
               <CardTitle>Grade Input - {classroom.name}</CardTitle>
               {currentAcademicYear && (
-                <p className="text-xs text-slate-500 mt-0.5">Academic Year: <span className="font-semibold text-violet-600">{currentAcademicYear}</span></p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Academic Year: <span className="font-semibold text-violet-600">{currentAcademicYear}</span>
+                  {gradingPeriod && (
+                    <span className={`ml-3 font-semibold ${
+                      gradingPeriod.days_remaining <= 2 ? 'text-amber-600' : 'text-emerald-600'
+                    }`}>
+                      · Term {gradingPeriod.quarter} open
+                      {gradingPeriod.days_remaining >= 0 && (
+                        <span> · {gradingPeriod.days_remaining === 0 ? 'Due today!' : `${gradingPeriod.days_remaining}d left`}</span>
+                      )}
+                    </span>
+                  )}
+                </p>
               )}
               {!currentAcademicYear && settingsLoaded && (
                 <p className="text-xs text-red-500 mt-0.5">⚠ Academic year not configured in system settings</p>
