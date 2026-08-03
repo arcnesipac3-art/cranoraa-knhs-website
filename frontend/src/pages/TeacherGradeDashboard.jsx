@@ -280,7 +280,7 @@ export default function TeacherGradeDashboard() {
   const [showReopenModal, setShowReopenModal] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [submissionSummary, setSubmissionSummary] = useState(null);
-  const [filterTab, setFilterTab] = useState('pending');
+  const [filterTab, setFilterTab] = useState('all');
 
   const fetchDashboard = useCallback(async () => {
     setLoading(true);

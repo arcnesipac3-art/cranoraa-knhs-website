@@ -409,6 +409,11 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
             status__in=['open', 'closing_soon'],
         ).select_related('academic_year').first()
 
+        # Use the most recent period of any status as a fallback for get_or_create
+        any_period = GradingPeriod.objects.filter(
+            academic_year__is_active=True,
+        ).select_related('academic_year').order_by('-quarter').first()
+
         teacher_classes = ClassroomSubject.objects.filter(
             teacher=request.user
         ).select_related('classroom', 'subject')
@@ -418,32 +423,54 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
         overdue = []
         due_today = []
 
+        period_to_use = active_period or any_period
+
         for cs in teacher_classes:
-            if active_period:
-                # Only create a draft submission record when a period is actually open
-                sub, _ = GradeSubmission.objects.get_or_create(
+            if period_to_use:
+                sub, created = GradeSubmission.objects.get_or_create(
                     teacher=request.user,
                     classroom=cs.classroom,
                     subject=cs.subject,
-                    grading_period=active_period,
+                    grading_period=period_to_use,
                     defaults={'status': 'draft'}
                 )
                 try:
                     sub.compute_progress()
                 except Exception:
-                    pass
+                    # compute_progress failed — manually count from Grade table
+                    try:
+                        from ..models.assignments import Grade as GradeModel
+                        enrolled = cs.classroom.student_enrollments.count()
+                        graded = GradeModel.objects.filter(
+                            classroom=cs.classroom,
+                            subject=cs.subject,
+                            grade_type='final_grade',
+                            raw_score__isnull=False,
+                        ).values('student').distinct().count()
+                        sub.total_students = enrolled
+                        sub.graded_count = graded
+                        sub.missing_count = max(0, enrolled - graded)
+                        sub.completion_percentage = round(
+                            (graded / enrolled * 100) if enrolled > 0 else 0, 2
+                        )
+                        sub.save(update_fields=[
+                            'total_students', 'graded_count',
+                            'missing_count', 'completion_percentage',
+                        ])
+                    except Exception:
+                        pass
 
                 if sub.status in ('draft', 'in_progress'):
-                    if active_period.days_remaining <= 0:
+                    if active_period and active_period.days_remaining <= 0:
                         overdue.append(sub)
-                    elif active_period.days_remaining == 0:
+                    elif active_period and active_period.days_remaining == 0:
                         due_today.append(sub)
                     else:
                         pending.append(sub)
                 else:
                     submitted_list.append(sub)
             else:
-                # No active period — show existing historical submissions for this class/subject
+                # No grading period exists at all — show existing GradeSubmission if any
                 existing = GradeSubmission.objects.filter(
                     teacher=request.user,
                     classroom=cs.classroom,
