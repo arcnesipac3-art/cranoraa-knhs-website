@@ -50,7 +50,7 @@ export default function ComplianceSubmissionsPage() {
   const [loadingComments, setLoadingComments] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
 
-  const { submissions, loading, fetchSubmissions, reviewSubmission, bulkReview, fetchComments, addComment } = useComplianceSubmissions(filters);
+  const { submissions, loading, fetchSubmissions, reviewSubmission, bulkReview, fetchComments, addComment, deleteSubmission } = useComplianceSubmissions(filters);
   const { data: types } = useFetch('/compliance/types/');
   const { data: usersData } = useFetch('/users/', { params: { role: 'staff', page_size: 200 } });
 
@@ -115,6 +115,26 @@ export default function ComplianceSubmissionsPage() {
       // handled by hook
     } finally {
       setReviewing(false);
+    }
+  };
+
+  const handleDeleteSubmission = async (submission) => {
+    const result = await Swal.fire({
+      title: 'Delete this submission?',
+      html: `<p style="color:#6b7280;font-size:0.875rem">This will permanently remove <strong>${submission.teacher_name}</strong>'s submission for <strong>${submission.compliance_type_name}</strong> (${formatPeriod(submission)}) and all its files. This cannot be undone.</p>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#DC2626',
+      confirmButtonText: 'Yes, delete it',
+    });
+    if (result.isConfirmed) {
+      try {
+        await deleteSubmission(submission.id);
+        setShowReviewModal(false);
+        setSelectedIds(prev => prev.filter(id => id !== submission.id));
+      } catch {
+        // handled by hook
+      }
     }
   };
 
@@ -425,6 +445,15 @@ export default function ComplianceSubmissionsPage() {
                   >
                     Review
                   </button>
+                  <button
+                    onClick={() => handleDeleteSubmission(sub)}
+                    title="Delete submission"
+                    className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
               </motion.div>
             ))}
@@ -619,6 +648,15 @@ export default function ComplianceSubmissionsPage() {
             </ModalBody>
 
             <ModalFooter>
+              <button
+                onClick={() => handleDeleteSubmission(reviewingSubmission)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors mr-auto"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete
+              </button>
               <ModalBtnSecondary onClick={() => setShowReviewModal(false)}>
                 Cancel
               </ModalBtnSecondary>

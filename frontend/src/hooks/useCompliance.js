@@ -170,10 +170,21 @@ export function useComplianceSubmissions(params = {}) {
     }
   }, []);
 
+  const deleteSubmission = useCallback(async (id) => {
+    try {
+      await api.delete(`/compliance/submissions/${id}/`);
+      setSubmissions(prev => prev.filter(s => s.id !== id));
+      toast.success('Submission deleted');
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete submission');
+      throw err;
+    }
+  }, []);
+
   return {
     submissions, loading, error, fetchSubmissions,
     createSubmission, submitSubmission, reviewSubmission, bulkReview,
-    addComment, fetchComments, removeFile,
+    addComment, fetchComments, removeFile, deleteSubmission,
   };
 }
 
