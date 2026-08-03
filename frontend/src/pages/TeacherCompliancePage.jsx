@@ -6,6 +6,28 @@ import ComplianceFileUpload from '../components/compliance/ComplianceFileUpload'
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } from '../components/ui/Modal';
 import toast from 'react-hot-toast';
 
+// ── File type helpers (shared with admin) ─────────────────────────────────────
+const getFileType = (filename) => {
+  const ext = filename?.split('.').pop()?.toLowerCase() || '';
+  if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'].includes(ext)) return 'image';
+  if (ext === 'pdf') return 'pdf';
+  if (['doc', 'docx'].includes(ext)) return 'word';
+  if (['xls', 'xlsx', 'ods'].includes(ext)) return 'excel';
+  if (['ppt', 'pptx', 'odp'].includes(ext)) return 'ppt';
+  if (['odt'].includes(ext)) return 'office';
+  return 'other';
+};
+
+const FILE_TYPE_ICON = {
+  image:  { emoji: '🖼️', color: 'bg-blue-50 border-blue-100' },
+  pdf:    { emoji: '📕', color: 'bg-red-50 border-red-100' },
+  word:   { emoji: '📘', color: 'bg-blue-50 border-blue-100' },
+  excel:  { emoji: '📗', color: 'bg-emerald-50 border-emerald-100' },
+  ppt:    { emoji: '📙', color: 'bg-orange-50 border-orange-100' },
+  office: { emoji: '📄', color: 'bg-slate-50 border-slate-100' },
+  other:  { emoji: '📁', color: 'bg-slate-50 border-slate-100' },
+};
+
 const FREQUENCY_ICONS = {
   weekly: { emoji: '📋', color: 'bg-blue-50 text-blue-600 border-blue-200' },
   monthly: { emoji: '📅', color: 'bg-violet-50 text-violet-600 border-violet-200' },
@@ -75,6 +97,17 @@ export default function TeacherCompliancePage() {
   const [uploadFiles, setUploadFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [expandedType, setExpandedType] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
+
+  const openFilePreview = (file) => {
+    const ftype = getFileType(file.original_filename);
+    const previewType =
+      ftype === 'image' ? 'image' :
+      ftype === 'pdf' ? 'pdf' :
+      ['word', 'excel', 'ppt', 'office'].includes(ftype) ? 'office' :
+      'other';
+    setPreviewFile({ url: file.file_url, filename: file.original_filename, type: previewType, iframeError: false });
+  };
 
   useEffect(() => {
     fetchMyCompliance();
@@ -227,6 +260,12 @@ export default function TeacherCompliancePage() {
                       </div>
                     )}
 
+                    {!latest && (
+                      <span className="hidden md:inline text-[11px] font-bold text-amber-500 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full mr-1">
+                        Not yet submitted
+                      </span>
+                    )}
+
                     {submitAllowed ? (
                       <button
                         onClick={() => handleOpenUpload(type)}
@@ -235,7 +274,7 @@ export default function TeacherCompliancePage() {
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                         </svg>
-                        {latest?.status === 'rejected' ? 'Resubmit' : 'Submit'}
+                        {latest?.status === 'rejected' ? 'Resubmit' : latest ? 'Submit New' : 'Submit'}
                       </button>
                     ) : (
                       <div className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-400 text-sm font-bold rounded-lg cursor-not-allowed">
@@ -299,38 +338,70 @@ export default function TeacherCompliancePage() {
                       >
                         <div className="divide-y divide-slate-50 border-t border-slate-100">
                           {typeSubmissions.map(sub => (
-                            <div key={sub.id} className="px-5 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-slate-600 w-24">
-                                  {PERIOD_LABELS[type.frequency](sub.period_number)}
-                                </span>
-                                <ComplianceStatusBadge status={sub.status} size="xs" />
-                                {sub.file_count > 0 && (
-                                  <span className="text-xs text-slate-400">
-                                    {sub.file_count} file{sub.file_count !== 1 ? 's' : ''}
+                            <div key={sub.id} className="px-5 py-3 hover:bg-slate-50 transition-colors">
+                              {/* Row top: period, status, date, resubmit */}
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <span className="text-sm font-bold text-slate-700 w-20 shrink-0">
+                                    {PERIOD_LABELS[type.frequency](sub.period_number)}
                                   </span>
-                                )}
-                                {sub.submitted_at && (
-                                  <span className="text-[10px] text-slate-300">
-                                    {new Date(sub.submitted_at).toLocaleDateString()}
-                                  </span>
-                                )}
+                                  <ComplianceStatusBadge status={sub.status} size="xs" />
+                                  {sub.file_count > 0 && (
+                                    <span className="text-[11px] text-slate-400 shrink-0">
+                                      {sub.file_count} file{sub.file_count !== 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                  {sub.submitted_at && (
+                                    <span className="text-[10px] text-slate-300 hidden sm:block">
+                                      {new Date(sub.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </span>
+                                  )}
+                                  {sub.status === 'rejected' && (
+                                    <button
+                                      onClick={() => handleOpenUpload(type)}
+                                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-violet-600 text-white text-[11px] font-bold rounded-lg hover:bg-violet-700 transition-colors"
+                                    >
+                                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                      </svg>
+                                      Resubmit
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-3">
-                                {sub.remarks && sub.status === 'rejected' && (
-                                  <span className="text-xs text-red-500 max-w-[200px] truncate" title={sub.remarks}>
-                                    {sub.remarks}
-                                  </span>
-                                )}
-                                {sub.status === 'rejected' && (
-                                  <button
-                                    onClick={() => handleOpenUpload(type)}
-                                    className="text-xs font-bold text-violet-600 hover:text-violet-700"
-                                  >
-                                    Resubmit
-                                  </button>
-                                )}
-                              </div>
+
+                              {/* Rejection remark */}
+                              {sub.remarks && sub.status === 'rejected' && (
+                                <div className="mt-2 flex items-start gap-2 p-2.5 bg-red-50 border border-red-100 rounded-lg">
+                                  <svg className="w-3.5 h-3.5 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                  </svg>
+                                  <p className="text-xs text-red-700 leading-relaxed">{sub.remarks}</p>
+                                </div>
+                              )}
+
+                              {/* File list with preview */}
+                              {sub.files && sub.files.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                  {sub.files.map(file => {
+                                    const ftype = getFileType(file.original_filename);
+                                    const icon = FILE_TYPE_ICON[ftype] || FILE_TYPE_ICON.other;
+                                    return (
+                                      <button
+                                        key={file.id}
+                                        onClick={() => openFilePreview(file)}
+                                        title={file.original_filename}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-medium text-slate-600 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 transition-colors ${icon.color}`}
+                                      >
+                                        <span className="text-sm leading-none">{icon.emoji}</span>
+                                        <span className="max-w-[120px] truncate">{file.original_filename}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -345,16 +416,132 @@ export default function TeacherCompliancePage() {
 
         {myData?.types?.length === 0 && (
           <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-16 h-16 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-violet-100">
+              <svg className="w-8 h-8 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-sm font-bold text-slate-900 mb-1">No compliance types available</h3>
-            <p className="text-sm text-slate-500">Contact the admin to set up compliance types.</p>
+            <h3 className="text-sm font-bold text-slate-900 mb-1">No compliance types assigned</h3>
+            <p className="text-sm text-slate-500 max-w-xs mx-auto">Contact your admin to set up compliance requirements for your account.</p>
           </div>
         )}
       </div>
+
+      {/* File Preview Modal */}
+      {previewFile && (
+        <Modal
+          isOpen={!!previewFile}
+          onClose={() => setPreviewFile(null)}
+          title={previewFile.filename}
+          subtitle={
+            previewFile.type === 'image' ? 'Image Preview' :
+            previewFile.type === 'pdf' ? 'PDF Preview' :
+            previewFile.type === 'office' ? 'Document Preview' : 'File'
+          }
+          size="xl"
+        >
+          <div className="space-y-3">
+            {previewFile.type === 'image' && (
+              <div className="flex items-center justify-center bg-slate-100 rounded-xl overflow-hidden min-h-[24rem]">
+                <img
+                  src={previewFile.url}
+                  alt={previewFile.filename}
+                  className="max-w-full max-h-[32rem] object-contain"
+                  onError={() => setPreviewFile(prev => ({ ...prev, iframeError: true }))}
+                />
+              </div>
+            )}
+
+            {previewFile.type === 'pdf' && !previewFile.iframeError && (
+              <div className="h-[32rem] w-full rounded-xl overflow-hidden border border-slate-200">
+                <iframe
+                  src={previewFile.url}
+                  title={previewFile.filename}
+                  className="w-full h-full border-0"
+                  onError={() => setPreviewFile(prev => ({ ...prev, iframeError: true }))}
+                />
+              </div>
+            )}
+
+            {previewFile.type === 'office' && !previewFile.iframeError && (
+              <div className="space-y-2">
+                <div className="h-[32rem] w-full rounded-xl overflow-hidden border border-slate-200 relative">
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-50 z-0">
+                    <div className="text-center space-y-2">
+                      <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mx-auto" />
+                      <p className="text-xs text-slate-400">Loading preview…</p>
+                    </div>
+                  </div>
+                  <iframe
+                    key={previewFile.url}
+                    src={`https://docs.google.com/gview?url=${encodeURIComponent(previewFile.url)}&embedded=true`}
+                    title={previewFile.filename}
+                    className="w-full h-full border-0 relative z-10"
+                    onError={() => setPreviewFile(prev => ({ ...prev, iframeError: true }))}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 text-center">
+                  If the preview is blank,{' '}
+                  <button
+                    onClick={() => setPreviewFile(prev => ({ ...prev, iframeError: true }))}
+                    className="text-violet-600 font-bold hover:underline"
+                  >
+                    click here
+                  </button>
+                  {' '}to download instead.
+                </p>
+              </div>
+            )}
+
+            {(previewFile.iframeError || previewFile.type === 'other') && (
+              <div className="flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-slate-200 py-16 space-y-4">
+                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-3xl shadow-sm">
+                  {previewFile.type === 'office' ? '📄' : '📁'}
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-slate-700 mb-1">{previewFile.filename}</p>
+                  <p className="text-xs text-slate-400">
+                    {previewFile.iframeError
+                      ? 'Preview unavailable — the file may be restricted or the viewer timed out.'
+                      : 'This file type cannot be previewed in the browser.'}
+                  </p>
+                </div>
+                <a
+                  href={previewFile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white text-sm font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download File
+                </a>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-1">
+              <a
+                href={previewFile.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-violet-600 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                Open in new tab
+              </a>
+              <button
+                onClick={() => setPreviewFile(null)}
+                className="px-4 py-2 bg-violet-600 text-white text-sm font-bold rounded-lg hover:bg-violet-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {/* Upload Modal */}
       <Modal

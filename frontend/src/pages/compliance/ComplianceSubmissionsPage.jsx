@@ -31,8 +31,12 @@ export default function ComplianceSubmissionsPage() {
   const [reviewForm, setReviewForm] = useState({ status: 'reviewed', remarks: '' });
   const [reviewing, setReviewing] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
 
-  const { submissions, loading, fetchSubmissions, reviewSubmission, bulkReview } = useComplianceSubmissions(filters);
+  const { submissions, loading, fetchSubmissions, reviewSubmission, bulkReview, fetchComments, addComment } = useComplianceSubmissions(filters);
   const { data: types } = useFetch('/compliance/types/');
   const { data: usersData } = useFetch('/users/', { params: { role: 'staff', page_size: 200 } });
 
@@ -55,10 +59,31 @@ export default function ComplianceSubmissionsPage() {
     }
   };
 
-  const handleOpenReview = (submission) => {
+  const handleOpenReview = async (submission) => {
     setReviewingSubmission(submission);
     setReviewForm({ status: 'reviewed', remarks: '' });
+    setComments([]);
+    setNewComment('');
     setShowReviewModal(true);
+    setLoadingComments(true);
+    try {
+      const data = await fetchComments(submission.id);
+      setComments(Array.isArray(data) ? data : []);
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const comment = await addComment(reviewingSubmission.id, newComment.trim());
+      setComments(prev => [...prev, comment]);
+      setNewComment('');
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
   const handleReview = async () => {
@@ -107,24 +132,47 @@ export default function ComplianceSubmissionsPage() {
     return `Period ${sub.period_number}`;
   };
 
-  const getPreviewUrl = (fileUrl, filename) => {
+  const getFileType = (filename) => {
     const ext = filename?.split('.').pop()?.toLowerCase() || '';
-    const inlineTypes = ['pdf', 'jpg', 'jpeg', 'png', 'webp', 'gif'];
-    if (inlineTypes.includes(ext)) return null;
-    return `https://docs.google.com/gview?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+    if (['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg'].includes(ext)) return 'image';
+    if (ext === 'pdf') return 'pdf';
+    if (['doc', 'docx'].includes(ext)) return 'word';
+    if (['xls', 'xlsx', 'ods'].includes(ext)) return 'excel';
+    if (['ppt', 'pptx', 'odp'].includes(ext)) return 'ppt';
+    if (['odt'].includes(ext)) return 'office';
+    return 'other';
+  };
+
+  const FILE_TYPE_ICON = {
+    image: { emoji: '🖼️', color: 'bg-blue-50 border-blue-100' },
+    pdf:   { emoji: '📕', color: 'bg-red-50 border-red-100' },
+    word:  { emoji: '📘', color: 'bg-blue-50 border-blue-100' },
+    excel: { emoji: '📗', color: 'bg-emerald-50 border-emerald-100' },
+    ppt:   { emoji: '📙', color: 'bg-orange-50 border-orange-100' },
+    office:{ emoji: '📄', color: 'bg-slate-50 border-slate-100' },
+    other: { emoji: '📁', color: 'bg-slate-50 border-slate-100' },
+  };
+
+  const formatDate = (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const openFilePreview = (file) => {
-    const previewUrl = getPreviewUrl(file.file_url, file.original_filename);
-    if (previewUrl) {
-      setPreviewFile({
-        url: previewUrl,
-        filename: file.original_filename,
-        type: 'embedded',
-      });
-    } else {
-      window.open(file.file_url, '_blank');
-    }
+    const ftype = getFileType(file.original_filename);
+    // Map granular types to preview strategy groups
+    const previewType =
+      ftype === 'image' ? 'image' :
+      ftype === 'pdf' ? 'pdf' :
+      ['word', 'excel', 'ppt', 'office'].includes(ftype) ? 'office' :
+      'other';
+    setPreviewFile({
+      url: file.file_url,
+      filename: file.original_filename,
+      type: previewType,
+      iframeError: false,
+    });
   };
 
   const hasActiveFilters = filters.status || filters.compliance_type_id || filters.teacher_id;
@@ -271,11 +319,12 @@ export default function ComplianceSubmissionsPage() {
               className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
             />
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex-1">Teacher</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-32">Type</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-32 hidden md:block">Type</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-24">Period</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-20 hidden lg:block">Submitted</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-16 text-center">Files</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-24">Status</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-20 text-right">Action</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-28 text-right">Action</span>
           </div>
 
           {/* Rows */}
@@ -297,28 +346,65 @@ export default function ComplianceSubmissionsPage() {
                   className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
                 />
 
+                {/* Teacher */}
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-slate-900 truncate">{sub.teacher_name}</p>
+                  {sub.remarks && sub.status === 'rejected' && (
+                    <p className="text-[11px] text-red-500 truncate mt-0.5" title={sub.remarks}>
+                      ✕ {sub.remarks}
+                    </p>
+                  )}
                 </div>
 
-                <div className="w-32 flex items-center gap-1.5">
+                {/* Type */}
+                <div className="w-32 hidden md:flex items-center gap-1.5">
                   <span className="text-sm">{FREQUENCY_ICONS[sub.compliance_type_frequency] || '📋'}</span>
                   <span className="text-sm text-slate-600 truncate">{sub.compliance_type_name}</span>
                 </div>
 
+                {/* Period */}
                 <div className="w-24 text-sm text-slate-600">{formatPeriod(sub)}</div>
 
+                {/* Submitted date */}
+                <div className="w-20 hidden lg:block text-xs text-slate-400">{formatDate(sub.submitted_at)}</div>
+
+                {/* Files */}
                 <div className="w-16 text-center">
-                  <span className="inline-flex items-center justify-center w-7 h-7 bg-slate-100 rounded-lg text-xs font-bold text-slate-600">
-                    {sub.file_count}
-                  </span>
+                  {sub.file_count > 0 ? (
+                    <button
+                      onClick={() => {
+                        if (sub.files?.[0]) openFilePreview(sub.files[0]);
+                        else handleOpenReview(sub);
+                      }}
+                      title={`${sub.file_count} file${sub.file_count !== 1 ? 's' : ''} — click to preview first`}
+                      className="inline-flex items-center justify-center w-7 h-7 bg-violet-50 border border-violet-100 rounded-lg text-xs font-bold text-violet-600 hover:bg-violet-100 transition-colors"
+                    >
+                      {sub.file_count}
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center justify-center w-7 h-7 bg-slate-100 rounded-lg text-xs font-bold text-slate-400">0</span>
+                  )}
                 </div>
 
+                {/* Status */}
                 <div className="w-24">
                   <ComplianceStatusBadge status={sub.status} size="xs" />
                 </div>
 
-                <div className="w-20 text-right">
+                {/* Actions */}
+                <div className="w-28 flex items-center justify-end gap-2">
+                  {sub.file_count > 0 && (
+                    <button
+                      onClick={() => sub.files?.[0] && openFilePreview(sub.files[0])}
+                      title="Preview first file"
+                      className="p-1.5 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </button>
+                  )}
                   <button
                     onClick={() => handleOpenReview(sub)}
                     className="text-xs font-bold text-violet-600 hover:text-violet-700 transition-colors"
@@ -347,28 +433,53 @@ export default function ComplianceSubmissionsPage() {
                 {/* Files */}
                 {reviewingSubmission.file_count > 0 && (
                   <div>
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Submitted Files</h4>
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                      Submitted Files
+                      <span className="ml-2 text-violet-500 normal-case font-bold">{reviewingSubmission.file_count}</span>
+                    </h4>
                     <div className="space-y-2">
-                      {reviewingSubmission.files?.map(file => (
-                        <div key={file.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                          <div className="w-9 h-9 bg-white rounded-lg border border-slate-200 flex items-center justify-center">
-                            <span className="text-lg">📄</span>
+                      {reviewingSubmission.files?.map(file => {
+                        const ftype = getFileType(file.original_filename);
+                        const icon = FILE_TYPE_ICON[ftype] || FILE_TYPE_ICON.other;
+                        return (
+                          <div key={file.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100 hover:border-violet-200 transition-colors">
+                            <div className={`w-9 h-9 rounded-lg border flex items-center justify-center text-base flex-shrink-0 ${icon.color}`}>
+                              {icon.emoji}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-700 truncate">{file.original_filename}</p>
+                              <p className="text-xs text-slate-400">
+                                {file.file_size_bytes >= 1024 * 1024
+                                  ? `${(file.file_size_bytes / (1024 * 1024)).toFixed(1)} MB`
+                                  : `${(file.file_size_bytes / 1024).toFixed(1)} KB`}
+                                {' · '}{ftype.toUpperCase()}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                              <button
+                                onClick={() => openFilePreview(file)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-violet-600 hover:bg-violet-50 hover:border-violet-200 transition-colors"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                Preview
+                              </button>
+                              <a
+                                href={file.file_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                title="Download"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                              </a>
+                            </div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-700 truncate">{file.original_filename}</p>
-                            <p className="text-xs text-slate-400">{(file.file_size_bytes / 1024).toFixed(1)} KB</p>
-                           </div>
-                           <button
-                             onClick={() => openFilePreview(file)}
-                             className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-violet-600 hover:bg-violet-50 hover:border-violet-200 transition-colors"
-                           >
-                             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                             </svg>
-                             View
-                           </button>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -432,6 +543,62 @@ export default function ComplianceSubmissionsPage() {
                     placeholder={reviewForm.status === 'rejected' ? 'Explain what needs to be corrected...' : 'Optional remarks'}
                   />
                 </ModalField>
+
+                {/* Inline Comments */}
+                <div>
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                    Comments
+                    {comments.length > 0 && <span className="ml-2 text-violet-500 font-bold">{comments.length}</span>}
+                  </h4>
+
+                  {loadingComments ? (
+                    <div className="flex items-center gap-2 py-3 text-xs text-slate-400">
+                      <div className="w-4 h-4 border-2 border-slate-200 border-t-violet-400 rounded-full animate-spin" />
+                      Loading comments…
+                    </div>
+                  ) : comments.length > 0 ? (
+                    <div className="space-y-2 max-h-40 overflow-y-auto mb-3 pr-1">
+                      {comments.map(c => (
+                        <div key={c.id} className="flex gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0 text-[11px] font-bold text-violet-600">
+                            {c.author_name?.charAt(0)?.toUpperCase() || '?'}
+                          </div>
+                          <div className="flex-1 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+                            <p className="text-[11px] font-bold text-slate-600 mb-0.5">{c.author_name}</p>
+                            <p className="text-xs text-slate-700 leading-relaxed">{c.content}</p>
+                            <p className="text-[10px] text-slate-300 mt-1">{formatDate(c.created_at)}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 mb-3">No comments yet.</p>
+                  )}
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleAddComment()}
+                      placeholder="Add a comment… (Enter to send)"
+                      className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-100 focus:border-violet-400 bg-white"
+                    />
+                    <button
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim() || submittingComment}
+                      className="px-3 py-2 bg-violet-600 text-white text-xs font-bold rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {submittingComment ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </ModalBody>
 
@@ -457,24 +624,117 @@ export default function ComplianceSubmissionsPage() {
           isOpen={!!previewFile}
           onClose={() => setPreviewFile(null)}
           title={previewFile.filename}
-          subtitle="Preview (Google Docs Viewer)"
+          subtitle={
+            previewFile.type === 'image' ? 'Image Preview' :
+            previewFile.type === 'pdf' ? 'PDF Preview' :
+            previewFile.type === 'office' ? 'Document Preview' : 'File'
+          }
           size="xl"
         >
-          <div className="h-96 w-full">
-            <iframe
-              src={previewFile.url}
-              title={previewFile.filename}
-              className="w-full h-full border-0"
-              sandbox="allow-scripts allow-same-origin allow-forms"
-            />
-          </div>
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={() => setPreviewFile(null)}
-              className="px-4 py-2 bg-violet-600 text-white text-sm font-bold rounded-lg hover:bg-violet-700 transition-colors"
-            >
-              Close
-            </button>
+          <div className="space-y-3">
+            {/* Image preview */}
+            {previewFile.type === 'image' && (
+              <div className="flex items-center justify-center bg-slate-100 rounded-xl overflow-hidden min-h-[24rem]">
+                <img
+                  src={previewFile.url}
+                  alt={previewFile.filename}
+                  className="max-w-full max-h-[32rem] object-contain"
+                  onError={() => setPreviewFile(prev => ({ ...prev, iframeError: true }))}
+                />
+              </div>
+            )}
+
+            {/* PDF preview */}
+            {previewFile.type === 'pdf' && !previewFile.iframeError && (
+              <div className="h-[32rem] w-full rounded-xl overflow-hidden border border-slate-200">
+                <iframe
+                  src={previewFile.url}
+                  title={previewFile.filename}
+                  className="w-full h-full border-0"
+                  onError={() => setPreviewFile(prev => ({ ...prev, iframeError: true }))}
+                />
+              </div>
+            )}
+
+            {/* Office / other — Google Docs Viewer with fallback */}
+            {previewFile.type === 'office' && !previewFile.iframeError && (
+              <div className="space-y-2">
+                <div className="h-[32rem] w-full rounded-xl overflow-hidden border border-slate-200 relative">
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-50 z-0">
+                    <div className="text-center space-y-2">
+                      <div className="w-10 h-10 border-4 border-violet-200 border-t-violet-600 rounded-full animate-spin mx-auto" />
+                      <p className="text-xs text-slate-400">Loading preview…</p>
+                    </div>
+                  </div>
+                  <iframe
+                    key={previewFile.url}
+                    src={`https://docs.google.com/gview?url=${encodeURIComponent(previewFile.url)}&embedded=true`}
+                    title={previewFile.filename}
+                    className="w-full h-full border-0 relative z-10"
+                    onError={() => setPreviewFile(prev => ({ ...prev, iframeError: true }))}
+                  />
+                </div>
+                <p className="text-xs text-slate-400 text-center">
+                  If the preview is blank,{' '}
+                  <button
+                    onClick={() => setPreviewFile(prev => ({ ...prev, iframeError: true }))}
+                    className="text-violet-600 font-bold hover:underline"
+                  >
+                    click here
+                  </button>
+                  {' '}to download instead.
+                </p>
+              </div>
+            )}
+
+            {/* Error / unsupported fallback */}
+            {(previewFile.iframeError || previewFile.type === 'other') && (
+              <div className="flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-slate-200 py-16 space-y-4">
+                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center text-3xl shadow-sm">
+                  {previewFile.type === 'office' ? '📄' : '📁'}
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-slate-700 mb-1">{previewFile.filename}</p>
+                  <p className="text-xs text-slate-400">
+                    {previewFile.iframeError
+                      ? 'Preview unavailable — the file may be restricted or the viewer timed out.'
+                      : 'This file type cannot be previewed in the browser.'}
+                  </p>
+                </div>
+                <a
+                  href={previewFile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white text-sm font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-sm"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download File
+                </a>
+              </div>
+            )}
+
+            {/* Footer actions */}
+            <div className="flex items-center justify-between pt-1">
+              <a
+                href={previewFile.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-violet-600 transition-colors"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                Open in new tab
+              </a>
+              <button
+                onClick={() => setPreviewFile(null)}
+                className="px-4 py-2 bg-violet-600 text-white text-sm font-bold rounded-lg hover:bg-violet-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </Modal>
       )}
