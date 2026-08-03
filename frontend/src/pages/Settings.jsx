@@ -6,7 +6,7 @@ import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { Button, Skeleton } from '../components/ui';
-import { ICONS, Icon, Toggle, Field, Input, SectionCard, Spinner, Skeleton, EmailServiceNotice } from './settings/shared';
+import { ICONS, Icon, Toggle, Field, Input, SectionCard, Spinner, EmailServiceNotice } from './settings/shared';
 
 // ── Image Crop Modal ────────────────────────────────────────────────────────
 const ImageCropModal = ({ isOpen, onClose, onCrop, imageSrc }) => {
