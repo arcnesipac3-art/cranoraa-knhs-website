@@ -13,7 +13,7 @@ import {
   BookOpen, Users, FileText, Award, CheckSquare,
   Upload, Download, Clock, Folder, Trash2, Pencil,
   MessageSquare, Bell, ArrowLeft,
-  Search, ChevronRight, BarChart2, X, Calendar
+  Search, ChevronRight, BarChart2, X, Calendar, Lock
 } from 'lucide-react';
 import { GradeManagementView, AttendanceView, AnalyticsView, AttendanceHistoryView } from './ClassroomHub/EmbeddedViews';
 import { ClassroomAnalyticsView } from './ClassroomHub/TeachingViews';
