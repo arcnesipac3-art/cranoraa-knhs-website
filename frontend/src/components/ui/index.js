@@ -9,7 +9,7 @@ export { default as Card, CardHeader, CardBody, CardFooter, CardTitle } from './
 export { default as Input, Textarea, Select, SearchInput, Checkbox } from './Input';
 export { default as Modal, ModalHeader, ModalBody, ModalFooter, ModalTitle, ModalField, ModalBtnPrimary, ModalBtnSecondary, modalInputCls, modalSelectCls, modalTextareaCls, getModalZ } from './Modal';
 export { default as EmptyState } from './EmptyState';
-export { default as LoadingSpinner, SkeletonLine, SkeletonCard, PageLoader } from './LoadingSpinner';
+export { default as LoadingSpinner } from './LoadingSpinner';
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from './Table';
 export { DataTable } from './DataTable';
 export { FormField, FormInput, FormSelect, FormTextarea } from './FormField';

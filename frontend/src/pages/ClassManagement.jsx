@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 import {
   Card, CardHeader, CardBody, CardTitle, Button, Badge,
-  LoadingSpinner, EmptyState, Modal, ModalHeader, ModalBody, ModalFooter,
+  Skeleton, EmptyState, Modal, ModalHeader, ModalBody, ModalFooter,
   ModalTitle, ModalField, ModalBtnPrimary, ModalBtnSecondary, modalInputCls, modalSelectCls
 } from '../components/ui';
 
@@ -455,7 +455,10 @@ const ClassManagement = () => {
 
       {/* CONTENT */}
       {loading ? (
-        <div className="flex items-center justify-center h-64"><LoadingSpinner /></div>
+        <div className="space-y-4 p-4">
+          <Skeleton.PageHeader />
+          <Skeleton.Table rows={5} cols={5} hasAvatar />
+        </div>
       ) : filtered.length === 0 ? (
         <Card>
           <CardBody className="p-12">

@@ -8,7 +8,7 @@ import { useSystemSettings } from '../hooks/useSystemSettings';
 import toast from 'react-hot-toast';
 import {
   Card, CardHeader, CardBody, CardTitle, Button, Badge,
-  LoadingSpinner, EmptyState
+  Skeleton, EmptyState
 } from '../components/ui';
 import { PERFORMANCE_LEVELS, getPerformanceLevel } from '../utils/grading';
 
@@ -291,9 +291,7 @@ const StudentGradeView = () => {
         </CardHeader>
         <CardBody className="p-3 sm:p-4 md:p-5">
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <LoadingSpinner />
-            </div>
+            <Skeleton.CardGrid />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               <div>
@@ -549,9 +547,7 @@ const StudentGradeView = () => {
         </CardHeader>
         <CardBody className="p-0 sm:p-1">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <LoadingSpinner />
-            </div>
+            <Skeleton.Table />
             ) : subjectEntries.length === 0 ? (
               <div className="p-6 sm:p-8">
                 <EmptyState

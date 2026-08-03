@@ -3,7 +3,7 @@ import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import {
   Card, CardHeader, CardBody, CardTitle, Button, Badge,
-  LoadingSpinner, EmptyState
+  Skeleton, EmptyState
 } from '../../components/ui';
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } from '../../components/ui/Modal';
 import {
@@ -453,7 +453,7 @@ export const GradeManagementView = ({ classroom, onBack }) => {
           {/* Grades Table */}
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <LoadingSpinner />
+              <Skeleton.Table rows={5} cols={5} />
             </div>
           ) : !selectedSubject ? (
             <div className="text-center py-12">
@@ -624,20 +624,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
   useEffect(() => {
     const fetchAttendance = async () => {
       setHolidayInfo(null);
-
-      // Check if date is a weekend (Saturday=5, Sunday=6)
-      const dateObj = new Date(selectedDate + 'T00:00:00');
-      if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
-        setHolidayInfo({
-          title: 'Weekend',
-          type_display: 'Weekend',
-          description: 'No classes on weekends',
-        });
-        setAttendance({});
-        setExistingRecords({});
-        return;
-      }
-
       try {
         // Check if date is a holiday
         const holidayRes = await api.get(`/school-calendar/check/?date=${selectedDate}`);
@@ -970,7 +956,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent }) => {
             </div>
           ) : loading ? (
             <div className="flex items-center justify-center h-64">
-              <LoadingSpinner />
+              <Skeleton.Table rows={5} cols={4} />
             </div>
           ) : filteredStudents.length === 0 ? (
             <EmptyState
@@ -1149,20 +1135,6 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     const fetchRecords = async () => {
       setLoading(true);
       setHolidayInfo(null);
-
-      // Check if date is a weekend (Saturday=5, Sunday=6)
-      const dateObj = new Date(selectedDate + 'T00:00:00');
-      if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
-        setHolidayInfo({
-          title: 'Weekend',
-          type_display: 'Weekend',
-          description: 'No classes on weekends',
-        });
-        setRecords([]);
-        setLoading(false);
-        return;
-      }
-
       try {
         // Check if date is a holiday
         try {
@@ -1409,7 +1381,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
 
       {/* Attendance Tables - separated by sex */}
       {loading ? (
-        <div className="flex items-center justify-center h-40"><LoadingSpinner /></div>
+        <div className="flex items-center justify-center h-40"><Skeleton.Table rows={5} cols={4} /></div>
       ) : filteredList.length === 0 ? (
         <Card>
           <CardBody>
@@ -1644,7 +1616,7 @@ export const AnalyticsView = ({ classroom, onBack }) => {
 
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <LoadingSpinner />
+              <Skeleton.StatCard />
             </div>
           ) : !selectedSubject ? (
             <div className="text-center py-12">

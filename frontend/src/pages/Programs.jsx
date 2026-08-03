@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useWebsiteContent } from '../hooks/useWebsiteContent';
-import { LoadingSpinner } from '../components/ui';
+import { Skeleton } from '../components/ui';
 
 const Programs = () => {
   const { content, loading } = useWebsiteContent();
@@ -32,8 +32,9 @@ const Programs = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <LoadingSpinner />
+      <div className="min-h-screen bg-white px-4 py-8 space-y-5 max-w-4xl mx-auto">
+        <Skeleton.Banner className="h-48 md:h-64" />
+        <Skeleton.CardGrid count={4} cols={2} />
       </div>
     );
   }

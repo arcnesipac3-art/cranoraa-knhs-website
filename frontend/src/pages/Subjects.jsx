@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import { useFetch } from '../hooks/useFetch';
 import {
   Card, CardHeader, CardBody, CardTitle, Button, Badge,
-  LoadingSpinner, EmptyState, Modal, ModalHeader, ModalBody, ModalFooter,
+  Skeleton, EmptyState, Modal, ModalHeader, ModalBody, ModalFooter,
   ModalTitle, ModalField, ModalBtnPrimary, ModalBtnSecondary,
   modalInputCls, modalSelectCls, modalTextareaCls
 } from '../components/ui';
@@ -186,9 +186,7 @@ const Subjects = () => {
       {/* ══════════════════════════════════════════════════════════════ */}
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <LoadingSpinner />
-        </div>
+        <Skeleton.CardGrid />
       ) : filtered.length === 0 ? (
         <Card>
           <CardBody className="p-12">

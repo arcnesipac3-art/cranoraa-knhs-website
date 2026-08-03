@@ -7,7 +7,7 @@ import { usePushNotificationContext } from '../context/PushNotificationContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getNotifConfig, formatNotifTime, TYPE_CONFIG } from '../utils/notificationConfig';
-import { LoadingSpinner, EmptyState } from '../components/ui';
+import { Skeleton, EmptyState } from '../components/ui';
 import { getMuted, toggleMute } from '../utils/sounds';
 
 // ── Notification type labels ─────────────────────────────────────────────────
@@ -336,7 +336,9 @@ const Notifications = () => {
           </div>
 
           {prefsLoading ? (
-            <div className="flex items-center justify-center py-8"><LoadingSpinner /></div>
+            <div className="space-y-3 py-4">
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton.DataRow key={i} />)}
+            </div>
           ) : prefs ? (
             <>
               {/* Delivery channels */}
@@ -523,14 +525,7 @@ const Notifications = () => {
         {loading ? (
           <div className="divide-y divide-slate-100">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-4 px-5 py-4 animate-pulse">
-                <div className="w-9 h-9 rounded-xl bg-slate-100 flex-shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-3.5 bg-slate-100 rounded w-1/3" />
-                  <div className="h-3 bg-slate-100 rounded w-2/3" />
-                  <div className="h-3 bg-slate-100 rounded w-1/4" />
-                </div>
-              </div>
+              <Skeleton.NotificationRow key={i} />
             ))}
           </div>
         ) : notifications.length === 0 ? (

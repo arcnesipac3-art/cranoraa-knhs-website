@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import api from '../../utils/api';
 import apiCache from '../../utils/apiCache';
 
+import { Skeleton } from '../../components/ui';
+
 import WelcomeBanner from '../../components/dashboard/WelcomeBanner';
 import QuickActionCards from '../../components/dashboard/QuickActionCards';
 import EnhancedStats from '../../components/dashboard/EnhancedStats';
@@ -30,7 +32,7 @@ const Section = ({ label, children, className = '' }) => (
 
 // ── Skeleton tiles ───────────────────────────────────────────────────────────
 const Pulse = ({ className }) => (
-  <div className={`bg-slate-200 animate-pulse rounded-xl ${className}`} />
+  <Skeleton className={className} />
 );
 
 const getLocalDateStr = () => {

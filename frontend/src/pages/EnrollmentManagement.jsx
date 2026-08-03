@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import api from '../utils/api';
 import Swal from 'sweetalert2';
 import { useParallelFetch } from '../hooks/useFetch';
-import { LoadingSpinner } from '../components/ui';
 import { ApplicationsTableSkeleton } from '../components/enrollment/Skeletons';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 

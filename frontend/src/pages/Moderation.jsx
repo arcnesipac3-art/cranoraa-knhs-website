@@ -3,7 +3,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useFetch } from '../hooks/useFetch';
-import { LoadingSpinner, EmptyState } from '../components/ui';
+import { Skeleton, EmptyState } from '../components/ui';
 
 const Moderation = () => {
   const [filter, setFilter] = useState('pending');
@@ -263,8 +263,18 @@ const Moderation = () => {
         {/* Mobile View: Compact Card List */}
         <div className="md:hidden divide-y divide-slate-100">
           {loading ? (
-            <div className="px-6 py-12 text-center">
-              <LoadingSpinner />
+            <div className="px-4 py-4 space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 rounded-xl border border-slate-100">
+                  <Skeleton.Avatar size="sm" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-28 rounded" />
+                    <Skeleton className="h-3 w-48 rounded" />
+                    <Skeleton className="h-2.5 w-20 rounded" />
+                  </div>
+                  <Skeleton className="h-6 w-16 rounded-lg" />
+                </div>
+              ))}
             </div>
           ) : reports.length === 0 ? (
             <div className="px-6 py-12 text-center text-slate-400 font-bold text-xs uppercase tracking-widest">
@@ -366,8 +376,19 @@ const Moderation = () => {
             <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center">
-                    <LoadingSpinner />
+                  <td colSpan="7" className="px-6 py-4">
+                    <div className="space-y-3">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-4 py-3">
+                          <Skeleton.Avatar size="sm" />
+                          <Skeleton className="h-3.5 w-32 rounded flex-1" />
+                          <Skeleton className="h-3 w-20 rounded" />
+                          <Skeleton className="h-3 w-16 rounded" />
+                          <Skeleton className="h-5 w-16 rounded-full" />
+                          <Skeleton className="h-6 w-20 rounded-lg" />
+                        </div>
+                      ))}
+                    </div>
                   </td>
                 </tr>
               ) : reports.length === 0 ? (

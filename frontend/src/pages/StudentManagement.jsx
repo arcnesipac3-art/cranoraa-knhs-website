@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { useScrollLock } from '../hooks/useScrollLock';
-import { LoadingSpinner, Button } from '../components/ui';
+import { Skeleton, Button } from '../components/ui';
 import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalField, ModalBtnPrimary, ModalBtnSecondary, modalInputCls, modalSelectCls } from '../components/ui/Modal';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 
@@ -896,8 +896,9 @@ setSelectedIds([]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <LoadingSpinner />
+      <div className="space-y-5 px-4 md:px-6 py-6">
+        <Skeleton.PageHeader />
+        <Skeleton.CardGrid count={6} cols={3} />
       </div>
     );
   }

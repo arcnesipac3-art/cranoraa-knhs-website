@@ -9,7 +9,7 @@ import {
   Shield, ArrowUpDown, ChevronDown, FileDown, Printer
 } from 'lucide-react';
 import { useFetch } from '../hooks/useFetch';
-import { LoadingSpinner, Badge } from '../components/ui';
+import { Skeleton, Badge } from '../components/ui';
 
 const Backups = () => {
   const { data: backups, loading, refetch: fetchBackups, setData: setBackups } = useFetch('/admin/backups/');
@@ -118,9 +118,9 @@ const Backups = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <LoadingSpinner />
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading backups...</p>
+      <div className="space-y-5 px-4 md:px-6 py-6">
+        <Skeleton.PageHeader />
+        <Skeleton.Table rows={5} cols={5} hasAvatar={false} />
       </div>
     );
   }

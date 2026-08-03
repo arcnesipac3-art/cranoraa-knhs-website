@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
   Card, CardHeader, CardBody, CardTitle, Button, Badge,
-  LoadingSpinner, EmptyState,
+  Skeleton, EmptyState,
 } from '../../components/ui';
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary, modalInputCls } from '../../components/ui/Modal';
 import {
@@ -197,7 +197,7 @@ export const QuizManagementView = ({ classroom }) => {
 
       {/* Quiz List */}
       {loading ? (
-        <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
+        <div className="flex items-center justify-center h-32"><Skeleton.CardGrid count={4} cols={2} /></div>
       ) : filtered.length === 0 ? (
         <Card><CardBody className="p-6">
           <EmptyState title="No Quizzes" description="Create your first quiz for this class" icon={<HelpCircle className="w-6 h-6" />} />
@@ -270,7 +270,7 @@ export const QuizManagementView = ({ classroom }) => {
                           <Trophy className="w-3 h-3" /> Student Results
                         </h4>
                         {loadingResults ? (
-                          <div className="flex justify-center py-4"><LoadingSpinner /></div>
+                          <div className="flex justify-center py-4"><Skeleton.Table rows={5} cols={4} /></div>
                         ) : !quizResults || quizResults.length === 0 ? (
                           <p className="text-[10px] text-slate-400 py-2">No attempts yet</p>
                         ) : (
@@ -564,7 +564,7 @@ export const StudentQuizzesView = ({ classroom }) => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
+        <div className="flex items-center justify-center h-32"><Skeleton.CardGrid count={4} cols={2} /></div>
       ) : (
         <>
           {/* Available Quizzes */}
@@ -762,7 +762,7 @@ export const LessonPlansView = ({ classroom }) => {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
+        <div className="flex items-center justify-center h-32"><Skeleton.CardGrid count={4} cols={2} /></div>
       ) : filtered.length === 0 ? (
         <Card><CardBody className="p-6">
           <EmptyState title="No Lesson Plans" description="Create your first lesson plan" icon={<FileText className="w-6 h-6" />} />
@@ -914,7 +914,7 @@ export const ClassroomAnalyticsView = ({ classroom }) => {
 
   const COLORS = ['#22c55e', '#84cc16', '#eab308', '#f97316', '#ef4444'];
 
-  if (loading) return <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>;
+  if (loading) return <div className="flex items-center justify-center h-32"><Skeleton.StatCard /></div>;
   if (!stats) return (
     <Card><CardBody className="p-6">
       <EmptyState title="No Grade Data" description="No grades recorded for this class yet" icon={<BarChart3 className="w-6 h-6" />} />

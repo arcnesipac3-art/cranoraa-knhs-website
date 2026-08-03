@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
-import { LoadingSpinner, Modal, getModalZ } from '../components/ui';
+import { Skeleton, Modal, getModalZ } from '../components/ui';
 import BellPeriodModal from '../components/schedule/BellPeriodModal';
 
 const DAYS = ['monday','tuesday','wednesday','thursday','friday'];
@@ -603,8 +603,9 @@ export default function ScheduleManagement() {
   const hasSchedules = filtered.length > 0;
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <LoadingSpinner />
+    <div className="space-y-5 px-4 md:px-6 py-6">
+      <Skeleton.PageHeader />
+      <Skeleton.Table rows={6} cols={5} hasAvatar={false} />
     </div>
   );
 

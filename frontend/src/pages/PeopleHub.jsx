@@ -4,7 +4,7 @@ import { useParallelFetch } from '../hooks/useFetch';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
-import { LoadingSpinner, EmptyState } from '../components/ui';
+import { EmptyState } from '../components/ui';
 import Teachers from './Teachers';
 import StudentManagement from './StudentManagement';
 import ParentManagement from './ParentManagement';

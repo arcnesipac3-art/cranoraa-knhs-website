@@ -4,7 +4,7 @@ import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
-import { Card, Input as UIInput, Select, Textarea, Button, LoadingSpinner, Badge } from '../components/ui';
+import { Card, Input as UIInput, Select, Textarea, Button, Skeleton, Badge } from '../components/ui';
 import { cn } from '../styles/designSystem';
 
 const Field = ({ label, value }) => (
@@ -125,8 +125,9 @@ const Profile = () => {
   const set = (field) => (val) => setForm(f => ({ ...f, [field]: val }));
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <LoadingSpinner />
+    <div className="space-y-5 px-4 md:px-6 py-6 max-w-3xl">
+      <Skeleton className="h-7 w-40 rounded" />
+      <Skeleton.Form fields={6} cols={2} />
     </div>
   );
 

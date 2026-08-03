@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import Swal from 'sweetalert2';
-import { LoadingSpinner, Button } from '../components/ui';
+import { Skeleton, Button } from '../components/ui';
 const WebsiteContentManagement = () => {
   const [content, setContent] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -139,8 +139,9 @@ const WebsiteContentManagement = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
+      <div className="space-y-4 px-4 md:px-6 py-6">
+        <Skeleton.PageHeader />
+        <Skeleton.Table rows={5} cols={4} hasAvatar={false} />
       </div>
     );
   }

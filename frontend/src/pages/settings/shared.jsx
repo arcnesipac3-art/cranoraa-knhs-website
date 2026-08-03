@@ -150,7 +150,7 @@ export const SectionCard = ({ title, subtitle, icon, children, danger, className
 export { Spinner };
 
 export const Skeleton = ({ className = '' }) => (
-  <div className={`animate-pulse bg-slate-200 rounded ${className}`} />
+  <div className={`skeleton-shimmer bg-slate-200 rounded ${className}`} />
 );
 
 export const EmailServiceNotice = ({ health }) => {

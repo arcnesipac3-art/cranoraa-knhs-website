@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import {
   Card, CardBody, Button, Badge,
-  LoadingSpinner, Modal, ModalHeader, ModalBody, ModalFooter,
+  Skeleton, Modal, ModalHeader, ModalBody, ModalFooter,
   ModalTitle, ModalField, ModalBtnPrimary, ModalBtnSecondary,
   modalInputCls, modalSelectCls, modalTextareaCls,
 } from '../components/ui';
@@ -1121,9 +1121,10 @@ const AcademicSetup = () => {
 
   // ── Loading state ─────────────────────────────────────────────────────────
   if (loading) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-      <LoadingSpinner />
-      <p className="text-xs font-semibold text-slate-500">Loading setup data…</p>
+    <div className="space-y-5 px-4 md:px-6 py-6 max-w-4xl mx-auto">
+      <Skeleton.Banner />
+      <Skeleton.CardGrid count={3} cols={3} />
+      <Skeleton.Form fields={6} cols={2} />
     </div>
   );
 

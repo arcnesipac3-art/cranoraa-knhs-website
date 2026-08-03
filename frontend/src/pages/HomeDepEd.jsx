@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/api';
-import { LoadingSpinner } from '../components/ui';
+import { Skeleton } from '../components/ui';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 const attachUrl = (url) => {
@@ -150,8 +150,12 @@ const HomeDepEd = () => {
     .slice(0, 4);
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
-      <LoadingSpinner />
+    <div className="min-h-screen bg-white px-4 py-6 space-y-5">
+      <Skeleton.Banner className="h-48 md:h-64" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {Array.from({ length: 3 }).map((_, i) => <Skeleton.AnnouncementRow key={i} />)}
+      </div>
+      <Skeleton.CardGrid count={4} cols={4} />
     </div>
   );
 

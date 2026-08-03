@@ -6,7 +6,7 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
-import { LoadingSpinner } from '../components/ui';
+import { Skeleton } from '../components/ui';
 
 const COLORS = ['#2563eb', '#10b981', '#3b82f6', '#f59e0b', '#ef4444'];
 
@@ -1164,7 +1164,14 @@ const Analytics = () => {
 
       {activeTab === 'system' && (
         <div className="space-y-4 animate-fade-in" ref={systemRef} data-pdf-content="system">
-          {!data && loading ? <LoadingSpinner /> : (
+          {!data && loading ? (
+            <div className="space-y-4">
+              <Skeleton.Banner className="bg-slate-800 h-32" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton.StatCard key={i} className="bg-slate-800 border-slate-700" />)}
+              </div>
+            </div>
+          ) : (
             <>
               <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-slate-900 p-4 sm:p-6 md:p-8 rounded-2xl border border-slate-800 shadow-2xl">
                 <div>
@@ -1216,7 +1223,14 @@ const Analytics = () => {
 
       {activeTab === 'grades' && (
         <div className="space-y-4 animate-fade-in" ref={gradesRef} data-pdf-content="grades">
-          {gradeLoading && !gradeData ? <LoadingSpinner /> : (
+          {gradeLoading && !gradeData ? (
+            <div className="space-y-4">
+              <Skeleton.Banner className="bg-slate-800 h-32" />
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton.StatCard key={i} className="bg-slate-800 border-slate-700" />)}
+              </div>
+            </div>
+          ) : (
             <>
                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 bg-slate-900 p-4 sm:p-6 md:p-8 rounded-2xl border border-slate-800 shadow-2xl">
                 <div className="flex-1">
@@ -1307,7 +1321,14 @@ const Analytics = () => {
 
       {activeTab === 'attendance' && (
         <div className="space-y-4 animate-fade-in" ref={attendanceRef} data-pdf-content="attendance">
-          {attendanceLoading && !attendanceAnalytics ? <LoadingSpinner /> : (
+          {attendanceLoading && !attendanceAnalytics ? (
+            <div className="space-y-4">
+              <Skeleton.Banner className="bg-slate-800 h-32" />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => <Skeleton.StatCard key={i} className="bg-slate-800 border-slate-700" />)}
+              </div>
+            </div>
+          ) : (
             <>
                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-slate-900 p-4 sm:p-6 md:p-8 rounded-2xl border border-slate-800 shadow-2xl">
                 <div>

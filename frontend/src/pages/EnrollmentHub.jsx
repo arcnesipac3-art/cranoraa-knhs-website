@@ -3,7 +3,7 @@ import { useParallelFetch } from '../hooks/useFetch';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
-import { LoadingSpinner, Button } from '../components/ui';
+import { Button } from '../components/ui';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 import { ApplicationDrawer } from '../components/enrollment/ApplicationDrawer';
 import { ApplicationsTableSkeleton, ClassroomGridSkeleton, EnrolledListSkeleton } from '../components/enrollment/Skeletons';

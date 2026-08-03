@@ -3,6 +3,8 @@ import api from '../utils/api';
 import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 
+import { Skeleton } from '../components/ui';
+
 const REASON_TYPES = [
   { value: 'withdrawn', label: 'Withdrawn', description: 'Student voluntarily left the school' },
   { value: 'transferred', label: 'Transferred Out', description: 'Student moved to another school' },
@@ -183,8 +185,12 @@ const StudentEnrollment = () => {
         <label className="block text-[10px] md:text-sm font-bold text-slate-700 uppercase tracking-wider">Select Classroom</label>
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 md:h-24 bg-slate-100 rounded-xl animate-pulse" />
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-xl border-2 border-slate-200 bg-white p-3 md:p-4">
+                <div className="skeleton-shimmer w-7 h-7 md:w-8 md:h-8 rounded-lg bg-slate-200 mb-2" />
+                <div className="skeleton-shimmer h-3.5 w-20 rounded bg-slate-200 mb-2" />
+                <div className="skeleton-shimmer h-2.5 w-12 rounded bg-slate-200" />
+              </div>
             ))}
           </div>
         ) : sortedClassrooms.length === 0 ? (

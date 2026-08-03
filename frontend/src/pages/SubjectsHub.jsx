@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { useParallelFetch } from '../hooks/useFetch';
-import { LoadingSpinner, EmptyState, Button, Badge } from '../components/ui';
+import { Skeleton, EmptyState, Button, Badge } from '../components/ui';
 import { SearchInput, Select, Textarea } from '../components/ui/Input';
 import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter } from '../components/ui/Modal';
 import ConfirmationDialog from '../components/ui/ConfirmationDialog';
@@ -58,7 +58,12 @@ function SubjectsTab() {
 
   const grouped = useMemo(() => filtered.reduce((acc, s) => { const key = s.grade_level || 'Unassigned'; if (!acc[key]) acc[key] = []; acc[key].push(s); return acc; }, {}), [filtered]);
 
-  if (loading) return <div className="flex items-center justify-center h-64"><LoadingSpinner /></div>;
+  if (loading) return (
+    <div className="space-y-5 px-4 md:px-6 py-6">
+      <Skeleton.PageHeader />
+      <Skeleton.CardGrid count={6} cols={3} />
+    </div>
+  );
 
   return (
     <div className="page-bottom-safe bg-slate-50/50">
@@ -285,7 +290,12 @@ function AssignmentsTab() {
     return (!q || a.subject_name?.toLowerCase().includes(q) || a.subject_code?.toLowerCase().includes(q) || a.classroom_name?.toLowerCase().includes(q) || a.teacher_name?.toLowerCase().includes(q)) && (!filterClassroom || String(a.classroom) === filterClassroom);
   }), [assignments, search, filterClassroom]);
 
-  if (loading) return <div className="flex items-center justify-center h-64"><LoadingSpinner /></div>;
+  if (loading) return (
+    <div className="space-y-5 px-4 md:px-6 py-6">
+      <Skeleton.PageHeader />
+      <Skeleton.CardGrid count={6} cols={3} />
+    </div>
+  );
 
   return (
     <div className="page-bottom-safe bg-slate-50/50">

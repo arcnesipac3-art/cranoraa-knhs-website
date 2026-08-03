@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
-import { LoadingSpinner } from '../components/ui';
+import { Skeleton } from '../components/ui';
 
 const DAYS = ['monday','tuesday','wednesday','thursday','friday'];
 const DAY_FULL = { monday:'Monday', tuesday:'Tuesday', wednesday:'Wednesday', thursday:'Thursday', friday:'Friday' };
@@ -37,8 +37,16 @@ export default function MySchedule() {
   }, []);
 
   if (loading) return (
-    <div className="flex items-center justify-center h-64">
-      <LoadingSpinner />
+    <div className="space-y-4 px-4 py-6">
+      <Skeleton className="h-7 w-40 rounded" />
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-5 w-16 rounded" />
+            {Array.from({ length: 3 }).map((_, j) => <Skeleton.ScheduleRow key={j} />)}
+          </div>
+        ))}
+      </div>
     </div>
   );
 

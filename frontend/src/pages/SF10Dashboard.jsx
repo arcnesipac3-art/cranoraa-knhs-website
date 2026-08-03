@@ -6,7 +6,7 @@ import {
   CheckCircle2, AlertTriangle, Archive, BookOpen,
 } from 'lucide-react';
 import api from '../utils/api';
-import { LoadingSpinner, Button } from '../components/ui';
+import { Skeleton, Button } from '../components/ui';
 import toast from 'react-hot-toast';
 
 const STATUS_STYLES = {
@@ -164,10 +164,7 @@ export default function SF10Dashboard() {
       {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <LoadingSpinner />
-            <p className="text-sm font-bold text-slate-400">Loading SF10 records...</p>
-          </div>
+          <Skeleton.Table />
         ) : records.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <FileText className="w-12 h-12 text-slate-300" />

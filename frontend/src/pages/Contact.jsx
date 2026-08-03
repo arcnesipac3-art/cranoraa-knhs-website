@@ -1,13 +1,16 @@
 import { useWebsiteContent } from '../hooks/useWebsiteContent';
-import { LoadingSpinner } from '../components/ui';
+import { Skeleton } from '../components/ui';
 
 const Contact = () => {
   const { content, loading } = useWebsiteContent();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <LoadingSpinner />
+      <div className="min-h-screen bg-white px-4 py-8 space-y-5 max-w-4xl mx-auto">
+        <Skeleton.Banner className="h-48 md:h-64" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton.AnnouncementRow key={i} />)}
+        </div>
       </div>
     );
   }

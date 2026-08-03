@@ -3,7 +3,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import {
   Card, CardHeader, CardBody, CardTitle, Button,
-  LoadingSpinner, EmptyState
+  Skeleton, EmptyState
 } from '../components/ui';
 import {
   Calendar, ChevronLeft, ChevronRight, CheckCircle, XCircle,
@@ -109,7 +109,7 @@ const StudentAttendance = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
+        <Skeleton.DashboardPage />
       </div>
     );
   }

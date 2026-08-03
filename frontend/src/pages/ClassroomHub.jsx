@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import {
   Card, CardHeader, CardBody, CardTitle, Button, Badge,
-  LoadingSpinner, EmptyState
+  Skeleton, EmptyState
 } from '../components/ui';
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary, modalInputCls } from '../components/ui/Modal';
 import {
@@ -339,9 +339,7 @@ const ClassroomHub = () => {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <LoadingSpinner />
-          </div>
+          <Skeleton.CardGrid count={4} cols={2} />
         ) : classes.length === 0 ? (
           <Card>
             <CardBody className="p-8">
@@ -787,7 +785,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
         <div className="flex-1 overflow-y-auto bg-slate-50">
           {loadingData && tab !== 'personal' ? (
             <div className="flex items-center justify-center h-24">
-              <LoadingSpinner />
+              <Skeleton className="h-8 w-32 rounded" />
             </div>
           ) : (
             <div className="p-3 space-y-1">
@@ -1241,9 +1239,7 @@ const MaterialsTab = ({ classroom, materials, isTeacher, searchQuery, setSearchQ
     </div>
 
     {loading ? (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
+      <Skeleton.CardGrid count={4} cols={2} />
     ) : materials.length === 0 ? (
       <Card>
         <CardBody className="p-8">
@@ -1393,9 +1389,7 @@ const PeopleTab = ({ classroom, students, isTeacher, loading, peopleSearch, setP
           </div>
         )}
           {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <LoadingSpinner />
-            </div>
+            <Skeleton.ListItem />
           ) : sortedStudents.length === 0 ? (
             <EmptyState
               title="No Students"
@@ -1545,7 +1539,7 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, onNavigate, navig
         </CardHeader>
         <CardBody className="p-3">
           {gradesLoading ? (
-            <LoadingSpinner />
+            <Skeleton.Table rows={5} cols={5} />
           ) : subjects.length === 0 ? (
             <EmptyState title="No grades yet" description="Your teacher hasn't posted grades yet." />
           ) : (
@@ -1651,7 +1645,7 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, onNavigate, navig
         <CardBody className="p-3">
           {loading ? (
             <div className="flex items-center justify-center h-24">
-              <LoadingSpinner />
+              <Skeleton.StatCard />
             </div>
           ) : grades.length === 0 ? (
             <EmptyState
@@ -2040,9 +2034,7 @@ const GradeInputView = ({ classroom, onBack }) => {
 
           {/* Grade Table */}
           {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <LoadingSpinner />
-            </div>
+            <Skeleton.Table rows={5} cols={5} />
           ) : !selectedSubject ? (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />

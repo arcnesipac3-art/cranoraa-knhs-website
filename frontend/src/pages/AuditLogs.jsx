@@ -14,7 +14,7 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import { LoadingSpinner } from '../components/ui';
+import { Skeleton } from '../components/ui';
 
 const PAGE_SIZE = 25;
 
@@ -151,11 +151,11 @@ function ActivityTimeline({ logs, loading }) {
     return (
       <div className="space-y-3">
         {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className="flex items-start gap-3 animate-pulse">
-            <div className="w-2.5 h-2.5 rounded-full bg-slate-200 mt-1.5 flex-shrink-0" />
+          <div key={i} className="flex items-start gap-3">
+            <div className="skeleton-shimmer w-2.5 h-2.5 rounded-full bg-slate-200 mt-1.5 flex-shrink-0" />
             <div className="flex-1 space-y-2">
-              <div className="h-3 bg-slate-200 rounded w-3/4" />
-              <div className="h-2.5 bg-slate-100 rounded w-1/2" />
+              <div className="skeleton-shimmer h-3 bg-slate-200 rounded w-3/4" />
+              <div className="skeleton-shimmer h-2.5 bg-slate-200 rounded w-1/2" />
             </div>
           </div>
         ))}
@@ -488,11 +488,12 @@ const AuditLogs = () => {
 
   if (loading && logs.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <div className="relative">
-          <LoadingSpinner />
+      <div className="space-y-5 px-4 md:px-6 py-6">
+        <Skeleton.PageHeader />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton.StatCard key={i} />)}
         </div>
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading audit logs...</p>
+        <Skeleton.Table rows={8} cols={6} hasAvatar />
       </div>
     );
   }

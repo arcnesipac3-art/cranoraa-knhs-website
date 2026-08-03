@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
-import { LoadingSpinner } from '../components/ui';
+import { Skeleton } from '../components/ui';
 
 const NewsEvents = () => {
   const { data: announcements, loading } = useFetch('/announcements/public/');
@@ -13,8 +13,9 @@ const NewsEvents = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <LoadingSpinner />
+      <div className="min-h-screen bg-white px-4 py-8 space-y-5 max-w-4xl mx-auto">
+        <Skeleton.Banner className="h-48 md:h-64" />
+        <Skeleton.CardGrid count={6} cols={3} />
       </div>
     );
   }

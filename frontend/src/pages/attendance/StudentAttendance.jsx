@@ -6,6 +6,8 @@ import {
   Card, CardHeader, CardBody, CardTitle, Badge, EmptyState
 } from '../../components/ui';
 
+import { Skeleton } from '../../components/ui';
+
 const STATUS_CONFIG = {
   present: { label: 'Present', short: 'P', color: 'emerald', buttonClass: 'bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-700' },
   absent:  { label: 'Absent',  short: 'A', color: 'red',     buttonClass: 'bg-red-600 text-white hover:bg-red-700 border-red-700' },
@@ -51,13 +53,12 @@ const StudentAttendance = () => {
 
   if (loading) {
     return (
-      <div className="page-bottom-safe max-w-[1600px] mx-auto bg-slate-50 px-4 py-4 md:px-6 md:py-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 w-48 bg-slate-200 rounded" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[...Array(4)].map((_, i) => <div key={i} className="h-24 bg-slate-200 rounded" />)}
-          </div>
+      <div className="page-bottom-safe max-w-[1600px] mx-auto bg-slate-50 px-4 py-4 md:px-6 md:py-6 space-y-4">
+        <Skeleton className="h-8 w-48 rounded" />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton.AttendanceCard key={i} />)}
         </div>
+        <Skeleton.Table rows={5} cols={4} hasAvatar />
       </div>
     );
   }

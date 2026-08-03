@@ -1,13 +1,18 @@
 import { useWebsiteContent } from '../hooks/useWebsiteContent';
-import { LoadingSpinner } from '../components/ui';
+import { Skeleton } from '../components/ui';
 
 const About = () => {
   const { content, loading } = useWebsiteContent();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <LoadingSpinner />
+      <div className="min-h-screen bg-white px-4 py-8 space-y-5 max-w-4xl mx-auto">
+        <Skeleton.Banner className="h-48 md:h-64" />
+        <Skeleton.Text lines={4} />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton.StatCard key={i} />)}
+        </div>
+        <Skeleton.Text lines={3} lastLineWidth="60%" />
       </div>
     );
   }

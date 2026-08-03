@@ -3,7 +3,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import {
   Card, CardHeader, CardBody, CardTitle, Button,
-  LoadingSpinner, EmptyState
+  Skeleton, EmptyState
 } from '../components/ui';
 import {
   Calendar, Plus, Trash2, Edit2, Cloud, Sun, Coffee, AlertTriangle, X
@@ -147,7 +147,7 @@ const SchoolCalendarAdmin = () => {
       )}
 
       {loading ? (
-        <LoadingSpinner />
+        <Skeleton.ListItem />
       ) : entries.length === 0 ? (
         <EmptyState message="No calendar entries yet" />
       ) : (

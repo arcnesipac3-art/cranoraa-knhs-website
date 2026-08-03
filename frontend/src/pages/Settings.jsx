@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
-import { Button, LoadingSpinner } from '../components/ui';
+import { Button, Skeleton } from '../components/ui';
 import { ICONS, Icon, Toggle, Field, Input, SectionCard, Spinner, Skeleton, EmailServiceNotice } from './settings/shared';
 
 // ── Image Crop Modal ────────────────────────────────────────────────────────
@@ -202,7 +202,7 @@ const RolesPermissionsTab = () => {
     return acc;
   }, {});
 
-  if (loading) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
+  if (loading) return <div className="space-y-4 py-8 px-4"><Skeleton.PageHeader /><Skeleton.Form fields={6} cols={2} /></div>;
 
   return (
     <div className="space-y-6">
@@ -324,7 +324,7 @@ const CommunicationSettingsTab = () => {
     finally { setSaving(false); }
   };
 
-  if (loading || !settings) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
+  if (loading || !settings) return <div className="space-y-4 py-8 px-4"><Skeleton.PageHeader /><Skeleton.Form fields={6} cols={2} /></div>;
 
   return (
     <form onSubmit={save} className="space-y-6">
@@ -416,7 +416,7 @@ const BackupManagementTab = () => {
     } catch { toast.error('Failed to download backup'); }
   };
 
-  if (loading) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
+  if (loading) return <div className="space-y-4 py-8 px-4"><Skeleton.PageHeader /><Skeleton.Form fields={6} cols={2} /></div>;
 
   return (
     <div className="space-y-6">
@@ -492,7 +492,7 @@ const AuditLogsTab = () => {
     return !q || l.action_type === q || l.description?.toLowerCase().includes(q);
   });
 
-  if (loading) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
+  if (loading) return <div className="space-y-4 py-8 px-4"><Skeleton.PageHeader /><Skeleton.Form fields={6} cols={2} /></div>;
 
   return (
     <div className="space-y-6">
@@ -590,7 +590,7 @@ const SchoolInfoTab = () => {
     finally { setUploadingLogo(false); }
   };
 
-  if (loading) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
+  if (loading) return <div className="space-y-4 py-8 px-4"><Skeleton.PageHeader /><Skeleton.Form fields={6} cols={2} /></div>;
 
   return (
     <form onSubmit={save} className="space-y-6">
@@ -697,7 +697,7 @@ const PortalSettingsTab = () => {
     finally { setTogglingMaintenance(false); }
   };
 
-  if (loading || !settings) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
+  if (loading || !settings) return <div className="space-y-4 py-8 px-4"><Skeleton.PageHeader /><Skeleton.Form fields={6} cols={2} /></div>;
 
   return (
     <form onSubmit={save} className="space-y-6">
@@ -900,7 +900,7 @@ const ProfileTab = () => {
 
   const set = (field) => (val) => setForm(f => ({ ...f, [field]: val }));
 
-  if (loading) return <div className="flex justify-center py-16"><LoadingSpinner /></div>;
+  if (loading) return <div className="space-y-4 py-8 px-4"><Skeleton.PageHeader /><Skeleton.Form fields={6} cols={2} /></div>;
 
   const fullName = [profile?.first_name, profile?.profile?.middle_name, profile?.last_name].filter(Boolean).join(' ') || 'No name set';
   const initials = [profile?.first_name, profile?.last_name].filter(Boolean).map(n => n[0].toUpperCase()).join('') || '?';

@@ -4,7 +4,7 @@ import { useParallelFetch } from '../hooks/useFetch';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
-import { LoadingSpinner, Button } from '../components/ui';
+import { Skeleton, Button } from '../components/ui';
 import { administration, faculty, getInitials } from '../data/facultyData';
 
 // -- Build a lookup: last name ? photo from facultyData ----------------------
@@ -243,7 +243,15 @@ export default function ClassesHub() {
     }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64"><LoadingSpinner /></div>;
+  if (loading) return (
+    <div className="page-bottom-safe bg-slate-50 min-h-screen px-4 md:px-6 py-6 space-y-5">
+      <Skeleton.PageHeader />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => <Skeleton.StatCard key={i} />)}
+      </div>
+      <Skeleton.CardGrid count={6} cols={3} />
+    </div>
+  );
 
   return (
     <div className="page-bottom-safe bg-slate-50 min-h-screen">

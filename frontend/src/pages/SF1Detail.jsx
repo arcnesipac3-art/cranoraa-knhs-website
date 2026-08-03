@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import Swal from 'sweetalert2';
-import { LoadingSpinner, Button } from '../components/ui';
+import { Skeleton, Button } from '../components/ui';
 import toast from 'react-hot-toast';
 
 function revokeUrlSafe(url) {
@@ -121,9 +121,9 @@ export default function SF1Detail() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <LoadingSpinner />
-        <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading SF1...</p>
+      <div className="space-y-5 px-4 md:px-6 py-6">
+        <Skeleton className="h-7 w-48 rounded" />
+        <Skeleton.Table rows={8} cols={6} hasAvatar />
       </div>
     );
   }

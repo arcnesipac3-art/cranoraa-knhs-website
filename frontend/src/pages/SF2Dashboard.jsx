@@ -4,7 +4,7 @@ import {
   Download, Loader2, BookOpen,
 } from 'lucide-react';
 import api from '../utils/api';
-import { LoadingSpinner, Button } from '../components/ui';
+import { Skeleton, Button } from '../components/ui';
 import toast from 'react-hot-toast';
 
 const MONTHS = [
@@ -116,10 +116,7 @@ export default function SF2Dashboard() {
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <h2 className="text-sm font-bold text-slate-700 mb-4">Generate Attendance Report</h2>
         {loadingClasses ? (
-          <div className="flex items-center gap-3 py-8">
-            <LoadingSpinner />
-            <span className="text-sm text-slate-500">Loading classrooms...</span>
-          </div>
+          <Skeleton.Form />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* School Year */}

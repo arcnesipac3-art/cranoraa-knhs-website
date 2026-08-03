@@ -4,7 +4,7 @@ import api from '../utils/api';
 import toast from 'react-hot-toast';
 import {
   Card, CardHeader, CardBody, CardTitle,
-  LoadingSpinner, EmptyState
+  Skeleton, EmptyState
 } from '../components/ui';
 import {
   Calendar, Clock, Users, CheckCircle, AlertTriangle,
@@ -56,8 +56,12 @@ const AttendanceDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
+      <div className="space-y-5 px-4 md:px-6 py-6">
+        <Skeleton.PageHeader />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton.AttendanceCard key={i} />)}
+        </div>
+        <Skeleton.Table rows={5} cols={4} hasAvatar />
       </div>
     );
   }

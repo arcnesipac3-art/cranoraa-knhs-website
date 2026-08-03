@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import api from '../utils/api';
 
+import { Skeleton } from '../components/ui';
+
 const AnnouncementDetails = () => {
   const [content, setContent] = useState({});
   const [loading, setLoading] = useState(true);
@@ -15,8 +17,12 @@ const AnnouncementDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-white px-4 py-8 space-y-5 max-w-3xl mx-auto">
+        <Skeleton className="h-8 w-64 rounded" />
+        <Skeleton className="h-4 w-full rounded" />
+        <Skeleton className="h-4 w-5/6 rounded" />
+        <Skeleton className="h-4 w-3/4 rounded" />
+        <Skeleton.Banner className="h-48" />
       </div>
     );
   }

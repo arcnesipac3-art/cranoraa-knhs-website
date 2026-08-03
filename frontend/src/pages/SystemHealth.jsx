@@ -12,7 +12,7 @@ import {
 } from 'recharts';
 import api from '../utils/api';
 import { useParallelFetch } from '../hooks/useFetch';
-import { LoadingSpinner, Badge } from '../components/ui';
+import { Skeleton, Badge } from '../components/ui';
 import toast from 'react-hot-toast';
 
 /* ─── Gauge Component ─────────────────────────────────────────────────────── */
@@ -153,9 +153,15 @@ const SystemHealth = () => {
   }, [fetchAll]);
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-      <LoadingSpinner />
-      <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading system health...</p>
+    <div className="space-y-5 px-4 md:px-6 py-6">
+      <Skeleton.PageHeader />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => <Skeleton.StatCard key={i} />)}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Skeleton.Banner className="h-64" />
+        <Skeleton.Banner className="h-64" />
+      </div>
     </div>
   );
 
