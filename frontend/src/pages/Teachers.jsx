@@ -1001,8 +1001,8 @@ const Teachers = () => {
       </Modal>
 
       {/* Edit Teacher Modal */}
-      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} size="md">
-        <ModalHeader onClose={() => setShowEditModal(false)}>
+      {showEditModal && editingTeacher && (<Modal isOpen={showEditModal} onClose={() => { setShowEditModal(false); setEditingTeacher(null); }} size="md">
+        <ModalHeader onClose={() => { setShowEditModal(false); setEditingTeacher(null); }}>
           <ModalTitle title="Edit Teacher Record" subtitle={editingTeacher.profile?.title ? `${editingTeacher.profile.title} ${editingTeacher.first_name} ${editingTeacher.last_name}` : `${editingTeacher.first_name} ${editingTeacher.last_name}`} />
         </ModalHeader>
         <form onSubmit={handleEditTeacher}>
@@ -1044,7 +1044,7 @@ const Teachers = () => {
             <ModalBtnPrimary type="submit">Save Changes</ModalBtnPrimary>
           </ModalFooter>
         </form>
-      </Modal>
+      </Modal>)}
 
       {/* Import Modal */}
       <Modal isOpen={showImportModal} onClose={() => setShowImportModal(false)} size="md">
