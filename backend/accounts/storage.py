@@ -156,6 +156,20 @@ BUCKETS: dict[str, BucketConfig] = {
         ),
         env_var='SUPABASE_BUCKET_CHAT',
     ),
+    'compliance-documents': BucketConfig(
+        name='compliance-documents',
+        max_bytes=50 * 1024 * 1024,    # 50 MB
+        allowed_mime=(
+            'image/jpeg', 'image/png', 'image/webp',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ),
+        allowed_ext=('.jpg', '.jpeg', '.png', '.webp', '.pdf', '.doc', '.docx', '.xls', '.xlsx'),
+        env_var='SUPABASE_BUCKET_COMPLIANCE',
+    ),
 }
 
 

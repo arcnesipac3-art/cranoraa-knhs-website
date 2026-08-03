@@ -168,3 +168,12 @@ from .grading_management import (
     GradeSubmissionViewSet,
     GradeReopeningRequestViewSet,
 )
+
+from .compliance import (
+    ComplianceTypeViewSet,
+    ComplianceSubmissionViewSet,
+    compliance_dashboard,
+    my_compliance_status,
+    check_overdue_submissions,
+    sync_teacher_submissions,
+)

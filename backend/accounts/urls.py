@@ -28,6 +28,9 @@ from .views import (
     admin_attendance_analytics, admin_grade_analytics,
     data_retention_view, run_backup_view_enhanced,
     GradingPeriodViewSet, GradeSubmissionViewSet, GradeReopeningRequestViewSet,
+    ComplianceTypeViewSet, ComplianceSubmissionViewSet,
+    compliance_dashboard, my_compliance_status,
+    check_overdue_submissions, sync_teacher_submissions,
 )
 
 app_name = 'accounts'
@@ -76,6 +79,8 @@ router.register(r'v1/staff-performance', StaffPerformanceViewSet, basename='staf
 router.register(r'v1/grading-periods', GradingPeriodViewSet, basename='grading-period')
 router.register(r'v1/grade-submissions', GradeSubmissionViewSet, basename='grade-submission')
 router.register(r'v1/grade-reopening-requests', GradeReopeningRequestViewSet, basename='grade-reopening-request')
+router.register(r'v1/compliance/types', ComplianceTypeViewSet, basename='compliance-type')
+router.register(r'v1/compliance/submissions', ComplianceSubmissionViewSet, basename='compliance-submission')
 
 # NOTE: school_portal/urls.py mounts these under 'api/', so paths here should NOT include 'api/'.
 # Final URL = api/ + path below  e.g. api/v1/login/
@@ -120,5 +125,9 @@ urlpatterns = [
     path('v1/fcm-tokens/delete/', fcm_token_delete, name='fcm_token_delete'),
     path('v1/test-push/', test_push_notification, name='test_push_notification'),
     path('v1/notification-preferences/', notification_preferences_view, name='notification_preferences'),
+    path('v1/compliance/dashboard/', compliance_dashboard, name='compliance_dashboard'),
+    path('v1/compliance/my-status/', my_compliance_status, name='my_compliance_status'),
+    path('v1/compliance/check-overdue/', check_overdue_submissions, name='check_overdue_submissions'),
+    path('v1/compliance/sync/', sync_teacher_submissions, name='sync_teacher_submissions'),
     path('', include(router.urls)),
 ]

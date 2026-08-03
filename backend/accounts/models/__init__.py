@@ -43,6 +43,7 @@ from .infrastructure import (
     AcademicYear, Semester, AuditLog, APIRequestLog, DatabaseBackup,
 )
 from .grading_management import GradingPeriod, GradeSubmission, GradeReopeningRequest
+from .compliance import ComplianceType, ComplianceSubmission, ComplianceFile, ComplianceComment
 
 __all__ = [
     'User', 'OTP', 'Profile', 'OnboardingStatus', 'DashboardPreferences',
@@ -74,4 +75,5 @@ __all__ = [
     'SchoolForm9', 'SchoolForm9Subject',
     'SchoolForm10', 'SchoolForm10Record', 'SchoolForm10Subject',
     'AcademicYear', 'Semester', 'AuditLog', 'APIRequestLog', 'DatabaseBackup',
+    'ComplianceType', 'ComplianceSubmission', 'ComplianceFile', 'ComplianceComment',
 ]

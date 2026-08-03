@@ -73,6 +73,12 @@ from .lesson_plan import (
     LessonPlanSerializer, LessonPlanListSerializer,
     WeeklyPlanSerializer, WeeklyPlanListSerializer,
 )
+from .compliance import (
+    ComplianceTypeSerializer, ComplianceSubmissionSerializer,
+    ComplianceSubmissionListSerializer, ComplianceFileSerializer,
+    ComplianceCommentSerializer, ComplianceReviewSerializer,
+    ComplianceBulkReviewSerializer, ComplianceDashboardSerializer,
+)
 
 __all__ = [
     'full_name',
@@ -126,4 +132,8 @@ __all__ = [
     'CurriculumStandardSerializer',
     'LessonPlanSerializer', 'LessonPlanListSerializer',
     'WeeklyPlanSerializer', 'WeeklyPlanListSerializer',
+    'ComplianceTypeSerializer', 'ComplianceSubmissionSerializer',
+    'ComplianceSubmissionListSerializer', 'ComplianceFileSerializer',
+    'ComplianceCommentSerializer', 'ComplianceReviewSerializer',
+    'ComplianceBulkReviewSerializer', 'ComplianceDashboardSerializer',
 ]

@@ -70,6 +70,10 @@ const AttendanceDashboard = lazy(() => retryImport(() => import('../pages/Attend
 const AttendanceMonitoring = lazy(() => retryImport(() => import('../pages/AttendanceMonitoring')));
 const StudentAttendance = lazy(() => retryImport(() => import('../pages/StudentAttendance')));
 
+// Compliance
+const ComplianceHub = lazy(() => retryImport(() => import('../pages/ComplianceHub')));
+const TeacherCompliancePage = lazy(() => retryImport(() => import('../pages/TeacherCompliancePage')));
+
 // ── Route definitions ────────────────────────────────────────────────────────
 
 /**
@@ -138,6 +142,10 @@ export const protectedRoutes = [
   { path: 'attendance-dashboard', element: AttendanceDashboard, roles: [Role.STAFF] },
   { path: 'attendance-monitoring', element: AttendanceMonitoring, roles: [Role.ADMIN] },
   { path: 'student-attendance', element: StudentAttendance, roles: [Role.STUDENT, Role.PARENT] },
+
+  // Compliance
+  { path: 'compliance', element: ComplianceHub, roles: [Role.ADMIN] },
+  { path: 'my-compliance', element: TeacherCompliancePage, roles: [Role.STAFF] },
 
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },
