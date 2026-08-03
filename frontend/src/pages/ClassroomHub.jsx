@@ -1432,9 +1432,10 @@ const PeopleTab = ({ classroom, students, isTeacher, loading, peopleSearch, setP
 
 // Grades Tab Component - Enhanced with inline functionality
 const GradesTab = ({ classroom, isTeacher, navigate }) => {
-  const [activeView, setActiveView] = useState('overview'); // overview, input, manage, attendance, analytics
+  const [activeView, setActiveView] = useState('overview');
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activePeriod, setActivePeriod] = useState(null);
 
   useEffect(() => {
     if (activeView === 'overview') {
@@ -1442,19 +1443,25 @@ const GradesTab = ({ classroom, isTeacher, navigate }) => {
     }
   }, [activeView, classroom.id]);
 
+  // Fetch active grading period once on mount
+  useEffect(() => {
+    api.get('/grading-periods/active/')
+      .then(r => setActivePeriod(r.data))
+      .catch(() => setActivePeriod(null));
+  }, []);
+
   const fetchGradesOverview = async () => {
     setLoading(true);
     try {
       const res = await api.get(`/grades/?classroom=${classroom.id}`);
       setGrades(res.data);
     } catch {
-      // Handle error silently
+      // silent
     } finally {
       setLoading(false);
     }
   };
 
-  // Render different views based on activeView
   const renderView = () => {
     switch (activeView) {
       case 'input':
@@ -1469,6 +1476,7 @@ const GradesTab = ({ classroom, isTeacher, navigate }) => {
           <GradeManagementView
             classroom={classroom}
             onBack={() => setActiveView('overview')}
+            navigate={navigate}
           />
         );
       case 'analytics':
@@ -1485,6 +1493,7 @@ const GradesTab = ({ classroom, isTeacher, navigate }) => {
             grades={grades}
             loading={loading}
             isTeacher={isTeacher}
+            activePeriod={activePeriod}
             onNavigate={(view) => setActiveView(view)}
             navigate={navigate}
           />
@@ -1505,7 +1514,7 @@ const GradesTab = ({ classroom, isTeacher, navigate }) => {
 };
 
 // Overview View - Quick Actions Dashboard
-const OverviewView = ({ classroom, grades, loading, isTeacher, onNavigate, navigate }) => {
+const OverviewView = ({ classroom, grades, loading, isTeacher, activePeriod, onNavigate, navigate }) => {
   if (!isTeacher) {
     const [myGrades, setMyGrades] = useState([]);
     const [gradesLoading, setGradesLoading] = useState(true);
@@ -1593,38 +1602,76 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, onNavigate, navig
     );
   }
 
+  // ── Active grading period banner ──────────────────────────────────
+  const periodColor = !activePeriod
+    ? null
+    : activePeriod.days_remaining < 0
+    ? { bg: 'bg-red-50 border-red-200', text: 'text-red-700', pill: 'bg-red-100 text-red-700', label: 'Overdue' }
+    : activePeriod.days_remaining <= 2
+    ? { bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700', pill: 'bg-amber-100 text-amber-700', label: 'Closing Soon' }
+    : activePeriod.status === 'locked'
+    ? { bg: 'bg-violet-50 border-violet-200', text: 'text-violet-700', pill: 'bg-violet-100 text-violet-700', label: 'Locked' }
+    : { bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700', pill: 'bg-emerald-100 text-emerald-700', label: 'Open' };
+
   return (
     <>
+      {/* Grading period status banner */}
+      {activePeriod && periodColor && (
+        <div className={`rounded-xl border px-3 py-2.5 flex items-center justify-between gap-2 ${periodColor.bg}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full flex-shrink-0 ${periodColor.pill}`}>
+              {periodColor.label}
+            </span>
+            <span className={`text-xs font-semibold truncate ${periodColor.text}`}>
+              Term {activePeriod.quarter} · Due {activePeriod.effective_deadline ?? activePeriod.submission_deadline}
+            </span>
+          </div>
+          <button
+            onClick={() => navigate('/teacher-grade-dashboard')}
+            className={`text-[10px] font-bold flex-shrink-0 hover:underline ${periodColor.text}`}
+          >
+            Dashboard →
+          </button>
+        </div>
+      )}
+
       {/* Quick Actions for Teachers */}
-      <div className="grid grid-cols-3 gap-2">
-        <Card 
-          className="hover:shadow-md transition-shadow cursor-pointer group" 
+      <div className="grid grid-cols-2 gap-2">
+        <Card
+          className="hover:shadow-md transition-shadow cursor-pointer group col-span-2"
           onClick={() => onNavigate('input')}
         >
-          <CardBody className="p-3 text-center">
-            <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center mx-auto mb-1.5 group-hover:scale-110 transition-transform">
-              <FileText className="w-4 h-4 text-violet-600" />
+          <CardBody className="p-3 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+              <FileText className="w-5 h-5 text-violet-600" />
             </div>
-            <h3 className="text-[10px] font-semibold text-slate-900 mb-0.5">Input Grades</h3>
-            <p className="text-[8px] text-slate-600">Enter grades</p>
+            <div className="min-w-0">
+              <h3 className="text-xs font-bold text-slate-900">Input Grades</h3>
+              <p className="text-[9px] text-slate-500">Enter final grades for students this term</p>
+            </div>
+            {activePeriod && !['locked', 'closed'].includes(activePeriod.status) && (
+              <span className="ml-auto text-[9px] font-bold text-violet-600 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                Active
+              </span>
+            )}
           </CardBody>
         </Card>
 
-        <Card 
-          className="hover:shadow-md transition-shadow cursor-pointer group" 
+        <Card
+          className="hover:shadow-md transition-shadow cursor-pointer group"
           onClick={() => onNavigate('manage')}
         >
           <CardBody className="p-3 text-center">
             <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-1.5 group-hover:scale-110 transition-transform">
               <Award className="w-4 h-4 text-blue-600" />
             </div>
-            <h3 className="text-[10px] font-semibold text-slate-900 mb-0.5">Manage Grades</h3>
-            <p className="text-[8px] text-slate-600">Review & adjust</p>
+            <h3 className="text-[10px] font-semibold text-slate-900 mb-0.5">Manage</h3>
+            <p className="text-[8px] text-slate-500">Review & edit</p>
           </CardBody>
         </Card>
 
-        <Card 
-          className="hover:shadow-md transition-shadow cursor-pointer group" 
+        <Card
+          className="hover:shadow-md transition-shadow cursor-pointer group"
           onClick={() => onNavigate('analytics')}
         >
           <CardBody className="p-3 text-center">
@@ -1632,7 +1679,7 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, onNavigate, navig
               <BarChart2 className="w-4 h-4 text-amber-600" />
             </div>
             <h3 className="text-[10px] font-semibold text-slate-900 mb-0.5">Analytics</h3>
-            <p className="text-[8px] text-slate-600">Performance</p>
+            <p className="text-[8px] text-slate-500">Performance</p>
           </CardBody>
         </Card>
       </div>
@@ -1640,7 +1687,15 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, onNavigate, navig
       {/* Grade Overview */}
       <Card>
         <CardHeader divider>
-          <CardTitle className="text-xs">Grade Overview</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xs">Grade Overview</CardTitle>
+            <button
+              onClick={() => navigate('/teacher-grade-dashboard')}
+              className="text-[10px] font-bold text-violet-600 hover:text-violet-700"
+            >
+              Submission Dashboard →
+            </button>
+          </div>
         </CardHeader>
         <CardBody className="p-3">
           {loading ? (
@@ -1655,9 +1710,7 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, onNavigate, navig
             />
           ) : (
             <div className="text-center py-4">
-              <p className="text-xs text-slate-600">
-                {grades.length} grade records
-              </p>
+              <p className="text-xs text-slate-600">{grades.length} grade records</p>
               <Button
                 variant="primary"
                 className="mt-2 text-[10px] px-2 py-1"

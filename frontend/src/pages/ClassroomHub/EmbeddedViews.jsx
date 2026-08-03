@@ -14,7 +14,7 @@ import {
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
 
 // Grade Management View - Custom inline implementation with edit, delete, export
-export const GradeManagementView = ({ classroom, onBack }) => {
+export const GradeManagementView = ({ classroom, onBack, navigate }) => {
   const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState('');
   const [grades, setGrades] = useState([]);
@@ -24,6 +24,8 @@ export const GradeManagementView = ({ classroom, onBack }) => {
   const [editValue, setEditValue] = useState('');
   const [selectedQuarter, setSelectedQuarter] = useState('all');
   const [exportingSF10, setExportingSF10] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState(null); // GradeSubmission for current subject
+  const [submitting, setSubmitting] = useState(false);
 
   // Modal state for confirmations
   const [modalState, setModalState] = useState({
@@ -49,18 +51,17 @@ export const GradeManagementView = ({ classroom, onBack }) => {
     fetchSubjects();
   }, [classroom.id]);
 
-  // Load grades - FIXED: Wrapped in useCallback with correct dependencies
+  // Load grades - includes academic_year to avoid cross-year contamination
   const fetchGrades = useCallback(async () => {
     if (!selectedSubject) return;
     setLoading(true);
-    setGrades([]); // Clear immediately before fetching new subject's grades
+    setGrades([]);
     try {
-      const res = await api.get(`/grades/?classroom=${classroom.id}&subject=${selectedSubject}&grade_type=final_grade`);
-      
-      // Only process grades that actually belong to the selected subject
+      const res = await api.get(
+        `/grades/?classroom=${classroom.id}&subject=${selectedSubject}&grade_type=final_grade`
+      );
       const relevantGrades = res.data.filter(g => g.subject.toString() === selectedSubject.toString());
 
-      // Group by student and store full grade data
       const studentGrades = {};
       relevantGrades.forEach(g => {
         if (!studentGrades[g.student]) {
@@ -70,12 +71,16 @@ export const GradeManagementView = ({ classroom, onBack }) => {
             email: g.student_email,
             quarters: {},
             gradeIds: {},
-            gradeData: {}
+            gradeData: {},
+            locked: {},
+            remarks: {},
           };
         }
         studentGrades[g.student].quarters[`q${g.quarter}`] = parseFloat(g.raw_score);
         studentGrades[g.student].gradeIds[`q${g.quarter}`] = g.id;
         studentGrades[g.student].gradeData[`q${g.quarter}`] = g;
+        studentGrades[g.student].locked[`q${g.quarter}`] = g.is_locked;
+        studentGrades[g.student].remarks[`q${g.quarter}`] = g.computed_remarks;
       });
       setGrades(Object.values(studentGrades));
     } catch {
@@ -85,9 +90,23 @@ export const GradeManagementView = ({ classroom, onBack }) => {
     }
   }, [classroom.id, selectedSubject]);
 
-  useEffect(() => {
-    fetchGrades();
-  }, [fetchGrades]);
+  // Load submission status for current subject
+  const fetchSubmissionStatus = useCallback(async () => {
+    if (!selectedSubject) { setSubmissionStatus(null); return; }
+    try {
+      const res = await api.get(
+        `/grade-submissions/?classroom=${classroom.id}&subject=${selectedSubject}`
+      );
+      const subs = res.data?.results || res.data || [];
+      // Take the most recent one
+      setSubmissionStatus(subs.length > 0 ? subs[0] : null);
+    } catch {
+      setSubmissionStatus(null);
+    }
+  }, [classroom.id, selectedSubject]);
+
+  useEffect(() => { fetchGrades(); }, [fetchGrades]);
+  useEffect(() => { fetchSubmissionStatus(); }, [fetchSubmissionStatus]);
 
   const filteredGrades = useMemo(() => {
     if (!searchQuery) return grades;
@@ -95,10 +114,23 @@ export const GradeManagementView = ({ classroom, onBack }) => {
     return grades.filter(g => g.name?.toLowerCase().includes(query));
   }, [grades, searchQuery]);
 
+  // Per-quarter filtered display
+  const displayedQuarters = selectedQuarter === 'all' ? ['q1', 'q2', 'q3'] : [selectedQuarter];
+
   const calculateFinalGrade = (quarters) => {
     const scores = Object.values(quarters).filter(s => !isNaN(s));
     if (scores.length === 0) return null;
     return (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2);
+  };
+
+  const getRemarksLabel = (avg) => {
+    if (avg == null) return null;
+    const v = parseFloat(avg);
+    if (v >= 90) return 'Outstanding';
+    if (v >= 85) return 'Very Satisfactory';
+    if (v >= 80) return 'Satisfactory';
+    if (v >= 75) return 'Fairly Satisfactory';
+    return 'Did Not Meet Expectations';
   };
 
   const getPerformanceColor = (grade) => {
@@ -110,58 +142,61 @@ export const GradeManagementView = ({ classroom, onBack }) => {
     return 'red';
   };
 
-  const handleEdit = (studentId, quarter, currentGrade) => {
+  const getRemarksColor = (remarks) => {
+    if (!remarks) return 'text-slate-400';
+    if (remarks === 'Outstanding') return 'text-emerald-600';
+    if (remarks === 'Very Satisfactory') return 'text-blue-600';
+    if (remarks === 'Satisfactory') return 'text-violet-600';
+    if (remarks === 'Fairly Satisfactory') return 'text-amber-600';
+    return 'text-red-600';
+  };
+
+  // Stats summary
+  const stats = useMemo(() => {
+    const allFinals = filteredGrades.map(s => {
+      const fg = calculateFinalGrade(s.quarters);
+      return fg ? parseFloat(fg) : null;
+    }).filter(v => v !== null);
+    if (allFinals.length === 0) return null;
+    const avg = (allFinals.reduce((a, b) => a + b, 0) / allFinals.length).toFixed(2);
+    const passing = allFinals.filter(v => v >= 75).length;
+    return {
+      avg, passing, failing: allFinals.length - passing, total: allFinals.length,
+      highest: Math.max(...allFinals), lowest: Math.min(...allFinals),
+    };
+  }, [filteredGrades]);
+
+  const handleEdit = (studentId, quarter, currentGrade, isLocked) => {
+    if (isLocked) { toast.error('This grade is locked and cannot be edited'); return; }
     setEditingGrade({ studentId, quarter });
     setEditValue(currentGrade?.toString() || '');
   };
 
   const handleSaveEdit = async () => {
     if (!editingGrade) return;
-    
     const { studentId, quarter } = editingGrade;
     const student = grades.find(g => g.id === studentId);
     const gradeId = student?.gradeIds[quarter];
     const originalGrade = student?.gradeData[quarter];
-    
-    if (!gradeId || !originalGrade) {
-      toast.error('Grade record not found');
-      setEditingGrade(null);
-      return;
-    }
-
-    // Safety check: confirm this grade belongs to the selected subject
+    if (!gradeId || !originalGrade) { toast.error('Grade record not found'); setEditingGrade(null); return; }
     if (originalGrade.subject.toString() !== selectedSubject.toString()) {
-      toast.error('Subject mismatch — please refresh and try again');
-      setEditingGrade(null);
-      return;
+      toast.error('Subject mismatch — please refresh and try again'); setEditingGrade(null); return;
     }
-
     const newValue = parseFloat(editValue);
-    if (isNaN(newValue) || newValue < 0 || newValue > 100) {
-      toast.error('Invalid grade value (0-100)');
-      return;
-    }
-
+    if (isNaN(newValue) || newValue < 0 || newValue > 100) { toast.error('Invalid grade value (0-100)'); return; }
     try {
-      // Use PUT with full grade object
       await api.put(`/grades/${gradeId}/`, {
-        student: originalGrade.student,
-        subject: originalGrade.subject,
-        classroom: originalGrade.classroom,
-        teacher: originalGrade.teacher,
-        grade_type: originalGrade.grade_type,
-        quarter: originalGrade.quarter,
-        academic_year: originalGrade.academic_year,
-        raw_score: newValue,
-        total_score: originalGrade.total_score || 100
+        student: originalGrade.student, subject: originalGrade.subject,
+        classroom: originalGrade.classroom, teacher: originalGrade.teacher,
+        grade_type: originalGrade.grade_type, quarter: originalGrade.quarter,
+        academic_year: originalGrade.academic_year, raw_score: newValue,
+        total_score: originalGrade.total_score || 100,
       });
-      toast.success('Grade updated successfully');
+      toast.success('Grade updated');
       setEditingGrade(null);
       fetchGrades();
     } catch (error) {
-      console.error('Update error:', error);
-      const errorMsg = error.response?.data?.error || error.response?.data?.detail || 'Failed to update grade';
-      toast.error(errorMsg);
+      toast.error(error.response?.data?.error || error.response?.data?.detail || 'Failed to update grade');
     }
   };
 
@@ -169,97 +204,77 @@ export const GradeManagementView = ({ classroom, onBack }) => {
     const student = grades.find(g => g.id === studentId);
     const gradeId = student?.gradeIds[quarter];
     const gradeData = student?.gradeData[quarter];
-    
-    if (!gradeId) {
-      toast.error('Grade record not found');
-      return;
-    }
-
-    // Safety check: confirm this grade belongs to the selected subject
+    if (!gradeId) { toast.error('Grade record not found'); return; }
+    if (gradeData?.is_locked) { toast.error('This grade is locked'); return; }
     if (gradeData && gradeData.subject.toString() !== selectedSubject.toString()) {
-      toast.error('Subject mismatch — please refresh and try again');
-      return;
+      toast.error('Subject mismatch — please refresh and try again'); return;
     }
-
     setModalState({
-      open: true,
-      title: 'Delete Grade?',
-      message: `Delete ${quarter.toUpperCase()} grade for ${student.name}? This action cannot be undone.`,
+      open: true, title: 'Delete Grade?',
+      message: `Delete ${quarter.toUpperCase()} grade for ${student.name}? This cannot be undone.`,
       onConfirm: async () => {
         try {
           await api.delete(`/grades/${gradeId}/`);
-          toast.success('Grade deleted successfully');
+          toast.success('Grade deleted');
           fetchGrades();
           setModalState(prev => ({ ...prev, open: false }));
         } catch (error) {
-          console.error('Delete error:', error);
-          const errorMsg = error.response?.data?.error || error.response?.data?.detail || 'Failed to delete grade';
-          toast.error(errorMsg);
+          toast.error(error.response?.data?.error || error.response?.data?.detail || 'Failed to delete grade');
         }
       }
     });
   };
 
   const handleDeleteAllQuarter = async () => {
-    if (selectedQuarter === 'all') {
-      toast.error('Select a specific term to delete');
-      return;
-    }
-
+    if (selectedQuarter === 'all') { toast.error('Select a specific term to delete'); return; }
     setModalState({
-      open: true,
-      title: 'Delete All Term Grades?',
+      open: true, title: 'Delete All Term Grades?',
       message: `Delete ALL ${selectedQuarter.toUpperCase()} grades for this class? This cannot be undone.`,
       onConfirm: async () => {
-        let successCount = 0;
-        let errorCount = 0;
-        const errors = [];
-
+        let successCount = 0; let errorCount = 0;
         for (const student of grades) {
           const gradeId = student.gradeIds[selectedQuarter];
           if (gradeId) {
-            try {
-              await api.delete(`/grades/${gradeId}/`);
-              successCount++;
-            } catch (error) {
-              console.error(`Delete error for grade ${gradeId}:`, error);
-              errorCount++;
-              errors.push(error.response?.data?.error || error.message);
-            }
+            try { await api.delete(`/grades/${gradeId}/`); successCount++; }
+            catch { errorCount++; }
           }
         }
-
-        if (successCount > 0) {
-          toast.success(`Deleted ${successCount} grade(s)`);
-          fetchGrades();
-        }
-        if (errorCount > 0) {
-          toast.error(`Failed to delete ${errorCount} grade(s). Check permissions.`);
-          if (errors.length > 0) {
-            console.error('Delete errors:', errors);
-          }
-        }
+        if (successCount > 0) { toast.success(`Deleted ${successCount} grade(s)`); fetchGrades(); }
+        if (errorCount > 0) toast.error(`Failed to delete ${errorCount} grade(s).`);
         setModalState(prev => ({ ...prev, open: false }));
       }
     });
   };
 
-  const handleExport = () => {
-    if (filteredGrades.length === 0) {
-      toast.error('No data to export');
-      return;
+  // Submit for admin review
+  const handleSubmitForReview = async () => {
+    if (!submissionStatus?.id) { toast.error('No submission record found — enter grades first'); return; }
+    setSubmitting(true);
+    try {
+      await api.post(`/grade-submissions/${submissionStatus.id}/submit/`);
+      toast.success('Grades submitted for review');
+      fetchSubmissionStatus();
+    } catch (err) {
+      const warnings = err.response?.data?.warnings;
+      if (warnings) {
+        toast.error(`${err.response.data.warning_count} validation warning(s) — check for missing grades`);
+      } else {
+        toast.error(err.response?.data?.error || 'Failed to submit');
+      }
+    } finally {
+      setSubmitting(false);
     }
+  };
 
-    // Create CSV content (single subject)
+  const handleExport = () => {
+    if (filteredGrades.length === 0) { toast.error('No data to export'); return; }
     const subjectName = subjects.find(s => s.subject.toString() === selectedSubject)?.subject_name || 'grades';
     const headers = ['#', 'Student Name', 'LRN', 'T1', 'T2', 'T3', 'Final Grade', 'Remarks'];
     const rows = filteredGrades.map((student, idx) => {
       const finalGrade = calculateFinalGrade(student.quarters);
       const finalNum = finalGrade ? Math.round(parseFloat(finalGrade)) : '';
       return [
-        idx + 1,
-        student.name,
-        student.lrn || '',
+        idx + 1, student.name, student.lrn || '',
         student.quarters.q1 !== undefined ? Math.round(student.quarters.q1) : '',
         student.quarters.q2 !== undefined ? Math.round(student.quarters.q2) : '',
         student.quarters.q3 !== undefined ? Math.round(student.quarters.q3) : '',
@@ -267,99 +282,79 @@ export const GradeManagementView = ({ classroom, onBack }) => {
         finalNum !== '' ? (finalNum >= 75 ? 'Passed' : 'Failed') : '',
       ];
     });
-
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(v => (typeof v === 'string' && v.includes(',') ? `"${v}"` : v)).join(','))
-    ].join('\n');
-
+    const csvContent = [headers.join(','), ...rows.map(row => row.map(v => (typeof v === 'string' && v.includes(',') ? `"${v}"` : v)).join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${classroom.name}_${subjectName}.csv`;
-    a.click();
+    const a = document.createElement('a'); a.href = url;
+    a.download = `${classroom.name}_${subjectName}.csv`; a.click();
     window.URL.revokeObjectURL(url);
-    toast.success('CSV exported successfully');
+    toast.success('CSV exported');
   };
 
-  /**
-   * Export the full SF10-JHS Excel report for ALL subjects in this classroom.
-   * Fetches all grades (all subjects) plus enrollment list, then calls exportSF10().
-   */
   const handleExportSF10 = async () => {
     setExportingSF10(true);
     try {
-      // 1. Fetch all enrolled students
       const enrollRes = await api.get(`/enrollments/?classroom=${classroom.id}`);
       const enrolledStudents = enrollRes.data;
-
-      if (!enrolledStudents.length) {
-        toast.error('No enrolled students found');
-        setExportingSF10(false);
-        return;
-      }
-
-      // 2. Fetch all grades for this classroom (all subjects)
+      if (!enrolledStudents.length) { toast.error('No enrolled students found'); setExportingSF10(false); return; }
       const gradesRes = await api.get(`/grades/?classroom=${classroom.id}&grade_type=final_grade`);
       const allGrades = gradesRes.data;
-
-      // 3. Fetch system settings for school year
-      let schoolYear = '';
-      let gradeLevel = '';
-      try {
-        const settingsRes = await api.get('/system/settings/');
-        schoolYear = settingsRes.data?.academic_year || '';
-        gradeLevel = settingsRes.data?.current_grade_level || '';
-      } catch {
-        // non-fatal — continue without settings
-      }
-
-      // 4. Get adviser name from classroom subject data
-      const subjectMeta = subjects[0] || {};
-      const adviser = subjectMeta.teacher_name || '';
-
-      await exportSF10PDF(classroom, enrolledStudents, allGrades, {
-        schoolYear,
-        gradeLevel,
-        section: classroom.name,
-        adviser,
-      });
-
-      toast.success('SF10 PDF exported successfully');
+      let schoolYear = ''; let gradeLevel = '';
+      try { const s = await api.get('/system/settings/'); schoolYear = s.data?.academic_year || ''; gradeLevel = s.data?.current_grade_level || ''; } catch { /* ignore */ }
+      const adviser = subjects[0]?.teacher_name || '';
+      await exportSF10PDF(classroom, enrolledStudents, allGrades, { schoolYear, gradeLevel, section: classroom.name, adviser });
+      toast.success('SF10 PDF exported');
     } catch (err) {
-      console.error('SF10 export error:', err);
-      
-      // Provide specific error messages
-      if (err.message.includes('Template file not found')) {
-        toast.error(
-          'SF10 template file missing. Please place SF10_Template.xlsx in frontend/public/templates/',
-          { duration: 5000 }
-        );
-      } else if (err.message.includes('not a valid Excel file')) {
-        toast.error(
-          'SF10 template file is corrupted or invalid. Please use a proper .xlsx file.',
-          { duration: 5000 }
-        );
-      } else {
-        toast.error('Failed to export SF10: ' + (err.message || 'Unknown error'));
-      }
-    } finally {
-      setExportingSF10(false);
-    }
+      if (err.message?.includes('Template file not found')) toast.error('SF10 template missing. Place SF10_Template.xlsx in frontend/public/templates/', { duration: 5000 });
+      else toast.error('Failed to export SF10: ' + (err.message || 'Unknown error'));
+    } finally { setExportingSF10(false); }
   };
+
+  // Submission status banner config
+  const subStatusConfig = {
+    draft:       { color: 'bg-slate-50 border-slate-200', text: 'text-slate-600', label: 'Draft', hint: 'Grades not yet submitted for review.' },
+    in_progress: { color: 'bg-blue-50 border-blue-200',   text: 'text-blue-700',  label: 'In Progress', hint: 'Grade entry in progress.' },
+    submitted:   { color: 'bg-indigo-50 border-indigo-200', text: 'text-indigo-700', label: 'Submitted', hint: 'Awaiting admin review.' },
+    reviewed:    { color: 'bg-cyan-50 border-cyan-200',   text: 'text-cyan-700',  label: 'Reviewed', hint: 'Under review by admin.' },
+    approved:    { color: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700', label: 'Approved', hint: 'Grades approved.' },
+    locked:      { color: 'bg-violet-50 border-violet-200', text: 'text-violet-700', label: 'Locked', hint: 'Grades are locked. Request reopening if needed.' },
+  };
+  const ssc = submissionStatus ? (subStatusConfig[submissionStatus.status] || subStatusConfig.draft) : null;
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      {/* Header row */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Overview
         </Button>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {/* Submit for Review */}
+          {submissionStatus && ['draft', 'in_progress'].includes(submissionStatus.status) && (
+            <Button
+              size="sm"
+              onClick={handleSubmitForReview}
+              loading={submitting}
+              className="bg-violet-600 hover:bg-violet-700 text-white"
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Submit for Review
+            </Button>
+          )}
+          {navigate && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/teacher-grade-dashboard')}
+            >
+              <BarChart2 className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={handleExport} disabled={!selectedSubject || filteredGrades.length === 0}>
             <Download className="w-4 h-4 mr-2" />
-            Export CSV
+            CSV
           </Button>
           <Button
             variant="outline"
@@ -370,24 +365,73 @@ export const GradeManagementView = ({ classroom, onBack }) => {
             className="border-green-300 text-green-700 hover:bg-green-50"
           >
             <Download className="w-4 h-4 mr-2" />
-            {exportingSF10 ? 'Generating...' : 'Export SF10 PDF'}
+            {exportingSF10 ? 'Generating...' : 'SF10 PDF'}
           </Button>
         </div>
       </div>
 
+      {/* Submission status banner */}
+      {ssc && (
+        <div className={`rounded-xl border px-4 py-3 flex items-center justify-between gap-3 ${ssc.color}`}>
+          <div className="flex items-center gap-3">
+            {submissionStatus.status === 'locked' ? (
+              <Lock className={`w-4 h-4 flex-shrink-0 ${ssc.text}`} />
+            ) : submissionStatus.status === 'approved' ? (
+              <CheckCircle className={`w-4 h-4 flex-shrink-0 ${ssc.text}`} />
+            ) : (
+              <ClockIcon className={`w-4 h-4 flex-shrink-0 ${ssc.text}`} />
+            )}
+            <div>
+              <span className={`text-sm font-bold ${ssc.text}`}>
+                Submission: {ssc.label}
+              </span>
+              <span className="text-xs text-slate-500 ml-2">{ssc.hint}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <span className="text-xs text-slate-500">
+              {submissionStatus.graded_count}/{submissionStatus.total_students} graded
+              {submissionStatus.missing_count > 0 && (
+                <span className="text-red-500 ml-1">· {submissionStatus.missing_count} missing</span>
+              )}
+            </span>
+            {submissionStatus.status === 'locked' && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-xs border-violet-300 text-violet-700 hover:bg-violet-50"
+                onClick={() => navigate?.('/teacher-grade-dashboard')}
+              >
+                <Unlock className="w-3 h-3 mr-1" />
+                Request Reopen
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Rejection reason */}
+      {submissionStatus?.rejection_reason && (
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-start gap-2">
+          <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-red-700">Submission Rejected</p>
+            <p className="text-xs text-red-600 mt-0.5">{submissionStatus.rejection_reason}</p>
+          </div>
+        </div>
+      )}
+
       <Card>
         <CardHeader divider>
           <div className="flex items-center justify-between">
-            <CardTitle>Grade Management - {classroom.name}</CardTitle>
+            <CardTitle>Grade Management — {classroom.name}</CardTitle>
           </div>
         </CardHeader>
         <CardBody className="p-6">
           {/* Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Subject
-              </label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Subject</label>
               <select
                 value={selectedSubject}
                 onChange={e => setSelectedSubject(e.target.value)}
@@ -395,17 +439,12 @@ export const GradeManagementView = ({ classroom, onBack }) => {
               >
                 <option value="">Select subject</option>
                 {subjects.map(s => (
-                  <option key={s.id} value={s.subject}>
-                    {s.subject_name}
-                  </option>
+                  <option key={s.id} value={s.subject}>{s.subject_name}</option>
                 ))}
               </select>
             </div>
-
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Term Filter
-              </label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Term Filter</label>
               <select
                 value={selectedQuarter}
                 onChange={e => setSelectedQuarter(e.target.value)}
@@ -417,11 +456,8 @@ export const GradeManagementView = ({ classroom, onBack }) => {
                 <option value="q3">Term 3</option>
               </select>
             </div>
-
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Search Students
-              </label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Search Students</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
@@ -435,6 +471,25 @@ export const GradeManagementView = ({ classroom, onBack }) => {
             </div>
           </div>
 
+          {/* Stats summary bar */}
+          {stats && (
+            <div className="grid grid-cols-5 gap-3 mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
+              {[
+                { label: 'Students', value: stats.total, color: 'text-slate-700' },
+                { label: 'Avg Grade', value: stats.avg, color: 'text-violet-700' },
+                { label: 'Highest', value: stats.highest, color: 'text-emerald-700' },
+                { label: 'Lowest', value: stats.lowest, color: stats.lowest < 75 ? 'text-red-600' : 'text-amber-600' },
+                { label: 'Passing', value: `${stats.passing}/${stats.total}`, color: stats.failing > 0 ? 'text-amber-600' : 'text-emerald-700' },
+              ].map(s => (
+                <div key={s.label} className="text-center">
+                  <p className={`text-lg font-extrabold ${s.color}`}>{s.value}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Bulk delete for specific term */}
           {selectedQuarter !== 'all' && (
             <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -453,7 +508,7 @@ export const GradeManagementView = ({ classroom, onBack }) => {
           {/* Grades Table */}
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <Skeleton.Table rows={5} cols={5} />
+              <Skeleton.Table rows={5} cols={6} />
             </div>
           ) : !selectedSubject ? (
             <div className="text-center py-12">
@@ -473,80 +528,98 @@ export const GradeManagementView = ({ classroom, onBack }) => {
                   <tr>
                     <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">#</th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">T1</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">T2</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">T3</th>
+                    {displayedQuarters.map(q => (
+                      <th key={q} className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">
+                        {q.toUpperCase()}
+                      </th>
+                    ))}
                     <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Final</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Remarks</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
-                  {filteredGrades.map((student) => {
+                  {filteredGrades.map((student, idx) => {
                     const finalGrade = calculateFinalGrade(student.quarters);
+                    const finalRemarks = getRemarksLabel(finalGrade ? parseFloat(finalGrade) : null);
                     return (
-                      <tr key={student.id} className="hover:bg-slate-50">
-                        <td className="px-4 py-3 text-sm text-slate-500 font-semibold">{filteredGrades.indexOf(student) + 1}</td>
+                      <tr key={student.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3 text-sm text-slate-500 font-semibold">{idx + 1}</td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-xs">
-                              {student.name?.split(' ').map(n => n.charAt(0)).join('')}
+                            <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-bold text-xs flex-shrink-0">
+                              {student.name?.split(' ').map(n => n.charAt(0)).join('').slice(0, 2)}
                             </div>
                             <span className="text-sm font-semibold text-slate-900">{student.name}</span>
                           </div>
                         </td>
-                        {['q1', 'q2', 'q3'].map(quarter => (
-                          <td key={quarter} className="px-4 py-3 text-center">
-                            {editingGrade?.studentId === student.id && editingGrade?.quarter === quarter ? (
-                              <div className="flex items-center justify-center gap-1">
-                                <input
-                                  type="number"
-                                  value={editValue}
-                                  onChange={e => setEditValue(e.target.value)}
-                                  className="w-16 px-2 py-1 text-sm border border-violet-300 rounded focus:outline-none focus:ring-2 focus:ring-violet-500"
-                                  min="0"
-                                  max="100"
-                                  autoFocus
-                                />
-                                <button onClick={handleSaveEdit} className="p-1 text-green-600 hover:bg-green-50 rounded">
-                                  <Check className="w-4 h-4" />
-                                </button>
-                                <button onClick={() => setEditingGrade(null)} className="p-1 text-red-600 hover:bg-red-50 rounded">
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ) : student.quarters[quarter] ? (
-                              <div className="inline-flex items-center gap-1.5">
-                                <Badge variant={getPerformanceColor(student.quarters[quarter])} className="font-semibold">
-                                  {student.quarters[quarter]}
-                                </Badge>
-                                <div className="flex gap-0.5">
-                                  <button
-                                    onClick={() => handleEdit(student.id, quarter, student.quarters[quarter])}
-                                    className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                    title="Edit grade"
-                                  >
-                                    <Edit2 className="w-3 h-3" />
+                        {displayedQuarters.map(quarter => {
+                          const isLocked = student.locked?.[quarter];
+                          return (
+                            <td key={quarter} className="px-4 py-3 text-center">
+                              {editingGrade?.studentId === student.id && editingGrade?.quarter === quarter ? (
+                                <div className="flex items-center justify-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={editValue}
+                                    onChange={e => setEditValue(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') handleSaveEdit(); if (e.key === 'Escape') setEditingGrade(null); }}
+                                    className="w-16 px-2 py-1 text-sm border border-violet-300 rounded focus:outline-none focus:ring-2 focus:ring-violet-500"
+                                    min="0" max="100" autoFocus
+                                  />
+                                  <button onClick={handleSaveEdit} className="p-1 text-green-600 hover:bg-green-50 rounded">
+                                    <Check className="w-4 h-4" />
                                   </button>
-                                  <button
-                                    onClick={() => handleDelete(student.id, quarter)}
-                                    className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                    title="Delete grade"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
+                                  <button onClick={() => setEditingGrade(null)} className="p-1 text-red-600 hover:bg-red-50 rounded">
+                                    <X className="w-4 h-4" />
                                   </button>
                                 </div>
-                              </div>
-                            ) : (
-                              <span className="text-slate-400">—</span>
-                            )}
-                          </td>
-                        ))}
+                              ) : student.quarters[quarter] !== undefined ? (
+                                <div className="inline-flex items-center gap-1">
+                                  {isLocked && <Lock className="w-3 h-3 text-violet-400 flex-shrink-0" title="Locked" />}
+                                  <Badge variant={getPerformanceColor(student.quarters[quarter])} className="font-semibold">
+                                    {student.quarters[quarter]}
+                                  </Badge>
+                                  {!isLocked && (
+                                    <div className="flex gap-0.5 ml-0.5">
+                                      <button
+                                        onClick={() => handleEdit(student.id, quarter, student.quarters[quarter], false)}
+                                        className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                        title="Edit grade"
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDelete(student.id, quarter)}
+                                        className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                        title="Delete grade"
+                                      >
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-slate-300">—</span>
+                              )}
+                            </td>
+                          );
+                        })}
                         <td className="px-4 py-3 text-center">
                           {finalGrade ? (
                             <Badge variant={getPerformanceColor(parseFloat(finalGrade))} className="font-bold text-base px-3 py-1">
-                              {finalGrade}
+                              {Math.round(parseFloat(finalGrade))}
                             </Badge>
                           ) : (
                             <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {finalRemarks ? (
+                            <span className={`text-xs font-semibold ${getRemarksColor(finalRemarks)}`}>
+                              {finalRemarks}
+                            </span>
+                          ) : (
+                            <span className="text-slate-300 text-xs">—</span>
                           )}
                         </td>
                       </tr>
@@ -561,7 +634,7 @@ export const GradeManagementView = ({ classroom, onBack }) => {
 
       {/* Confirmation Modal */}
       <Modal
-        open={modalState.open}
+        isOpen={modalState.open}
         onClose={() => setModalState(prev => ({ ...prev, open: false }))}
         title={modalState.title}
         size="md"
@@ -570,16 +643,8 @@ export const GradeManagementView = ({ classroom, onBack }) => {
           <p className="text-sm text-slate-700">{modalState.message}</p>
         </ModalBody>
         <ModalFooter>
-          <ModalBtnSecondary onClick={() => setModalState(prev => ({ ...prev, open: false }))}>
-            Cancel
-          </ModalBtnSecondary>
-          <ModalBtnPrimary onClick={() => {
-            if (modalState.onConfirm) {
-              modalState.onConfirm();
-            }
-          }}>
-            Confirm
-          </ModalBtnPrimary>
+          <ModalBtnSecondary onClick={() => setModalState(prev => ({ ...prev, open: false }))}>Cancel</ModalBtnSecondary>
+          <ModalBtnPrimary onClick={() => modalState.onConfirm?.()}>Confirm</ModalBtnPrimary>
         </ModalFooter>
       </Modal>
     </div>

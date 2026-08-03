@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import {
@@ -69,10 +70,12 @@ const StatCard = ({ title, value, color, icon }) => (
   </motion.div>
 );
 
-const SubmissionCard = ({ submission, onSubmit, onReopen }) => {
+const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades }) => {
   const style = STATUS_STYLES[submission.status] || STATUS_STYLES.draft;
   const isEditable = submission.status === 'draft' || submission.status === 'in_progress';
   const isLocked = submission.status === 'locked';
+  const isApproved = submission.status === 'approved';
+  const canEnterGrades = isEditable || submission.status === 'rejected';
 
   return (
     <motion.div
@@ -84,11 +87,19 @@ const SubmissionCard = ({ submission, onSubmit, onReopen }) => {
     >
       <div className="p-4">
         <div className="flex items-start justify-between mb-3">
-          <div>
-            <h4 className="font-semibold text-gray-900">{submission.subject_name}</h4>
-            <p className="text-sm text-gray-500">{submission.classroom_name}</p>
+          <div className="min-w-0 flex-1">
+            <h4 className="font-semibold text-gray-900 truncate">{submission.subject_name}</h4>
+            <p className="text-sm text-gray-500 truncate">{submission.classroom_name}</p>
+            {submission.grading_period_quarter && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                Term {submission.grading_period_quarter}
+                {submission.grading_period_deadline && (
+                  <span className="ml-1">· Due {new Date(submission.grading_period_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                )}
+              </p>
+            )}
           </div>
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0 ${style.bg} ${style.text}`}>
             {style.label}
           </span>
         </div>
@@ -110,33 +121,54 @@ const SubmissionCard = ({ submission, onSubmit, onReopen }) => {
         {submission.rejection_reason && (
           <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-xs text-red-700">
-              <span className="font-medium">Rejection reason:</span> {submission.rejection_reason}
+              <span className="font-medium">Rejected:</span> {submission.rejection_reason}
             </p>
           </div>
         )}
 
-        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 flex-wrap">
+          {/* Enter Grades — always visible when editable, also after rejection */}
+          {canEnterGrades && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => onEnterGrades(submission)}
+              className="border-violet-300 text-violet-700 hover:bg-violet-50"
+            >
+              <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Enter Grades
+            </Button>
+          )}
           {isEditable && (
             <Button
               size="sm"
               onClick={() => onSubmit(submission)}
               className="bg-brand-600 hover:bg-brand-700 text-white"
+              disabled={submission.completion_percentage < 1}
             >
-              Submit Grades
+              Submit
             </Button>
           )}
           {isLocked && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => onReopen(submission)}
-            >
+            <Button size="sm" variant="outline" onClick={() => onReopen(submission)}>
               Request Reopening
             </Button>
           )}
-          <span className="text-xs text-gray-400 ml-auto">
-            {submission.updated_at && new Date(submission.updated_at).toLocaleDateString()}
-          </span>
+          {(isApproved || isLocked) && (
+            <span className="text-xs text-gray-400 flex items-center gap-1 ml-auto">
+              <svg className="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {isApproved ? 'Approved' : 'Locked'}
+            </span>
+          )}
+          {!canEnterGrades && !isLocked && !isApproved && (
+            <span className="text-xs text-gray-400 ml-auto">
+              {submission.updated_at && new Date(submission.updated_at).toLocaleDateString()}
+            </span>
+          )}
         </div>
       </div>
     </motion.div>
@@ -241,6 +273,7 @@ const ReopeningRequestModal = ({ isOpen, onClose, submission, onSubmit }) => {
 };
 
 export default function TeacherGradeDashboard() {
+  const navigate = useNavigate();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -310,24 +343,54 @@ export default function TeacherGradeDashboard() {
     }
   };
 
+  const handleEnterGrades = (submission) => {
+    // Navigate to grade input pre-selecting this classroom+subject
+    navigate('/grade-input', {
+      state: {
+        classroomId: submission.classroom,
+        subjectId: submission.subject,
+      },
+    });
+  };
+
   const allSubmissions = dashboard ? [
     ...dashboard.pending_classes,
     ...dashboard.submitted_classes,
     ...dashboard.overdue_classes,
   ] : [];
 
-  const filteredSubmissions = allSubmissions.filter(s => {
+  // Deduplicate by id (overdue may overlap with pending)
+  const uniqueSubmissions = allSubmissions.filter(
+    (s, i, arr) => arr.findIndex(x => x.id === s.id) === i
+  );
+
+  const filteredSubmissions = uniqueSubmissions.filter(s => {
     if (filterTab === 'pending') return s.status === 'draft' || s.status === 'in_progress';
     if (filterTab === 'submitted') return s.status === 'submitted' || s.status === 'reviewed';
-    if (filterTab === 'overdue') return dashboard.overdue_classes.some(o => o.id === s.id);
-    return true;
+    if (filterTab === 'locked') return s.status === 'approved' || s.status === 'locked';
+    if (filterTab === 'overdue') return dashboard?.overdue_classes?.some(o => o.id === s.id);
+    return true; // 'all'
   });
+
+  const lockedCount = uniqueSubmissions.filter(s => s.status === 'approved' || s.status === 'locked').length;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Grade Submission Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage and submit grades for your classes</p>
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Grade Submission Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage and submit grades for your classes</p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => navigate('/grade-input')}
+        >
+          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Go to Grade Input
+        </Button>
       </div>
 
       {loading ? (
@@ -345,37 +408,63 @@ export default function TeacherGradeDashboard() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`rounded-xl p-4 ${
-                dashboard.days_remaining < 0 ? 'bg-red-50 border border-red-200' :
-                dashboard.days_remaining <= 2 ? 'bg-amber-50 border border-amber-200' :
-                'bg-green-50 border border-green-200'
+              className={`rounded-xl p-4 border ${
+                dashboard.days_remaining < 0
+                  ? 'bg-red-50 border-red-200'
+                  : dashboard.days_remaining <= 2
+                  ? 'bg-amber-50 border-amber-200'
+                  : 'bg-emerald-50 border-emerald-200'
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <h3 className="font-semibold text-gray-900">
-                    Active Grading Period: Q{dashboard.active_grading_period.quarter}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {dashboard.active_grading_period.academic_year_name} - Deadline: {dashboard.submission_deadline}
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                      dashboard.days_remaining < 0
+                        ? 'bg-red-100 text-red-700'
+                        : dashboard.days_remaining <= 2
+                        ? 'bg-amber-100 text-amber-700'
+                        : 'bg-emerald-100 text-emerald-700'
+                    }`}>
+                      {dashboard.days_remaining < 0 ? 'Overdue' : 'Active'}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-700">
+                      Term {dashboard.active_grading_period.quarter} — {dashboard.active_grading_period.academic_year_name}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Deadline: <strong>{dashboard.submission_deadline}</strong>
+                    {dashboard.active_grading_period.description && (
+                      <span className="text-gray-400 ml-2">· {dashboard.active_grading_period.description}</span>
+                    )}
                   </p>
                 </div>
                 <div className={`text-right ${
                   dashboard.days_remaining < 0 ? 'text-red-600' :
-                  dashboard.days_remaining <= 2 ? 'text-amber-600' :
-                  'text-green-600'
+                  dashboard.days_remaining <= 2 ? 'text-amber-600' : 'text-emerald-600'
                 }`}>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-extrabold leading-none">
                     {dashboard.days_remaining < 0
-                      ? `Overdue by ${Math.abs(dashboard.days_remaining)} days`
+                      ? `${Math.abs(dashboard.days_remaining)}d overdue`
                       : dashboard.days_remaining === 0
                       ? 'Due Today'
-                      : `${dashboard.days_remaining} days`}
+                      : `${dashboard.days_remaining} days left`}
                   </p>
-                  <p className="text-xs">remaining</p>
+                  <p className="text-xs mt-0.5 opacity-70">
+                    {dashboard.total_pending} class{dashboard.total_pending !== 1 ? 'es' : ''} pending
+                  </p>
                 </div>
               </div>
             </motion.div>
+          )}
+
+          {!dashboard?.active_grading_period && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center gap-3">
+              <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <p className="text-sm text-slate-600">No active grading period. Contact your admin to open one.</p>
+            </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -405,21 +494,32 @@ export default function TeacherGradeDashboard() {
             />
           </div>
 
-          <div className="flex items-center gap-2 border-b border-gray-200">
-            {['pending', 'submitted', 'overdue', 'all'].map((tab) => (
+          <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
+            {[
+              { key: 'pending', label: 'Pending', count: dashboard?.total_pending },
+              { key: 'submitted', label: 'Submitted', count: dashboard?.total_submitted },
+              { key: 'overdue', label: 'Overdue', count: dashboard?.total_overdue },
+              { key: 'locked', label: 'Approved / Locked', count: lockedCount },
+              { key: 'all', label: 'All' },
+            ].map(({ key, label, count }) => (
               <button
-                key={tab}
-                onClick={() => setFilterTab(tab)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                  filterTab === tab
+                key={key}
+                onClick={() => setFilterTab(key)}
+                className={`px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                  filterTab === key
                     ? 'border-brand-600 text-brand-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                {tab === 'pending' && dashboard?.total_pending > 0 && (
-                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs bg-amber-100 text-amber-700">
-                    {dashboard.total_pending}
+                {label}
+                {count > 0 && (
+                  <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-xs ${
+                    key === 'overdue' ? 'bg-red-100 text-red-700' :
+                    key === 'pending' ? 'bg-amber-100 text-amber-700' :
+                    key === 'locked' ? 'bg-purple-100 text-purple-700' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {count}
                   </span>
                 )}
               </button>
@@ -445,6 +545,7 @@ export default function TeacherGradeDashboard() {
                     submission={sub}
                     onSubmit={handleSubmit}
                     onReopen={handleReopen}
+                    onEnterGrades={handleEnterGrades}
                   />
                 ))}
               </AnimatePresence>

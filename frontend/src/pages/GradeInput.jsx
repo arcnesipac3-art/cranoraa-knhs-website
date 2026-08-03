@@ -49,6 +49,14 @@ const GradeInput = () => {
   const [active, setActive] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [activePeriod, setActivePeriod] = useState(undefined); // undefined = loading, null = none
+
+  // Fetch active grading period for the deadline banner
+  useEffect(() => {
+    api.get('/grading-periods/active/')
+      .then(r => setActivePeriod(r.data))
+      .catch(() => setActivePeriod(null));
+  }, []);
 
   const inputRefs = useRef({});
 
@@ -293,7 +301,17 @@ const GradeInput = () => {
 
     if (!errors.length) {
       playSound('gradeSubmit');
-      toast.success('Final grades submitted successfully');
+      toast.success(
+        <div className="flex flex-col gap-1">
+          <span className="font-bold">Final grades submitted successfully</span>
+          <button
+            onClick={() => navigate('/teacher-grade-dashboard')}
+            className="text-xs text-violet-600 font-bold text-left hover:underline"
+          >
+            View submission status →
+          </button>
+        </div>
+      );
       setCells({});
       fetchExistingGrades();
     } else {
@@ -534,6 +552,77 @@ const GradeInput = () => {
           </div>
         )}
       </div>
+
+      {/* ══════════════════════════════════════════════════════════════ */}
+      {/* GRADING PERIOD BANNER */}
+      {/* ══════════════════════════════════════════════════════════════ */}
+
+      {activePeriod !== undefined && (
+        <div className={`flex-shrink-0 px-4 sm:px-5 md:px-6 py-2.5 border-b flex items-center justify-between gap-3 flex-wrap ${
+          !activePeriod
+            ? 'bg-slate-50 border-slate-200'
+            : activePeriod.days_remaining < 0
+            ? 'bg-red-50 border-red-200'
+            : activePeriod.days_remaining <= 2
+            ? 'bg-amber-50 border-amber-200'
+            : 'bg-emerald-50 border-emerald-200'
+        }`}>
+          {!activePeriod ? (
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="font-semibold">No active grading period — grades can still be saved as drafts.</span>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${
+                  activePeriod.days_remaining < 0
+                    ? 'bg-red-100 text-red-700'
+                    : activePeriod.days_remaining <= 2
+                    ? 'bg-amber-100 text-amber-700'
+                    : 'bg-emerald-100 text-emerald-700'
+                }`}>
+                  {activePeriod.days_remaining < 0 ? 'Overdue' : activePeriod.days_remaining <= 2 ? 'Closing Soon' : 'Open'}
+                </span>
+                <span className={`text-xs font-bold ${
+                  activePeriod.days_remaining < 0 ? 'text-red-700' :
+                  activePeriod.days_remaining <= 2 ? 'text-amber-700' : 'text-emerald-700'
+                }`}>
+                  Term {activePeriod.quarter} · {activePeriod.academic_year_name}
+                </span>
+                <span className="text-xs text-slate-500">
+                  Deadline: <strong>{activePeriod.effective_deadline ?? activePeriod.submission_deadline}</strong>
+                  {activePeriod.days_remaining >= 0 && (
+                    <span className={`ml-1.5 font-bold ${
+                      activePeriod.days_remaining <= 2 ? 'text-amber-600' : 'text-emerald-600'
+                    }`}>
+                      {activePeriod.days_remaining === 0
+                        ? '(Due today!)'
+                        : `(${activePeriod.days_remaining} day${activePeriod.days_remaining !== 1 ? 's' : ''} left)`}
+                    </span>
+                  )}
+                  {activePeriod.days_remaining < 0 && (
+                    <span className="ml-1.5 font-bold text-red-600">
+                      ({Math.abs(activePeriod.days_remaining)} day{Math.abs(activePeriod.days_remaining) !== 1 ? 's' : ''} overdue)
+                    </span>
+                  )}
+                </span>
+              </div>
+              <button
+                onClick={() => navigate('/teacher-grade-dashboard')}
+                className={`text-[11px] font-bold flex-shrink-0 hover:underline ${
+                  activePeriod.days_remaining < 0 ? 'text-red-600' :
+                  activePeriod.days_remaining <= 2 ? 'text-amber-600' : 'text-emerald-700'
+                }`}
+              >
+                View Submission Status →
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* STATISTICS PANEL */}
