@@ -74,9 +74,26 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onExtend, onEdit }
         <StatusBadge status={period.status} display={period.status_display} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mt-4">
+      {/* What this status means for teachers */}
+      <div className={`text-xs rounded-lg px-3 py-2 mb-3 font-medium ${
+        period.status === 'open' || period.status === 'closing_soon'
+          ? 'bg-green-50 text-green-800 border border-green-200'
+          : period.status === 'scheduled'
+          ? 'bg-blue-50 text-blue-800 border border-blue-200'
+          : period.status === 'locked'
+          ? 'bg-purple-50 text-purple-800 border border-purple-200'
+          : 'bg-gray-50 text-gray-700 border border-gray-200'
+      }`}>
+        {period.status === 'scheduled' && '⏳ Not yet open — teachers cannot submit grades.'}
+        {period.status === 'open' && '✅ Open — teachers can now submit grades.'}
+        {period.status === 'closing_soon' && '⚠️ Closing soon — teachers should submit now.'}
+        {period.status === 'closed' && '🔒 Closed — no more submissions. Lock to finalize.'}
+        {period.status === 'locked' && '🔐 Locked — all grades are finalized.'}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
         <div className="text-sm">
-          <span className="text-gray-500">Start Date:</span>
+          <span className="text-gray-500">Start:</span>
           <span className="ml-2 font-medium text-gray-700">{period.start_date}</span>
         </div>
         <div className="text-sm">
@@ -84,15 +101,11 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onExtend, onEdit }
           <span className="ml-2 font-medium text-gray-700">{period.submission_deadline}</span>
         </div>
         {period.grace_period_days > 0 && (
-          <div className="text-sm">
+          <div className="text-sm col-span-2">
             <span className="text-gray-500">Grace Period:</span>
-            <span className="ml-2 font-medium text-gray-700">{period.grace_period_days} days</span>
+            <span className="ml-2 font-medium text-gray-700">+{period.grace_period_days} days (effective: {period.effective_deadline})</span>
           </div>
         )}
-        <div className="text-sm">
-          <span className="text-gray-500">Effective Deadline:</span>
-          <span className="ml-2 font-medium text-gray-700">{period.effective_deadline}</span>
-        </div>
       </div>
 
       <div className="mt-3">
@@ -103,16 +116,22 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onExtend, onEdit }
         <p className="mt-3 text-sm text-gray-600 bg-gray-50 rounded-lg p-2">{period.description}</p>
       )}
 
-      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+      <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 flex-wrap">
         {period.status === 'scheduled' && (
           <Button size="sm" onClick={() => onOpen(period.id)} className="bg-green-600 hover:bg-green-700 text-white">
-            Open Period
+            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+            </svg>
+            Open for Teachers
           </Button>
         )}
         {(period.status === 'open' || period.status === 'closing_soon') && (
           <>
             <Button size="sm" onClick={() => onClose(period.id)} className="bg-amber-600 hover:bg-amber-700 text-white">
-              Close Period
+              <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              Close Submissions
             </Button>
             <Button size="sm" variant="outline" onClick={() => onExtend(period)}>
               Extend Deadline
@@ -121,7 +140,11 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onExtend, onEdit }
         )}
         {period.status === 'closed' && (
           <Button size="sm" onClick={() => onLock(period.id)} className="bg-purple-600 hover:bg-purple-700 text-white">
-            Lock Grades
+            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0" />
+            </svg>
+            Lock & Finalize Grades
           </Button>
         )}
         <Button size="sm" variant="ghost" onClick={() => onEdit(period)} className="ml-auto">
@@ -156,15 +179,23 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
   }, [editingPeriod, isOpen]);
 
   const handleSubmit = () => {
+    if (!academicYear?.id) {
+      toast.error('No active school year found. Set one before creating a grading period.');
+      return;
+    }
     if (!form.start_date || !form.submission_deadline) {
       toast.error('Start date and deadline are required');
+      return;
+    }
+    if (form.submission_deadline < form.start_date) {
+      toast.error('Deadline must be after the start date');
       return;
     }
     onSave({
       ...form,
       quarter: parseInt(form.quarter),
       grace_period_days: parseInt(form.grace_period_days) || 0,
-      academic_year: academicYear?.id,
+      academic_year: academicYear.id,
     });
   };
 
@@ -173,6 +204,23 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
       <ModalHeader>{editingPeriod ? 'Edit Grading Period' : 'Create Grading Period'}</ModalHeader>
       <ModalBody>
         <div className="space-y-4">
+          {!editingPeriod && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+              <strong>How it works:</strong> Creating a period sets it as <em>Scheduled</em>. 
+              Press <strong>Open Period</strong> on the card when you're ready for teachers to submit grades. 
+              Close it when done, then Lock to finalize.
+            </div>
+          )}
+          {!academicYear && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+              No active school year found. Please set an active academic year first.
+            </div>
+          )}
+          <FormField label="School Year">
+            <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700">
+              {academicYear?.name || <span className="text-red-500">No active school year</span>}
+            </div>
+          </FormField>
           <FormField label="Term">
             <FormSelect
               value={form.quarter}
@@ -198,7 +246,7 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
               onChange={(e) => setForm({ ...form, submission_deadline: e.target.value })}
             />
           </FormField>
-          <FormField label="Grace Period (days)">
+          <FormField label="Grace Period (days)" hint="Extra days teachers can still submit after the deadline">
             <FormInput
               type="number"
               min="0"
@@ -206,20 +254,20 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
               onChange={(e) => setForm({ ...form, grace_period_days: e.target.value })}
             />
           </FormField>
-          <FormField label="Description">
+          <FormField label="Description" hint="Optional note visible to teachers">
             <textarea
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
-              rows={3}
+              rows={2}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Optional description for this grading period"
+              placeholder="e.g. Q1 grading for SY 2025-2026"
             />
           </FormField>
         </div>
       </ModalBody>
       <ModalFooter>
         <Button variant="ghost" onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} className="bg-brand-600 hover:bg-brand-700 text-white">
+        <Button onClick={handleSubmit} disabled={!academicYear} className="bg-brand-600 hover:bg-brand-700 text-white">
           {editingPeriod ? 'Save Changes' : 'Create Period'}
         </Button>
       </ModalFooter>
@@ -300,13 +348,43 @@ export default function GradingPeriodManagement() {
         toast.success('Grading period updated');
       } else {
         await api.post('/grading-periods/', data);
-        toast.success('Grading period created');
+        toast.success('Grading period created — press "Open Period" when ready for teachers to submit');
       }
       setShowCreate(false);
       setEditingPeriod(null);
       fetchPeriods();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to save grading period');
+      // Extract the most useful message from the 400 response
+      const errData = err.response?.data;
+      let message = 'Failed to save grading period';
+      if (errData) {
+        if (typeof errData === 'string') {
+          message = errData;
+        } else if (errData.detail) {
+          message = errData.detail;
+        } else if (errData.non_field_errors) {
+          message = Array.isArray(errData.non_field_errors)
+            ? errData.non_field_errors[0]
+            : errData.non_field_errors;
+        } else {
+          // Field-level errors — join them all
+          const fieldErrors = Object.entries(errData)
+            .map(([field, errs]) => {
+              const msg = Array.isArray(errs) ? errs[0] : errs;
+              return `${field}: ${msg}`;
+            })
+            .join(' · ');
+          if (fieldErrors) message = fieldErrors;
+        }
+        // Friendlier message for the unique constraint
+        if (message.toLowerCase().includes('unique') || message.toLowerCase().includes('already exists')) {
+          message = `A grading period for Term ${data.quarter} already exists in this school year. Edit the existing one instead.`;
+        }
+        if (message.toLowerCase().includes('academic_year') && message.toLowerCase().includes('null')) {
+          message = 'No active school year found. Set an active academic year first.';
+        }
+      }
+      toast.error(message, { duration: 5000 });
     }
   };
 
@@ -376,7 +454,7 @@ export default function GradingPeriodManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Grading Period Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Configure grading windows and submission deadlines</p>
+          <p className="text-sm text-gray-500 mt-1">Control when teachers can submit grades for each term</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" size="sm" onClick={handleBulkUpdate}>
@@ -388,6 +466,33 @@ export default function GradingPeriodManagement() {
             </svg>
             Create Period
           </Button>
+        </div>
+      </div>
+
+      {/* Workflow explanation */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
+        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Admin Workflow</p>
+        <div className="flex items-center gap-2 flex-wrap text-sm">
+          {[
+            { label: '1. Create Period', color: 'bg-blue-100 text-blue-800', hint: 'Sets dates & deadline' },
+            { arrow: true },
+            { label: '2. Open for Teachers', color: 'bg-green-100 text-green-800', hint: 'Teachers can submit' },
+            { arrow: true },
+            { label: '3. Close Submissions', color: 'bg-amber-100 text-amber-800', hint: 'No new submissions' },
+            { arrow: true },
+            { label: '4. Lock & Finalize', color: 'bg-purple-100 text-purple-800', hint: 'Grades are permanent' },
+          ].map((step, i) =>
+            step.arrow ? (
+              <svg key={i} className="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            ) : (
+              <div key={i} className="flex flex-col items-center">
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${step.color}`}>{step.label}</span>
+                <span className="text-[10px] text-slate-400 mt-0.5">{step.hint}</span>
+              </div>
+            )
+          )}
         </div>
       </div>
 
