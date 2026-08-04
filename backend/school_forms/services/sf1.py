@@ -1,17 +1,19 @@
 """
 SF1 - School Register Service
 Generates class register using enrolled students.
-Data source: StudentClassEnrollment + Profile + User + Classroom
+Data source: StudentClassEnrollment + Profile + User + Classroom + EnrollmentApplication
 """
 from collections import defaultdict
-from django.db.models import Prefetch
+from datetime import date
+from django.db.models import Prefetch, Count
 from accounts.models import (
     StudentClassEnrollment,
     Classroom,
     AcademicYear,
-    Semester,
     User,
     Profile,
+    EnrollmentApplication,
+    SystemSetting,
 )
 
 
@@ -29,41 +31,196 @@ class SF1SchoolRegisterService:
         """Get filtered enrollments with related data"""
         qs = StudentClassEnrollment.objects.select_related(
             'student',
-            'student__user',
-            'student__profile',
             'classroom',
             'classroom__academic_year',
             'classroom__teacher',
-            'classroom__teacher__profile',
-        ).prefetch_related(
-            'student__user__additional_roles'
         )
 
         if self.academic_year:
             qs = qs.filter(classroom__academic_year=self.academic_year)
-
         if self.grade_level:
             qs = qs.filter(classroom__grade_level=self.grade_level)
-
         if self.section:
-            qs = qs.filter(classroom__name=self.section)
-
+            qs = qs.filter(classroom__name__icontains=self.section)
         if self.adviser:
             qs = qs.filter(classroom__teacher=self.adviser)
-
         if self.student_id:
             qs = qs.filter(student_id=self.student_id)
 
-        # Only active enrollments
         qs = qs.filter(enrollment_status='enrolled')
-
         return qs.order_by('classroom__grade_level', 'classroom__name', 'student__last_name', 'student__first_name')
 
-    def get_data(self):
-        """Get structured data for SF1"""
-        enrollments = self.get_queryset()
+    def _compute_age(self, birthdate):
+        if not birthdate:
+            return None
+        today = date.today()
+        return today.year - birthdate.year - (
+            (today.month, today.day) < (birthdate.month, birthdate.day)
+        )
 
-        # Group by classroom
+    def _get_student_data(self, student, enrollment):
+        """Extract all SF1 fields for a student from Profile + EnrollmentApplication"""
+        profile = getattr(student, 'profile', None)
+
+        lrn = ''
+        sex = ''
+        birthdate = None
+        age = None
+        mother_tongue = ''
+        indigenous_people = ''
+        religion = ''
+        extension_name = ''
+        middle_name = ''
+        address_full = ''
+        house_number = ''
+        street = ''
+        barangay = ''
+        city_municipality = ''
+        province = ''
+        father_name = ''
+        mother_name = ''
+        guardian_name = ''
+        guardian_relationship = ''
+        contact_number = ''
+        learning_modality = 'Face to Face'
+
+        if profile:
+            lrn = profile.lrn or ''
+            sex = (profile.sex or '').title()
+            birthdate = profile.date_of_birth
+            age = self._compute_age(birthdate)
+            mother_tongue = profile.mother_tongue or ''
+            indigenous_people = profile.indigenous_people or ''
+            religion = profile.religion or ''
+            extension_name = profile.extension_name or ''
+            middle_name = profile.middle_name or ''
+            father_name = profile.father_name or ''
+            mother_name = profile.mother_name or ''
+            contact_number = profile.phone_number or ''
+            address_full = profile.address or ''
+
+        # Try to get additional data from EnrollmentApplication
+        app = None
+        try:
+            app = EnrollmentApplication.objects.filter(
+                enrolled_student=student, status='enrolled'
+            ).first()
+        except Exception:
+            pass
+
+        if app:
+            if not father_name:
+                father_name = app.father_name or ''
+            if not mother_name:
+                mother_name = app.mother_name or ''
+            if not middle_name:
+                middle_name = app.middle_name or ''
+            if not sex:
+                sex = (app.sex or '').title()
+            if not birthdate:
+                birthdate = app.date_of_birth
+                age = self._compute_age(birthdate)
+            if not lrn:
+                lrn = app.lrn or ''
+            if not religion:
+                religion = app.religion or ''
+            if not contact_number:
+                contact_number = app.phone_number or ''
+
+            house_number = app.street_address or ''
+            barangay = app.barangay or ''
+            city_municipality = app.city_municipality or ''
+            province = app.province or ''
+
+            if not address_full:
+                parts = [p for p in [house_number, street, barangay, city_municipality, province] if p]
+                address_full = ', '.join(parts)
+
+            guardian_name = app.guardian_name or ''
+            guardian_relationship = app.guardian_relationship or ''
+            if not guardian_name:
+                guardian_name = father_name or mother_name or ''
+            if not guardian_relationship:
+                guardian_relationship = 'Parent'
+
+        # Build student name in LAST NAME, FIRST NAME M.I. format
+        last_name = student.last_name or ''
+        first_name = student.first_name or ''
+        ext = f" {extension_name}" if extension_name else ''
+        mi = f" {middle_name[0]}." if middle_name else ''
+        student_name = f"{last_name}{ext}, {first_name} {mi}".strip()
+
+        # Determine remarks from enrollment type and status
+        remarks = ''
+        if app:
+            enrollment_type = app.enrollment_type or ''
+            if enrollment_type == 'transferee':
+                remarks = 'TrnI'
+            elif enrollment_type == 'returning':
+                remarks = 'BA'
+            elif enrollment_type == 'new':
+                # Check if late enrollment
+                if app.submitted_at:
+                    remarks = ''
+
+        # Check profile enrollment status for transfer/withdrawal
+        if profile:
+            p_status = profile.enrollment_status or ''
+            if p_status == 'transferred':
+                remarks = 'TrnO'
+            elif p_status == 'withdrawn':
+                remarks = 'WO'
+
+        return {
+            'lrn': lrn,
+            'last_name': last_name,
+            'first_name': first_name,
+            'middle_name': middle_name,
+            'extension_name': extension_name,
+            'name': student_name,
+            'sex': sex,
+            'birthdate': birthdate,
+            'age': age,
+            'mother_tongue': mother_tongue,
+            'indigenous_people': indigenous_people,
+            'religion': religion,
+            'house_number': house_number,
+            'street': street,
+            'barangay': barangay,
+            'city_municipality': city_municipality,
+            'province': province,
+            'address': address_full,
+            'father_name': father_name,
+            'mother_name': mother_name,
+            'guardian_name': guardian_name,
+            'guardian_relationship': guardian_relationship,
+            'contact_number': contact_number,
+            'learning_modality': learning_modality,
+            'remarks': remarks,
+            'enrollment_status': enrollment.enrollment_status or 'enrolled',
+        }
+
+    def get_data(self):
+        """Get structured data for SF1 with male/female separation"""
+        enrollments = self.get_queryset()
+        settings = SystemSetting.get_settings()
+
+        school_info = {
+            'school_name': settings.site_name or '',
+            'school_id': getattr(settings, 'school_id', '') or '',
+            'region': getattr(settings, 'region', '') or '',
+            'division': getattr(settings, 'division', '') or '',
+            'school_address': settings.school_address or '',
+        }
+
+        # Get school head (admin or principal)
+        school_head = User.objects.filter(role='admin').first()
+        if not school_head:
+            school_head = User.objects.filter(staff_title='principal').first()
+        school_head_name = ''
+        if school_head:
+            school_head_name = f"{school_head.first_name} {school_head.last_name}".strip()
+
         by_classroom = defaultdict(list)
         for enrollment in enrollments:
             by_classroom[enrollment.classroom].append(enrollment)
@@ -75,112 +232,164 @@ class SF1SchoolRegisterService:
             if adviser:
                 adviser_name = f"{adviser.first_name} {adviser.last_name}".strip()
 
-            students_data = []
+            male_students = []
+            female_students = []
             for idx, enrollment in enumerate(enrollments_list, 1):
                 student = enrollment.student
-                profile = getattr(student, 'profile', None)
-                user = getattr(student, 'user', None)
+                student_data = self._get_student_data(student, enrollment)
+                student_data['no'] = idx
 
-                if not profile:
-                    lrn = profile.lrn
-                    sex = profile.sex
-                    birthdate = profile.date_of_birth
-                    age = None
-                    if birthdate:
-                        from datetime import date
-                        today = date.today()
-                        age = today.year - birthdate.year - (
-                            (today.month, today.day) < (birthdate.month, birthdate.day)
-                        )
+                if student_data['sex'] == 'Male':
+                    male_students.append(student_data)
                 else:
-                    lrn = ''
-                    sex = ''
-                    birthdate = None
-                    age = None
+                    female_students.append(student_data)
 
-                student_name = ''
-                if user:
-                    student_name = f"{user.last_name}, {user.first_name}"
-                    if user.middle_name:
-                        student_name += f" {user.middle_name[0]}."
+            # Renumber after separation
+            for i, s in enumerate(male_students, 1):
+                s['no'] = i
+            for i, s in enumerate(female_students, 1):
+                s['no'] = i
 
-                enrollment_status = enrollment.enrollment_status or 'enrolled'
+            total_male = len(male_students)
+            total_female = len(female_students)
+            total_combined = total_male + total_female
 
-                students_data.append({
-                    'no': idx,
-                    'lrn': lrn,
-                    'name': student_name,
-                    'sex': sex,
-                    'birthdate': birthdate,
-                    'age': age,
-                    'grade_level': classroom.grade_level,
-                    'section': classroom.name,
-                    'adviser': adviser_name,
-                    'enrollment_status': enrollment_status,
-                })
+            # Count remarks
+            remarks_counts = {
+                'transfer_in': sum(1 for s in male_students + female_students if s['remarks'] == 'TrnI'),
+                'transfer_out': sum(1 for s in male_students + female_students if s['remarks'] == 'TrnO'),
+                'cct': 0,
+                'balik_aral': sum(1 for s in male_students + female_students if s['remarks'] == 'BA'),
+                'sned': 0,
+                'late_enrollment': 0,
+            }
 
             result.append({
                 'classroom': {
                     'id': classroom.id,
-                    'grade_level': classroom.grade_level,
+                    'grade_level': classroom.grade_level or '',
                     'section': classroom.name,
                     'adviser': adviser_name,
                     'academic_year': str(classroom.academic_year) if classroom.academic_year else '',
                 },
-                'students': students_data,
+                'male_students': male_students,
+                'female_students': female_students,
+                'total_male': total_male,
+                'total_female': total_female,
+                'total_combined': total_combined,
+                'remarks_counts': remarks_counts,
             })
 
-        return result
+        return {
+            'school_info': school_info,
+            'school_head_name': school_head_name,
+            'generated_date': date.today().strftime('%B %d, %Y'),
+            'classrooms': result,
+        }
 
     def validate(self):
-        """Validate data before generation"""
+        """Validate data before generation with detailed per-student warnings"""
         errors = []
         warnings = []
+        student_warnings = []
 
         enrollments = self.get_queryset()
 
-        # Check for missing LRNs
-        missing_lrn = enrollments.filter(student__profile__lrn='').count()
-        if missing_lrn:
-            warnings.append(f"{missing_lrn} students missing LRN")
+        if not enrollments.exists():
+            errors.append('No enrolled students found for the selected filters.')
+            return {
+                'valid': False,
+                'errors': errors,
+                'warnings': warnings,
+                'student_warnings': student_warnings,
+                'total_students': 0,
+                'total_male': 0,
+                'total_female': 0,
+            }
 
-        # Check for missing profiles
-        missing_profile = enrollments.filter(student__profile__isnull=True).count()
-        if missing_profile:
-            warnings.append(f"{missing_profile} students missing profile")
+        total_male = 0
+        total_female = 0
+
+        for enrollment in enrollments.select_related('student', 'student__profile'):
+            student = enrollment.student
+            profile = getattr(student, 'profile', None)
+            stu_warns = []
+            student_name = f"{student.last_name}, {student.first_name}"
+
+            if profile:
+                sex = (profile.sex or '').title()
+                if sex == 'Male':
+                    total_male += 1
+                else:
+                    total_female += 1
+
+                if not profile.lrn:
+                    stu_warns.append('Missing LRN')
+                if not profile.date_of_birth:
+                    stu_warns.append('Missing Birth Date')
+                if not profile.sex:
+                    stu_warns.append('Missing Sex')
+                if not profile.address:
+                    stu_warns.append('Missing Address')
+            else:
+                total_female += 1
+                stu_warns.append('Missing Profile')
+                warnings.append(f'{student_name}: No profile record')
+
+            # Check enrollment application data
+            app = EnrollmentApplication.objects.filter(
+                enrolled_student=student, status='enrolled'
+            ).first()
+            if app:
+                if not app.father_name and not app.mother_name:
+                    stu_warns.append('Missing Parent Names')
+                if not app.guardian_name and not app.father_name and not app.mother_name:
+                    stu_warns.append('Missing Guardian Info')
+                if not app.barangay:
+                    stu_warns.append('Missing Barangay')
+            else:
+                stu_warns.append('No linked enrollment application')
+
+            if stu_warns:
+                student_warnings.append({
+                    'student': student_name,
+                    'lrn': profile.lrn if profile else '',
+                    'warnings': stu_warns,
+                })
 
         # Check for missing advisers
         missing_adviser = enrollments.filter(classroom__teacher__isnull=True).count()
         if missing_adviser:
-            warnings.append(f"{missing_adviser} students in sections without adviser")
+            warnings.append(f'{missing_adviser} sections without assigned adviser')
 
         # Check for duplicate LRNs
-        from django.db.models import Count
         duplicate_lrns = Profile.objects.filter(
             user__studentclassenrollment__in=enrollments
-        ).values('lrn').annotate(count=Count('id')).filter(count__gt=1)
+        ).exclude(lrn='').values('lrn').annotate(count=Count('id')).filter(count__gt=1)
         if duplicate_lrns.exists():
-            errors.append(f"Duplicate LRNs found: {list(duplicate_lrns.values_list('lrn', flat=True))}")
+            dupes = list(duplicate_lrns.values_list('lrn', flat=True))
+            errors.append(f'Duplicate LRNs found: {dupes}')
 
         return {
             'valid': len(errors) == 0,
             'errors': errors,
             'warnings': warnings,
+            'student_warnings': student_warnings[:50],
             'total_students': enrollments.count(),
-            'total_sections': enrollments.values('classroom').distinct().count(),
+            'total_male': total_male,
+            'total_female': total_female,
         }
 
     def get_filters_metadata(self):
         """Get available filter options"""
         return {
-            'academic_years': list(AcademicYear.objects.filter(is_active=True).values('id', 'name')),
+            'academic_years': list(AcademicYear.objects.all().values('id', 'name')),
             'grade_levels': list(Classroom.objects.values_list('grade_level', flat=True).distinct().order_by('grade_level')),
             'sections': list(Classroom.objects.values_list('name', flat=True).distinct().order_by('name')),
-            'advisers': list(User.objects.filter(role='staff', classroom__isnull=False).distinct().values('id', 'first_name', 'last_name')),
+            'advisers': list(User.objects.filter(role='staff').distinct().values('id', 'first_name', 'last_name')),
         }
 
 
-# Convenience function
 def generate_sf1(academic_year=None, grade_level=None, section=None, adviser=None, student_id=None):
     service = SF1SchoolRegisterService(
         academic_year=academic_year,

@@ -1,3 +1,5 @@
+import base64
+from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -51,16 +53,25 @@ class SF1ViewSet(SchoolFormsViewSet):
 
     @action(detail=False, methods=['get'], url_path='filters')
     def get_filters_data(self, request):
-        filters = self.get_filters()
         try:
-            result = sf1_service.generate_sf1(
-                academic_year=filters['academic_year'],
-                grade_level=filters['grade_level'],
-                section=filters['section'],
-                adviser=filters['adviser'],
-                student_id=filters['student_id'],
+            service = sf1_service.SF1SchoolRegisterService()
+            return Response(service.get_filters_metadata())
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['post'])
+    def validate(self, request):
+        filters = self.get_filters()
+        filters.update(request.data)
+        try:
+            service = sf1_service.SF1SchoolRegisterService(
+                academic_year=filters.get('academic_year'),
+                grade_level=filters.get('grade_level'),
+                section=filters.get('section'),
+                adviser=filters.get('adviser'),
             )
-            return Response(result.get('filters', {}))
+            result = service.validate()
+            return Response(result)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -71,7 +82,13 @@ class SF1ViewSet(SchoolFormsViewSet):
         try:
             result = sf1_service.generate_sf1(**{k: v for k, v in filters.items() if v})
             pdf_content = generate_pdf_report('SF1', result.get('data', {}))
-            return Response({'pdf': pdf_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            classroom = result.get('data', {}).get('classrooms', [{}])[0] if result.get('data', {}).get('classrooms') else {}
+            section = classroom.get('classroom', {}).get('section', 'Section')
+            grade = classroom.get('classroom', {}).get('grade_level', '')
+            filename = f'SF1_Grade{grade}_{section}.pdf'
+            response['Content-Disposition'] = f'inline; filename="{filename}"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -82,7 +99,16 @@ class SF1ViewSet(SchoolFormsViewSet):
         try:
             result = sf1_service.generate_sf1(**{k: v for k, v in filters.items() if v})
             excel_content = generate_excel_report('SF1', result.get('data', {}))
-            return Response({'excel': excel_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(
+                excel_content,
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            classroom = result.get('data', {}).get('classrooms', [{}])[0] if result.get('data', {}).get('classrooms') else {}
+            section = classroom.get('classroom', {}).get('section', 'Section')
+            grade = classroom.get('classroom', {}).get('grade_level', '')
+            filename = f'SF1_Grade{grade}_{section}.xlsx'
+            response['Content-Disposition'] = f'inline; filename="{filename}"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -113,7 +139,9 @@ class SF2ViewSet(SchoolFormsViewSet):
         try:
             result = sf2_service.generate_sf2(**{k: v for k, v in filters.items() if v})
             pdf_content = generate_pdf_report('SF2', result.get('data', {}))
-            return Response({'pdf': pdf_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="SF2_Attendance.pdf"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -124,7 +152,9 @@ class SF2ViewSet(SchoolFormsViewSet):
         try:
             result = sf2_service.generate_sf2(**{k: v for k, v in filters.items() if v})
             excel_content = generate_excel_report('SF2', result.get('data', {}))
-            return Response({'excel': excel_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(excel_content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'inline; filename="SF2_Attendance.xlsx"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -152,7 +182,9 @@ class SF5ViewSet(SchoolFormsViewSet):
         try:
             result = sf5_service.generate_sf5(**{k: v for k, v in filters.items() if v})
             pdf_content = generate_pdf_report('SF5', result.get('data', {}))
-            return Response({'pdf': pdf_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="SF5_Promotion.pdf"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -163,7 +195,9 @@ class SF5ViewSet(SchoolFormsViewSet):
         try:
             result = sf5_service.generate_sf5(**{k: v for k, v in filters.items() if v})
             excel_content = generate_excel_report('SF5', result.get('data', {}))
-            return Response({'excel': excel_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(excel_content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'inline; filename="SF5_Promotion.xlsx"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -186,7 +220,9 @@ class SF9ViewSet(SchoolFormsViewSet):
         try:
             result = sf9_service.generate_sf9(student_id=student_id, academic_year=academic_year)
             pdf_content = generate_pdf_report('SF9', result.get('data', {}))
-            return Response({'pdf': pdf_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="SF9_ReportCard.pdf"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -208,7 +244,9 @@ class SF10ViewSet(SchoolFormsViewSet):
         try:
             result = sf10_service.generate_sf10(student_id=student_id)
             pdf_content = generate_pdf_report('SF10', result.get('data', {}))
-            return Response({'pdf': pdf_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(pdf_content, content_type='application/pdf')
+            response['Content-Disposition'] = 'inline; filename="SF10_PermanentRecord.pdf"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -218,6 +256,8 @@ class SF10ViewSet(SchoolFormsViewSet):
         try:
             result = sf10_service.generate_sf10(student_id=student_id)
             excel_content = generate_excel_report('SF10', result.get('data', {}))
-            return Response({'excel': excel_content}, status=status.HTTP_200_OK)
+            response = HttpResponse(excel_content, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'inline; filename="SF10_PermanentRecord.xlsx"'
+            return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

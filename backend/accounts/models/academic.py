@@ -85,6 +85,9 @@ class ClassroomSubject(models.Model):
 
 class SystemSetting(models.Model):
     site_name = models.CharField(max_length=255, default='School Portal')
+    school_id = models.CharField(max_length=20, blank=True, default='', help_text="DepEd School ID (e.g. 304147)")
+    region = models.CharField(max_length=100, blank=True, default='', help_text="DepEd Region (e.g. Region X)")
+    division = models.CharField(max_length=100, blank=True, default='', help_text="DepEd Division (e.g. Iligan City)")
     school_address = models.TextField(blank=True, null=True)
     school_phone = models.CharField(max_length=20, blank=True, null=True)
     school_email = models.EmailField(blank=True, null=True)

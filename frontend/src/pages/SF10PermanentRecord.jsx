@@ -18,7 +18,7 @@ function SF10Page() {
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.get(`/school-forms/sf10/?${params.toString()}`);
+      const res = await api.get(`/sf10/?${params.toString()}`);
       return res.data;
     },
     enabled: !!filters.student_id,
@@ -30,7 +30,7 @@ function SF10Page() {
 
   const handleExportPDF = async () => {
     try {
-      const res = await api.post('/school-forms/sf10/export/pdf/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
+      const res = await api.post('/sf10/export/pdf/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       window.open(URL.createObjectURL(blob), '_blank');
     } catch { }
@@ -38,7 +38,7 @@ function SF10Page() {
 
   const handleExportExcel = async () => {
     try {
-      const res = await api.post('/school-forms/sf10/export/excel/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
+      const res = await api.post('/sf10/export/excel/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
       const blob = new Blob([res.data.excel], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);

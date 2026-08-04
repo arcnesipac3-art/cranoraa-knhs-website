@@ -25,7 +25,7 @@ function SF2Page() {
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.get(`/school-forms/sf2/?${params.toString()}`);
+      const res = await api.get(`/sf2/?${params.toString()}`);
       return res.data;
     },
     enabled: !!activeYear,
@@ -40,7 +40,7 @@ function SF2Page() {
       setExporting('pdf');
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.post('/school-forms/sf2/export/pdf/', {}, { params });
+      const res = await api.post('/sf2/export/pdf/', {}, { params });
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
@@ -52,7 +52,7 @@ function SF2Page() {
       setExporting('excel');
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.post('/school-forms/sf2/export/excel/', {}, { params });
+      const res = await api.post('/sf2/export/excel/', {}, { params });
       const blob = new Blob([res.data.excel], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

@@ -17,7 +17,7 @@ function SF9Page() {
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.get(`/school-forms/sf9/?${params.toString()}`);
+      const res = await api.get(`/sf9/?${params.toString()}`);
       return res.data;
     },
     enabled: !!activeYear,
@@ -31,7 +31,7 @@ function SF9Page() {
     try {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.post('/school-forms/sf9/export/pdf/', {}, { params });
+      const res = await api.post('/sf9/export/pdf/', {}, { params });
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
