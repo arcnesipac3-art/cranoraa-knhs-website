@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from calendar import monthrange
 from django.db.models import Q, Count, Case, When, IntegerField, F
 from django.db.models.functions import TruncMonth
@@ -53,7 +53,13 @@ class SF2DailyAttendanceReportService:
     def get_date_range(self):
         """Determine date range for report"""
         if self.start_date and self.end_date:
-            return self.start_date, self.end_date
+            # Parse string dates to date objects
+            try:
+                start = datetime.strptime(str(self.start_date), '%Y-%m-%d').date()
+                end = datetime.strptime(str(self.end_date), '%Y-%m-%d').date()
+                return start, end
+            except (ValueError, TypeError):
+                pass
 
         # Default to current academic year
         ay = AcademicYear.objects.filter(is_active=True).first()
