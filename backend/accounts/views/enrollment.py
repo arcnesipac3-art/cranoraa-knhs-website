@@ -155,7 +155,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                 'documents',
                 Prefetch('status_history', queryset=EnrollmentStatusHistory.objects.select_related('changed_by')),
             )
-        return EnrollmentApplication.objects.filter(email=user.email)
+        return EnrollmentApplication.objects.filter(email=user.email).prefetch_related('documents')
 
     def create(self, request, *args, **kwargs):
         try:
@@ -515,6 +515,29 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             if application.enrolled_student:
                 return Response({'error': 'Student account already exists'}, status=400)
 
+            # Validate section assignment before proceeding
+            classroom_id = request.data.get('classroom_id')
+            if not classroom_id and not application.assigned_classroom:
+                # Try auto-assignment
+                try:
+                    classroom_id = self._auto_assign_section(application)
+                except Exception as ae:
+                    logger.error(f"Auto-assign error: {ae}")
+                    classroom_id = None
+                
+                # If auto-assignment failed, return error
+                if not classroom_id:
+                    return Response({
+                        'error': 'Section must be assigned before enrollment. Please assign a section or ensure sections have available capacity.',
+                        'details': {
+                            'grade_level': application.grade_level,
+                            'reason': 'No classroom_id provided and auto-assignment failed (no available capacity)'
+                        }
+                    }, status=400)
+            elif not classroom_id and application.assigned_classroom:
+                # Use existing assigned classroom
+                classroom_id = application.assigned_classroom.id
+
             import re, secrets
             lrn = (application.lrn or '').strip()
             email = (application.email or '').strip() or None
@@ -616,10 +639,8 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                 except Exception as pe:
                     logger.error(f"Parent linking error: {pe}")
 
-            classroom_id = request.data.get('classroom_id')
-            if not classroom_id:
-                try: classroom_id = self._auto_assign_section(application)
-                except Exception as ae: logger.error(f"Auto-assign error: {ae}")
+            # classroom_id has already been validated at the beginning of this method
+            # Proceed with section assignment
 
             classroom_name = ''
             if classroom_id:

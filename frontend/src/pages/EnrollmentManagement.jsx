@@ -302,7 +302,9 @@ const EnrollmentManagement = () => {
   ];
 
   const getAppDocs = (app) => {
-    if (app?.documents && app.documents.length > 0) return app.documents;
+    // If documents property exists (even if empty), use it - don't fall back to URL fields
+    if (app?.documents !== undefined) return app.documents;
+    // Only fall back to URL fields if documents property is missing/undefined
     return URL_DOC_FIELDS
       .filter(({ field }) => app?.[field])
       .map(({ field, type }) => ({
