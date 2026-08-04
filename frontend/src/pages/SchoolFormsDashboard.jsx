@@ -29,17 +29,6 @@ const FORM_CARDS = [
     status: 'ready',
   },
   {
-    id: 'sf5',
-    title: 'SF5 - Promotion and Learning Progress',
-    description: 'Promotion status with general averages, class summary statistics, and student breakdown.',
-    icon: '📈',
-    color: 'emerald',
-    path: '/school-forms/sf5',
-    roles: ['admin', 'staff'],
-    features: ['PDF Export', 'Excel Export', 'Print'],
-    status: 'ready',
-  },
-  {
     id: 'sf9',
     title: 'SF9 - Learner Progress Report Card',
     description: 'Official report cards with quarter grades, core values, attendance summary, and remarks.',
@@ -112,7 +101,7 @@ export default function SchoolFormsDashboard() {
         </Card>
         <Card>
           <CardBody className="text-center py-3">
-            <p className="text-2xl font-extrabold text-blue-600">5</p>
+            <p className="text-2xl font-extrabold text-blue-600">4</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase">Form Types</p>
           </CardBody>
         </Card>
