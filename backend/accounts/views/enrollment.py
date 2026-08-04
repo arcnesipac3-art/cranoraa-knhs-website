@@ -255,7 +255,11 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                 logger.error(f"Admin notification failed: {notif_err}")
 
             headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+            response_data = serializer.data
+            # Inject uploaded URLs into the response so frontend immediately has them
+            for field_name, url in uploaded_urls.items():
+                response_data[field_name] = url
+            return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
         except Exception as e:
             import traceback
             logger.error(f"Enrollment application error: {str(e)}\n{traceback.format_exc()}")
