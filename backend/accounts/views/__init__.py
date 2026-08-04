@@ -177,4 +177,7 @@ from .compliance import (
     check_overdue_submissions,
     sync_teacher_submissions,
     trigger_compliance_reminders,
+    bulk_assign_classroom_subject,
+    legacy_submissions,
+    compliance_audit_trail,
 )

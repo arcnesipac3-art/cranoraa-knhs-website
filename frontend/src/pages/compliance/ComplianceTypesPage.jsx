@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useComplianceTypes } from '../../hooks/useCompliance';
+import { useFetch } from '../../hooks/useFetch';
 import Modal, { ModalBody, ModalFooter, ModalField, modalInputCls, modalSelectCls, modalTextareaCls, ModalBtnPrimary, ModalBtnSecondary } from '../../components/ui/Modal';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
@@ -52,10 +53,14 @@ const defaultForm = {
   max_file_size_mb: 50,
   is_active: true,
   order: 0,
+  assigned_subjects: [],  // array of subject IDs
 };
 
 export default function ComplianceTypesPage() {
   const { types, loading, fetchTypes, createType, updateType, deleteType, hardDeleteType } = useComplianceTypes();
+  const { data: subjectsData } = useFetch('/subjects/');
+  const subjects = subjectsData?.results || subjectsData || [];
+
   const [showModal, setShowModal] = useState(false);
   const [editingType, setEditingType] = useState(null);
   const [form, setForm] = useState(defaultForm);
@@ -82,6 +87,7 @@ export default function ComplianceTypesPage() {
       max_file_size_mb: type.max_file_size_mb,
       is_active: type.is_active,
       order: type.order,
+      assigned_subjects: (type.assigned_subjects || []).map(s => s.id),
     });
     setShowModal(true);
   };
@@ -270,6 +276,21 @@ export default function ComplianceTypesPage() {
                         #{type.order}
                       </span>
                     )}
+                    {/* Subject scope */}
+                    {type.assigned_subjects?.length > 0 ? (
+                      type.assigned_subjects.slice(0, 3).map(s => (
+                        <span key={s.id} className="inline-flex items-center gap-1 px-2 py-1 bg-violet-50 border border-violet-100 rounded-md text-[10px] font-bold text-violet-600">
+                          {s.code}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 border border-emerald-100 rounded-md text-[10px] font-bold text-emerald-600">
+                        All subjects
+                      </span>
+                    )}
+                    {type.assigned_subjects?.length > 3 && (
+                      <span className="text-[10px] text-slate-400 font-bold">+{type.assigned_subjects.length - 3}</span>
+                    )}
                   </div>
                 </div>
 
@@ -398,6 +419,54 @@ export default function ComplianceTypesPage() {
                 />
               </ModalField>
             </div>
+
+            {/* Subject assignment */}
+            <ModalField
+              label="Applies to Subjects"
+              hint="Leave empty to apply to ALL teachers. Select specific subjects to restrict."
+            >
+              <div className="border border-slate-200 rounded-lg p-2 max-h-40 overflow-y-auto space-y-1 bg-white">
+                {subjects.length === 0 ? (
+                  <p className="text-xs text-slate-400 p-1">No subjects found.</p>
+                ) : (
+                  subjects.map(s => {
+                    const checked = form.assigned_subjects.includes(s.id);
+                    return (
+                      <label key={s.id} className={`flex items-center gap-2.5 px-2 py-1.5 rounded-lg cursor-pointer transition-colors ${checked ? 'bg-violet-50' : 'hover:bg-slate-50'}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            setForm(prev => ({
+                              ...prev,
+                              assigned_subjects: checked
+                                ? prev.assigned_subjects.filter(id => id !== s.id)
+                                : [...prev.assigned_subjects, s.id],
+                            }));
+                          }}
+                          className="w-3.5 h-3.5 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
+                        />
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${checked ? 'bg-violet-100 text-violet-700 border-violet-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                          {s.code}
+                        </span>
+                        <span className="text-xs text-slate-700 truncate">{s.name}</span>
+                      </label>
+                    );
+                  })
+                )}
+              </div>
+              {form.assigned_subjects.length === 0 && (
+                <p className="text-[11px] text-emerald-600 font-semibold mt-1.5">
+                  ✓ Applies to all teachers
+                </p>
+              )}
+              {form.assigned_subjects.length > 0 && (
+                <p className="text-[11px] text-violet-600 font-semibold mt-1.5">
+                  Restricted to {form.assigned_subjects.length} subject{form.assigned_subjects.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </ModalField>
+
           </div>
         </ModalBody>
 

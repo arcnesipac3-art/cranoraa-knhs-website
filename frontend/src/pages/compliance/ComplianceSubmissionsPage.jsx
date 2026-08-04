@@ -38,7 +38,11 @@ function FreqBadge({ frequency }) {
 }
 
 export default function ComplianceSubmissionsPage() {
-  const [filters, setFilters] = useState({ status: '', compliance_type_id: '', teacher_id: '' });
+  const [filters, setFilters] = useState({
+    status: '', compliance_type_id: '', teacher_id: '',
+    subject_id: '', classroom_id: '',
+  });
+  const setFilter = (key, val) => setFilters(prev => ({ ...prev, [key]: val }));
   const [selectedIds, setSelectedIds] = useState([]);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewingSubmission, setReviewingSubmission] = useState(null);
@@ -51,15 +55,19 @@ export default function ComplianceSubmissionsPage() {
   const [submittingComment, setSubmittingComment] = useState(false);
 
   const { submissions, loading, fetchSubmissions, reviewSubmission, bulkReview, fetchComments, addComment, deleteSubmission } = useComplianceSubmissions(filters);
-  const { data: types } = useFetch('/compliance/types/');
+  const { data: types }     = useFetch('/compliance/types/');
   const { data: usersData } = useFetch('/users/', { params: { role: 'staff', page_size: 200 } });
+  const { data: subjectsData }   = useFetch('/subjects/');
+  const { data: classroomsData } = useFetch('/classrooms/');
 
   useEffect(() => {
     fetchSubmissions();
   }, [fetchSubmissions, filters]);
 
-  const teachers = usersData?.results || usersData || [];
-  const typesList = types?.results || types || [];
+  const teachers    = usersData?.results   || usersData   || [];
+  const typesList   = types?.results       || types       || [];
+  const subjects    = subjectsData?.results || subjectsData || [];
+  const classrooms  = classroomsData?.results || classroomsData || [];
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
@@ -209,7 +217,13 @@ export default function ComplianceSubmissionsPage() {
     });
   };
 
-  const hasActiveFilters = filters.status || filters.compliance_type_id || filters.teacher_id;
+  const hasActiveFilters = filters.status || filters.compliance_type_id || filters.teacher_id
+    || filters.subject_id || filters.classroom_id;
+
+  const clearFilters = () => setFilters({
+    status: '', compliance_type_id: '', teacher_id: '',
+    subject_id: '', classroom_id: '',
+  });
 
   return (
     <div className="space-y-4">
@@ -231,43 +245,52 @@ export default function ComplianceSubmissionsPage() {
             <span className="text-xs font-bold uppercase tracking-wider">Filter</span>
           </div>
 
-          <select
-            value={filters.status}
-            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-100 focus:border-violet-400"
-          >
+          {/* Status */}
+          <select value={filters.status} onChange={e => setFilter('status', e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-100 focus:border-violet-400">
             {STATUS_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
 
-          <select
-            value={filters.compliance_type_id}
-            onChange={(e) => setFilters(prev => ({ ...prev, compliance_type_id: e.target.value }))}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-100 focus:border-violet-400"
-          >
+          {/* Compliance Type */}
+          <select value={filters.compliance_type_id} onChange={e => setFilter('compliance_type_id', e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-100 focus:border-violet-400">
             <option value="">All Types</option>
             {typesList.map(t => (
               <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
 
-          <select
-            value={filters.teacher_id}
-            onChange={(e) => setFilters(prev => ({ ...prev, teacher_id: e.target.value }))}
-            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-100 focus:border-violet-400"
-          >
+          {/* Teacher */}
+          <select value={filters.teacher_id} onChange={e => setFilter('teacher_id', e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-100 focus:border-violet-400">
             <option value="">All Teachers</option>
             {teachers.map(t => (
               <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
             ))}
           </select>
 
+          {/* Subject */}
+          <select value={filters.subject_id} onChange={e => setFilter('subject_id', e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-100 focus:border-violet-400">
+            <option value="">All Subjects</option>
+            {subjects.map(s => (
+              <option key={s.id} value={s.id}>{s.code} — {s.name}</option>
+            ))}
+          </select>
+
+          {/* Classroom */}
+          <select value={filters.classroom_id} onChange={e => setFilter('classroom_id', e.target.value)}
+            className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-violet-100 focus:border-violet-400">
+            <option value="">All Classrooms</option>
+            {classrooms.map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+
           {hasActiveFilters && (
-            <button
-              onClick={() => setFilters({ status: '', compliance_type_id: '', teacher_id: '' })}
-              className="text-xs font-bold text-violet-600 hover:text-violet-700"
-            >
+            <button onClick={clearFilters} className="text-xs font-bold text-violet-600 hover:text-violet-700">
               Clear filters
             </button>
           )}
@@ -354,6 +377,7 @@ export default function ComplianceSubmissionsPage() {
             />
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex-1">Teacher</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-32 hidden md:block">Type</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-36 hidden lg:block">Subject / Class</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-24">Period</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-20 hidden lg:block">Submitted</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-16 text-center">Files</span>
@@ -394,6 +418,22 @@ export default function ComplianceSubmissionsPage() {
                 <div className="w-32 hidden md:flex items-center gap-1.5">
                   <FreqBadge frequency={sub.compliance_type_frequency} />
                   <span className="text-sm text-slate-600 truncate">{sub.compliance_type_name}</span>
+                </div>
+
+                {/* Subject / Classroom */}
+                <div className="w-36 hidden lg:block">
+                  {sub.classroom_subject_detail ? (
+                    <div>
+                      <p className="text-xs font-bold text-violet-600 truncate">
+                        {sub.classroom_subject_detail.subject_code}
+                      </p>
+                      <p className="text-[11px] text-slate-400 truncate">
+                        {sub.classroom_subject_detail.classroom_name}
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-300">—</span>
+                  )}
                 </div>
 
                 {/* Period */}
@@ -466,7 +506,14 @@ export default function ComplianceSubmissionsPage() {
         isOpen={showReviewModal}
         onClose={() => setShowReviewModal(false)}
         title={`Review: ${reviewingSubmission?.teacher_name || ''}`}
-        subtitle={reviewingSubmission ? `${reviewingSubmission.compliance_type_name} \u2022 ${formatPeriod(reviewingSubmission)}` : ''}
+        subtitle={reviewingSubmission
+          ? `${reviewingSubmission.compliance_type_name} • ${formatPeriod(reviewingSubmission)}${
+              reviewingSubmission.classroom_subject_detail
+                ? ` • ${reviewingSubmission.classroom_subject_detail.subject_code} – ${reviewingSubmission.classroom_subject_detail.classroom_name}`
+                : ''
+            }`
+          : ''
+        }
         size="lg"
       >
         {reviewingSubmission && (

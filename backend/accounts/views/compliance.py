@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 
 from ..models.compliance import (
     ComplianceType, ComplianceSubmission, ComplianceFile, ComplianceComment,
-    ComplianceTypeSubjectAssignment
+    ComplianceTypeSubjectAssignment, ComplianceAuditLog,
 )
 from ..serializers.compliance import (
     ComplianceTypeSerializer,
@@ -601,6 +601,104 @@ def check_overdue_submissions(request):
         'marked_overdue': marked,
         'message': f'{marked} submissions marked as overdue.',
     })
+
+
+def log_compliance_action(submission, user, action, details=None):
+    """Create an audit log entry for a compliance action."""
+    try:
+        ComplianceAuditLog.objects.create(
+            submission=submission,
+            user=user,
+            action=action,
+            details=details or {},
+        )
+    except Exception as e:
+        logger.warning(f"Failed to create compliance audit log: {e}")
+
+
+@api_view(['POST'])
+@permission_classes([IsAdmin])
+def bulk_assign_classroom_subject(request):
+    """
+    Bulk-assign classroom_subject to legacy submissions that have none.
+    Useful for migrating old submissions to the new subject-linked structure.
+    """
+    submission_ids       = request.data.get('submission_ids', [])
+    classroom_subject_id = request.data.get('classroom_subject_id')
+
+    if not classroom_subject_id:
+        return Response({'error': 'classroom_subject_id is required'}, status=400)
+
+    if not submission_ids:
+        return Response({'error': 'submission_ids must be a non-empty list'}, status=400)
+
+    updated = ComplianceSubmission.objects.filter(
+        id__in=submission_ids,
+    ).update(classroom_subject_id=classroom_subject_id)
+
+    # Audit log each reassignment
+    for sub in ComplianceSubmission.objects.filter(id__in=submission_ids):
+        log_compliance_action(sub, request.user, 'bulk_assign', {
+            'classroom_subject_id': classroom_subject_id,
+        })
+
+    return Response({
+        'updated': updated,
+        'message': f'{updated} submission(s) assigned to classroom subject {classroom_subject_id}.',
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAdmin])
+def legacy_submissions(request):
+    """
+    Return submissions with no classroom_subject assigned.
+    These are old/legacy records that need manual assignment.
+    """
+    qs = ComplianceSubmission.objects.filter(
+        classroom_subject__isnull=True,
+    ).select_related(
+        'teacher', 'compliance_type', 'academic_year',
+    ).order_by('-created_at')
+
+    data = [{
+        'id':                   sub.id,
+        'teacher':              sub.teacher_id,
+        'teacher_name':         sub.teacher.get_full_name() or sub.teacher.username,
+        'compliance_type':      sub.compliance_type_id,
+        'compliance_type_name': sub.compliance_type.name,
+        'period_number':        sub.period_number,
+        'status':               sub.status,
+        'academic_year':        sub.academic_year_id,
+        'created_at':           sub.created_at.isoformat(),
+    } for sub in qs]
+
+    return Response({'count': len(data), 'results': data})
+
+
+@api_view(['GET'])
+@permission_classes([IsAdmin])
+def compliance_audit_trail(request):
+    """Return audit log entries for a specific submission."""
+    submission_id = request.query_params.get('submission_id')
+    if not submission_id:
+        return Response({'error': 'submission_id is required'}, status=400)
+
+    logs = ComplianceAuditLog.objects.filter(
+        submission_id=submission_id,
+    ).select_related('user').order_by('-created_at')
+
+    data = [{
+        'id':          log.id,
+        'action':      log.action,
+        'action_display': log.get_action_display(),
+        'user_id':     log.user_id,
+        'user_name':   log.user.get_full_name() or log.user.username if log.user else 'system',
+        'details':     log.details,
+        'created_at':  log.created_at.isoformat(),
+    } for log in logs]
+
+    return Response({'results': data})
 
 
 @api_view(['POST'])

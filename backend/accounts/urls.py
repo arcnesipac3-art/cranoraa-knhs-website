@@ -133,5 +133,8 @@ urlpatterns = [
     path('v1/compliance/check-overdue/', check_overdue_submissions, name='check_overdue_submissions'),
     path('v1/compliance/trigger-reminders/', trigger_compliance_reminders, name='trigger_compliance_reminders'),
     path('v1/compliance/sync/', sync_teacher_submissions, name='sync_teacher_submissions'),
+    path('v1/compliance/legacy/', legacy_submissions, name='legacy_submissions'),
+    path('v1/compliance/bulk-assign/', bulk_assign_classroom_subject, name='bulk_assign_classroom_subject'),
+    path('v1/compliance/audit-trail/', compliance_audit_trail, name='compliance_audit_trail'),
     path('', include(router.urls)),
 ]

@@ -180,3 +180,43 @@ class ComplianceComment(models.Model):
     def __str__(self):
         author_name = self.author.get_full_name() or self.author.username
         return f"Comment by {author_name}"
+
+
+class ComplianceAuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('create',        'Created'),
+        ('submit',        'Submitted'),
+        ('review',        'Reviewed'),
+        ('approve',       'Approved'),
+        ('reject',        'Rejected'),
+        ('reopen',        'Reopened'),
+        ('reminder_sent', 'Reminder Sent'),
+        ('overdue_alert', 'Overdue Alert'),
+        ('file_upload',   'File Uploaded'),
+        ('file_delete',   'File Deleted'),
+        ('bulk_assign',   'Bulk Assigned'),
+    ]
+
+    submission = models.ForeignKey(
+        ComplianceSubmission,
+        on_delete=models.CASCADE,
+        related_name='audit_logs',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='compliance_audit_logs',
+    )
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES, db_index=True)
+    details = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Compliance Audit Log'
+        verbose_name_plural = 'Compliance Audit Logs'
+
+    def __str__(self):
+        user_str = self.user.username if self.user else 'system'
+        return f"{self.action} by {user_str} on {self.submission}"
