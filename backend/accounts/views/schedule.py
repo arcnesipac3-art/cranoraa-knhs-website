@@ -153,15 +153,18 @@ class ScheduleViewSet(viewsets.ModelViewSet):
                 serializer.validated_data['academic_year'] = active_ay
 
         schedule = serializer.save()
-        log_audit_action(
-            user=self.request.user,
-            action='create',
-            model_name='Schedule',
-            object_id=schedule.id,
-            object_repr=str(schedule),
-            description=f'Created schedule: {schedule}',
-            request=self.request
-        )
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='create',
+                model_name='Schedule',
+                object_id=schedule.id,
+                object_repr=str(schedule),
+                description=f'Created schedule: {schedule}',
+                request=self.request
+            )
+        except Exception:
+            pass
         # Notify teacher only if a teacher is assigned (not vacant)
         if schedule.teacher and schedule.subject:
             try:
@@ -185,29 +188,35 @@ class ScheduleViewSet(viewsets.ModelViewSet):
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only admins can update schedules.")
         schedule = serializer.save()
-        log_audit_action(
-            user=self.request.user,
-            action='update',
-            model_name='Schedule',
-            object_id=schedule.id,
-            object_repr=str(schedule),
-            description=f'Updated schedule: {schedule}',
-            request=self.request
-        )
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='update',
+                model_name='Schedule',
+                object_id=schedule.id,
+                object_repr=str(schedule),
+                description=f'Updated schedule: {schedule}',
+                request=self.request
+            )
+        except Exception:
+            pass
 
     def perform_destroy(self, instance):
         if self.request.user.role != 'admin':
             from rest_framework.exceptions import PermissionDenied
             raise PermissionDenied("Only admins can delete schedules.")
-        log_audit_action(
-            user=self.request.user,
-            action='delete',
-            model_name='Schedule',
-            object_id=instance.id,
-            object_repr=str(instance),
-            description=f'Deleted schedule: {instance}',
-            request=self.request
-        )
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='delete',
+                model_name='Schedule',
+                object_id=instance.id,
+                object_repr=str(instance),
+                description=f'Deleted schedule: {instance}',
+                request=self.request
+            )
+        except Exception:
+            pass
         instance.delete()
 
     @action(detail=False, methods=['get'])

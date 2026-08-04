@@ -118,7 +118,9 @@ class Schedule(models.Model):
         ]
 
     def __str__(self):
+        subject_label = self.subject.code if self.subject else 'Vacant'
+        teacher_label = (self.teacher.get_full_name() or self.teacher.username) if self.teacher else '—'
         return (
-            f"{self.classroom.name} | {self.subject.code} | "
-            f"{self.time_slot} | {self.teacher.get_full_name() or self.teacher.username}"
+            f"{self.classroom.name} | {subject_label} | "
+            f"{self.time_slot} | {teacher_label}"
         )
