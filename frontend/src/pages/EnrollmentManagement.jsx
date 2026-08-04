@@ -297,24 +297,38 @@ const EnrollmentManagement = () => {
   };
 
   const URL_DOC_FIELDS = [
-    { field: 'birth_certificate',         type: 'PSA Birth Certificate' },
-    { field: 'report_card',               type: 'Report Card' },
-    { field: 'form_138',                  type: 'Form 138 / Grade 6 Certificate' },
-    { field: 'certificate_of_completion', type: 'Certificate of Completion' },
-    { field: 'good_moral_certificate',    type: 'Good Moral Certificate' },
-    { field: 'id_picture',                type: 'ID Picture' },
-    { field: 'last_school_attended_cert', type: 'Last School Attended Certificate' },
+    { field: 'birth_certificate',         docType: 'birth_certificate',         type: 'PSA Birth Certificate' },
+    { field: 'report_card',               docType: 'report_card',               type: 'Report Card' },
+    { field: 'form_138',                  docType: 'form_138',                  type: 'Form 138 / Grade 6 Certificate' },
+    { field: 'certificate_of_completion', docType: 'certificate_of_completion', type: 'Certificate of Completion' },
+    { field: 'good_moral_certificate',    docType: 'good_moral',                type: 'Good Moral Certificate' },
+    { field: 'id_picture',                docType: 'id_picture',                type: 'ID Picture' },
+    { field: 'last_school_attended_cert', docType: 'last_school_attended',      type: 'Last School Attended Certificate' },
   ];
 
   const getAppDocs = (app) => {
     // Prefer EnrollmentDocument records (set after backfill on retrieve)
-    if (app?.documents && app.documents.length > 0) return app.documents;
+    if (app?.documents && app.documents.length > 0) {
+      const uploadedDocTypes = new Set(app.documents.map(d => d.document_type));
+      const missingDocs = URL_DOC_FIELDS
+        .filter(({ docType }) => !uploadedDocTypes.has(docType))
+        .map(({ field, type }) => ({
+          id: `missing-${field}`,
+          document_type_display: type,
+          file_url: null,
+          verification_status: 'missing',
+          verification_status_display: 'Not Uploaded',
+          _isMissing: true,
+        }));
+      return [...app.documents, ...missingDocs];
+    }
 
     // Fall back to URL fields (legacy / partial uploads)
     const urlDocs = URL_DOC_FIELDS
       .filter(({ field }) => app?.[field] && typeof app[field] === 'string' && app[field].length > 5)
-      .map(({ field, type }) => ({
+      .map(({ field, docType, type }) => ({
         id: `url-${field}`,
+        document_type: docType,
         document_type_display: type,
         file_url: app[field],
         verification_status: 'submitted',
@@ -322,10 +336,9 @@ const EnrollmentManagement = () => {
         _fromUrlField: true,
       }));
 
-    // Pad with "not uploaded" placeholders so admin sees a complete picture
-    const uploadedFieldSet = new Set(urlDocs.map(d => d.id));
+    const uploadedDocTypes = new Set(urlDocs.map(d => d.document_type));
     const missingDocs = URL_DOC_FIELDS
-      .filter(({ field }) => !uploadedFieldSet.has(`url-${field}`))
+      .filter(({ docType }) => !uploadedDocTypes.has(docType))
       .map(({ field, type }) => ({
         id: `missing-${field}`,
         document_type_display: type,

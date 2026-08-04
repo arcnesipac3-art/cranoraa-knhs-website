@@ -39,13 +39,13 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
   const status = app.status;
 
   const ALL_DOC_TYPES = [
-    { field: 'birth_certificate',        type: 'PSA Birth Certificate' },
-    { field: 'report_card',              type: 'Report Card' },
-    { field: 'form_138',                 type: 'Form 138 / Grade 6 Certificate' },
-    { field: 'certificate_of_completion',type: 'Certificate of Completion' },
-    { field: 'good_moral_certificate',   type: 'Good Moral Certificate' },
-    { field: 'id_picture',               type: 'ID Picture' },
-    { field: 'last_school_attended_cert',type: 'Last School Attended Certificate' },
+    { field: 'birth_certificate',         docType: 'birth_certificate',        type: 'PSA Birth Certificate' },
+    { field: 'report_card',               docType: 'report_card',              type: 'Report Card' },
+    { field: 'form_138',                  docType: 'form_138',                 type: 'Form 138 / Grade 6 Certificate' },
+    { field: 'certificate_of_completion', docType: 'certificate_of_completion',type: 'Certificate of Completion' },
+    { field: 'good_moral_certificate',    docType: 'good_moral',               type: 'Good Moral Certificate' },
+    { field: 'id_picture',               docType: 'id_picture',               type: 'ID Picture' },
+    { field: 'last_school_attended_cert', docType: 'last_school_attended',     type: 'Last School Attended Certificate' },
   ];
 
   // Build doc list: prefer EnrollmentDocument records, fall back to URL fields,
@@ -55,8 +55,9 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
     // fallback: synthesise from URL fields on the application object
     return ALL_DOC_TYPES
       .filter(({ field }) => app[field] && typeof app[field] === 'string' && app[field].length > 5)
-      .map(({ field, type }) => ({
+      .map(({ field, docType, type }) => ({
         id: `url-${field}`,
+        document_type: docType,
         document_type_display: type,
         file_url: app[field],
         verification_status: 'submitted',
@@ -65,10 +66,12 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
       }));
   })();
 
-  // For each expected doc type, if not in uploadedDocs add a "not uploaded" placeholder
-  const uploadedTypes = new Set(uploadedDocs.map(d => d.document_type || d.id));
+  // Build a set of document_type values already covered by uploadedDocs
+  // Uses docType (backend value) so the match is exact regardless of field name differences.
+  const uploadedDocTypes = new Set(uploadedDocs.map(d => d.document_type));
+
   const missingPlaceholders = ALL_DOC_TYPES
-    .filter(({ field }) => !uploadedTypes.has(field) && !uploadedTypes.has(`url-${field}`))
+    .filter(({ docType }) => !uploadedDocTypes.has(docType))
     .map(({ field, type }) => ({
       id: `missing-${field}`,
       document_type_display: type,
