@@ -26,24 +26,37 @@ def calculate_period_number(compliance_type, target_date=None):
     return 1
 
 
-def get_deadline(compliance_type, period_number, academic_year):
+def get_deadline(compliance_type, period_number, academic_year=None):
+    """
+    Calculate the deadline date for a given compliance type and period number.
+    academic_year is used to determine the correct calendar year.
+    """
+    # Determine which year to use
+    if academic_year and hasattr(academic_year, 'start_date') and academic_year.start_date:
+        base_year = academic_year.start_date.year
+    else:
+        base_year = date.today().year
+
     if compliance_type.frequency == 'weekly':
-        jan4 = date(academic_year.start_date.year, 1, 4)
+        jan4 = date(base_year, 1, 4)
         start_of_week1 = jan4 - timedelta(days=jan4.weekday())
         period_start = start_of_week1 + timedelta(weeks=period_number - 1)
-        return period_start + timedelta(days=4)
+        return period_start + timedelta(days=4)  # Friday
     elif compliance_type.frequency == 'monthly':
         try:
-            return date(academic_year.start_date.year, period_number, 15)
+            return date(base_year, period_number, compliance_type.deadline_day or 15)
         except ValueError:
-            return date(academic_year.start_date.year, period_number, 28)
+            return date(base_year, period_number, 28)
     elif compliance_type.frequency == 'quarterly':
         quarter_ends = {1: (8, 31), 2: (11, 30), 3: (5, 31)}
         m, d = quarter_ends.get(period_number, (5, 31))
-        return date(academic_year.start_date.year, m, d)
+        # If Q3 ends in May, use next year if base_year school year
+        return date(base_year, m, d)
     elif compliance_type.frequency == 'yearly':
-        return academic_year.end_date
-    return academic_year.end_date
+        if academic_year and hasattr(academic_year, 'end_date') and academic_year.end_date:
+            return academic_year.end_date
+        return date(base_year, 12, 31)
+    return date(base_year, 12, 31)
 
 
 def get_active_academic_year():
@@ -95,21 +108,31 @@ def ensure_teacher_submissions(teacher, academic_year=None, semester=None):
 
 
 def mark_overdue_submissions():
+    """
+    Mark draft/submitted compliance as overdue if past deadline.
+    Uses the academic year from each submission's record to compute the deadline.
+    """
     today = date.today()
     active_types = ComplianceType.objects.filter(is_active=True)
     marked = 0
 
     for ct in active_types:
-        deadline = get_deadline(ct, calculate_period_number(ct))
-        if today > deadline:
-            submissions = ComplianceSubmission.objects.filter(
-                compliance_type=ct,
-                status__in=['draft', 'submitted'],
-            ).exclude(
-                status='overdue'
-            )
-            count = submissions.update(status='overdue')
-            marked += count
+        period_num = calculate_period_number(ct)
+        # Get all drafts/submitted for this type
+        submissions = ComplianceSubmission.objects.filter(
+            compliance_type=ct,
+            status__in=['draft', 'submitted'],
+        ).select_related('academic_year')
+
+        for sub in submissions:
+            try:
+                deadline = get_deadline(ct, sub.period_number or period_num, sub.academic_year)
+            except Exception:
+                continue
+            if today > deadline:
+                sub.status = 'overdue'
+                sub.save(update_fields=['status', 'updated_at'])
+                marked += 1
 
     return marked
 

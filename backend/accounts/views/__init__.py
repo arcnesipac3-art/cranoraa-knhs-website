@@ -176,4 +176,5 @@ from .compliance import (
     my_compliance_status,
     check_overdue_submissions,
     sync_teacher_submissions,
+    trigger_compliance_reminders,
 )

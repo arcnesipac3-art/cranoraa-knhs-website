@@ -31,6 +31,7 @@ from .views import (
     ComplianceTypeViewSet, ComplianceSubmissionViewSet,
     compliance_dashboard, my_compliance_status,
     check_overdue_submissions, sync_teacher_submissions,
+    trigger_compliance_reminders,
 )
 from school_forms.views import SF2ViewSet
 
@@ -130,6 +131,7 @@ urlpatterns = [
     path('v1/compliance/dashboard/', compliance_dashboard, name='compliance_dashboard'),
     path('v1/compliance/my-status/', my_compliance_status, name='my_compliance_status'),
     path('v1/compliance/check-overdue/', check_overdue_submissions, name='check_overdue_submissions'),
+    path('v1/compliance/trigger-reminders/', trigger_compliance_reminders, name='trigger_compliance_reminders'),
     path('v1/compliance/sync/', sync_teacher_submissions, name='sync_teacher_submissions'),
     path('', include(router.urls)),
 ]

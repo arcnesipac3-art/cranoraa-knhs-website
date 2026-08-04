@@ -600,6 +600,120 @@ def check_overdue_submissions(request):
 
 @api_view(['POST'])
 @permission_classes([IsAdmin])
+def trigger_compliance_reminders(request):
+    """
+    Admin endpoint to manually trigger compliance reminders.
+    Same logic as the management command but runs synchronously.
+    """
+    from datetime import date, timedelta
+    from ..models.academic import ClassroomSubject
+    from ..models.compliance import ComplianceTypeSubjectAssignment
+    from ..models import Notification
+
+    dry_run = request.data.get('dry_run', False)
+    today = date.today()
+
+    academic_year = get_active_academic_year()
+    if not academic_year:
+        return Response({'error': 'No active academic year'}, status=400)
+
+    semester = get_active_semester()
+    all_types = list(ComplianceType.objects.filter(is_active=True))
+
+    assignments_map = {}
+    for sa in ComplianceTypeSubjectAssignment.objects.all():
+        assignments_map.setdefault(sa.compliance_type_id, []).append(sa.subject_id)
+
+    teachers = User.objects.filter(role='staff', is_active=True)
+    total_reminders = 0
+    total_overdue = 0
+
+    for teacher in teachers:
+        cs_assignments = ClassroomSubject.objects.filter(
+            teacher=teacher,
+            classroom__academic_year=academic_year,
+        ).select_related('subject', 'classroom')
+
+        if not cs_assignments.exists():
+            continue
+
+        overdue_items = []
+        reminder_items = []
+
+        for cs in cs_assignments:
+            subject_ids_for_type = {}
+            for ctype_id, sids in assignments_map.items():
+                subject_ids_for_type[ctype_id] = sids
+
+            for ctype in all_types:
+                type_subject_ids = assignments_map.get(ctype.id, [])
+                if type_subject_ids and cs.subject_id not in type_subject_ids:
+                    continue
+
+                period_num = calculate_period_number(ctype)
+                qs = ComplianceSubmission.objects.filter(
+                    teacher=teacher, compliance_type=ctype,
+                    classroom_subject=cs, period_number=period_num,
+                    academic_year=academic_year,
+                )
+                if semester:
+                    qs = qs.filter(semester=semester)
+                submission = qs.first()
+
+                if submission and submission.status in ('submitted', 'reviewed'):
+                    continue
+
+                try:
+                    deadline = get_deadline(ctype, period_num, academic_year)
+                except Exception:
+                    continue
+
+                days_until = (deadline - today).days
+                item = {'ctype': ctype, 'cs': cs, 'deadline': deadline, 'days_until': days_until}
+
+                if days_until < 0:
+                    overdue_items.append(item)
+                elif days_until <= 2:
+                    reminder_items.append(item)
+
+        if not dry_run:
+            if overdue_items:
+                items_str = ', '.join(
+                    f"{i['ctype'].name} ({i['cs'].subject.name})" for i in overdue_items[:3]
+                )
+                Notification.objects.create(
+                    recipient=teacher,
+                    notification_type='system',
+                    title='Compliance Overdue',
+                    message=f"You have {len(overdue_items)} overdue compliance(s): {items_str}. Submit immediately.",
+                    link='/my-compliance',
+                )
+                total_overdue += 1
+
+            if reminder_items:
+                items_str = ', '.join(
+                    f"{i['ctype'].name} ({i['cs'].subject.name}) in {i['days_until']}d"
+                    for i in reminder_items[:3]
+                )
+                Notification.objects.create(
+                    recipient=teacher,
+                    notification_type='system',
+                    title='Compliance Reminder',
+                    message=f"You have {len(reminder_items)} compliance(s) due soon: {items_str}.",
+                    link='/my-compliance',
+                )
+                total_reminders += 1
+
+    return Response({
+        'dry_run': dry_run,
+        'total_reminders_sent': total_reminders,
+        'total_overdue_alerts': total_overdue,
+        'message': f'{"[DRY RUN] " if dry_run else ""}Sent {total_reminders} reminders and {total_overdue} overdue alerts.',
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAdmin])
 def sync_teacher_submissions(request):
     teacher_id = request.data.get('teacher_id')
     if teacher_id:
