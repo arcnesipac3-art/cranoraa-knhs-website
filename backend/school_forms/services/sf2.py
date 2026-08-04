@@ -1,7 +1,10 @@
+import logging
 from datetime import date, timedelta, datetime
 from calendar import monthrange
 from django.db.models import Q, Count, Case, When, IntegerField, F
 from django.db.models.functions import TruncMonth
+
+logger = logging.getLogger(__name__)
 
 from accounts.models import (
     User, Profile, Classroom, StudentClassEnrollment,
@@ -35,6 +38,9 @@ class SF2DailyAttendanceReportService:
             'classroom__academic_year'
         )
 
+        logger.debug("SF2 filters: academic_year_id=%s, grade_level=%s, section=%s, adviser=%s",
+                     self.academic_year_id, self.grade_level, self.section, self.adviser)
+
         if self.academic_year_id:
             qs = qs.filter(classroom__academic_year_id=self.academic_year_id)
         elif AcademicYear.objects.filter(is_active=True).exists():
@@ -46,6 +52,14 @@ class SF2DailyAttendanceReportService:
             qs = qs.filter(classroom__name=self.section)
         if self.adviser:
             qs = qs.filter(classroom__teacher_id=self.adviser)
+
+        logger.debug("SF2 enrollment query count: %s", qs.count())
+        if qs.count() == 0:
+            logger.debug("SF2 classroom values: %s",
+                         list(Classroom.objects.filter(
+                             academic_year_id=self.academic_year_id,
+                             grade_level=self.grade_level
+                         ).values('id', 'name', 'grade_level')))
 
         self._queryset = qs
         return qs
