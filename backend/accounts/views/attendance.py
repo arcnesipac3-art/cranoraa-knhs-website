@@ -296,15 +296,14 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
 
         # Time window validation (admin bypasses)
+        # Teachers can mark from 15 min before period until end of school day
         if request.user.role != 'admin':
             now = timezone.localtime(timezone.now())
             today = now.date()
             if att_date == today and sch.time_slot:
                 slot_start = sch.time_slot.start_time
-                # Allow from 15 minutes before slot start
                 allowed_start_minutes = slot_start.hour * 60 + slot_start.minute - 15
                 current_minutes = now.hour * 60 + now.minute
-                # Allow until end of school day (configurable, default 17:00)
                 end_of_day_minutes = 17 * 60  # 5:00 PM
 
                 if current_minutes < allowed_start_minutes:
@@ -313,6 +312,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                         'early': True,
                         'allowed_at': slot_start.strftime('%I:%M %p'),
                     }, status=400)
+                # Warn but allow if after end of school day
+                if current_minutes > end_of_day_minutes:
+                    logger.info(f'Teacher {request.user.username} marking attendance after end of school day for {sch.classroom.name}')
             # Future dates: allow but flag in audit
             if att_date > today:
                 logger.info(f'Teacher {request.user.username} marking attendance for future date {att_date}')
