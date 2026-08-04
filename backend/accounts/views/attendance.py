@@ -539,6 +539,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         data = []
         for sch in schedules:
+            # Skip vacant slots (no subject assigned)
+            if not sch.subject_id:
+                continue
+
             student_count = enrollment_counts.get(sch.classroom_id, 0)
             # Merge schedule-based and classroom-based attendance
             sch_att = att_map.get(sch.id, {'total': 0, 'present': 0, 'absent': 0, 'late': 0})
@@ -556,8 +560,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 'classroom_id': sch.classroom_id,
                 'classroom_name': sch.classroom.name,
                 'subject_id': sch.subject_id,
-                'subject_name': sch.subject.name,
-                'subject_code': sch.subject.code,
+                'subject_name': sch.subject.name if sch.subject else None,
+                'subject_code': sch.subject.code if sch.subject else None,
                 'room': sch.room.name if sch.room else None,
                 'start_time': sch.time_slot.start_time.strftime('%I:%M %p'),
                 'end_time': sch.time_slot.end_time.strftime('%I:%M %p'),
