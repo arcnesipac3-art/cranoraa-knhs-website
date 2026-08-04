@@ -130,7 +130,6 @@ const StudentDashboard = () => {
       setGrades(results[0]?.data || []);
       setAttendance(results[1]?.data || []);
       setStats(results[2]?.data || {});
-      if (results[2]?.data?.latest_messages?.length) setMessages(results[2].data.latest_messages);
       setAssignments(Array.isArray(results[3]?.data) ? results[3].data : results[3]?.data?.results || []);
       setAnnouncements(Array.isArray(results[4]?.data) ? results[4].data : results[4]?.data?.results || []);
       setSchedule(results[5]?.data || []);
@@ -758,32 +757,39 @@ const StudentDashboard = () => {
                 ))}
               </div>
             ) : messages.length > 0 ? (
-              messages.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex gap-2.5 px-3 py-2.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 hover:border-violet-300 cursor-pointer transition-all"
-                  onClick={() => navigate('/communication-center')}
-                >
-                  <div className="w-9 h-9 rounded-md bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-extrabold shrink-0">
-                    {(m.sender || m.name || '?')[0].toUpperCase()}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex justify-between gap-2 mb-1">
-                      <p className="text-sm font-bold text-slate-900 truncate">
-                        {m.sender || m.name || 'Conversation'}
-                      </p>
-                      {(m.timestamp || m.last_message_at) && (
-                        <span className="text-xs text-slate-400 shrink-0">
-                          {new Date(m.timestamp || m.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
+              messages.map((m) => {
+                // Safely extract display fields from either a chat room or a raw message object
+                const displayName = typeof m.sender_name === 'string' ? m.sender_name
+                  : typeof m.name === 'string' ? m.name
+                  : typeof m.sender === 'string' ? m.sender
+                  : 'Conversation';
+                const displayInitial = displayName[0]?.toUpperCase() || '?';
+                const displayTime = m.last_message_at || m.timestamp || null;
+                const rawContent = m.last_message || m.content || '';
+                const displayContent = typeof rawContent === 'string' ? rawContent : 'No messages yet';
+                return (
+                  <div
+                    key={m.id}
+                    className="flex gap-2.5 px-3 py-2.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 hover:border-violet-300 cursor-pointer transition-all"
+                    onClick={() => navigate('/communication-center')}
+                  >
+                    <div className="w-9 h-9 rounded-md bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-extrabold shrink-0">
+                      {displayInitial}
                     </div>
-                    <p className="text-xs text-slate-500 line-clamp-1">
-                      {m.content || m.last_message || 'No messages yet'}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex justify-between gap-2 mb-1">
+                        <p className="text-sm font-bold text-slate-900 truncate">{displayName}</p>
+                        {displayTime && (
+                          <span className="text-xs text-slate-400 shrink-0">
+                            {new Date(displayTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 line-clamp-1">{displayContent}</p>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <EmptyState title="No Messages Yet" description="Start a conversation from the inbox" />
             )}
