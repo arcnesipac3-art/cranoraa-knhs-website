@@ -92,10 +92,14 @@ function ApplicationsTab({ refetch }) {
 
   const handleView = async (app) => {
     setSelected(app);
+    try {
+      const fresh = await api.get(`/enrollment-applications/${app.id}/`);
+      setSelected(fresh.data);
+    } catch {}
     if (app.status === 'pending') {
       try {
-        const res = await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
-        setSelected({ ...app, status: 'under_review' });
+        await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
+        setSelected(prev => prev ? { ...prev, status: 'under_review' } : null);
         refetch();
       } catch {}
     }
@@ -385,7 +389,7 @@ function ApplicationsTab({ refetch }) {
             {filtered.length === 0 ? (
               <div className="px-6 py-12 text-center text-sm text-slate-400 font-bold">No applications found</div>
             ) : filtered.map(app => (
-              <button key={app.id} onClick={() => setSelected(app)}
+              <button key={app.id} onClick={() => handleView(app)}
                 className="w-full text-left px-4 py-3 hover:bg-slate-50/50 transition-colors active:bg-slate-100">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
@@ -429,7 +433,7 @@ function ApplicationsTab({ refetch }) {
                   <tr key={app.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-3 py-3"><input type="checkbox" checked={selectedIds.includes(app.id)} onChange={() => { if (selectedIds.includes(app.id)) setSelectedIds(prev => prev.filter(x => x !== app.id)); else setSelectedIds(prev => [...prev, app.id]); }} className="w-4 h-4 text-violet-600 rounded" /></td>
                     <td className="px-3 py-3">
-                      <button onClick={() => setSelected(app)} className="text-left">
+                      <button onClick={() => handleView(app)} className="text-left">
                         <p className="text-sm font-bold text-slate-900">{app.last_name}, {app.first_name}</p>
                         <p className="text-[10px] text-slate-400">{app.email}</p>
                       </button>
