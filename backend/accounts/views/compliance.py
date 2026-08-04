@@ -458,11 +458,12 @@ def my_compliance_status(request):
             'summary': {'total': 0, 'submitted': 0, 'pending': 0, 'overdue': 0},
         })
 
-    # Get teacher's classroom subject assignments for this academic year
+    # Get teacher's classroom subject assignments
+    # NOTE: classroom.academic_year is nullable — filter by teacher only
     from ..models.academic import ClassroomSubject
     assignments = ClassroomSubject.objects.filter(
         teacher=user,
-        classroom__academic_year=academic_year,
+        teacher__is_active=True,
     ).select_related('subject', 'classroom').order_by(
         'classroom__name', 'subject__name'
     )
@@ -760,7 +761,7 @@ def trigger_compliance_reminders(request):
     for teacher in teachers:
         cs_assignments = ClassroomSubject.objects.filter(
             teacher=teacher,
-            classroom__academic_year=academic_year,
+            teacher__is_active=True,
         ).select_related('subject', 'classroom')
 
         if not cs_assignments.exists():

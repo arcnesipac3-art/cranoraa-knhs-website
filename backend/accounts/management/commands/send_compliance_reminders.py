@@ -99,7 +99,7 @@ class Command(BaseCommand):
         for teacher in teachers_qs:
             cs_list = ClassroomSubject.objects.filter(
                 teacher=teacher,
-                classroom__academic_year=academic_year,
+                teacher__is_active=True,
             ).select_related('subject', 'classroom')
 
             if not cs_list.exists():

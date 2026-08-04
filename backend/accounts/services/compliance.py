@@ -240,15 +240,20 @@ def get_compliance_stats(academic_year=None, semester=None, subject_id=None):
         })
 
     # ── Missing submissions ───────────────────────────────────────────────────
-    # Walk every teacher × classroom_subject × compliance_type for the current
-    # period and surface those with no accepted submission.
+    # Walk every active teacher × classroom_subject × compliance_type for the
+    # current period and surface those with no accepted submission.
+    # NOTE: We do NOT filter by classroom__academic_year here because that field
+    # is nullable and most classrooms may not have it set. Instead we consider
+    # all active ClassroomSubject records (teacher assigned to a subject/classroom)
+    # and check submissions against the active academic_year.
     all_types = list(ComplianceType.objects.filter(is_active=True))
     assignments_map = {}   # { compliance_type_id: [subject_id, ...] }
     for sa in ComplianceTypeSubjectAssignment.objects.all():
         assignments_map.setdefault(sa.compliance_type_id, []).append(sa.subject_id)
 
     cs_qs = ClassroomSubject.objects.filter(
-        classroom__academic_year=academic_year,
+        teacher__isnull=False,
+        teacher__is_active=True,
     ).select_related('subject', 'classroom', 'teacher')
     if subject_id:
         cs_qs = cs_qs.filter(subject_id=subject_id)
