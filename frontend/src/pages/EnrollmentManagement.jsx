@@ -85,15 +85,20 @@ const EnrollmentManagement = () => {
   };
 
   const handleView = async (app) => {
+    // Show the list data immediately so the panel opens without delay
     setSelected(app);
     setChecklist(app.checklist || null);
-    if (app.status === 'pending') {
-      try {
+
+    try {
+      if (app.status === 'pending') {
         await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
-        setSelected({ ...app, status: 'under_review' });
         refetch();
-      } catch { /* ignore */ }
-    }
+      }
+      // Always fetch the full detail so documents are backfilled and up-to-date
+      const res = await api.get(`/enrollment-applications/${app.id}/`);
+      setSelected(res.data);
+      setChecklist(res.data.checklist || null);
+    } catch { /* keep showing the list data on error */ }
   };
 
   const promptApproveApplication = async (id) => {

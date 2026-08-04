@@ -384,6 +384,68 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    # ── Document field → EnrollmentDocument.document_type mapping ─────────────
+    _DOC_FIELD_MAP = {
+        'birth_certificate':        'birth_certificate',
+        'report_card':              'report_card',
+        'form_138':                 'form_138',
+        'certificate_of_completion':'certificate_of_completion',
+        'good_moral_certificate':   'good_moral',
+        'id_picture':               'id_picture',
+        'last_school_attended_cert':'last_school_attended',
+    }
+
+    def _ensure_documents(self, application):
+        """
+        Backfill EnrollmentDocument records from URL fields on the application.
+        This silently creates any missing records so the detail view always has
+        a populated `documents` array, even for applications created before the
+        EnrollmentDocument model was introduced.
+        """
+        existing_types = set(
+            application.documents.values_list('document_type', flat=True)
+        )
+        created = []
+        for field_name, doc_type in self._DOC_FIELD_MAP.items():
+            if doc_type in existing_types:
+                continue
+            url = getattr(application, field_name, None)
+            if not url:
+                continue
+            try:
+                EnrollmentDocument.objects.create(
+                    application=application,
+                    document_type=doc_type,
+                    file_url=url,
+                    file_name=f'{doc_type}_{application.enrollment_number or application.pk}',
+                    verification_status='submitted',
+                )
+                created.append(doc_type)
+            except Exception as e:
+                logger.warning(
+                    'Could not backfill EnrollmentDocument %s for app %s: %s',
+                    doc_type, application.pk, e
+                )
+        if created:
+            logger.info(
+                'Backfilled %d EnrollmentDocument(s) for app %s: %s',
+                len(created), application.enrollment_number or application.pk, created
+            )
+
+    def retrieve(self, request, *args, **kwargs):
+        """Return full application detail, auto-backfilling any missing document records."""
+        instance = self.get_object()
+        self._ensure_documents(instance)
+        # Re-fetch with prefetch so the serializer sees the newly created documents
+        instance = (
+            EnrollmentApplication.objects
+            .select_related('enrolled_student', 'assigned_classroom', 'linked_parent', 'reviewed_by')
+            .prefetch_related('documents', 'status_history__changed_by')
+            .get(pk=instance.pk)
+        )
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['post'], url_path='start-review')
     def start_review(self, request, pk=None):
         """Move application to under_review status (triggered when admin opens a pending application)."""
