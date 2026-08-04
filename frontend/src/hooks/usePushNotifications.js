@@ -76,8 +76,19 @@ export function usePushNotifications() {
     if (!messaging) return null;
 
     try {
-      // Get the Workbox service worker registration (registered by vite-plugin-pwa)
-      const swRegistration = await navigator.serviceWorker.ready;
+      // Register firebase-messaging-sw.js as its own dedicated service worker.
+      // This is intentionally separate from the Workbox SW (sw.js) so that
+      // FCM background-message handling is decoupled from the PWA cache layer.
+      let swRegistration;
+      try {
+        swRegistration = await navigator.serviceWorker.register(
+          '/firebase-messaging-sw.js',
+          { scope: '/' }
+        );
+      } catch (swErr) {
+        console.error('FCM: failed to register firebase-messaging-sw.js:', swErr);
+        return null;
+      }
 
       const currentToken = await getToken(messaging, {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY || undefined,

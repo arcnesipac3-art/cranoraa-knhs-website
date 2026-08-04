@@ -7,31 +7,53 @@ import path from 'path';
 /**
  * Vite plugin that replaces __VITE_*__ placeholders in
  * firebase-messaging-sw.js with actual environment variable values.
- * This is needed because public/ files are copied as-is and don't
- * go through Vite's define/transform pipeline.
+ *
+ * Works in BOTH dev (configureServer) and production build (generateBundle)
+ * so the service worker always has real Firebase config regardless of mode.
  */
 function firebaseSwPlugin() {
+  function getReplacedContent() {
+    const swSrc = path.resolve(__dirname, 'public', 'firebase-messaging-sw.js');
+    if (!fs.existsSync(swSrc)) return null;
+
+    let content = fs.readFileSync(swSrc, 'utf-8');
+    const replacements = {
+      __VITE_FIREBASE_API_KEY__:              process.env.VITE_FIREBASE_API_KEY || '',
+      __VITE_FIREBASE_AUTH_DOMAIN__:          process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+      __VITE_FIREBASE_PROJECT_ID__:           process.env.VITE_FIREBASE_PROJECT_ID || '',
+      __VITE_FIREBASE_STORAGE_BUCKET__:       process.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+      __VITE_FIREBASE_MESSAGING_SENDER_ID__:  process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+      __VITE_FIREBASE_APP_ID__:               process.env.VITE_FIREBASE_APP_ID || '',
+    };
+    for (const [placeholder, value] of Object.entries(replacements)) {
+      content = content.replaceAll(placeholder, value);
+    }
+    return content;
+  }
+
   return {
     name: 'firebase-sw-replace',
     enforce: 'post',
+
+    // ── Dev server: serve the replaced file on-the-fly ──────────────────
+    configureServer(server) {
+      server.middlewares.use('/firebase-messaging-sw.js', (req, res) => {
+        const content = getReplacedContent();
+        if (!content) {
+          res.statusCode = 404;
+          res.end('Not found');
+          return;
+        }
+        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Service-Worker-Allowed', '/');
+        res.end(content);
+      });
+    },
+
+    // ── Production build: emit the replaced file as a build asset ───────
     generateBundle() {
-      const swSrc = path.resolve(__dirname, 'public', 'firebase-messaging-sw.js');
-      if (!fs.existsSync(swSrc)) return;
-
-      let content = fs.readFileSync(swSrc, 'utf-8');
-      const replacements = {
-        __VITE_FIREBASE_API_KEY__:              process.env.VITE_FIREBASE_API_KEY || '',
-        __VITE_FIREBASE_AUTH_DOMAIN__:          process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-        __VITE_FIREBASE_PROJECT_ID__:           process.env.VITE_FIREBASE_PROJECT_ID || '',
-        __VITE_FIREBASE_STORAGE_BUCKET__:       process.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-        __VITE_FIREBASE_MESSAGING_SENDER_ID__:  process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-        __VITE_FIREBASE_APP_ID__:               process.env.VITE_FIREBASE_APP_ID || '',
-      };
-
-      for (const [placeholder, value] of Object.entries(replacements)) {
-        content = content.replaceAll(placeholder, value);
-      }
-
+      const content = getReplacedContent();
+      if (!content) return;
       this.emitFile({
         type: 'asset',
         fileName: 'firebase-messaging-sw.js',
@@ -56,7 +78,6 @@ export default defineConfig(() => {
         manifest: false,
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-          importScripts: ['firebase-messaging-sw.js'],
 
           // ── Navigation Fallback ──────────────────────────────────────────
           // Serve index.html for all navigation requests not matched by
