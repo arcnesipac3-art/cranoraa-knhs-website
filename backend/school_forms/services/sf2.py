@@ -167,6 +167,7 @@ class SF2DailyAttendanceReportService:
                 'id': student.id,
                 'lrn': lrn,
                 'name': student_name,
+                'sex': profile.sex if profile else '',
                 'grade_level': enrollment.classroom.grade_level,
                 'section': enrollment.classroom.name,
                 'daily_attendance': daily_attendance,
