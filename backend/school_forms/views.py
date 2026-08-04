@@ -1,4 +1,5 @@
 import base64
+import logging
 from django.http import HttpResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -14,6 +15,8 @@ import school_forms.services.sf9 as sf9_service
 import school_forms.services.sf10 as sf10_service
 from school_forms.utils.pdf import generate_pdf_report
 from school_forms.utils.excel import generate_excel_report
+
+logger = logging.getLogger(__name__)
 
 
 class SchoolFormsViewSet(viewsets.ViewSet):
@@ -130,6 +133,7 @@ class SF2ViewSet(SchoolFormsViewSet):
             )
             return Response(result)
         except Exception as e:
+            logger.exception("SF2 list error: %s", e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['post'])
@@ -143,6 +147,7 @@ class SF2ViewSet(SchoolFormsViewSet):
             response['Content-Disposition'] = 'inline; filename="SF2_Attendance.pdf"'
             return response
         except Exception as e:
+            logger.exception("SF2 export_pdf error: %s", e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['post'])
@@ -156,6 +161,7 @@ class SF2ViewSet(SchoolFormsViewSet):
             response['Content-Disposition'] = 'inline; filename="SF2_Attendance.xlsx"'
             return response
         except Exception as e:
+            logger.exception("SF2 export_excel error: %s", e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
