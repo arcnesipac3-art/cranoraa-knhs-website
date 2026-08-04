@@ -283,7 +283,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'records array is required'}, status=400)
 
         try:
-            sch = Schedule.objects.select_related('classroom', 'subject').get(id=schedule_id)
+            sch = Schedule.objects.select_related('classroom', 'subject', 'time_slot').get(id=schedule_id)
         except Schedule.DoesNotExist:
             return Response({'error': 'Schedule not found'}, status=404)
 
@@ -294,6 +294,28 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             att_date = datetime.date.fromisoformat(date_str)
         except ValueError:
             return Response({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
+
+        # Time window validation (admin bypasses)
+        if request.user.role != 'admin':
+            now = timezone.localtime(timezone.now())
+            today = now.date()
+            if att_date == today and sch.time_slot:
+                slot_start = sch.time_slot.start_time
+                # Allow from 15 minutes before slot start
+                allowed_start_minutes = slot_start.hour * 60 + slot_start.minute - 15
+                current_minutes = now.hour * 60 + now.minute
+                # Allow until end of school day (configurable, default 17:00)
+                end_of_day_minutes = 17 * 60  # 5:00 PM
+
+                if current_minutes < allowed_start_minutes:
+                    return Response({
+                        'error': f'Attendance can only be marked starting 15 minutes before the period ({slot_start.strftime("%I:%M %p")})',
+                        'early': True,
+                        'allowed_at': slot_start.strftime('%I:%M %p'),
+                    }, status=400)
+            # Future dates: allow but flag in audit
+            if att_date > today:
+                logger.info(f'Teacher {request.user.username} marking attendance for future date {att_date}')
 
         created_count = 0
         updated_count = 0
@@ -439,7 +461,14 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         if request.user.role not in ['staff', 'admin']:
             return Response({'error': 'Unauthorized'}, status=403)
 
-        today = datetime.date.today()
+        date_str = request.query_params.get('date')
+        if date_str:
+            try:
+                today = datetime.date.fromisoformat(date_str)
+            except ValueError:
+                return Response({'error': 'Invalid date format'}, status=400)
+        else:
+            today = datetime.date.today()
 
         if today.weekday() in (5, 6):  # Saturday=5, Sunday=6
             return Response({
@@ -448,6 +477,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 'description': 'No classes on weekends',
                 'type': 'other',
                 'type_display': 'Weekend',
+                'date': today.isoformat(),
                 'classes': [],
             })
 
@@ -459,6 +489,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 'description': holiday.description,
                 'type': holiday.type,
                 'type_display': holiday.get_type_display(),
+                'date': today.isoformat(),
                 'classes': [],
             })
 
@@ -548,7 +579,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 'status': 'completed' if att['total'] >= student_count and student_count > 0 else 'pending',
             })
 
-        return Response(data)
+        return Response({
+            'date': today.isoformat(),
+            'classes': data,
+        })
 
     @action(detail=False, methods=['get'], url_path='admin-monitoring')
     def admin_monitoring(self, request):
@@ -716,29 +750,43 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='submit')
     def submit_attendance(self, request):
-        """Mark attendance records as submitted for a classroom+date."""
+        """Mark attendance records as submitted. Supports schedule-based or class-level."""
         if request.user.role not in ['staff', 'admin']:
             return Response({'error': 'Unauthorized'}, status=403)
 
         classroom_id = request.data.get('classroom_id')
+        schedule_id = request.data.get('schedule_id')
         date_str = request.data.get('date')
 
-        if not classroom_id or not date_str:
-            return Response({'error': 'classroom_id and date are required'}, status=400)
+        if not date_str:
+            return Response({'error': 'date is required'}, status=400)
+        if not classroom_id and not schedule_id:
+            return Response({'error': 'classroom_id or schedule_id is required'}, status=400)
 
         try:
             att_date = datetime.date.fromisoformat(date_str)
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=400)
 
-        updated = Attendance.objects.filter(
-            classroom_id=classroom_id,
-            date=att_date,
-            workflow_status='draft',
-        ).update(
-            workflow_status='submitted',
-            submitted_at=timezone.now(),
-        )
+        if schedule_id:
+            updated = Attendance.objects.filter(
+                schedule_id=schedule_id,
+                date=att_date,
+                workflow_status='draft',
+            ).update(
+                workflow_status='submitted',
+                submitted_at=timezone.now(),
+            )
+        else:
+            updated = Attendance.objects.filter(
+                classroom_id=classroom_id,
+                schedule__isnull=True,
+                date=att_date,
+                workflow_status='draft',
+            ).update(
+                workflow_status='submitted',
+                submitted_at=timezone.now(),
+            )
 
         AttendanceAuditLog.objects.create(
             user=request.user,
@@ -746,7 +794,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             classroom_id=classroom_id,
             date=att_date,
             description=f'Submitted {updated} attendance records',
-            metadata={'classroom_id': classroom_id, 'count': updated},
+            metadata={'classroom_id': classroom_id, 'schedule_id': schedule_id, 'count': updated},
         )
 
         return Response({'submitted': updated})
@@ -758,26 +806,41 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Unauthorized'}, status=403)
 
         classroom_id = request.data.get('classroom_id')
+        schedule_id = request.data.get('schedule_id')
         date_str = request.data.get('date')
         reason = request.data.get('reason', '')
 
-        if not classroom_id or not date_str:
-            return Response({'error': 'classroom_id and date are required'}, status=400)
+        if not date_str:
+            return Response({'error': 'date is required'}, status=400)
+        if not classroom_id and not schedule_id:
+            return Response({'error': 'classroom_id or schedule_id is required'}, status=400)
 
         try:
             att_date = datetime.date.fromisoformat(date_str)
         except ValueError:
             return Response({'error': 'Invalid date format'}, status=400)
 
-        updated = Attendance.objects.filter(
-            classroom_id=classroom_id,
-            date=att_date,
-            workflow_status__in=['submitted', 'locked'],
-        ).update(
-            workflow_status='draft',
-            submitted_at=None,
-            locked_at=None,
-        )
+        if schedule_id:
+            updated = Attendance.objects.filter(
+                schedule_id=schedule_id,
+                date=att_date,
+                workflow_status__in=['submitted', 'locked'],
+            ).update(
+                workflow_status='draft',
+                submitted_at=None,
+                locked_at=None,
+            )
+        else:
+            updated = Attendance.objects.filter(
+                classroom_id=classroom_id,
+                schedule__isnull=True,
+                date=att_date,
+                workflow_status__in=['submitted', 'locked'],
+            ).update(
+                workflow_status='draft',
+                submitted_at=None,
+                locked_at=None,
+            )
 
         AttendanceAuditLog.objects.create(
             user=request.user,
@@ -785,14 +848,14 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             classroom_id=classroom_id,
             date=att_date,
             description=f'Reopened {updated} attendance records. Reason: {reason}',
-            metadata={'classroom_id': classroom_id, 'count': updated, 'reason': reason},
+            metadata={'classroom_id': classroom_id, 'schedule_id': schedule_id, 'count': updated, 'reason': reason},
         )
 
         return Response({'reopened': updated})
 
     @action(detail=False, methods=['get'], url_path='student-history')
     def student_history(self, request):
-        """Student's own attendance history with stats."""
+        """Student's own attendance history with stats, optionally grouped by date for calendar view."""
         user = request.user
         if user.role == 'student':
             student_id = user.id
@@ -813,11 +876,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         date_from = request.query_params.get('date_from')
         date_to = request.query_params.get('date_to')
         month = request.query_params.get('month')
+        group_by_date = request.query_params.get('group_by_date', 'false').lower() == 'true'
 
-        qs = Attendance.objects.filter(student_id=student_id).select_related('classroom', 'subject')
+        qs = Attendance.objects.filter(student_id=student_id).select_related('classroom', 'subject', 'schedule', 'time_slot')
 
         if month:
-            # month is YYYY-MM format
             year, mon = month.split('-')
             qs = qs.filter(date__year=int(year), date__month=int(mon))
         elif date_from:
@@ -828,10 +891,30 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         records = list(qs.values(
             'id', 'date', 'status', 'remarks', 'classroom__name', 'subject__name',
             'subject__code', 'minutes_late', 'has_excuse', 'excuse_verified',
-            'workflow_status',
+            'workflow_status', 'schedule__id',
         ))
 
-        # Also fetch school calendar entries for the same period
+        # Enrich with time_slot info for schedule-based records
+        schedule_ids = [r['schedule__id'] for r in records if r.get('schedule__id')]
+        time_slot_map = {}
+        if schedule_ids:
+            for sch in Schedule.objects.filter(id__in=schedule_ids).select_related('time_slot'):
+                time_slot_map[sch.id] = {
+                    'start_time': sch.time_slot.start_time.strftime('%I:%M %p') if sch.time_slot else None,
+                    'end_time': sch.time_slot.end_time.strftime('%I:%M %p') if sch.time_slot else None,
+                    'day': sch.time_slot.day if sch.time_slot else None,
+                }
+
+        for rec in records:
+            sch_id = rec.get('schedule__id')
+            if sch_id and sch_id in time_slot_map:
+                rec['time_slot'] = time_slot_map[sch_id]
+            else:
+                rec['time_slot'] = None
+            # Rename schedule__id for frontend clarity
+            rec['schedule_id'] = rec.pop('schedule__id', None)
+
+        # Fetch school calendar entries
         cal_qs = SchoolCalendar.objects.all()
         if month:
             year, mon = month.split('-')
@@ -854,6 +937,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 'has_excuse': False,
                 'excuse_verified': False,
                 'workflow_status': None,
+                'schedule_id': None,
+                'time_slot': None,
                 'holiday_title': entry.title,
                 'holiday_type': entry.type,
                 'holiday_type_display': entry.get_type_display(),
@@ -861,7 +946,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             for entry in cal_qs
         ]
 
-        # Generate weekend (Saturday/Sunday) records for the same period
+        # Generate weekend records
         weekend_records = []
         if month:
             year, mon = month.split('-')
@@ -869,7 +954,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             num_days = cal_mod.monthrange(int(year), int(mon))[1]
             for day in range(1, num_days + 1):
                 d = datetime.date(int(year), int(mon), day)
-                if d.weekday() in (5, 6):  # Saturday=5, Sunday=6
+                if d.weekday() in (5, 6):
                     weekend_records.append({
                         'id': f'weekend-{d.isoformat()}',
                         'date': d.isoformat(),
@@ -882,12 +967,13 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                         'has_excuse': False,
                         'excuse_verified': False,
                         'workflow_status': None,
+                        'schedule_id': None,
+                        'time_slot': None,
                         'holiday_title': 'Weekend',
                         'holiday_type': 'other',
                         'holiday_type_display': 'Weekend',
                     })
 
-        # Merge holidays and weekends, exclude dates that already have holiday entries
         holiday_dates = {r['date'] for r in holiday_records}
         weekend_records = [r for r in weekend_records if r['date'] not in holiday_dates]
 
@@ -905,6 +991,51 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         total = stats['total']
         attended = (stats['present'] or 0) + (stats['late'] or 0) + (stats['excused'] or 0) + (stats['school_activity'] or 0) + (stats['medical_leave'] or 0)
         rate = round(attended / total * 100, 1) if total > 0 else 0
+
+        # Group by date for calendar view
+        if group_by_date:
+            from itertools import groupby as itertools_groupby
+            date_groups = {}
+            for rec in all_records:
+                d = rec['date'] if isinstance(rec['date'], str) else rec['date'].isoformat()
+                if d not in date_groups:
+                    date_groups[d] = {'date': d, 'homeroom': None, 'periods': [], 'is_holiday': False, 'holiday_info': None}
+                if rec['status'] == 'no_class':
+                    date_groups[d]['is_holiday'] = True
+                    date_groups[d]['holiday_info'] = {
+                        'title': rec.get('holiday_title'),
+                        'type': rec.get('holiday_type'),
+                        'type_display': rec.get('holiday_type_display'),
+                    }
+                elif rec.get('schedule_id') is None and rec.get('classroom__name'):
+                    # Class-level (homeroom) attendance
+                    if date_groups[d]['homeroom'] is None:
+                        date_groups[d]['homeroom'] = {
+                            'id': rec['id'], 'status': rec['status'], 'remarks': rec['remarks'],
+                            'classroom': rec['classroom__name'], 'minutes_late': rec['minutes_late'],
+                        }
+                    # If multiple homeroom records, keep first
+                elif rec.get('classroom__name'):
+                    # Schedule-based period attendance
+                    date_groups[d]['periods'].append({
+                        'id': rec['id'],
+                        'status': rec['status'],
+                        'remarks': rec['remarks'],
+                        'subject': rec['subject__name'],
+                        'subject_code': rec['subject__code'],
+                        'classroom': rec['classroom__name'],
+                        'schedule_id': rec.get('schedule_id'),
+                        'time_slot': rec.get('time_slot'),
+                        'minutes_late': rec['minutes_late'],
+                    })
+
+            grouped_list = sorted(date_groups.values(), key=lambda g: g['date'])
+            return Response({
+                'student_id': student_id,
+                'stats': {**stats, 'rate': rate},
+                'records': all_records,
+                'grouped_by_date': grouped_list,
+            })
 
         return Response({
             'student_id': student_id,

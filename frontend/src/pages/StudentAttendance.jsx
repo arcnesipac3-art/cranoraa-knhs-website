@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import {
@@ -7,13 +7,17 @@ import {
 } from '../components/ui';
 import {
   Calendar, ChevronLeft, ChevronRight, CheckCircle, XCircle,
-  Clock, ShieldCheck, TrendingUp
+  Clock, ShieldCheck, TrendingUp, BookOpen, AlertTriangle
 } from 'lucide-react';
 
 const StudentAttendance = () => {
   const [records, setRecords] = useState([]);
+  const [groupedRecords, setGroupedRecords] = useState([]);
+  const [stats, setStats] = useState({ present: 0, absent: 0, late: 0, excused: 0, total: 0, rate: 0 });
   const [loading, setLoading] = useState(true);
-  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [expandedDate, setExpandedDate] = useState(null);
+  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
 
   useEffect(() => {
     fetchAttendance();
@@ -22,8 +26,12 @@ const StudentAttendance = () => {
   const fetchAttendance = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/attendance/student-history/', { params: { month } });
+      const res = await api.get('/attendance/student-history/', {
+        params: { month, group_by_date: 'true' }
+      });
       setRecords(res.data.records || []);
+      setGroupedRecords(res.data.grouped_by_date || []);
+      setStats(res.data.stats || { present: 0, absent: 0, late: 0, excused: 0, total: 0, rate: 0 });
     } catch {
       toast.error('Failed to load attendance');
     } finally {
@@ -50,18 +58,12 @@ const StudentAttendance = () => {
 
   const statusIcon = (status) => {
     switch (status) {
-      case 'present':
-        return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'absent':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      case 'late':
-        return <Clock className="w-4 h-4 text-amber-500" />;
-      case 'excused':
-        return <ShieldCheck className="w-4 h-4 text-blue-500" />;
-      case 'no_class':
-        return <Calendar className="w-4 h-4 text-slate-400" />;
-      default:
-        return <span className="w-4 h-4 block" />;
+      case 'present': return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'absent': return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'late': return <Clock className="w-4 h-4 text-amber-500" />;
+      case 'excused': return <ShieldCheck className="w-4 h-4 text-blue-500" />;
+      case 'no_class': return <Calendar className="w-4 h-4 text-slate-400" />;
+      default: return <span className="w-4 h-4 block" />;
     }
   };
 
@@ -76,34 +78,58 @@ const StudentAttendance = () => {
     }
   };
 
-  // Separate holiday records from attendance records
-  const holidays = records.filter(r => r.status === 'no_class');
-  const attendanceRecords = records.filter(r => r.status !== 'no_class');
-
-  // Group by subject (attendance records only)
-  const grouped = attendanceRecords.reduce((acc, rec) => {
-    const key = rec.subject_name || 'General';
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(rec);
-    return acc;
-  }, {});
-
-  // Overall stats (attendance records only, exclude holidays)
-  const stats = {
-    present: attendanceRecords.filter(r => r.status === 'present').length,
-    absent: attendanceRecords.filter(r => r.status === 'absent').length,
-    late: attendanceRecords.filter(r => r.status === 'late').length,
-    excused: attendanceRecords.filter(r => r.status === 'excused').length,
-    total: attendanceRecords.length,
+  const getDayStatusSummary = (dayGroup) => {
+    if (dayGroup.is_holiday) return 'no_class';
+    const allPeriods = [...(dayGroup.homeroom ? [dayGroup.homeroom] : []), ...dayGroup.periods];
+    if (allPeriods.length === 0) return 'empty';
+    const statuses = allPeriods.map(p => p.status);
+    if (statuses.every(s => s === 'present')) return 'present';
+    if (statuses.some(s => s === 'absent')) return 'absent';
+    if (statuses.some(s => s === 'late')) return 'late';
+    if (statuses.some(s => s === 'excused')) return 'excused';
+    return 'present';
   };
-  const attendanceRate = stats.total > 0 ? Math.round(((stats.present + stats.late) / stats.total) * 100) : 0;
+
+  const calendarDays = useMemo(() => {
+    const [year, mon] = month.split('-').map(Number);
+    const firstDay = new Date(year, mon - 1, 1);
+    const lastDay = new Date(year, mon, 0);
+    const daysInMonth = lastDay.getDate();
+    const startPadding = firstDay.getDay(); // 0=Sun
+
+    const groupedMap = {};
+    groupedRecords.forEach(g => { groupedMap[g.date] = g; });
+
+    const days = [];
+    // Padding
+    for (let i = 0; i < startPadding; i++) {
+      days.push({ day: null, date: null, empty: true });
+    }
+    // Days
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateStr = `${year}-${String(mon).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      const group = groupedMap[dateStr];
+      days.push({
+        day: d,
+        date: dateStr,
+        empty: false,
+        group,
+        status: group ? getDayStatusSummary(group) : 'empty',
+      });
+    }
+    return days;
+  }, [month, groupedRecords]);
 
   const monthLabel = new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Skeleton.DashboardPage />
+      <div className="space-y-6">
+        <Skeleton.PageHeader />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton.AttendanceCard key={i} />)}
+        </div>
+        <Skeleton.Table rows={5} cols={4} />
       </div>
     );
   }
@@ -111,12 +137,28 @@ const StudentAttendance = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-slate-900">My Attendance</h1>
           <p className="text-sm text-slate-500 mt-1">{monthLabel}</p>
         </div>
         <div className="flex items-center gap-2">
+          {/* View toggle */}
+          <div className="flex border border-slate-200 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`px-3 py-1.5 text-xs font-semibold ${viewMode === 'calendar' ? 'bg-violet-100 text-violet-700' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              <Calendar className="w-3.5 h-3.5 inline mr-1" />
+              Calendar
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1.5 text-xs font-semibold ${viewMode === 'list' ? 'bg-violet-100 text-violet-700' : 'text-slate-500 hover:bg-slate-50'}`}
+            >
+              List
+            </button>
+          </div>
           <Button variant="ghost" size="sm" onClick={prevMonth}>
             <ChevronLeft className="w-4 h-4" />
           </Button>
@@ -135,7 +177,7 @@ const StudentAttendance = () => {
                 <CheckCircle className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-green-600">{stats.present}</p>
+                <p className="text-2xl font-bold text-green-600">{stats.present || 0}</p>
                 <p className="text-xs text-slate-500">Present</p>
               </div>
             </div>
@@ -149,7 +191,7 @@ const StudentAttendance = () => {
                 <XCircle className="w-5 h-5 text-red-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-red-600">{stats.absent}</p>
+                <p className="text-2xl font-bold text-red-600">{stats.absent || 0}</p>
                 <p className="text-xs text-slate-500">Absent</p>
               </div>
             </div>
@@ -163,7 +205,7 @@ const StudentAttendance = () => {
                 <Clock className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-amber-600">{stats.late}</p>
+                <p className="text-2xl font-bold text-amber-600">{stats.late || 0}</p>
                 <p className="text-xs text-slate-500">Late</p>
               </div>
             </div>
@@ -177,7 +219,7 @@ const StudentAttendance = () => {
                 <TrendingUp className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-blue-600">{attendanceRate}%</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.rate || 0}%</p>
                 <p className="text-xs text-slate-500">Attendance Rate</p>
               </div>
             </div>
@@ -185,97 +227,196 @@ const StudentAttendance = () => {
         </Card>
       </div>
 
-      {/* Attendance Records */}
-      {records.length === 0 ? (
-        <EmptyState
-          title="No Records"
-          description={`No attendance records found for ${monthLabel}`}
-          icon={<Calendar className="w-8 h-8" />}
-        />
-      ) : (
-        <>
-          {/* Holiday / No Class rows */}
-          {holidays.length > 0 && (
-            <Card>
-              <CardHeader divider>
-                <CardTitle>No Class Days</CardTitle>
-              </CardHeader>
-              <CardBody className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50 border-b-2 border-slate-200">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Type</th>
-                        <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Details</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-slate-100">
-                      {holidays.map((rec) => (
-                        <tr key={rec.id} className="hover:bg-slate-50 bg-slate-50/50">
-                          <td className="px-4 py-3 text-sm text-slate-900">
-                            {new Date(rec.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-500">{rec.holiday_type_display}</td>
-                          <td className="px-4 py-3 text-center">
-                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500">
-                              <Calendar className="w-4 h-4 text-slate-400" />
-                              No Class
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-500">
-                            <span className="font-medium text-slate-700">{rec.holiday_title}</span>
-                            {rec.remarks && <span className="ml-1 text-slate-400">— {rec.remarks}</span>}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardBody>
-            </Card>
-          )}
+      {/* Calendar View */}
+      {viewMode === 'calendar' && (
+        <Card>
+          <CardHeader divider>
+            <CardTitle>{monthLabel}</CardTitle>
+          </CardHeader>
+          <CardBody className="p-4">
+            {groupedRecords.length === 0 ? (
+              <EmptyState
+                title="No Records"
+                description={`No attendance records found for ${monthLabel}`}
+                icon={<Calendar className="w-8 h-8" />}
+              />
+            ) : (
+              <div className="grid grid-cols-7 gap-1">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                  <div key={day} className="text-center text-xs font-bold text-slate-500 uppercase py-2">
+                    {day}
+                  </div>
+                ))}
+                {calendarDays.map((item, idx) => {
+                  if (item.empty) return <div key={`empty-${idx}`} />;
+                  const isExpanded = expandedDate === item.date;
+                  const dayGroup = item.group;
+                  const dayStatusColor = {
+                    present: 'bg-green-50 border-green-200',
+                    absent: 'bg-red-50 border-red-200',
+                    late: 'bg-amber-50 border-amber-200',
+                    excused: 'bg-blue-50 border-blue-200',
+                    no_class: 'bg-slate-50 border-slate-200',
+                    empty: 'bg-white border-slate-100',
+                  }[item.status] || 'bg-white border-slate-100';
 
-          {/* Attendance by subject */}
-          {Object.entries(grouped).map(([subject, recs]) => (
-            <Card key={subject}>
-              <CardHeader divider>
-                <CardTitle>{subject}</CardTitle>
-              </CardHeader>
-              <CardBody className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-slate-50 border-b-2 border-slate-200">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Class</th>
-                        <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
-                        <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-slate-100">
-                      {recs.map((rec) => (
-                        <tr key={rec.id} className="hover:bg-slate-50">
-                          <td className="px-4 py-3 text-sm text-slate-900">
-                            {new Date(rec.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-600">{rec.schedule_name || '-'}</td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold ${statusColor(rec.status)}`}>
-                              {statusIcon(rec.status)}
-                              {rec.status?.replace('_', ' ')}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-sm text-slate-500 italic">{rec.remarks || '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
+                  return (
+                    <div key={item.date} className="relative">
+                      <button
+                        onClick={() => setExpandedDate(isExpanded ? null : item.date)}
+                        className={`w-full aspect-square p-1 rounded-lg border text-sm transition-all hover:shadow-sm ${dayStatusColor} ${
+                          isExpanded ? 'ring-2 ring-violet-400' : ''
+                        }`}
+                      >
+                        <span className="font-semibold text-slate-700">{item.day}</span>
+                        {dayGroup && !dayGroup.is_holiday && (
+                          <div className="flex justify-center gap-0.5 mt-0.5">
+                            {(dayGroup.homeroom ? [dayGroup.homeroom] : dayGroup.periods).slice(0, 3).map((p, i) => (
+                              <div
+                                key={i}
+                                className={`w-1.5 h-1.5 rounded-full ${
+                                  p.status === 'present' ? 'bg-green-500' :
+                                  p.status === 'absent' ? 'bg-red-500' :
+                                  p.status === 'late' ? 'bg-amber-500' :
+                                  p.status === 'excused' ? 'bg-blue-500' : 'bg-slate-300'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        )}
+                        {dayGroup?.is_holiday && (
+                          <div className="flex justify-center mt-0.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                          </div>
+                        )}
+                      </button>
+
+                      {/* Expanded Details */}
+                      {isExpanded && dayGroup && (
+                        <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-white border border-slate-200 rounded-lg shadow-lg p-3 min-w-[200px]">
+                          <p className="text-xs font-bold text-slate-700 mb-2">
+                            {new Date(item.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                          </p>
+                          {dayGroup.is_holiday ? (
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <Calendar className="w-4 h-4 text-slate-400" />
+                              <span>{dayGroup.holiday_info?.title || 'No Class'}</span>
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {dayGroup.homeroom && (
+                                <div className="flex items-center justify-between text-xs p-1.5 bg-slate-50 rounded">
+                                  <span className="text-slate-600 font-medium">Homeroom</span>
+                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusColor(dayGroup.homeroom.status)}`}>
+                                    {statusIcon(dayGroup.homeroom.status)}
+                                    {dayGroup.homeroom.status}
+                                  </span>
+                                </div>
+                              )}
+                              {dayGroup.periods.map((period, i) => (
+                                <div key={i} className="flex items-center justify-between text-xs p-1.5 bg-slate-50 rounded">
+                                  <div className="min-w-0">
+                                    <span className="font-medium text-slate-700">{period.subject}</span>
+                                    {period.time_slot && (
+                                      <span className="text-slate-400 ml-1">{period.time_slot.start_time}</span>
+                                    )}
+                                  </div>
+                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusColor(period.status)}`}>
+                                    {statusIcon(period.status)}
+                                    {period.status}
+                                  </span>
+                                </div>
+                              ))}
+                              {dayGroup.homeroom === null && dayGroup.periods.length === 0 && (
+                                <p className="text-xs text-slate-400 italic">No records</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardBody>
+        </Card>
+      )}
+
+      {/* List View */}
+      {viewMode === 'list' && (
+        <>
+          {groupedRecords.length === 0 ? (
+            <EmptyState
+              title="No Records"
+              description={`No attendance records found for ${monthLabel}`}
+              icon={<Calendar className="w-8 h-8" />}
+            />
+          ) : (
+            <div className="space-y-3">
+              {groupedRecords.map(dayGroup => {
+                const allPeriods = [...(dayGroup.homeroom ? [{ ...dayGroup.homeroom, subject: 'Homeroom' }] : []), ...dayGroup.periods];
+                const dayStatus = getDayStatusSummary(dayGroup);
+
+                return (
+                  <Card key={dayGroup.date}>
+                    <CardBody className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            dayGroup.is_holiday ? 'bg-slate-100' :
+                            dayStatus === 'present' ? 'bg-green-100' :
+                            dayStatus === 'absent' ? 'bg-red-100' :
+                            dayStatus === 'late' ? 'bg-amber-100' : 'bg-blue-100'
+                          }`}>
+                            {dayGroup.is_holiday ? (
+                              <Calendar className="w-5 h-5 text-slate-400" />
+                            ) : statusIcon(dayStatus)}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-900">
+                              {new Date(dayGroup.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                            </h4>
+                            {dayGroup.is_holiday && dayGroup.holiday_info && (
+                              <p className="text-xs text-slate-500">{dayGroup.holiday_info.title}</p>
+                            )}
+                          </div>
+                        </div>
+                        {!dayGroup.is_holiday && (
+                          <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${statusColor(dayStatus)}`}>
+                            {dayStatus === 'present' ? 'All Present' : dayStatus === 'absent' ? 'Has Absences' : dayStatus}
+                          </span>
+                        )}
+                      </div>
+
+                      {!dayGroup.is_holiday && allPeriods.length > 0 && (
+                        <div className="space-y-1.5">
+                          {allPeriods.map((period, i) => (
+                            <div key={i} className="flex items-center justify-between text-xs p-2 bg-slate-50 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <BookOpen className="w-3.5 h-3.5 text-slate-400" />
+                                <span className="font-medium text-slate-700">{period.subject}</span>
+                                {period.classroom && <span className="text-slate-400">— {period.classroom}</span>}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {period.time_slot && (
+                                  <span className="text-slate-400">{period.time_slot.start_time}</span>
+                                )}
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusColor(period.status)}`}>
+                                  {statusIcon(period.status)}
+                                  {period.status}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CardBody>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </>
       )}
     </div>

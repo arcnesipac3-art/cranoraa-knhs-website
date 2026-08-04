@@ -62,6 +62,8 @@ const ClassroomHub = () => {
   // Sync activeTab with ?view= URL param
   const isTeacher = user?.role === 'staff' || user?.role === 'admin';
   const viewParam = searchParams.get('view');
+  const scheduleParam = searchParams.get('schedule');
+  const dateParam = searchParams.get('date');
   const validTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'attendance-history'];
   const teacherTabs = ['stream', 'materials', 'people', 'grades', 'attendance', 'attendance-history', 'analytics'];
 
@@ -577,7 +579,16 @@ const ClassroomHub = () => {
             <AttendanceView
               classroom={selectedClass}
               isStudent={user?.role === 'student'}
+              isTeacher={isTeacher}
+              scheduleId={scheduleParam}
+              selectedDate={dateParam}
               onBack={() => handleTabChange('stream')}
+              onClearSchedule={() => {
+                const newParams = new URLSearchParams(searchParams);
+                newParams.delete('schedule');
+                newParams.delete('date');
+                setSearchParams(newParams);
+              }}
             />
           )}
 

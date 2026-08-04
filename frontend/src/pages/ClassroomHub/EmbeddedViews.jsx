@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
 import {
@@ -7,11 +8,12 @@ import {
 } from '../../components/ui';
 import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } from '../../components/ui/Modal';
 import {
-  ArrowLeft, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
+  ArrowLeft, ArrowRight, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
   Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare,
-  Send, Lock, Unlock, ChevronLeft, ChevronRight, Save
+  Send, Lock, Unlock, ChevronLeft, ChevronRight, Save, BookOpen
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
+import ScheduleAttendanceEntry from './ScheduleAttendanceEntry';
 
 // Grade Management View - Custom inline implementation with edit, delete, export
 export const GradeManagementView = ({ classroom, onBack, navigate }) => {
@@ -651,8 +653,175 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
   );
 };
 
-// Attendance View - Custom inline implementation
-export const AttendanceView = ({ classroom, onBack, isStudent }) => {
+// Attendance Schedule Selector - Shows teacher's scheduled periods for a classroom
+const AttendanceScheduleSelector = ({ classroom, onBack }) => {
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchSchedules();
+  }, [classroom.id, selectedDate]);
+
+  const fetchSchedules = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/attendance/teacher-dashboard/', { params: { date: selectedDate } });
+      if (!res.data.is_holiday) {
+        const classSchedules = (res.data.classes || []).filter(
+          c => c.classroom_id === classroom.id
+        );
+        setSchedules(classSchedules);
+      } else {
+        setSchedules([]);
+      }
+    } catch {
+      toast.error('Failed to load schedules');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const dateLabel = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric'
+  });
+
+  const goToPrevDay = () => {
+    const d = new Date(selectedDate + 'T00:00:00');
+    d.setDate(d.getDate() - 1);
+    setSelectedDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+  };
+
+  const goToNextDay = () => {
+    const d = new Date(selectedDate + 'T00:00:00');
+    d.setDate(d.getDate() + 1);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (d <= today) {
+      setSelectedDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <Button variant="ghost" size="sm" onClick={onBack}>
+          <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
+          <span className="hidden sm:inline">Back to Overview</span>
+        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={goToPrevDay}>
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={e => setSelectedDate(e.target.value)}
+            className="px-3 py-1.5 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+          />
+          <Button variant="ghost" size="sm" onClick={goToNextDay}>
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Schedule Info */}
+      <Card>
+        <CardHeader divider>
+          <CardTitle>My Scheduled Periods — {dateLabel}</CardTitle>
+        </CardHeader>
+        <CardBody className="p-4">
+          {loading ? (
+            <Skeleton.Table rows={3} cols={4} />
+          ) : schedules.length === 0 ? (
+            <EmptyState
+              title="No Periods Today"
+              description="You don't have any scheduled periods for this class on this date."
+              icon={<Calendar className="w-8 h-8" />}
+            />
+          ) : (
+            <div className="space-y-3">
+              {schedules.map((sch) => (
+                <div
+                  key={sch.schedule_id}
+                  className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:border-violet-300 hover:shadow-sm transition-all cursor-pointer"
+                  onClick={() => navigate(`/my-classes?classroom=${classroom.id}&view=attendance&schedule=${sch.schedule_id}&date=${selectedDate}`)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                      sch.status === 'completed' ? 'bg-green-100' : 'bg-amber-100'
+                    }`}>
+                      <BookOpen className={`w-5 h-5 ${sch.status === 'completed' ? 'text-green-600' : 'text-amber-600'}`} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-900">{sch.subject_name}</h4>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+                        <ClockIcon className="w-3.5 h-3.5" />
+                        <span>{sch.start_time} - {sch.end_time}</span>
+                        {sch.room && <span className="text-slate-400">| {sch.room}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right hidden sm:block">
+                      <p className="text-xs text-slate-500">{sch.recorded}/{sch.student_count} recorded</p>
+                      <div className="w-20 bg-slate-100 rounded-full h-1.5 mt-1">
+                        <div
+                          className={`h-full rounded-full transition-all ${
+                            sch.completion >= 100 ? 'bg-green-500' : sch.completion >= 75 ? 'bg-amber-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${sch.completion}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                      sch.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                    }`}>
+                      {sch.status === 'completed' ? 'Completed' : 'Pending'}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-slate-400" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardBody>
+      </Card>
+    </div>
+  );
+};
+
+// Attendance View - Supports both class-level (adviser) and schedule-based (subject teacher) modes
+export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, scheduleId, selectedDate: dateProp, onClearSchedule }) => {
+  // If a scheduleId is provided, render the schedule-based entry component
+  if (scheduleId && isTeacher) {
+    const attDate = dateProp || (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
+    return (
+      <ScheduleAttendanceEntry
+        scheduleId={scheduleId}
+        date={attDate}
+        classroom={classroom}
+        onBack={onClearSchedule || onBack}
+      />
+    );
+  }
+
+  // Schedule selector mode for teachers without a specific schedule
+  if (isTeacher && !isStudent) {
+    return (
+      <AttendanceScheduleSelector
+        classroom={classroom}
+        onBack={onBack}
+      />
+    );
+  }
+
+  // Original class-level attendance for students (read-only) and advisers
   const [students, setStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
   const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; })();
