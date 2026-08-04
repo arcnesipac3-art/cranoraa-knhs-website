@@ -302,9 +302,21 @@ const EnrollmentManagement = () => {
   ];
 
   const getAppDocs = (app) => {
+    // Debug logging
+    console.log('getAppDocs called with app:', app?.enrollment_number);
+    console.log('app.documents:', app?.documents);
+    console.log('documents type:', typeof app?.documents);
+    console.log('documents is undefined?', app?.documents === undefined);
+    console.log('documents length:', app?.documents?.length);
+    
     // If documents property exists (even if empty), use it - don't fall back to URL fields
-    if (app?.documents !== undefined) return app.documents;
+    if (app?.documents !== undefined) {
+      console.log('Using EnrollmentDocument records:', app.documents);
+      return app.documents;
+    }
+    
     // Only fall back to URL fields if documents property is missing/undefined
+    console.log('Falling back to URL fields');
     return URL_DOC_FIELDS
       .filter(({ field }) => app?.[field])
       .map(({ field, type }) => ({
