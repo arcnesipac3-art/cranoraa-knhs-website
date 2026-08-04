@@ -2,11 +2,15 @@ from rest_framework import viewsets, status, parsers, filters
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.db import transaction
 from django.db.models import Count, Q
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
-from ..models.compliance import ComplianceType, ComplianceSubmission, ComplianceFile, ComplianceComment
+from ..models.compliance import (
+    ComplianceType, ComplianceSubmission, ComplianceFile, ComplianceComment,
+    ComplianceTypeSubjectAssignment
+)
 from ..serializers.compliance import (
     ComplianceTypeSerializer,
     ComplianceSubmissionSerializer,
@@ -46,8 +50,38 @@ class ComplianceTypeViewSet(viewsets.ModelViewSet):
             qs = qs.filter(is_active=True)
         return qs
 
+    @transaction.atomic
     def perform_create(self, serializer):
-        serializer.save()
+        instance = serializer.save()
+        
+        # Handle subject assignments
+        assigned_subjects = self.request.data.get('assigned_subjects', [])
+        if assigned_subjects:
+            for subject_id in assigned_subjects:
+                ComplianceTypeSubjectAssignment.objects.create(
+                    compliance_type=instance,
+                    subject_id=subject_id,
+                )
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        
+        # Update subject assignments
+        assigned_subjects = self.request.data.get('assigned_subjects', [])
+        
+        # Clear existing assignments
+        ComplianceTypeSubjectAssignment.objects.filter(
+            compliance_type=instance
+        ).delete()
+        
+        # Create new assignments
+        if assigned_subjects:
+            for subject_id in assigned_subjects:
+                ComplianceTypeSubjectAssignment.objects.create(
+                    compliance_type=instance,
+                    subject_id=subject_id,
+                )
 
     def perform_destroy(self, instance):
         instance.is_active = False

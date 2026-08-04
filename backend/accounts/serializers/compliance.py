@@ -1,20 +1,34 @@
 from rest_framework import serializers
 from django.utils import timezone
 from ._base import full_name
-from ..models.compliance import ComplianceType, ComplianceSubmission, ComplianceFile, ComplianceComment
+from ..models.compliance import (
+    ComplianceType, ComplianceSubmission, ComplianceFile, ComplianceComment,
+    ComplianceTypeSubjectAssignment
+)
 
 
 class ComplianceTypeSerializer(serializers.ModelSerializer):
     frequency_display = serializers.CharField(source='get_frequency_display', read_only=True)
+    assigned_subjects = serializers.SerializerMethodField()
 
     class Meta:
         model = ComplianceType
         fields = [
             'id', 'name', 'slug', 'description', 'frequency', 'frequency_display',
             'deadline_day', 'max_file_size_mb', 'is_active', 'order',
-            'created_at', 'updated_at',
+            'assigned_subjects', 'created_at', 'updated_at',
         ]
         read_only_fields = ['created_at', 'updated_at']
+
+    def get_assigned_subjects(self, obj):
+        """Return list of subjects assigned to this compliance type."""
+        assignments = obj.subject_assignments.select_related('subject').all()
+        return [{
+            'id': assignment.subject.id,
+            'name': assignment.subject.name,
+            'code': assignment.subject.code,
+            'is_required': assignment.is_required,
+        } for assignment in assignments]
 
 
 class ComplianceFileSerializer(serializers.ModelSerializer):

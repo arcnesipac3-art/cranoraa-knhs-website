@@ -2,6 +2,38 @@ from django.db import models
 from django.conf import settings
 
 
+class ComplianceTypeSubjectAssignment(models.Model):
+    """
+    Links compliance types to specific subjects.
+    If a compliance type has no subject assignments, it applies to all teachers.
+    If it has subject assignments, it only applies to teachers teaching those subjects.
+    """
+    compliance_type = models.ForeignKey(
+        'ComplianceType',
+        on_delete=models.CASCADE,
+        related_name='subject_assignments'
+    )
+    subject = models.ForeignKey(
+        'Subject',
+        on_delete=models.CASCADE,
+        related_name='compliance_requirements'
+    )
+    is_required = models.BooleanField(
+        default=True,
+        help_text="Whether this compliance type is required for this subject"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['compliance_type', 'subject']
+        ordering = ['compliance_type', 'subject__name']
+        verbose_name = 'Compliance Type Subject Assignment'
+        verbose_name_plural = 'Compliance Type Subject Assignments'
+
+    def __str__(self):
+        return f"{self.compliance_type.name} → {self.subject.code}"
+
+
 class ComplianceType(models.Model):
     FREQUENCY_CHOICES = [
         ('weekly', 'Weekly'),
