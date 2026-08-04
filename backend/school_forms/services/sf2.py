@@ -49,7 +49,8 @@ class SF2DailyAttendanceReportService:
         if self.grade_level:
             qs = qs.filter(classroom__grade_level=self.grade_level)
         if self.section:
-            qs = qs.filter(classroom__name=self.section)
+            # Use icontains to match "STEM" in "Grade 12 - STEM"
+            qs = qs.filter(classroom__name__icontains=self.section)
         if self.adviser:
             qs = qs.filter(classroom__teacher_id=self.adviser)
 
