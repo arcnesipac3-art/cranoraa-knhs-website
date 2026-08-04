@@ -45,6 +45,7 @@ function firebaseSwPlugin() {
           return;
         }
         res.setHeader('Content-Type', 'application/javascript');
+        // Allow the SW to claim a scope broader than its own path
         res.setHeader('Service-Worker-Allowed', '/');
         res.end(content);
       });

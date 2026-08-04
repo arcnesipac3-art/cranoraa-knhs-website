@@ -76,15 +76,22 @@ export function usePushNotifications() {
     if (!messaging) return null;
 
     try {
-      // Register firebase-messaging-sw.js as its own dedicated service worker.
-      // This is intentionally separate from the Workbox SW (sw.js) so that
-      // FCM background-message handling is decoupled from the PWA cache layer.
+      // Register firebase-messaging-sw.js at a dedicated scope so it does NOT
+      // conflict with the Workbox PWA service worker (sw.js) which owns '/'.
+      // Firebase requires a SW at scope '/firebase-cloud-messaging-push-scope'
+      // when you pass a custom serviceWorkerRegistration.
       let swRegistration;
       try {
-        swRegistration = await navigator.serviceWorker.register(
-          '/firebase-messaging-sw.js',
-          { scope: '/' }
+        // Re-use an existing registration if already active to avoid installing twice
+        const existing = await navigator.serviceWorker.getRegistration(
+          '/firebase-cloud-messaging-push-scope'
         );
+        swRegistration = existing || await navigator.serviceWorker.register(
+          '/firebase-messaging-sw.js',
+          { scope: '/firebase-cloud-messaging-push-scope' }
+        );
+        // Wait for the SW to be active before requesting a token
+        await navigator.serviceWorker.ready;
       } catch (swErr) {
         console.error('FCM: failed to register firebase-messaging-sw.js:', swErr);
         return null;
