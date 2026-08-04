@@ -39,6 +39,21 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+# ── Audit helper ──────────────────────────────────────────────────────────────
+def _log_action(submission, user, action, details=None):
+    """Create a ComplianceAuditLog entry. Silently ignores errors."""
+    try:
+        from ..models.compliance import ComplianceAuditLog
+        ComplianceAuditLog.objects.create(
+            submission=submission,
+            user=user,
+            action=action,
+            details=details or {},
+        )
+    except Exception as exc:
+        logger.warning(f"[compliance audit] failed to log action={action}: {exc}")
+
+
 class ComplianceTypeViewSet(viewsets.ModelViewSet):
     serializer_class = ComplianceTypeSerializer
     permission_classes = [IsAuthenticated]
@@ -182,6 +197,9 @@ class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
             else:
                 logger.warning(f"File upload failed: {err}")
 
+        # Audit log
+        _log_action(submission, self.request.user, 'create')
+
     @action(detail=True, methods=['post'])
     def submit(self, request, pk=None):
         submission = self.get_object()
@@ -201,6 +219,8 @@ class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
         submission.status = 'submitted'
         submission.submitted_at = timezone.now()
         submission.save(update_fields=['status', 'submitted_at', 'updated_at'])
+
+        _log_action(submission, request.user, 'submit')
 
         from ..models import Notification
         admins = User.objects.filter(role='admin', is_active=True)
@@ -237,6 +257,9 @@ class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
         submission.reviewed_by = request.user
         submission.remarks = remarks
         submission.save(update_fields=['status', 'reviewed_at', 'reviewed_by', 'remarks', 'updated_at'])
+
+        action_name = 'approve' if new_status == 'reviewed' else 'reject'
+        _log_action(submission, request.user, action_name, {'remarks': remarks})
 
         from ..models import Notification
         teacher_name = submission.teacher.get_full_name() or submission.teacher.username
@@ -280,6 +303,9 @@ class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
             sub.remarks = remarks
             sub.save(update_fields=['status', 'reviewed_at', 'reviewed_by', 'remarks', 'updated_at'])
             reviewed_count += 1
+
+            action_name = 'approve' if new_status == 'reviewed' else 'reject'
+            _log_action(sub, request.user, action_name, {'remarks': remarks, 'bulk': True})
 
             from ..models import Notification
             status_word = 'approved' if new_status == 'reviewed' else 'rejected'

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useComplianceSubmissions } from '../../hooks/useCompliance';
 import { useFetch } from '../../hooks/useFetch';
+import api from '../../utils/api';
 import ComplianceStatusBadge from '../../components/compliance/ComplianceStatusBadge';
 import Modal, { ModalBody, ModalFooter, ModalField, modalTextareaCls, ModalBtnPrimary, ModalBtnSecondary } from '../../components/ui/Modal';
 import toast from 'react-hot-toast';
@@ -53,6 +54,8 @@ export default function ComplianceSubmissionsPage() {
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [showAudit, setShowAudit] = useState(false);
 
   const { submissions, loading, fetchSubmissions, reviewSubmission, bulkReview, fetchComments, addComment, deleteSubmission } = useComplianceSubmissions(filters);
   const { data: types }     = useFetch('/compliance/types/');
@@ -86,11 +89,17 @@ export default function ComplianceSubmissionsPage() {
     setReviewForm({ status: 'reviewed', remarks: '' });
     setComments([]);
     setNewComment('');
+    setAuditLogs([]);
+    setShowAudit(false);
     setShowReviewModal(true);
     setLoadingComments(true);
     try {
-      const data = await fetchComments(submission.id);
-      setComments(Array.isArray(data) ? data : []);
+      const [commentsData, auditData] = await Promise.all([
+        fetchComments(submission.id),
+        api.get(`/compliance/audit-trail/?submission_id=${submission.id}`).then(r => r.data?.results || []).catch(() => []),
+      ]);
+      setComments(Array.isArray(commentsData) ? commentsData : []);
+      setAuditLogs(auditData);
     } finally {
       setLoadingComments(false);
     }
@@ -691,6 +700,48 @@ export default function ComplianceSubmissionsPage() {
                     </button>
                   </div>
                 </div>
+                {/* Audit Trail */}
+                {auditLogs.length > 0 && (
+                  <div>
+                    <button
+                      onClick={() => setShowAudit(p => !p)}
+                      className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
+                    >
+                      <svg className={`w-3.5 h-3.5 transition-transform ${showAudit ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                      Audit Trail
+                      <span className="ml-1 text-violet-500 font-bold normal-case">{auditLogs.length}</span>
+                    </button>
+                    {showAudit && (
+                      <div className="mt-2 space-y-1.5 max-h-48 overflow-y-auto">
+                        {auditLogs.map(log => (
+                          <div key={log.id} className="flex items-start gap-2.5 px-3 py-2 bg-slate-50 rounded-lg border border-slate-100">
+                            <span className={`mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${
+                              log.action === 'approve' ? 'bg-emerald-500'
+                              : log.action === 'reject' ? 'bg-red-500'
+                              : log.action === 'submit' ? 'bg-blue-500'
+                              : log.action === 'create' ? 'bg-violet-500'
+                              : 'bg-slate-400'
+                            }`} />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-bold text-slate-700">{log.action_display}</span>
+                                <span className="text-[10px] text-slate-400 flex-shrink-0">
+                                  {new Date(log.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-500">by {log.user_name}</p>
+                              {log.details?.remarks && (
+                                <p className="text-[11px] text-slate-600 mt-0.5 italic">"{log.details.remarks}"</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </ModalBody>
 
