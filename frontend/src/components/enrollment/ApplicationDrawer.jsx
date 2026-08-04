@@ -51,7 +51,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
   const docs = (app.documents && app.documents.length > 0)
     ? app.documents
     : URL_DOC_FIELDS
-        .filter(({ field }) => app[field])
+        .filter(({ field }) => app[field] && typeof app[field] === 'string' && app[field].length > 5)
         .map(({ field, type }) => ({
           id: `url-${field}`,
           document_type_display: type,
