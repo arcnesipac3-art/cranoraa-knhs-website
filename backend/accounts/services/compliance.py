@@ -137,39 +137,47 @@ def mark_overdue_submissions():
     return marked
 
 
-def get_compliance_stats(academic_year=None, semester=None):
+def get_compliance_stats(academic_year=None, semester=None, subject_id=None):
+    from ..models.academic import ClassroomSubject
+    from ..models.compliance import ComplianceTypeSubjectAssignment
+
     if academic_year is None:
         academic_year = get_active_academic_year()
     if semester is None:
         semester = get_active_semester()
 
+    empty = {
+        'total_submissions': 0,
+        'reviewed_count': 0,
+        'pending_count': 0,
+        'overdue_count': 0,
+        'rejected_count': 0,
+        'compliance_rate': 0.0,
+        'by_type': [],
+        'by_teacher': [],
+        'by_subject': [],
+        'missing_submissions': [],
+    }
     if not academic_year:
-        return {
-            'total_submissions': 0,
-            'reviewed_count': 0,
-            'pending_count': 0,
-            'overdue_count': 0,
-            'rejected_count': 0,
-            'compliance_rate': 0.0,
-            'by_type': [],
-            'by_teacher': [],
-        }
+        return empty
 
-    base_qs = ComplianceSubmission.objects.filter(
-        academic_year=academic_year,
-    )
+    base_qs = ComplianceSubmission.objects.filter(academic_year=academic_year)
     if semester:
         base_qs = base_qs.filter(semester=semester)
+    if subject_id:
+        base_qs = base_qs.filter(classroom_subject__subject_id=subject_id)
 
-    total = base_qs.count()
+    total    = base_qs.count()
     reviewed = base_qs.filter(status='reviewed').count()
-    pending = base_qs.filter(status__in=['draft', 'submitted']).count()
-    overdue = base_qs.filter(status='overdue').count()
+    pending  = base_qs.filter(status__in=['draft', 'submitted']).count()
+    overdue  = base_qs.filter(status='overdue').count()
     rejected = base_qs.filter(status='rejected').count()
-    rate = (reviewed / total * 100) if total > 0 else 0.0
+    rate     = (reviewed / total * 100) if total > 0 else 0.0
 
+    # ── By type ───────────────────────────────────────────────────────────────
     by_type = list(
-        base_qs.values('compliance_type__name', 'compliance_type__frequency')
+        base_qs
+        .values('compliance_type__name', 'compliance_type__frequency')
         .annotate(
             total=Count('id'),
             reviewed_count=Count('id', filter=Q(status='reviewed')),
@@ -180,8 +188,10 @@ def get_compliance_stats(academic_year=None, semester=None):
         .order_by('compliance_type__name')
     )
 
+    # ── By teacher ────────────────────────────────────────────────────────────
     by_teacher = list(
-        base_qs.values('teacher__id', 'teacher__first_name', 'teacher__last_name', 'teacher__username')
+        base_qs
+        .values('teacher__id', 'teacher__first_name', 'teacher__last_name', 'teacher__username')
         .annotate(
             total=Count('id'),
             reviewed_count=Count('id', filter=Q(status='reviewed')),
@@ -190,19 +200,117 @@ def get_compliance_stats(academic_year=None, semester=None):
         )
         .order_by('teacher__last_name', 'teacher__first_name')
     )
-
     for item in by_teacher:
-        t_total = item['total']
-        t_reviewed = item['reviewed_count']
-        item['rate'] = round((t_reviewed / t_total * 100) if t_total > 0 else 0.0, 1)
+        t = item['total']
+        item['rate'] = round((item['reviewed_count'] / t * 100) if t > 0 else 0.0, 1)
+        item['teacher_name'] = (
+            f"{item['teacher__first_name']} {item['teacher__last_name']}".strip()
+            or item['teacher__username']
+        )
+
+    # ── By subject ────────────────────────────────────────────────────────────
+    by_subject_qs = (
+        base_qs
+        .exclude(classroom_subject__isnull=True)
+        .values(
+            'classroom_subject__subject__id',
+            'classroom_subject__subject__name',
+            'classroom_subject__subject__code',
+        )
+        .annotate(
+            total=Count('id'),
+            reviewed_count=Count('id', filter=Q(status='reviewed')),
+            pending_count=Count('id', filter=Q(status__in=['draft', 'submitted'])),
+            overdue_count=Count('id', filter=Q(status='overdue')),
+        )
+        .order_by('classroom_subject__subject__name')
+    )
+    by_subject = []
+    for item in by_subject_qs:
+        t = item['total']
+        by_subject.append({
+            'subject_id':   item['classroom_subject__subject__id'],
+            'subject_name': item['classroom_subject__subject__name'],
+            'subject_code': item['classroom_subject__subject__code'],
+            'total':          t,
+            'reviewed_count': item['reviewed_count'],
+            'pending_count':  item['pending_count'],
+            'overdue_count':  item['overdue_count'],
+            'rate': round((item['reviewed_count'] / t * 100) if t > 0 else 0.0, 1),
+        })
+
+    # ── Missing submissions ───────────────────────────────────────────────────
+    # Walk every teacher × classroom_subject × compliance_type for the current
+    # period and surface those with no accepted submission.
+    all_types = list(ComplianceType.objects.filter(is_active=True))
+    assignments_map = {}   # { compliance_type_id: [subject_id, ...] }
+    for sa in ComplianceTypeSubjectAssignment.objects.all():
+        assignments_map.setdefault(sa.compliance_type_id, []).append(sa.subject_id)
+
+    cs_qs = ClassroomSubject.objects.filter(
+        classroom__academic_year=academic_year,
+    ).select_related('subject', 'classroom', 'teacher')
+    if subject_id:
+        cs_qs = cs_qs.filter(subject_id=subject_id)
+
+    today = date.today()
+    missing = []
+    for cs in cs_qs:
+        if not cs.teacher_id:
+            continue
+        for ctype in all_types:
+            sids = assignments_map.get(ctype.id, [])
+            if sids and cs.subject_id not in sids:
+                continue
+
+            period_num = calculate_period_number(ctype)
+            sub_qs = ComplianceSubmission.objects.filter(
+                teacher_id=cs.teacher_id,
+                compliance_type=ctype,
+                classroom_subject=cs,
+                period_number=period_num,
+                academic_year=academic_year,
+            )
+            if semester:
+                sub_qs = sub_qs.filter(semester=semester)
+            sub = sub_qs.first()
+
+            if sub and sub.status in ('submitted', 'reviewed'):
+                continue
+
+            try:
+                deadline = get_deadline(ctype, period_num, academic_year)
+            except Exception:
+                deadline = None
+
+            days_overdue = (today - deadline).days if deadline and today > deadline else 0
+            missing.append({
+                'teacher_id':   cs.teacher_id,
+                'teacher_name': (
+                    cs.teacher.get_full_name().strip() or cs.teacher.username
+                    if cs.teacher else 'Unknown'
+                ),
+                'subject_name':   cs.subject.name,
+                'subject_code':   cs.subject.code,
+                'classroom_name': cs.classroom.name,
+                'compliance_type': ctype.name,
+                'current_status': sub.status if sub else 'not_started',
+                'deadline':       deadline.isoformat() if deadline else None,
+                'days_overdue':   days_overdue,
+            })
+
+    # Sort: most overdue first
+    missing.sort(key=lambda x: x['days_overdue'], reverse=True)
 
     return {
-        'total_submissions': total,
-        'reviewed_count': reviewed,
-        'pending_count': pending,
-        'overdue_count': overdue,
-        'rejected_count': rejected,
-        'compliance_rate': round(rate, 1),
-        'by_type': by_type,
-        'by_teacher': by_teacher,
+        'total_submissions':  total,
+        'reviewed_count':     reviewed,
+        'pending_count':      pending,
+        'overdue_count':      overdue,
+        'rejected_count':     rejected,
+        'compliance_rate':    round(rate, 1),
+        'by_type':            by_type,
+        'by_teacher':         by_teacher,
+        'by_subject':         by_subject,
+        'missing_submissions': missing[:50],  # cap at 50 rows
     }

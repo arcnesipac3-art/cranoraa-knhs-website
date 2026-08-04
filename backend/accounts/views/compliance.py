@@ -380,12 +380,13 @@ def compliance_dashboard(request):
         )
 
     academic_year_id = request.query_params.get('academic_year_id')
-    semester_id = request.query_params.get('semester_id')
+    semester_id      = request.query_params.get('semester_id')
+    subject_id       = request.query_params.get('subject_id')
 
     from ..models.infrastructure import AcademicYear, Semester
 
     academic_year = None
-    semester = None
+    semester      = None
 
     if academic_year_id:
         try:
@@ -403,7 +404,11 @@ def compliance_dashboard(request):
     if not semester:
         semester = get_active_semester()
 
-    stats = get_compliance_stats(academic_year=academic_year, semester=semester)
+    stats = get_compliance_stats(
+        academic_year=academic_year,
+        semester=semester,
+        subject_id=int(subject_id) if subject_id else None,
+    )
     return Response(stats)
 
 
