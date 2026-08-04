@@ -410,6 +410,11 @@ def compliance_dashboard(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def my_compliance_status(request):
+    """
+    Returns teacher's compliance status grouped by classroom subject assignment.
+    Each assignment (subject + classroom) lists applicable compliance types
+    and existing submissions for the current period.
+    """
     user = request.user
     academic_year = get_active_academic_year()
     semester = get_active_semester()
@@ -418,34 +423,168 @@ def my_compliance_status(request):
         return Response({
             'academic_year': None,
             'semester': None,
-            'types': [],
-            'submissions': [],
+            'assignments': [],
+            'summary': {'total': 0, 'submitted': 0, 'pending': 0, 'overdue': 0},
         })
 
-    submissions = ComplianceSubmission.objects.filter(
+    # Get teacher's classroom subject assignments for this academic year
+    from ..models.academic import ClassroomSubject
+    assignments = ClassroomSubject.objects.filter(
+        teacher=user,
+        classroom__academic_year=academic_year,
+    ).select_related('subject', 'classroom').order_by(
+        'classroom__name', 'subject__name'
+    )
+
+    # Get all active compliance types with their subject assignments
+    all_types = ComplianceType.objects.filter(is_active=True).prefetch_related(
+        'subject_assignments__subject'
+    )
+
+    # Get all teacher's submissions for this academic year
+    submissions_qs = ComplianceSubmission.objects.filter(
         teacher=user,
         academic_year=academic_year,
-    ).select_related('compliance_type').prefetch_related('files')
+    ).select_related(
+        'compliance_type', 'classroom_subject__subject', 'classroom_subject__classroom'
+    ).prefetch_related('files')
 
     if semester:
-        submissions = submissions.filter(semester=semester)
+        submissions_qs = submissions_qs.filter(semester=semester)
 
-    types = ComplianceType.objects.filter(is_active=True)
-    types_data = ComplianceTypeSerializer(types, many=True).data
-    submissions_data = ComplianceSubmissionSerializer(submissions, many=True).data
+    # Build a lookup: (compliance_type_id, classroom_subject_id) -> submission
+    submissions_map = {}
+    for sub in submissions_qs:
+        key = (sub.compliance_type_id, sub.classroom_subject_id)
+        # Keep the most recent per key
+        if key not in submissions_map or sub.created_at > submissions_map[key].created_at:
+            submissions_map[key] = sub
+
+    def get_applicable_types(subject):
+        """Return compliance types that apply to a subject (global + subject-specific)."""
+        applicable = []
+        for ctype in all_types:
+            subject_assignments = list(ctype.subject_assignments.all())
+            # No subject restrictions → applies to all
+            if not subject_assignments:
+                applicable.append(ctype)
+            # Has restrictions → check if this subject is included
+            elif any(sa.subject_id == subject.id for sa in subject_assignments):
+                applicable.append(ctype)
+        return applicable
+
+    def format_submission(sub):
+        if not sub:
+            return None
+        return {
+            'id': sub.id,
+            'status': sub.status,
+            'period_number': sub.period_number,
+            'submitted_at': sub.submitted_at.isoformat() if sub.submitted_at else None,
+            'reviewed_at': sub.reviewed_at.isoformat() if sub.reviewed_at else None,
+            'remarks': sub.remarks,
+            'file_count': sub.files.count(),
+            'files': [
+                {
+                    'id': f.id,
+                    'file_url': f.file_url,
+                    'original_filename': f.original_filename,
+                    'file_size_bytes': f.file_size_bytes,
+                    'uploaded_at': f.uploaded_at.isoformat(),
+                }
+                for f in sub.files.all()
+            ],
+        }
+
+    # Build grouped response
+    assignment_data = []
+    total_expected = 0
+    total_submitted = 0
+    total_pending = 0
+    total_overdue = 0
+
+    for assignment in assignments:
+        applicable_types = get_applicable_types(assignment.subject)
+        if not applicable_types:
+            continue
+
+        types_with_status = []
+        for ctype in applicable_types:
+            period_num = calculate_period_number(ctype)
+            sub = submissions_map.get((ctype.id, assignment.id))
+
+            # Also check for the current period specifically
+            if not sub:
+                sub = next(
+                    (v for (ct_id, cs_id), v in submissions_map.items()
+                     if ct_id == ctype.id and cs_id == assignment.id
+                     and v.period_number == period_num),
+                    None
+                )
+
+            total_expected += 1
+            if sub and sub.status in ('submitted', 'reviewed'):
+                total_submitted += 1
+            elif sub and sub.status == 'overdue':
+                total_overdue += 1
+            else:
+                total_pending += 1
+
+            # Collect all submissions history for this type+assignment
+            history = [
+                format_submission(v)
+                for (ct_id, cs_id), v in submissions_map.items()
+                if ct_id == ctype.id and cs_id == assignment.id
+            ]
+            history.sort(key=lambda x: x['id'] if x else 0, reverse=True)
+
+            types_with_status.append({
+                'id': ctype.id,
+                'name': ctype.name,
+                'slug': ctype.slug,
+                'description': ctype.description,
+                'frequency': ctype.frequency,
+                'deadline_day': ctype.deadline_day,
+                'max_file_size_mb': ctype.max_file_size_mb,
+                'current_period': period_num,
+                'latest_submission': format_submission(sub),
+                'submissions': history,
+                'can_submit': not sub or sub.status in ('reviewed', 'rejected'),
+            })
+
+        assignment_data.append({
+            'id': assignment.id,
+            'subject_id': assignment.subject.id,
+            'subject_name': assignment.subject.name,
+            'subject_code': assignment.subject.code,
+            'classroom_id': assignment.classroom.id,
+            'classroom_name': assignment.classroom.name,
+            'compliance_types': types_with_status,
+            'compliant_count': sum(
+                1 for t in types_with_status
+                if t['latest_submission'] and t['latest_submission']['status'] in ('submitted', 'reviewed')
+            ),
+            'total_count': len(types_with_status),
+        })
 
     return Response({
         'academic_year': {
             'id': academic_year.id,
             'name': academic_year.name,
-        } if academic_year else None,
+        },
         'semester': {
             'id': semester.id,
             'name': semester.name,
             'semester_type': semester.semester_type,
         } if semester else None,
-        'types': types_data,
-        'submissions': submissions_data,
+        'assignments': assignment_data,
+        'summary': {
+            'total': total_expected,
+            'submitted': total_submitted,
+            'pending': total_pending,
+            'overdue': total_overdue,
+            'rate': round(total_submitted / total_expected * 100, 1) if total_expected > 0 else 0,
+        },
     })
 
 
