@@ -5,11 +5,11 @@ from school_forms.views import (
 )
 
 router = DefaultRouter(trailing_slash=False)
-router.register(r'sf1', SF1ViewSet, basename='sf1')
-router.register(r'sf2', SF2ViewSet, basename='sf2')
-router.register(r'sf5', SF5ViewSet, basename='sf5')
-router.register(r'sf9', SF9ViewSet, basename='sf9')
-router.register(r'sf10', SF10ViewSet, basename='sf10')
+router.register(r'v1/sf1', SF1ViewSet, basename='sf1')
+router.register(r'v1/sf2', SF2ViewSet, basename='sf2')
+router.register(r'v1/sf5', SF5ViewSet, basename='sf5')
+router.register(r'v1/sf9', SF9ViewSet, basename='sf9')
+router.register(r'v1/sf10', SF10ViewSet, basename='sf10')
 
 urlpatterns = [
     path('', include(router.urls)),

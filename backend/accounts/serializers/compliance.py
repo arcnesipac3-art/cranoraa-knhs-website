@@ -62,12 +62,14 @@ class ComplianceSubmissionSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     is_editable = serializers.SerializerMethodField()
     file_count = serializers.SerializerMethodField()
+    classroom_subject_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = ComplianceSubmission
         fields = [
             'id', 'teacher', 'teacher_name', 'compliance_type', 'compliance_type_name',
-            'compliance_type_frequency', 'academic_year', 'semester', 'period_number',
+            'compliance_type_frequency', 'academic_year', 'semester', 'classroom_subject',
+            'classroom_subject_detail', 'period_number',
             'status', 'status_display', 'submitted_at', 'reviewed_at', 'reviewed_by',
             'remarks', 'files', 'comments', 'is_editable', 'file_count',
             'created_at', 'updated_at',
@@ -85,6 +87,19 @@ class ComplianceSubmissionSerializer(serializers.ModelSerializer):
 
     def get_file_count(self, obj):
         return obj.files.count()
+    
+    def get_classroom_subject_detail(self, obj):
+        """Return detailed classroom and subject information if linked."""
+        if obj.classroom_subject:
+            return {
+                'id': obj.classroom_subject.id,
+                'subject_id': obj.classroom_subject.subject.id,
+                'subject_name': obj.classroom_subject.subject.name,
+                'subject_code': obj.classroom_subject.subject.code,
+                'classroom_id': obj.classroom_subject.classroom.id,
+                'classroom_name': obj.classroom_subject.classroom.name,
+            }
+        return None
 
 
 class ComplianceSubmissionListSerializer(serializers.ModelSerializer):
@@ -94,12 +109,14 @@ class ComplianceSubmissionListSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     file_count = serializers.SerializerMethodField()
     files = ComplianceFileSerializer(many=True, read_only=True)
+    classroom_subject_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = ComplianceSubmission
         fields = [
             'id', 'teacher', 'teacher_name', 'compliance_type', 'compliance_type_name',
-            'compliance_type_frequency', 'academic_year', 'semester', 'period_number',
+            'compliance_type_frequency', 'academic_year', 'semester', 'classroom_subject',
+            'classroom_subject_detail', 'period_number',
             'status', 'status_display', 'submitted_at', 'file_count', 'files',
             'remarks', 'created_at',
         ]
@@ -109,6 +126,17 @@ class ComplianceSubmissionListSerializer(serializers.ModelSerializer):
 
     def get_file_count(self, obj):
         return obj.files.count()
+    
+    def get_classroom_subject_detail(self, obj):
+        """Return detailed classroom and subject information if linked."""
+        if obj.classroom_subject:
+            return {
+                'id': obj.classroom_subject.id,
+                'subject_name': obj.classroom_subject.subject.name,
+                'subject_code': obj.classroom_subject.subject.code,
+                'classroom_name': obj.classroom_subject.classroom.name,
+            }
+        return None
 
 
 class ComplianceReviewSerializer(serializers.Serializer):

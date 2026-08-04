@@ -113,7 +113,8 @@ class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         qs = ComplianceSubmission.objects.select_related(
-            'teacher', 'compliance_type', 'academic_year', 'semester', 'reviewed_by'
+            'teacher', 'compliance_type', 'academic_year', 'semester', 'reviewed_by',
+            'classroom_subject__subject', 'classroom_subject__classroom'
         ).prefetch_related('files', 'comments')
 
         if user.role == 'admin':
@@ -123,6 +124,8 @@ class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
             academic_year_id = self.request.query_params.get('academic_year_id')
             semester_id = self.request.query_params.get('semester_id')
             period_number = self.request.query_params.get('period_number')
+            subject_id = self.request.query_params.get('subject_id')
+            classroom_id = self.request.query_params.get('classroom_id')
 
             if teacher_id:
                 qs = qs.filter(teacher_id=teacher_id)
@@ -136,6 +139,10 @@ class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(semester_id=semester_id)
             if period_number:
                 qs = qs.filter(period_number=period_number)
+            if subject_id:
+                qs = qs.filter(classroom_subject__subject_id=subject_id)
+            if classroom_id:
+                qs = qs.filter(classroom_subject__classroom_id=classroom_id)
         else:
             qs = qs.filter(teacher=user)
 
@@ -147,6 +154,14 @@ class ComplianceSubmissionViewSet(viewsets.ModelViewSet):
         return ComplianceSubmissionSerializer
 
     def perform_create(self, serializer):
+        # Validate classroom_subject is provided for new submissions
+        classroom_subject_id = self.request.data.get('classroom_subject')
+        if not classroom_subject_id:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({
+                'classroom_subject': 'classroom_subject is required for new submissions. Please select a subject/classroom assignment.'
+            })
+        
         submission = serializer.save(teacher=self.request.user)
 
         files = self.request.FILES.getlist('files')

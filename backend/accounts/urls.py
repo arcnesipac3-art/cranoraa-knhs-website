@@ -32,6 +32,7 @@ from .views import (
     compliance_dashboard, my_compliance_status,
     check_overdue_submissions, sync_teacher_submissions,
 )
+from school_forms.views import SF2ViewSet
 
 app_name = 'accounts'
 
@@ -81,6 +82,7 @@ router.register(r'v1/grade-submissions', GradeSubmissionViewSet, basename='grade
 router.register(r'v1/grade-reopening-requests', GradeReopeningRequestViewSet, basename='grade-reopening-request')
 router.register(r'v1/compliance/types', ComplianceTypeViewSet, basename='compliance-type')
 router.register(r'v1/compliance/submissions', ComplianceSubmissionViewSet, basename='compliance-submission')
+router.register(r'v1/sf2', SF2ViewSet, basename='sf2')
 
 # NOTE: school_portal/urls.py mounts these under 'api/', so paths here should NOT include 'api/'.
 # Final URL = api/ + path below  e.g. api/v1/login/

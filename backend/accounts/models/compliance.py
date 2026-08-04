@@ -94,6 +94,14 @@ class ComplianceSubmission(models.Model):
         blank=True,
         related_name='compliance_submissions'
     )
+    classroom_subject = models.ForeignKey(
+        'ClassroomSubject',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='compliance_submissions',
+        help_text="Specific teaching assignment for this submission. Null = legacy global submission."
+    )
     period_number = models.PositiveIntegerField(
         help_text="Auto-calculated: week/month/term number"
     )
@@ -112,19 +120,25 @@ class ComplianceSubmission(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = [
-            'teacher', 'compliance_type', 'academic_year', 'semester', 'period_number'
+        # Remove old unique_together, use constraints instead for conditional uniqueness
+        constraints = [
+            models.UniqueConstraint(
+                fields=['teacher', 'compliance_type', 'academic_year', 'semester', 'period_number', 'classroom_subject'],
+                name='unique_submission_per_assignment'
+            ),
         ]
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['status', 'compliance_type']),
             models.Index(fields=['teacher', 'status']),
             models.Index(fields=['academic_year', 'semester']),
+            models.Index(fields=['classroom_subject']),
         ]
 
     def __str__(self):
         teacher_name = self.teacher.get_full_name() or self.teacher.username
-        return f"{teacher_name} - {self.compliance_type.name} (P{self.period_number})"
+        context = f" - {self.classroom_subject.subject.code} ({self.classroom_subject.classroom.name})" if self.classroom_subject else ""
+        return f"{teacher_name} - {self.compliance_type.name}{context} (P{self.period_number})"
 
 
 class ComplianceFile(models.Model):
