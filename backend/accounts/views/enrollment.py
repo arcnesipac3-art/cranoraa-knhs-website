@@ -20,7 +20,7 @@ from ..serializers import (
     EnrollmentWaitlistSerializer,
     full_name,
 )
-from ..permissions import IsAdmin
+from ..permissions import IsAdmin, IsAdminOrStaff
 from ..throttles import EnrollmentRateThrottle, TrackRateThrottle
 from ..utils import log_audit_action
 from ..storage import upload_file
@@ -108,7 +108,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                            'verify_document', 'reject_document', 'request_requirements',
                            'destroy', 'update', 'partial_update', 'bulk_action',
                            'approve_application', 'update_classroom_capacity', 'delete_application'):
-            return [IsAdmin()]
+            return [IsAdminOrStaff()]
         if self.action == 'track':
             return [AllowAny()]
         if self.action in ('list', 'retrieve', 'analytics', 'export_csv',
@@ -127,7 +127,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if not user.is_authenticated:
             return EnrollmentApplication.objects.none()
-        if user.role == 'admin' or user.is_staff:
+        if user.role in ('admin', 'staff') or user.is_staff:
             qs = EnrollmentApplication.objects.all()
             status_filter = self.request.query_params.get('status')
             if status_filter:

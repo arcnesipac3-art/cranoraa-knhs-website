@@ -4,8 +4,8 @@ import EnrollmentManagement from './EnrollmentManagement';
 import ClassManagement from './ClassManagement';
 
 const tabs = [
-  { id: 'student-enrollment', label: 'Student Enrollment', component: StudentEnrollment, roles: ['admin'] },
-  { id: 'applications', label: 'Applications', component: EnrollmentManagement, roles: ['admin'] },
+  { id: 'student-enrollment', label: 'Student Enrollment', component: StudentEnrollment, roles: ['admin', 'staff'] },
+  { id: 'applications', label: 'Applications', component: EnrollmentManagement, roles: ['admin', 'staff'] },
   { id: 'classrooms', label: 'Class Management', component: ClassManagement, roles: ['admin', 'staff'] },
 ];
 
