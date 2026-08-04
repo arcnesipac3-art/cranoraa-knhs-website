@@ -191,9 +191,12 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                         logger.info(f"  Upload OK for {field_name}: {url[:80]}...")
 
             if upload_errors:
-                return Response(
-                    {'error': 'Document upload failed. Please check your files and try again.', 'details': upload_errors},
-                    status=status.HTTP_400_BAD_REQUEST
+                # Log the errors but do NOT abort — save the application with
+                # whatever docs uploaded successfully. Admin can request missing
+                # docs later via the "Request Docs" workflow.
+                logger.warning(
+                    f"Partial upload errors on enrollment submission: {upload_errors}. "
+                    f"Application will be saved with {len(uploaded_urls)} doc(s)."
                 )
 
             data = request.data.copy()

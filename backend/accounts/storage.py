@@ -125,8 +125,23 @@ BUCKETS: dict[str, BucketConfig] = {
     'enrollment-docs': BucketConfig(
         name='enrollment-docs',
         max_bytes=10 * 1024 * 1024,    # 10 MB per document
-        allowed_mime=('application/pdf', 'image/jpeg', 'image/png', 'image/webp'),
-        allowed_ext=('.pdf', '.jpg', '.jpeg', '.png', '.webp'),
+        allowed_mime=(
+            'application/pdf',
+            'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+            # Word documents (students commonly submit requirements as .docx)
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            # Excel (for some school forms)
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            # Generic binary fallback for browsers that misreport MIME
+            'application/octet-stream',
+            'binary/octet-stream',
+        ),
+        allowed_ext=(
+            '.pdf', '.jpg', '.jpeg', '.png', '.webp', '.gif',
+            '.doc', '.docx', '.xls', '.xlsx',
+        ),
         env_var='SUPABASE_BUCKET_ENROLLMENT',
     ),
     'branding': BucketConfig(

@@ -38,28 +38,47 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
 
   const status = app.status;
 
-  const URL_DOC_FIELDS = [
-    { field: 'birth_certificate', type: 'PSA Birth Certificate' },
-    { field: 'report_card', type: 'Report Card' },
-    { field: 'form_138', type: 'Form 138 / Grade 6 Certificate' },
-    { field: 'certificate_of_completion', type: 'Certificate of Completion' },
-    { field: 'good_moral_certificate', type: 'Good Moral Certificate' },
-    { field: 'id_picture', type: 'ID Picture' },
-    { field: 'last_school_attended_cert', type: 'Last School Attended Certificate' },
+  const ALL_DOC_TYPES = [
+    { field: 'birth_certificate',        type: 'PSA Birth Certificate' },
+    { field: 'report_card',              type: 'Report Card' },
+    { field: 'form_138',                 type: 'Form 138 / Grade 6 Certificate' },
+    { field: 'certificate_of_completion',type: 'Certificate of Completion' },
+    { field: 'good_moral_certificate',   type: 'Good Moral Certificate' },
+    { field: 'id_picture',               type: 'ID Picture' },
+    { field: 'last_school_attended_cert',type: 'Last School Attended Certificate' },
   ];
 
-  const docs = (app.documents && app.documents.length > 0)
-    ? app.documents
-    : URL_DOC_FIELDS
-        .filter(({ field }) => app[field] && typeof app[field] === 'string' && app[field].length > 5)
-        .map(({ field, type }) => ({
-          id: `url-${field}`,
-          document_type_display: type,
-          file_url: app[field],
-          verification_status: 'submitted',
-          verification_status_display: 'Submitted',
-          _fromUrlField: true,
-        }));
+  // Build doc list: prefer EnrollmentDocument records, fall back to URL fields,
+  // then pad with "not uploaded" placeholders so admin can see what's missing.
+  const uploadedDocs = (() => {
+    if (app.documents && app.documents.length > 0) return app.documents;
+    // fallback: synthesise from URL fields on the application object
+    return ALL_DOC_TYPES
+      .filter(({ field }) => app[field] && typeof app[field] === 'string' && app[field].length > 5)
+      .map(({ field, type }) => ({
+        id: `url-${field}`,
+        document_type_display: type,
+        file_url: app[field],
+        verification_status: 'submitted',
+        verification_status_display: 'Submitted',
+        _fromUrlField: true,
+      }));
+  })();
+
+  // For each expected doc type, if not in uploadedDocs add a "not uploaded" placeholder
+  const uploadedTypes = new Set(uploadedDocs.map(d => d.document_type || d.id));
+  const missingPlaceholders = ALL_DOC_TYPES
+    .filter(({ field }) => !uploadedTypes.has(field) && !uploadedTypes.has(`url-${field}`))
+    .map(({ field, type }) => ({
+      id: `missing-${field}`,
+      document_type_display: type,
+      file_url: null,
+      verification_status: 'missing',
+      verification_status_display: 'Not Uploaded',
+      _isMissing: true,
+    }));
+
+  const docs = [...uploadedDocs, ...missingPlaceholders];
 
   const docsVerified = docs.every(d => d.verification_status === 'verified') ?? true;
   const docsTotal = docs.length || 0;
@@ -203,7 +222,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
               )}
               {docs.length > 0 ? (
                 docs.map(doc => (
-                  <div key={doc.id} className="bg-slate-50 p-3 rounded-xl">
+                <div key={doc.id} className={`p-3 rounded-xl ${doc._isMissing ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50'}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className={cn(
@@ -228,14 +247,16 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
                         </div>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        <a href={doc.file_url} target="_blank" rel="noreferrer"
-                          className="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="View document">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </a>
-                        {doc.verification_status !== 'verified' && onVerifyDoc && (
+                        {doc.file_url ? (
+                          <a href={doc.file_url} target="_blank" rel="noreferrer"
+                            className="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="View document">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </a>
+                        ) : null}
+                        {!doc._isMissing && doc.verification_status !== 'verified' && onVerifyDoc && (
                           <button onClick={() => onVerifyDoc(app.id, doc.id, 'verified')}
                             className="p-2 text-emerald-500 hover:bg-emerald-50 rounded-lg transition-colors" title="Verify">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -243,7 +264,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
                             </svg>
                           </button>
                         )}
-                        {doc.verification_status !== 'rejected' && onVerifyDoc && (
+                        {!doc._isMissing && doc.verification_status !== 'rejected' && onVerifyDoc && (
                           <button onClick={() => onVerifyDoc(app.id, doc.id, 'rejected')}
                             className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" title="Reject">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
