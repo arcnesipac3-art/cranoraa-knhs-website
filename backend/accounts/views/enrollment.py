@@ -280,49 +280,101 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def track(self, request):
+        number = request.query_params.get('number', '').strip()
+        email = request.query_params.get('email', '').strip()
+        if not number and not email:
+            return Response({'error': 'Provide enrollment number or email'}, status=400)
+
         try:
-            number = request.query_params.get('number', '').strip()
-            email = request.query_params.get('email', '').strip()
-            if not number and not email:
-                return Response({'error': 'Provide enrollment number or email'}, status=400)
-            qs = EnrollmentApplication.objects.all()
+            qs = EnrollmentApplication.objects.select_related(
+                'assigned_classroom', 'enrolled_student', 'linked_parent'
+            ).prefetch_related('documents', 'status_history')
+
             if number:
                 qs = qs.filter(enrollment_number__iexact=number)
             elif email:
                 qs = qs.filter(email__iexact=email)
-            app = qs.select_related('assigned_classroom').prefetch_related('documents', 'status_history').first()
-            if not app:
-                return Response({'error': 'No application found'}, status=404)
 
-            is_authed = request.user and request.user.is_authenticated
+            app = qs.first()
+            if not app:
+                return Response({'error': 'No application found with that enrollment number or email.'}, status=404)
+
+            is_authed = hasattr(request.user, 'is_authenticated') and request.user.is_authenticated
+
+            app_name = ''
+            try:
+                app_name = app.full_name
+            except Exception:
+                app_name = f"{app.first_name or ''} {app.last_name or ''}".strip()
 
             data = {
+                'id': app.id,
                 'enrollment_number': app.enrollment_number or '',
                 'status': app.status or '',
-                'full_name': app.full_name,
+                'full_name': app_name,
                 'grade_level': app.grade_level or '',
                 'strand': app.strand or '',
                 'submitted_at': app.submitted_at.isoformat() if app.submitted_at else None,
-                'assigned_classroom_name': app.assigned_classroom.name if app.assigned_classroom else None,
+                'assigned_classroom_name': getattr(app.assigned_classroom, 'name', None),
                 'remarks': app.remarks or '',
             }
+
             if is_authed:
+                enrolled_email = None
+                temp_pw = None
+                try:
+                    if app.enrolled_student:
+                        enrolled_email = app.enrolled_student.email
+                        if app.status == 'enrolled' and getattr(app.enrolled_student, 'must_change_password', False):
+                            temp_pw = app.temp_password_display
+                except Exception:
+                    pass
+
+                docs = []
+                for d in app.documents.all():
+                    try:
+                        docs.append({
+                            'id': d.id,
+                            'document_type': d.document_type,
+                            'document_type_display': d.get_document_type_display(),
+                            'file_url': d.file_url,
+                            'file_name': d.file_name or '',
+                            'verification_status': d.verification_status,
+                            'verification_status_display': d.get_verification_status_display(),
+                        })
+                    except Exception:
+                        continue
+
+                history = []
+                for h in app.status_history.all():
+                    try:
+                        history.append({
+                            'id': h.id,
+                            'from_status': h.from_status,
+                            'from_status_display': h.get_from_status_display() if h.from_status else None,
+                            'to_status': h.to_status,
+                            'to_status_display': h.get_to_status_display(),
+                            'notes': h.notes or '',
+                            'created_at': h.created_at.isoformat() if h.created_at else None,
+                        })
+                    except Exception:
+                        continue
+
                 data.update({
                     'lrn': app.lrn or '',
-                    'enrolled_student_email': app.enrolled_student.email if app.enrolled_student else None,
-                    'temp_password_display': app.temp_password_display if app.status == 'enrolled' and app.enrolled_student and app.enrolled_student.must_change_password else None,
-                    'documents': [{'id': d.id, 'document_type_display': d.get_document_type_display(),
-                                   'verification_status': d.verification_status,
-                                   'verification_status_display': d.get_verification_status_display()} for d in app.documents.all()],
-                    'status_history': [{'id': h.id, 'from_status_display': h.get_from_status_display() if h.from_status else None,
-                                        'to_status_display': h.get_to_status_display(), 'notes': h.notes or '',
-                                        'created_at': h.created_at.isoformat() if h.created_at else None} for h in app.status_history.all()],
+                    'enrolled_student_email': enrolled_email,
+                    'temp_password_display': temp_pw,
+                    'documents': docs,
+                    'status_history': history,
                 })
 
             return Response(data)
         except Exception as e:
-            logger.error(f"Enrollment track error: {str(e)}", exc_info=True)
-            return Response({'error': 'Unable to retrieve application. Please try again later.'}, status=500)
+            logger.error(f"Enrollment track error: {number or email} - {str(e)}", exc_info=True)
+            return Response(
+                {'error': 'Unable to retrieve application. Please try again later or contact the admissions office.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=True, methods=['post'], url_path='start-review')
     def start_review(self, request, pk=None):

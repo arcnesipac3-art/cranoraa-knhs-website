@@ -48,8 +48,12 @@ const EnrollmentTracking = () => {
       const res = await api.get(`/enrollment-applications/track/?${params}`);
       setData(res.data);
     } catch (err) {
-      if (err.response?.status === 404) setError('No application found. Please verify your enrollment number or email address.');
-      else setError('Unable to retrieve application. Please try again later or contact the admissions office.');
+      const msg = err.response?.data?.error;
+      if (err.response?.status === 404) setError(msg || 'No application found. Please verify your enrollment number or email address.');
+      else if (err.response?.status === 429) setError('Too many requests. Please wait a moment and try again.');
+      else if (err.response?.status >= 500) setError(msg || 'A server error occurred. Please try again later or contact the admissions office.');
+      else if (!err.response) setError('Network error. Please check your connection and try again.');
+      else setError(msg || 'Unable to retrieve application. Please try again later or contact the admissions office.');
     } finally { setLoading(false); }
   };
 
