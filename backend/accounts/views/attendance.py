@@ -510,36 +510,30 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         )
 
         # Schedule-based attendance counts
-        attendance_counts = dict(
-            Attendance.objects.filter(
-                schedule_id__in=schedule_ids,
-                date=today,
-            ).values('schedule_id')
-            .annotate(
-                total=Count('id'),
-                present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
-                absent=Count(Case(When(status='absent', then=1), output_field=IntegerField())),
-                late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
-            ).values_list('schedule_id', 'total', 'present', 'absent', 'late')
-        )
+        attendance_counts = Attendance.objects.filter(
+            schedule_id__in=schedule_ids,
+            date=today,
+        ).values('schedule_id').annotate(
+            total=Count('id'),
+            present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
+            absent=Count(Case(When(status='absent', then=1), output_field=IntegerField())),
+            late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
+        ).values_list('schedule_id', 'total', 'present', 'absent', 'late')
         att_map = {}
         for sid, total, present, absent, late in attendance_counts:
             att_map[sid] = {'total': total, 'present': present, 'absent': absent, 'late': late}
 
         # Classroom-based attendance counts (schedule=null)
-        classroom_att_counts = dict(
-            Attendance.objects.filter(
-                classroom_id__in=classroom_ids,
-                schedule__isnull=True,
-                date=today,
-            ).values('classroom_id')
-            .annotate(
-                total=Count('id'),
-                present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
-                absent=Count(Case(When(status='absent', then=1), output_field=IntegerField())),
-                late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
-            ).values_list('classroom_id', 'total', 'present', 'absent', 'late')
-        )
+        classroom_att_counts = Attendance.objects.filter(
+            classroom_id__in=classroom_ids,
+            schedule__isnull=True,
+            date=today,
+        ).values('classroom_id').annotate(
+            total=Count('id'),
+            present=Count(Case(When(status__in=['present', 'excused', 'school_activity', 'medical_leave'], then=1), output_field=IntegerField())),
+            absent=Count(Case(When(status='absent', then=1), output_field=IntegerField())),
+            late=Count(Case(When(status='late', then=1), output_field=IntegerField())),
+        ).values_list('classroom_id', 'total', 'present', 'absent', 'late')
         class_att_map = {}
         for cid, total, present, absent, late in classroom_att_counts:
             class_att_map[cid] = {'total': total, 'present': present, 'absent': absent, 'late': late}
