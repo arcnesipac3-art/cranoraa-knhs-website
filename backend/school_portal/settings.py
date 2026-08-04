@@ -268,6 +268,7 @@ REST_FRAMEWORK = {
         'public_read': '60/minute',   # public endpoints (announcements, login)
         'dashboard': '20/minute',     # heavy dashboard/stats endpoints
         'logout': '10/minute',        # logout (prevent token blacklist abuse)
+        'track': '30/minute',          # enrollment tracking (public)
     },
 }
 
