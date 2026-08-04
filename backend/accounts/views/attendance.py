@@ -449,6 +449,13 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='teacher-dashboard')
     def teacher_dashboard(self, request):
         """Teacher's daily attendance dashboard — shows today's classes with completion status."""
+        try:
+            return self._teacher_dashboard_inner(request)
+        except Exception as exc:
+            logger.exception('teacher_dashboard error: %s', exc)
+            return Response({'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def _teacher_dashboard_inner(self, request):
         if request.user.role not in ['staff', 'admin']:
             return Response({'error': 'Unauthorized'}, status=403)
 
