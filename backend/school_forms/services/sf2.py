@@ -251,7 +251,7 @@ class SF2DailyAttendanceReportService:
             'academic_years': list(AcademicYear.objects.filter(is_active=True).values('id', 'name')),
             'grade_levels': list(Classroom.objects.values_list('grade_level', flat=True).distinct().order_by('grade_level')),
             'sections': list(Classroom.objects.values_list('name', flat=True).distinct().order_by('name')),
-            'advisers': list(User.objects.filter(role='staff', classroom__isnull=False).distinct().values('id', 'first_name', 'last_name')),
+            'advisers': list(User.objects.filter(role='staff', teaching_classroom__isnull=False).distinct().values('id', 'first_name', 'last_name')),
         }
 
 
