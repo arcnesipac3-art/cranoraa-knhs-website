@@ -247,6 +247,15 @@ class SF2DailyAttendanceReportService:
         enrollments = self.get_queryset()
         if not enrollments.exists():
             warnings.append("No students found for the selected filters")
+            # Log at INFO level so it appears in logs
+            logger.info("SF2 validation: No enrollments found. Filters: ay=%s, grade=%s, section=%s, adviser=%s",
+                        self.academic_year_id, self.grade_level, self.section, self.adviser)
+            # Show available classrooms
+            classrooms = Classroom.objects.filter(
+                academic_year_id=self.academic_year_id,
+                grade_level=self.grade_level
+            ).values('id', 'name', 'grade_level')
+            logger.info("SF2 available classrooms: %s", list(classrooms))
 
         start_date, end_date = self.get_date_range()
         if not AcademicYear.objects.filter(is_active=True).exists():
