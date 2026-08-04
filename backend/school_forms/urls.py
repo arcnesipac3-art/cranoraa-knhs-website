@@ -4,7 +4,7 @@ from school_forms.views import (
     SF1ViewSet, SF2ViewSet, SF5ViewSet, SF9ViewSet, SF10ViewSet,
 )
 
-router = DefaultRouter(trailing_slash=False)
+router = DefaultRouter()
 router.register(r'v1/sf1', SF1ViewSet, basename='sf1')
 router.register(r'v1/sf2', SF2ViewSet, basename='sf2')
 router.register(r'v1/sf5', SF5ViewSet, basename='sf5')
