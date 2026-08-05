@@ -124,6 +124,55 @@ class GradingPeriodViewSet(viewsets.ModelViewSet):
         return Response(GradingPeriodSerializer(period).data)
 
     @action(detail=True, methods=['post'])
+    def unlock(self, request, pk=None):
+        if request.user.role != 'admin':
+            return Response({'error': 'Only admins can unlock grading periods'}, status=403)
+        period = self.get_object()
+        if period.status != 'locked':
+            return Response({'error': 'Only locked grading periods can be unlocked'}, status=400)
+        period.status = 'closed'
+        period.save(update_fields=['status'])
+        Grade.objects.filter(
+            classroom__academic_year=period.academic_year,
+            quarter=period.quarter,
+        ).update(is_locked=False)
+        log_audit_action(
+            user=request.user, action='grading_period_unlock',
+            model_name='GradingPeriod', object_id=period.id,
+            object_repr=str(period),
+            description=f'Unlocked grading period Q{period.quarter}',
+            request=request
+        )
+        return Response(GradingPeriodSerializer(period).data)
+
+    @action(detail=True, methods=['post'])
+    def delete_grades(self, request, pk=None):
+        if request.user.role != 'admin':
+            return Response({'error': 'Only admins can delete period grades'}, status=403)
+        period = self.get_object()
+        if period.status not in ('closed', 'locked'):
+            return Response({'error': 'Only closed or locked periods allow grade deletion'}, status=400)
+        grades_qs = Grade.objects.filter(
+            classroom__academic_year=period.academic_year,
+            quarter=period.quarter,
+        )
+        count = grades_qs.count()
+        if count == 0:
+            return Response({'error': 'No grades found for this period'}, status=400)
+        grades_qs.delete()
+        # Also unlock the period after deleting grades
+        period.status = 'closed'
+        period.save(update_fields=['status'])
+        log_audit_action(
+            user=request.user, action='grading_period_delete_grades',
+            model_name='GradingPeriod', object_id=period.id,
+            object_repr=str(period),
+            description=f'Deleted {count} grades for Q{period.quarter}',
+            request=request
+        )
+        return Response({'deleted': count, 'status': 'closed'})
+
+    @action(detail=True, methods=['post'])
     def extend_deadline(self, request, pk=None):
         if request.user.role != 'admin':
             return Response({'error': 'Only admins can extend deadlines'}, status=403)

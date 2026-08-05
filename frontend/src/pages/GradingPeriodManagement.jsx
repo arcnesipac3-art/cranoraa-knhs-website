@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import Swal from 'sweetalert2';
 import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
 import { useAcademicYear } from '../context/AcademicYearContext';
 import {
@@ -57,7 +58,7 @@ const CountdownTimer = ({ daysRemaining }) => {
   );
 };
 
-const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onExtend, onEdit }) => (
+const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onUnlock, onExtend, onEdit }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -148,6 +149,14 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onExtend, onEdit }
             Lock & Finalize Grades
           </Button>
         )}
+        {period.status === 'locked' && (
+          <Button size="sm" onClick={() => onUnlock(period.id)} className="bg-amber-600 hover:bg-amber-700 text-white">
+            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 13v-2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+            </svg>
+            Unlock Period
+          </Button>
+        )}
         <Button size="sm" variant="ghost" onClick={() => onEdit(period)} className="ml-auto">
           Edit
         </Button>
@@ -156,7 +165,7 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onExtend, onEdit }
   </motion.div>
 );
 
-const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYears, editingPeriod }) => {
+const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYears, editingPeriod, onUnlock, onDeleteGrades }) => {
   const activeYearObj = academicYears?.find(y => y.name === academicYear) || null;
   const [form, setForm] = useState({
     quarter: '1',
@@ -265,6 +274,62 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYear
               placeholder="e.g. Q1 grading for SY 2025-2026"
             />
           </FormField>
+
+          {editingPeriod && (editingPeriod.status === 'locked' || editingPeriod.status === 'closed') && (
+            <div className="border-t border-gray-200 pt-4 mt-4 space-y-3">
+              <p className="text-xs font-black text-red-500 uppercase tracking-widest">Danger Zone</p>
+              {editingPeriod.status === 'locked' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    Swal.fire({
+                      title: 'Unlock Period?',
+                      html: `This will unlock <strong>Q${editingPeriod.quarter}</strong> and allow teachers to edit grades again.`,
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonColor: '#d97706',
+                      confirmButtonText: 'Yes, Unlock',
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        onUnlock(editingPeriod.id);
+                        onClose();
+                      }
+                    });
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm font-medium hover:bg-amber-100 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 13v-2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                  </svg>
+                  Unlock Period — allow teachers to edit grades
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  Swal.fire({
+                    title: 'Delete All Grades?',
+                    html: `This will permanently delete <strong>all Q${editingPeriod.quarter} grades</strong> across every classroom for this school year. This action cannot be undone.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc2626',
+                    confirmButtonText: 'Yes, Delete All Grades',
+                  }).then((result) => {
+                    if (result.isConfirmed) {
+                      onDeleteGrades(editingPeriod.id);
+                      onClose();
+                    }
+                  });
+                }}
+                className="w-full flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete All Grades — remove all Q{editingPeriod.quarter} grades
+              </button>
+            </div>
+          )}
         </div>
       </ModalBody>
       <ModalFooter>
@@ -421,6 +486,26 @@ export default function GradingPeriodManagement() {
     }
   };
 
+  const handleUnlock = async (id) => {
+    try {
+      await api.post(`/grading-periods/${id}/unlock/`);
+      toast.success('Grading period unlocked');
+      fetchPeriods();
+    } catch {
+      toast.error('Failed to unlock grading period');
+    }
+  };
+
+  const handleDeleteGrades = async (id) => {
+    try {
+      const res = await api.post(`/grading-periods/${id}/delete_grades/`);
+      toast.success(`Deleted ${res.data.deleted} grades — period unlocked`);
+      fetchPeriods();
+    } catch {
+      toast.error('Failed to delete grades');
+    }
+  };
+
   const handleExtend = async (id, days) => {
     try {
       await api.post(`/grading-periods/${id}/extend_deadline/`, { days });
@@ -546,6 +631,7 @@ export default function GradingPeriodManagement() {
                 onOpen={handleOpen}
                 onClose={handleClose}
                 onLock={handleLock}
+                onUnlock={handleUnlock}
                 onExtend={(p) => { setExtendPeriod(p); setShowExtend(true); }}
                 onEdit={(p) => { setEditingPeriod(p); setShowCreate(true); }}
               />
@@ -561,6 +647,8 @@ export default function GradingPeriodManagement() {
         academicYear={academicYear}
         academicYears={academicYears}
         editingPeriod={editingPeriod}
+        onUnlock={handleUnlock}
+        onDeleteGrades={handleDeleteGrades}
       />
 
       <ExtendDeadlineModal
