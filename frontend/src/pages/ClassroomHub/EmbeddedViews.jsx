@@ -58,22 +58,13 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
   useEffect(() => {
     const fetchActiveSemesters = async () => {
       try {
-        const settingsRes = await api.get('/system/settings/');
-        const ay = settingsRes.data?.academic_year;
-        if (!ay) return;
-        const semRes = await api.get('/admin/semesters/', { params: { academic_year: ay } });
-        const semesters = Array.isArray(semRes.data) ? semRes.data : [];
-        const active = semesters
-          .filter(s => s.is_active)
-          .map(s => {
-            const t = (s.semester_type || '').toLowerCase();
-            if (t.startsWith('1st')) return 1;
-            if (t.startsWith('2nd')) return 2;
-            if (t.startsWith('3rd')) return 3;
-            return null;
-          })
+        const gpRes = await api.get('/grading-periods/');
+        const periods = Array.isArray(gpRes.data) ? gpRes.data : (gpRes.data?.results || []);
+        const active = periods
+          .filter(p => ['open', 'closing_soon'].includes(p.status))
+          .map(p => p.quarter)
           .filter(q => q !== null);
-        if (active.length > 0) setActiveQuarters(active);
+        if (active.length > 0) setActiveQuarters([...new Set(active)].sort());
       } catch {}
     };
     fetchActiveSemesters();

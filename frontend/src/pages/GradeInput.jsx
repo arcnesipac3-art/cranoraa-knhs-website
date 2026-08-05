@@ -58,27 +58,16 @@ const GradeInput = () => {
 
   const inputRefs = useRef({});
 
-  // Semester type → quarter number mapping
-  const semesterTypeToQuarter = (type) => {
-    if (!type) return null;
-    const t = type.toLowerCase();
-    if (t.startsWith('1st')) return 1;
-    if (t.startsWith('2nd')) return 2;
-    if (t.startsWith('3rd')) return 3;
-    return null;
-  };
-
-  // Fetch active semesters for current academic year
+  // Fetch active grading periods
   useEffect(() => {
-    if (!academicYear) return;
-    api.get('/admin/semesters/', { params: { academic_year: academicYear } })
+    api.get('/grading-periods/')
       .then(r => {
-        const semesters = Array.isArray(r.data) ? r.data : [];
-        const activeQuarters = semesters
-          .filter(s => s.is_active)
-          .map(s => semesterTypeToQuarter(s.semester_type))
+        const periods = Array.isArray(r.data) ? r.data : (r.data?.results || []);
+        const active = periods
+          .filter(p => ['open', 'closing_soon'].includes(p.status))
+          .map(p => p.quarter)
           .filter(q => q !== null);
-        setActiveSemesters(activeQuarters.length > 0 ? activeQuarters : allPeriodValues);
+        setActiveSemesters(active.length > 0 ? [...new Set(active)].sort() : allPeriodValues);
       })
       .catch(() => setActiveSemesters(allPeriodValues));
   }, [academicYear]);
@@ -263,17 +252,11 @@ const GradeInput = () => {
     // Check if grading period is open for this term (teachers only)
     if (user?.role === 'staff') {
       try {
-        const ayRes = await api.get('/admin/academic-years/');
-        const years = Array.isArray(ayRes.data) ? ayRes.data : [];
-        const activeYear = years.find(y => y.is_active);
-        if (activeYear) {
-          const semRes = await api.get('/admin/semesters/', { params: { academic_year: activeYear.id } });
-          const semesters = Array.isArray(semRes.data) ? semRes.data : [];
-          const quarterType = selQuarter === 1 ? '1st' : selQuarter === 2 ? '2nd' : '3rd';
-          const activeSemester = semesters.find(s => s.is_active && s.semester_type?.toLowerCase().startsWith(quarterType));
-          if (!activeSemester) {
-            return toast.error(`Term ${selQuarter} is not open. Contact your admin to open it.`);
-          }
+        const gpRes = await api.get('/grading-periods/', { params: { quarter: selQuarter } });
+        const periods = Array.isArray(gpRes.data) ? gpRes.data : (gpRes.data?.results || []);
+        const openPeriod = periods.find(p => ['open', 'closing_soon'].includes(p.status));
+        if (!openPeriod) {
+          return toast.error(`Term ${selQuarter} is not open. Contact your admin to open it.`);
         }
       } catch {}
     }

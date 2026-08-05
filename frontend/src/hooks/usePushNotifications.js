@@ -153,11 +153,21 @@ export function usePushNotifications() {
     setToken(null);
   }, [token]);
 
-  // Request notification permission
+  // Request notification permission.
+  // IMPORTANT: On mobile Chrome, Notification.requestPermission() must be
+  // called directly from a user gesture. Wrapping it in extra async/await
+  // layers can break the gesture context, causing the prompt to silently fail.
   const requestPermission = useCallback(async () => {
     if (typeof Notification === 'undefined') return 'denied';
 
-    const result = await Notification.requestPermission();
+    let result;
+    try {
+      result = await Notification.requestPermission();
+    } catch (err) {
+      console.error('FCM: requestPermission failed:', err);
+      result = 'denied';
+    }
+
     setPermission(result);
 
     if (result === 'granted') {
