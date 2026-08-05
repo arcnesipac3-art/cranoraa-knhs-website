@@ -1612,7 +1612,7 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, activePeriod, onN
         </CardHeader>
         <CardBody className="p-3">
           {gradesLoading ? (
-            <Skeleton.Table rows={5} cols={5} />
+            <Skeleton.Table rows={5} cols={5} hasAvatar={false} />
           ) : subjects.length === 0 ? (
             <EmptyState title="No grades yet" description="Your teacher hasn't posted grades yet." />
           ) : (
@@ -2398,7 +2398,7 @@ const GradeInputView = ({ classroom, onBack }) => {
 
           {/* Grade Table */}
           {loading ? (
-            <Skeleton.Table rows={5} cols={5} />
+            <Skeleton.Table rows={5} cols={4} />
           ) : !selectedSubject ? (
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />

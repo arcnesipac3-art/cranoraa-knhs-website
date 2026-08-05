@@ -136,7 +136,7 @@ export const protectedRoutes = [
 
   // Grade Management Module
   { path: 'grade-management', element: GradeManagementAdmin, roles: [Role.ADMIN] },
-  { path: 'grade-management-admin', element: GradeManagementAdmin, roles: [Role.ADMIN] },
+  { path: 'grade-management-admin', element: GradeManagementAdmin, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'teacher-grade-dashboard', element: TeacherGradeDashboard, roles: [Role.STAFF] },
 
   // Attendance Management

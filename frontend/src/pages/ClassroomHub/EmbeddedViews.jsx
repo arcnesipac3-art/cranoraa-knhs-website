@@ -529,7 +529,7 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
           {/* Grades Table */}
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <Skeleton.Table rows={5} cols={6} />
+              <Skeleton.Table rows={5} cols={7} />
             </div>
           ) : !selectedSubject ? (
             <div className="text-center py-12">
@@ -756,7 +756,9 @@ const AttendanceScheduleSelector = ({ classroom, onBack }) => {
         </CardHeader>
         <CardBody className="p-4">
           {loading ? (
-            <Skeleton.Table rows={3} cols={4} />
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton.ListItem key={i} />)}
+            </div>
           ) : schedules.length === 0 ? (
             <EmptyState
               title="No Periods Today"
@@ -1611,7 +1613,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
 
       {/* Attendance Tables - separated by sex */}
       {loading ? (
-        <div className="flex items-center justify-center h-40"><Skeleton.Table rows={5} cols={4} /></div>
+        <div className="flex items-center justify-center h-40"><Skeleton.Table rows={5} cols={5} /></div>
       ) : filteredList.length === 0 ? (
         <Card>
           <CardBody>

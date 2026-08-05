@@ -270,7 +270,7 @@ export const QuizManagementView = ({ classroom }) => {
                           <Trophy className="w-3 h-3" /> Student Results
                         </h4>
                         {loadingResults ? (
-                          <div className="flex justify-center py-4"><Skeleton.Table rows={5} cols={4} /></div>
+                          <div className="flex justify-center py-4"><Skeleton.Table rows={5} cols={4} hasAvatar={false} /></div>
                         ) : !quizResults || quizResults.length === 0 ? (
                           <p className="text-[10px] text-slate-400 py-2">No attempts yet</p>
                         ) : (
