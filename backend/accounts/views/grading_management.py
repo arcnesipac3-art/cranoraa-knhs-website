@@ -409,14 +409,18 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
         if request.user.role != 'staff':
             return Response({'error': 'This endpoint is for teachers only'}, status=403)
 
+        from ..models import SystemSetting
+        sys_ay = SystemSetting.get_settings().academic_year
+        ay_filter = {'academic_year__name': sys_ay} if sys_ay else {'academic_year__is_active': True}
+
         active_period = GradingPeriod.objects.filter(
-            academic_year__is_active=True,
+            **ay_filter,
             status__in=['open', 'closing_soon'],
         ).select_related('academic_year').first()
 
         # Use the most recent period of any status as a fallback for get_or_create
         any_period = GradingPeriod.objects.filter(
-            academic_year__is_active=True,
+            **ay_filter,
         ).select_related('academic_year').order_by('-quarter').first()
 
         teacher_classes = ClassroomSubject.objects.filter(
@@ -506,8 +510,12 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
         if request.user.role != 'admin':
             return Response({'error': 'Only admins can view monitoring'}, status=403)
 
+        from ..models import SystemSetting
+        sys_ay = SystemSetting.get_settings().academic_year
+        ay_filter = {'academic_year__name': sys_ay} if sys_ay else {'academic_year__is_active': True}
+
         active_period = GradingPeriod.objects.filter(
-            academic_year__is_active=True,
+            **ay_filter,
             status__in=['open', 'closing_soon', 'closed', 'locked'],
         ).select_related('academic_year').first()
 
