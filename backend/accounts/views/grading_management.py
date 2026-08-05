@@ -146,16 +146,21 @@ class GradingPeriodViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def active(self, request):
+        from ..models import SystemSetting
         today = date.today()
+
+        sys_ay = SystemSetting.get_settings().academic_year
+        ay_filter = {'academic_year__name': sys_ay} if sys_ay else {'academic_year__is_active': True}
+
         period = GradingPeriod.objects.filter(
-            academic_year__is_active=True,
+            **ay_filter,
             start_date__lte=today,
             submission_deadline__gte=today,
             status__in=['open', 'closing_soon'],
         ).select_related('academic_year').first()
         if not period:
             period = GradingPeriod.objects.filter(
-                academic_year__is_active=True,
+                **ay_filter,
                 status='open',
             ).select_related('academic_year').first()
         if period:
