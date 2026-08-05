@@ -453,16 +453,6 @@ export default function MasterSheet() {
       <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
           <FilterSelect
-            label="Year"
-            value={filters.academic_year}
-            onChange={v => setFilters(f => ({ ...f, academic_year: v }))}
-            options={[
-              { value: '', label: 'All Years' },
-              ...['2024-2025', '2025-2026', '2026-2027'].map(y => ({ value: y, label: y })),
-            ]}
-            compact
-          />
-          <FilterSelect
             label="Section"
             value={filters.classroom}
             onChange={v => setFilters(f => ({ ...f, classroom: v, subject: '' }))}
