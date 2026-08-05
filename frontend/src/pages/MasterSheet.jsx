@@ -80,8 +80,8 @@ export default function MasterSheet() {
       api.get('/classrooms/').catch(() => ({ data: [] })),
       api.get('/users/?role=staff').catch(() => ({ data: [] })),
     ]).then(([c, t]) => {
-      setClassrooms(c.data);
-      setTeachers(t.data);
+      setClassrooms(Array.isArray(c.data) ? c.data : c.data?.results || []);
+      setTeachers(Array.isArray(t.data) ? t.data : t.data?.results || []);
     });
   }, [academicYear]);
 

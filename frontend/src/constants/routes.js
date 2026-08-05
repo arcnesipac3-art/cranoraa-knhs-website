@@ -135,7 +135,7 @@ export const protectedRoutes = [
   { path: 'school-forms/sf10', element: SF10Page, roles: [Role.ADMIN, Role.STAFF] },
 
   // Grade Management Module
-  { path: 'grade-management', element: GradeManagementAdmin, roles: [Role.ADMIN] },
+  { path: 'grade-management', element: GradeManagementAdmin, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'grade-management-admin', element: GradeManagementAdmin, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'teacher-grade-dashboard', element: TeacherGradeDashboard, roles: [Role.STAFF] },
 
