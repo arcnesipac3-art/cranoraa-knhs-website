@@ -185,7 +185,7 @@ class GradeSubmission(models.Model):
 
             for cs in subjects:
                 for gtype in ['written_work', 'performance_task']:
-                    if gtype == 'performance_task' and self.subject.has_components:
+                    if gtype == 'performance_task' and getattr(self.subject, 'has_components', False):
                         continue
                     exists = Grade.objects.filter(
                         student=student,

@@ -70,7 +70,7 @@ class GradeReport(models.Model):
             # Group grades by subject, handling MAPEH components
             subject_finals = {}
             for g in grades:
-                if g.subject.has_components:
+                if getattr(g.subject, 'has_components', False):
                     # MAPEH parent — skip, we'll compute from components
                     continue
                 if g.component:
@@ -87,10 +87,13 @@ class GradeReport(models.Model):
                         subject_finals[key] = [float(g.raw_score)]
 
             # Now handle MAPEH: find parent subjects and compute from components
-            parent_subjects = Subject.objects.filter(
-                has_components=True,
-                grade_level=self.classroom.grade_level if self.classroom else '',
-            )
+            try:
+                parent_subjects = Subject.objects.filter(
+                    has_components=True,
+                    grade_level=self.classroom.grade_level if self.classroom else '',
+                )
+            except Exception:
+                parent_subjects = Subject.objects.none()
             for parent in parent_subjects:
                 component_grades = grades.filter(
                     subject__grade_level=parent.grade_level,

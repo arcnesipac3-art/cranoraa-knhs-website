@@ -278,8 +278,17 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
         if submission.status not in ('draft', 'in_progress'):
             return Response({'error': 'Only draft or in-progress submissions can be submitted'}, status=400)
 
-        submission.compute_progress()
-        warnings = submission.validate_grades()
+        try:
+            submission.compute_progress()
+        except Exception as e:
+            logger.error(f"compute_progress failed for submission {pk}: {e}")
+
+        try:
+            warnings = submission.validate_grades()
+        except Exception as e:
+            logger.error(f"validate_grades failed for submission {pk}: {e}")
+            warnings = []
+
         if warnings and not request.data.get('force'):
             return Response({
                 'error': 'Validation warnings detected',
