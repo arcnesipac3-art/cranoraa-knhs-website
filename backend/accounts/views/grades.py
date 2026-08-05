@@ -361,6 +361,12 @@ class GradeViewSet(viewsets.ModelViewSet):
         academic_year = request.data.get('academic_year')
         component = request.data.get('component', '')
 
+        # Coerce quarter to int for consistent lookups
+        try:
+            quarter = int(quarter) if quarter is not None else None
+        except (TypeError, ValueError):
+            quarter = None
+
         # Restrict teachers from submitting grades when grading period is not open
         if request.user.role == 'staff' and quarter and academic_year:
             try:
@@ -565,7 +571,13 @@ class GradeViewSet(viewsets.ModelViewSet):
         subject_id = request.data.get('subject_id')
         quarter = request.data.get('quarter')
         academic_year = request.data.get('academic_year')
+        grade_type = request.data.get('grade_type', 'written_work')
         grades_data = request.data.get('grades', [])
+
+        try:
+            quarter = int(quarter) if quarter is not None else None
+        except (TypeError, ValueError):
+            quarter = None
 
         if not all([classroom_id, subject_id, quarter, academic_year]):
             return Response({'error': 'classroom_id, subject_id, quarter, and academic_year are required'}, status=400)
@@ -620,7 +632,7 @@ class GradeViewSet(viewsets.ModelViewSet):
                     grade = Grade.objects.get(
                         student_id=student_id,
                         subject=subject,
-                        grade_type='written_work',
+                        grade_type=grade_type,
                         quarter=quarter,
                         academic_year=academic_year,
                     )
@@ -639,7 +651,7 @@ class GradeViewSet(viewsets.ModelViewSet):
                         subject=subject,
                         classroom=classroom,
                         teacher=request.user,
-                        grade_type='written_work',
+                        grade_type=grade_type,
                         quarter=quarter,
                         academic_year=academic_year,
                         raw_score=raw_score,
@@ -720,7 +732,31 @@ class GradeViewSet(viewsets.ModelViewSet):
         if user.role == 'student':
             raise serializers.ValidationError("Students cannot create grades")
 
-        serializer.save(teacher=user)
+        try:
+            serializer.save(teacher=user)
+        except Exception as e:
+            from django.db import IntegrityError
+            if isinstance(e, IntegrityError) and 'unique' in str(e).lower():
+                # Duplicate grade — try to update instead
+                grade_data = serializer.validated_data
+                existing = Grade.objects.filter(
+                    student=grade_data.get('student'),
+                    subject=grade_data.get('subject'),
+                    component=grade_data.get('component', ''),
+                    grade_type=grade_data.get('grade_type'),
+                    quarter=grade_data.get('quarter'),
+                    academic_year=grade_data.get('academic_year'),
+                ).first()
+                if existing:
+                    for key, val in grade_data.items():
+                        setattr(existing, key, val)
+                    existing.teacher = user
+                    existing.save()
+                    serializer.instance = existing
+                else:
+                    raise
+            else:
+                raise
         grade = serializer.instance
 
         try:
