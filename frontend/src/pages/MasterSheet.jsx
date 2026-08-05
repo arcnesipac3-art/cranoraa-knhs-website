@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Search, Printer, RefreshCw, X,
+  Search, Printer, RefreshCw, X, FileText, Download, Loader2,
 } from 'lucide-react';
 import api from '../utils/api';
 import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
@@ -137,6 +137,7 @@ export default function MasterSheet() {
 
   const [loading, setLoading] = useState(false);
   const [printMode, setPrintMode] = useState(false);
+  const [exporting, setExporting] = useState(null);
 
   const [allStudentData, setAllStudentData] = useState([]);
   const [singleProfile, setSingleProfile] = useState(null);
@@ -245,6 +246,110 @@ export default function MasterSheet() {
   }, [selectedStudentId, academicYear, isAll]);
 
   const handlePrint = () => { setPrintMode(true); setTimeout(() => window.print(), 300); };
+
+  const handleExportPDF = async () => {
+    if (!showContent) return;
+    setExporting('pdf');
+    try {
+      const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf'),
+      ]);
+      const container = printRef.current || document.querySelector('[data-master-sheet]');
+      if (!container) {
+        setPrintMode(true);
+        await new Promise(r => setTimeout(r, 400));
+        const el = printRef.current;
+        if (!el) { toast.error('Could not find content to export'); setExporting(null); return; }
+        const canvas = await html2canvas(el, { scale: 2, useCORS: true });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+        const pw = pdf.internal.pageSize.getWidth();
+        const ph = pdf.internal.pageSize.getHeight();
+        const imgW = pw - 20;
+        const imgH = (canvas.height * imgW) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 10, imgW, Math.min(imgH, ph - 20));
+        pdf.save(`MasterSheet-${classroomObj?.name || 'class'}.pdf`);
+        setPrintMode(false);
+        toast.success('PDF exported');
+        setExporting(null);
+        return;
+      }
+      const canvas = await html2canvas(container, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pw = pdf.internal.pageSize.getWidth();
+      const ph = pdf.internal.pageSize.getHeight();
+      const imgW = pw - 20;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 10, 10, imgW, Math.min(imgH, ph - 20));
+      pdf.save(`MasterSheet-${classroomObj?.name || 'class'}.pdf`);
+      toast.success('PDF exported');
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      toast.error('PDF export failed');
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    if (!showContent) return;
+    setExporting('excel');
+    try {
+      const XLSX = await import('xlsx');
+      const wb = XLSX.utils.book_new();
+
+      const data = isAll ? allStudentData : [{ profile: singleProfile, grades: singleGrades, attendance: singleAttendance }];
+
+      for (const item of data) {
+        if (!item.profile) continue;
+        const p = item.profile?.profile || {};
+        const studentName = `${item.profile.last_name || ''}, ${item.profile.first_name || ''} ${item.profile.middle_name || ''}`.trim();
+        const termGrades = computeTermGrades(item.grades);
+        const matchedSubjects = getMatchedSubjects(termGrades);
+        const attData = computeAttendance(item.attendance);
+
+        const rows = [
+          ['MASTER SHEET'],
+          ['Republic of the Philippines'],
+          ['Department of Education'],
+          ['Region X - Iligan City · Division of Lanao del Norte'],
+          [],
+          ['Name:', studentName, 'LRN:', p.lrn || '', 'Sex:', p.sex || ''],
+          ['Grade Level:', classroomObj?.grade_level || '', 'Section:', classroomObj?.name || '', 'SY:', academicYear || ''],
+          [],
+          ['SUBJECT', 'T1', 'T2', 'T3', 'Final'],
+        ];
+
+        for (const sub of matchedSubjects) {
+          const tg = termGrades[sub];
+          rows.push([sub, tg[1] ?? '', tg[2] ?? '', tg[3] ?? '', tg.final ?? '']);
+        }
+
+        rows.push([]);
+        rows.push(['ATTENDANCE']);
+        rows.push(['Month', 'Present', 'Late', 'Absent', 'Excused']);
+        for (const m of attData.months) {
+          rows.push([m.label, m.present, m.late, m.absent, m.excused]);
+        }
+        rows.push(['Total', attData.total.present, attData.total.late, attData.total.absent, attData.total.excused]);
+
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [{ wch: 25 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }];
+        const sheetName = (studentName || `Student${item.profile.id}`).substring(0, 31);
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      }
+
+      XLSX.writeFile(wb, `MasterSheet-${classroomObj?.name || 'class'}.xlsx`);
+      toast.success('Excel exported');
+    } catch (err) {
+      console.error('Excel export failed:', err);
+      toast.error('Excel export failed');
+    } finally {
+      setExporting(null);
+    }
+  };
   useEffect(() => {
     const h = () => setPrintMode(false);
     window.addEventListener('afterprint', h);
@@ -288,6 +393,12 @@ export default function MasterSheet() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handlePrint} disabled={!showContent}>
             <Printer className="w-4 h-4 mr-1.5" /> Print
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={!showContent || exporting === 'pdf'}>
+            {exporting === 'pdf' ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <FileText className="w-4 h-4 mr-1.5" />} PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={!showContent || exporting === 'excel'}>
+            {exporting === 'excel' ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />} Excel
           </Button>
         </div>
       </div>
@@ -339,7 +450,7 @@ export default function MasterSheet() {
           <p className="text-sm text-gray-500">Select a section and student to view the master sheet</p>
         </div>
       ) : isAll ? (
-        <div className="space-y-6">
+        <div ref={printRef} data-master-sheet className="space-y-6">
           {allStudentData.map((d, idx) => (
             <StudentSheet
               key={d.id}
@@ -353,6 +464,7 @@ export default function MasterSheet() {
           ))}
         </div>
       ) : (
+        <div ref={printRef} data-master-sheet>
         <StudentSheet
           profile={singleProfile}
           grades={singleGrades}
@@ -361,6 +473,7 @@ export default function MasterSheet() {
           teacher={teacherObj}
           index={0}
         />
+        </div>
       )}
     </div>
   );
