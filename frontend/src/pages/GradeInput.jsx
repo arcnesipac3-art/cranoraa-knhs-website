@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
@@ -21,6 +22,7 @@ import { PERFORMANCE_LEVELS, getPerformanceLevel } from '../utils/grading';
 const GradeInput = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const { settings, periodValues: allPeriodValues, periodShortLabels, periodLabel, isSHS, currentQuarter } = useSystemSettings();
 
   // Check if we're in embedded mode (iframe)
@@ -256,6 +258,24 @@ const GradeInput = () => {
       if (isNaN(val) || val < 0 || val > 100) {
         return toast.error(`${formatName(s.student_name)}: grade must be between 0 and 100`);
       }
+    }
+
+    // Check if grading period is open for this term (teachers only)
+    if (user?.role === 'staff') {
+      try {
+        const ayRes = await api.get('/admin/academic-years/');
+        const years = Array.isArray(ayRes.data) ? ayRes.data : [];
+        const activeYear = years.find(y => y.is_active);
+        if (activeYear) {
+          const semRes = await api.get('/admin/semesters/', { params: { academic_year: activeYear.id } });
+          const semesters = Array.isArray(semRes.data) ? semRes.data : [];
+          const quarterType = selQuarter === 1 ? '1st' : selQuarter === 2 ? '2nd' : '3rd';
+          const activeSemester = semesters.find(s => s.is_active && s.semester_type?.toLowerCase().startsWith(quarterType));
+          if (!activeSemester) {
+            return toast.error(`Term ${selQuarter} is not open. Contact your admin to open it.`);
+          }
+        }
+      } catch {}
     }
 
     // Check for overwrites

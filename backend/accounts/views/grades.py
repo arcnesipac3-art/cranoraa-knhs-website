@@ -14,6 +14,12 @@ from rest_framework.decorators import action, api_view, permission_classes, thro
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
+from accounts.models import (
+    Grade, ClassroomSubject, StudentClassEnrollment,
+    AcademicYear, AuditLog, log_audit_action,
+)
+from accounts.models.grading_management import GradingPeriod
+
 from ..models import (
     User, Profile, Classroom, StudentClassEnrollment,
     Subject, ClassroomSubject, ScratchCard, Notification,
@@ -355,6 +361,23 @@ class GradeViewSet(viewsets.ModelViewSet):
         academic_year = request.data.get('academic_year')
         component = request.data.get('component', '')
 
+        # Restrict teachers from submitting grades when grading period is not open
+        if request.user.role == 'staff' and quarter and academic_year:
+            try:
+                ay = AcademicYear.objects.get(name=academic_year)
+                period = GradingPeriod.objects.filter(
+                    academic_year=ay,
+                    quarter=quarter,
+                    status__in=['open', 'closing_soon'],
+                ).first()
+                if not period:
+                    return Response(
+                        {'error': f'Grading period for Term {quarter} is not open. Contact your admin to open it.'},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+            except AcademicYear.DoesNotExist:
+                pass
+
         if all([student_id, subject_id, grade_type, quarter, academic_year]):
             try:
                 grade = Grade.objects.get(
@@ -548,6 +571,23 @@ class GradeViewSet(viewsets.ModelViewSet):
             return Response({'error': 'classroom_id, subject_id, quarter, and academic_year are required'}, status=400)
         if not grades_data:
             return Response({'error': 'grades array is required'}, status=400)
+
+        # Restrict teachers from submitting grades when grading period is not open
+        if request.user.role == 'staff':
+            try:
+                ay = AcademicYear.objects.get(name=academic_year)
+                period = GradingPeriod.objects.filter(
+                    academic_year=ay,
+                    quarter=quarter,
+                    status__in=['open', 'closing_soon'],
+                ).first()
+                if not period:
+                    return Response(
+                        {'error': f'Grading period for Term {quarter} is not open. Contact your admin to open it.'},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+            except AcademicYear.DoesNotExist:
+                pass
 
         try:
             classroom = Classroom.objects.get(id=classroom_id)

@@ -1935,6 +1935,27 @@ const GradeInputView = ({ classroom, onBack }) => {
       return;
     }
 
+    // Check if grading period is open for this term
+    if (user?.role === 'staff') {
+      try {
+        const ayRes = await api.get('/admin/academic-years/');
+        const years = Array.isArray(ayRes.data) ? ayRes.data : [];
+        const activeYear = years.find(y => y.is_active);
+        if (activeYear) {
+          const semRes = await api.get('/admin/semesters/', { params: { academic_year: activeYear.id } });
+          const semesters = Array.isArray(semRes.data) ? semRes.data : [];
+          const activeSemester = semesters.find(s => s.is_active && s.semester_type?.toLowerCase().startsWith(
+            selectedQuarter === 1 ? '1st' : selectedQuarter === 2 ? '2nd' : '3rd'
+          ));
+          if (!activeSemester) {
+            toast.error(`Term ${selectedQuarter} is not open. Contact your admin to open it.`);
+            setSubmitting(false);
+            return;
+          }
+        }
+      } catch {}
+    }
+
     setSubmitting(true);
     let successCount = 0;
     let errorCount = 0;

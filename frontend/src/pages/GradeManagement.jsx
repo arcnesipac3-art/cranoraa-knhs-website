@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useParallelFetch } from '../hooks/useFetch';
 import toast from 'react-hot-toast';
+import api from '../utils/api';
 import { useSystemSettings } from '../hooks/useSystemSettings';
 import {
   Card,
@@ -85,6 +86,18 @@ const GradeManagement = () => {
       toast.success('Data refreshed');
     } catch {
       toast.error('Failed to refresh');
+    }
+  };
+
+  const handleDeleteGrade = async (gradeId, studentName, quarter) => {
+    const confirmed = window.confirm(`Delete grade for ${studentName} in Term ${quarter}?`);
+    if (!confirmed) return;
+    try {
+      await api.delete(`/grades/${gradeId}/`);
+      toast.success('Grade deleted');
+      refetch();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete grade');
     }
   };
 
@@ -626,6 +639,7 @@ const ClassroomDetailModal = ({
             calculateFinal={calculateFinal}
             periodValues={periodValues}
             periodShortLabels={periodShortLabels}
+            onDeleteGrade={handleDeleteGrade}
           />
         ) : (
           <div className="text-center py-12">
@@ -667,6 +681,7 @@ const SubjectGradeTable = ({
   calculateFinal,
   periodValues,
   periodShortLabels,
+  onDeleteGrade,
 }) => {
   const navigate = useNavigate();
 
@@ -816,18 +831,46 @@ const SubjectGradeTable = ({
                       {periodValues.map((quarter) => {
                         const grade = student.quarters[quarter];
                         const maScore = grade?.component === 'music_arts' ? grade.raw_score : null;
+                        const maGrade = grade?.component === 'music_arts' ? grade : null;
                         return (
                           <td key={`ma-${quarter}`} className="px-2 py-3 text-center bg-rose-50/30">
-                            <ScoreBadge score={maScore} size="sm" />
+                            <div className="flex flex-col items-center gap-1">
+                              <ScoreBadge score={maScore} size="sm" />
+                              {user?.role === 'admin' && maGrade?.id && (
+                                <button
+                                  onClick={() => onDeleteGrade(maGrade.id, student.name, quarter)}
+                                  className="text-red-400 hover:text-red-600 transition-colors"
+                                  title={`Delete Term ${quarter} MA grade`}
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         );
                       })}
                       {periodValues.map((quarter) => {
                         const grade = student.quarters[quarter];
                         const pehScore = grade?.component === 'pe_health' ? grade.raw_score : null;
+                        const pehGrade = grade?.component === 'pe_health' ? grade : null;
                         return (
                           <td key={`peh-${quarter}`} className="px-2 py-3 text-center bg-blue-50/30">
-                            <ScoreBadge score={pehScore} size="sm" />
+                            <div className="flex flex-col items-center gap-1">
+                              <ScoreBadge score={pehScore} size="sm" />
+                              {user?.role === 'admin' && pehGrade?.id && (
+                                <button
+                                  onClick={() => onDeleteGrade(pehGrade.id, student.name, quarter)}
+                                  className="text-red-400 hover:text-red-600 transition-colors"
+                                  title={`Delete Term ${quarter} PEH grade`}
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              )}
+                            </div>
                           </td>
                         );
                       })}
@@ -843,6 +886,17 @@ const SubjectGradeTable = ({
                               <span className="text-xs" title="Locked">
                                 🔒
                               </span>
+                            )}
+                            {user?.role === 'admin' && grade?.id && (
+                              <button
+                                onClick={() => onDeleteGrade(grade.id, student.name, quarter)}
+                                className="text-red-400 hover:text-red-600 transition-colors"
+                                title={`Delete Term ${quarter} grade`}
+                              >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
                             )}
                           </div>
                         </td>
@@ -908,6 +962,9 @@ const SubjectGradeTable = ({
                             />
                           </svg>
                         </button>
+                      </div>
+                    </td>
+                  )}
                       </div>
                     </td>
                   )}
