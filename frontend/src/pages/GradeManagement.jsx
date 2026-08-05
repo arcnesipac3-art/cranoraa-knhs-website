@@ -962,10 +962,7 @@ const SubjectGradeTable = ({
                             />
                           </svg>
                         </button>
-                      </div>
-                    </td>
-                  )}
-                      </div>
+                       </div>
                     </td>
                   )}
                 </tr>
