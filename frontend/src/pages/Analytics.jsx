@@ -1163,7 +1163,7 @@ const Analytics = () => {
       </div>
 
       {activeTab === 'system' && (
-        <div className="space-y-4 animate-fade-in" ref={systemRef} data-pdf-content="system">
+        <div className="space-y-4 animate-fade-in" ref={systemRef} data-export-content="system">
           {!data && loading ? (
             <div className="space-y-4">
               <Skeleton.Banner className="bg-slate-800 h-32" />
@@ -1222,7 +1222,7 @@ const Analytics = () => {
       )}
 
       {activeTab === 'grades' && (
-        <div className="space-y-4 animate-fade-in" ref={gradesRef} data-pdf-content="grades">
+        <div className="space-y-4 animate-fade-in" ref={gradesRef} data-export-content="grades">
           {gradeLoading && !gradeData ? (
             <div className="space-y-4">
               <Skeleton.Banner className="bg-slate-800 h-32" />
@@ -1320,7 +1320,7 @@ const Analytics = () => {
       )}
 
       {activeTab === 'attendance' && (
-        <div className="space-y-4 animate-fade-in" ref={attendanceRef} data-pdf-content="attendance">
+        <div className="space-y-4 animate-fade-in" ref={attendanceRef} data-export-content="attendance">
           {attendanceLoading && !attendanceAnalytics ? (
             <div className="space-y-4">
               <Skeleton.Banner className="bg-slate-800 h-32" />

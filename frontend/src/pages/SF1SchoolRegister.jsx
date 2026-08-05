@@ -1,11 +1,18 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { api } from '../utils/api';
 import { Card, CardHeader, CardBody, CardFooter } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { useAcademicYear } from '../context/AcademicYearContext';
 import { useSystemSettings } from '../hooks/useSystemSettings';
+import {
+  ExportProgress,
+  downloadFromAPI,
+  generateExportFilename,
+  handleExportError,
+} from '../utils/exportHelpers';
 
 function SF1Page() {
   const { activeYear } = useAcademicYear();
@@ -49,38 +56,90 @@ function SF1Page() {
   };
 
   const handleExportPDF = async () => {
+    // Validation
+    if (!firstClassroom) {
+      toast.error('No classroom selected. Please select academic year, grade level, and section.');
+      return;
+    }
+    
+    if (totalStudents === 0) {
+      toast.error('No students found in the selected classroom.');
+      return;
+    }
+
+    const progress = new ExportProgress(2, 'Preparing SF1 School Register PDF');
+    
     try {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.post(`/sf1/export/pdf/`, {}, {
-        params,
-        responseType: 'blob',
-      });
-      const blob = new Blob([res.data], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-    } catch (err) {
-      console.error('PDF export failed:', err);
+      progress.update(1, 'Generating PDF from server');
+      
+      const params = {};
+      Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
+      
+      const filename = generateExportFilename(
+        `SF1_${firstClassroom?.classroom?.grade_level || 'Grade'}_${firstClassroom?.classroom?.section || 'Section'}`,
+        'pdf',
+        { includeDate: true }
+      );
+      
+      await downloadFromAPI(
+        api,
+        '/sf1/export/pdf/',
+        filename,
+        {
+          method: 'post',
+          params,
+          responseType: 'blob',
+        }
+      );
+      
+      progress.complete('SF1 School Register PDF exported successfully!');
+      
+    } catch (error) {
+      handleExportError(error, 'PDF Export');
     }
   };
 
   const handleExportExcel = async () => {
+    // Validation
+    if (!firstClassroom) {
+      toast.error('No classroom selected. Please select academic year, grade level, and section.');
+      return;
+    }
+    
+    if (totalStudents === 0) {
+      toast.error('No students found in the selected classroom.');
+      return;
+    }
+
+    const progress = new ExportProgress(2, 'Preparing SF1 School Register Excel');
+    
     try {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.post(`/sf1/export/excel/`, {}, {
-        params,
-        responseType: 'blob',
-      });
-      const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `SF1_${firstClassroom?.classroom?.grade_level || ''}_${firstClassroom?.classroom?.section || 'Register'}.xlsx`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error('Excel export failed:', err);
+      progress.update(1, 'Generating Excel from server');
+      
+      const params = {};
+      Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
+      
+      const filename = generateExportFilename(
+        `SF1_${firstClassroom?.classroom?.grade_level || 'Grade'}_${firstClassroom?.classroom?.section || 'Section'}`,
+        'xlsx',
+        { includeDate: true }
+      );
+      
+      await downloadFromAPI(
+        api,
+        '/sf1/export/excel/',
+        filename,
+        {
+          method: 'post',
+          params,
+          responseType: 'blob',
+        }
+      );
+      
+      progress.complete('SF1 School Register Excel exported successfully!');
+      
+    } catch (error) {
+      handleExportError(error, 'Excel Export');
     }
   };
 

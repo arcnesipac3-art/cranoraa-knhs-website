@@ -330,8 +330,14 @@ def _generate_sf1_xlsx(data):
         current_row += 2
         ws.merge_cells(f'A{current_row}:T{current_row}')
         ws[f'A{current_row}'] = f'Generated on: {generated_date}'
-        ws[f'A{current_row}'].font = Font(name='Arial', size=7, italic=True)
+        ws[f'A{current_row}'].font = Font(name='Arial', size=7, italic=True, color='808080')
         ws[f'A{current_row}'].alignment = Alignment(horizontal='right')
+        
+        current_row += 1
+        ws.merge_cells(f'A{current_row}:T{current_row}')
+        ws[f'A{current_row}'] = 'This is an official DepEd School Form 1 (SF1) - School Register'
+        ws[f'A{current_row}'].font = Font(name='Arial', size=7, italic=True, color='808080')
+        ws[f'A{current_row}'].alignment = Alignment(horizontal='center')
 
         # Set print area and page setup
         ws.sheet_properties.pageSetUpPr = openpyxl.worksheet.properties.PageSetupProperties(fitToPage=True)
@@ -339,6 +345,19 @@ def _generate_sf1_xlsx(data):
         ws.page_setup.paperSize = ws.PAPERSIZE_A3
         ws.page_setup.fitToWidth = 1
         ws.page_setup.fitToHeight = 0
+        ws.page_setup.horizontalCentered = True
+        ws.page_setup.verticalCentered = False
+        
+        # Set print margins (in inches)
+        ws.page_margins.left = 0.5
+        ws.page_margins.right = 0.5
+        ws.page_margins.top = 0.75
+        ws.page_margins.bottom = 0.75
+        ws.page_margins.header = 0.3
+        ws.page_margins.footer = 0.3
+        
+        # Freeze panes at header row
+        ws.freeze_panes = 'A7'
 
     # Remove default sheet
     if 'Sheet' in wb.sheetnames:

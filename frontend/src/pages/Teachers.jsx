@@ -8,6 +8,22 @@ import Swal from 'sweetalert2';
 import * as XLSX from 'xlsx';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { Skeleton, EmptyState, Button } from '../components/ui';
+import {
+  ExportProgress,
+  getPDFPageSetup,
+  addPDFHeader,
+  addPDFFooter,
+  createStyledWorkbook,
+  addExcelHeader,
+  autoSizeColumns,
+  downloadExcelFile,
+  generateExportFilename,
+  validateExportData,
+  handleExportError,
+  sanitizeForExport,
+  SCHOOL_INFO,
+  DEPED_COLORS,
+} from '../utils/exportHelpers';
 import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalField, ModalBtnPrimary, ModalBtnSecondary, modalInputCls, modalSelectCls } from '../components/ui/Modal';
 import { administration, faculty, getInitials } from '../data/facultyData';
 import TeacherProfileDrawer from '../components/people/TeacherProfileDrawer';
@@ -345,78 +361,342 @@ const Teachers = () => {
     }
   };
 
-  const handleExportExcel = () => {
-    const data = teachers.map(t => ({
-      'Title': t.profile?.title || '',
-      'First Name': t.first_name,
-      'Last Name': t.last_name,
-      'Email': t.email,
-      'Phone': t.profile?.phone_number || '',
-      'Temp Password': t.must_change_password ? 'Pending' : 'Changed',
-      'Status': t.account_status
-    }));
+  const handleExportExcel = async () => {
+    try {
+      validateExportData(teachers, ['first_name', 'last_name', 'email']);
+    } catch (error) {
+      return handleExportError(error, 'Excel Export');
+    }
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Teachers");
-    XLSX.writeFile(wb, `teachers_export_${new Date().toISOString().split('T')[0]}.xlsx`);
-    toast.success('Excel exported successfully');
+    const progress = new ExportProgress(3, 'Preparing Faculty Directory Excel');
+
+    try {
+      progress.update(1, 'Building data table');
+      
+      const data = teachers.map((t, index) => ({
+        'No.': index + 1,
+        'Title': sanitizeForExport(t.profile?.title || ''),
+        'Last Name': sanitizeForExport(t.last_name),
+        'First Name': sanitizeForExport(t.first_name),
+        'Email': t.email,
+        'Phone': t.profile?.phone_number || '',
+        'Department': sanitizeForExport(t.profile?.department || ''),
+        'Position': sanitizeForExport(t.profile?.position || ''),
+        'Employee ID': t.profile?.employee_id || '',
+        'Status': t.account_status,
+        'Password Status': t.must_change_password ? 'Temporary' : 'Updated',
+        'Last Login': t.last_login ? new Date(t.last_login).toLocaleDateString() : 'Never',
+      }));
+
+      progress.update(2, 'Formatting worksheet');
+      
+      const { wb, XLSX } = await createStyledWorkbook('Faculty Directory');
+      
+      // Convert to array format for custom header
+      const headers = Object.keys(data[0] || {});
+      const rows = data.map(row => headers.map(h => row[h]));
+      
+      const wsData = addExcelHeader(
+        [headers, ...rows],
+        'FACULTY DIRECTORY',
+        {
+          includeRepublic: true,
+          includeDepEd: true,
+          subtitle: 'Complete List of Teaching and Non-Teaching Personnel',
+          metadata: {
+            'Total Faculty': teachers.length,
+            'Generated On': new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            }),
+            'Report Type': 'Complete Directory',
+          },
+        }
+      );
+      
+      // Add summary statistics
+      const activeCount = teachers.filter(t => t.account_status === 'active').length;
+      const inactiveCount = teachers.filter(t => t.account_status === 'inactive').length;
+      const pendingPasswordCount = teachers.filter(t => t.must_change_password).length;
+      
+      wsData.push([]);
+      wsData.push(['SUMMARY STATISTICS']);
+      wsData.push(['Total Faculty', teachers.length]);
+      wsData.push(['Active', activeCount]);
+      wsData.push(['Inactive', inactiveCount]);
+      wsData.push(['Pending Password Update', pendingPasswordCount]);
+      
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Auto-size columns
+      autoSizeColumns(ws, XLSX, 10, 40);
+      
+      // Apply conditional formatting to status column
+      const headerRowIndex = wsData.findIndex(row => row[0] === 'No.');
+      if (headerRowIndex >= 0) {
+        const statusColIndex = headers.indexOf('Status');
+        const firstDataRow = headerRowIndex + 1;
+        const lastDataRow = firstDataRow + teachers.length - 1;
+        
+        for (let row = firstDataRow; row <= lastDataRow; row++) {
+          const cellRef = XLSX.utils.encode_cell({ r: row, c: statusColIndex });
+          if (ws[cellRef]) {
+            const value = ws[cellRef].v;
+            ws[cellRef].s = ws[cellRef].s || {};
+            
+            if (value === 'active') {
+              ws[cellRef].s.font = { color: { rgb: '10B981' }, bold: true };
+              ws[cellRef].s.fill = { fgColor: { rgb: 'ECFDF5' } };
+            } else if (value === 'inactive') {
+              ws[cellRef].s.font = { color: { rgb: 'EF4444' }, bold: true };
+              ws[cellRef].s.fill = { fgColor: { rgb: 'FEF2F2' } };
+            }
+          }
+        }
+        
+        // Freeze header row
+        ws['!freeze'] = { xSplit: 0, ySplit: headerRowIndex + 1 };
+      }
+      
+      XLSX.utils.book_append_sheet(wb, ws, 'Faculty Directory');
+      
+      progress.update(3, 'Saving file');
+      const filename = generateExportFilename('Faculty_Directory', 'xlsx', { includeDate: true });
+      
+      await downloadExcelFile(wb, XLSX, filename);
+      progress.complete('Faculty Directory Excel exported successfully!');
+      
+    } catch (error) {
+      handleExportError(error, 'Excel Export');
+    }
   };
 
   const handleExportPDF = async () => {
-    const { jsPDF } = await import('jspdf');
-    const doc = new jsPDF();
-    doc.setFontSize(18);
-    doc.text('Faculty Directory', 14, 20);
-    doc.setFontSize(8);
-    doc.setTextColor(100);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 28);
+    try {
+      validateExportData(teachers, ['first_name', 'last_name', 'email']);
+    } catch (error) {
+      return handleExportError(error, 'PDF Export');
+    }
 
-    const headers = ['Name', 'Email', 'Phone', 'Status'];
-    const colWidths = [70, 60, 30, 22];
-    let y = 40;
+    const progress = new ExportProgress(3, 'Preparing Faculty Directory PDF');
 
-    doc.setFillColor(45, 27, 77); // #2D1B4D
-    doc.rect(14, y - 5, 182, 7, 'F');
-    doc.setTextColor(255);
-    doc.setFont("helvetica", "bold");
-    
-    let x = 14;
-    headers.forEach((h, i) => {
-      doc.text(h, x, y);
-      x += colWidths[i];
-    });
-
-    y += 10;
-    doc.setTextColor(0);
-    doc.setFont("helvetica", "normal");
-
-    teachers.forEach((t, index) => {
-      if (y > 280) {
+    try {
+      progress.update(1, 'Initializing PDF');
+      const { jsPDF } = await import('jspdf');
+      
+      const doc = new jsPDF(getPDFPageSetup('portrait'));
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 15;
+      
+      // ══════════════════════════════════════════════════════════════════════════
+      // HEADER
+      // ══════════════════════════════════════════════════════════════════════════
+      
+      let y = addPDFHeader(doc, 'Faculty Directory', 'Teaching and Non-Teaching Personnel', {
+        startY: 15,
+        includeRepublic: true,
+        includeDepEd: true,
+        includeLogo: true,
+      });
+      
+      // Summary box
+      const summaryHeight = 18;
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(...DEPED_COLORS.border.match(/\w\w/g).map(x => parseInt(x, 16)));
+      doc.roundedRect(margin, y, pageWidth - 2 * margin, summaryHeight, 2, 2, 'FD');
+      
+      const activeCount = teachers.filter(t => t.account_status === 'active').length;
+      const inactiveCount = teachers.filter(t => t.account_status === 'inactive').length;
+      
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      
+      const summaryY = y + 6;
+      doc.text('Total Faculty:', margin + 5, summaryY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(String(teachers.length), margin + 30, summaryY);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Active:', margin + 50, summaryY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(16, 185, 129);
+      doc.text(String(activeCount), margin + 65, summaryY);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Inactive:', margin + 80, summaryY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(239, 68, 68);
+      doc.text(String(inactiveCount), margin + 100, summaryY);
+      
+      const summary2Y = summaryY + 6;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Generated:', margin + 5, summary2Y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      }), margin + 30, summary2Y);
+      
+      y += summaryHeight + 8;
+      
+      // ══════════════════════════════════════════════════════════════════════════
+      // TABLE
+      // ══════════════════════════════════════════════════════════════════════════
+      
+      progress.update(2, 'Building faculty table');
+      
+      const headers = ['No.', 'Name', 'Email', 'Phone', 'Department', 'Status'];
+      const colWidths = [12, 50, 55, 30, 35, 18];
+      const tableWidth = colWidths.reduce((a, b) => a + b, 0);
+      
+      // Table header
+      doc.setFillColor(...DEPED_COLORS.primary.match(/\w\w/g).map(x => parseInt(x, 16)));
+      doc.rect(margin, y, tableWidth, 8, 'F');
+      
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      
+      let x = margin;
+      headers.forEach((h, i) => {
+        doc.text(h, x + colWidths[i] / 2, y + 5.5, { align: 'center' });
+        x += colWidths[i];
+      });
+      
+      y += 9;
+      
+      // Table rows
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(0, 0, 0);
+      
+      teachers.forEach((t, index) => {
+        // Check for page break
+        if (y > pageHeight - 30) {
+          addPDFFooter(doc, {
+            pageNumber: doc.internal.getNumberOfPages(),
+            leftText: SCHOOL_INFO.shortName,
+            centerText: 'Faculty Directory',
+          });
+          doc.addPage();
+          y = 20;
+          
+          // Repeat header
+          doc.setFillColor(...DEPED_COLORS.primary.match(/\w\w/g).map(x => parseInt(x, 16)));
+          doc.rect(margin, y, tableWidth, 8, 'F');
+          doc.setFontSize(7);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(255, 255, 255);
+          
+          x = margin;
+          headers.forEach((h, i) => {
+            doc.text(h, x + colWidths[i] / 2, y + 5.5, { align: 'center' });
+            x += colWidths[i];
+          });
+          
+          y += 9;
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0, 0, 0);
+        }
+        
+        // Alternating row colors
+        if (index % 2 === 0) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(margin, y - 3, tableWidth, 5, 'F');
+        }
+        
+        x = margin;
+        
+        // No.
+        doc.text(String(index + 1), x + colWidths[0] / 2, y, { align: 'center' });
+        x += colWidths[0];
+        
+        // Name
+        const fullName = `${t.profile?.title || ''} ${t.first_name} ${t.last_name}`.trim();
+        doc.text(sanitizeForExport(fullName).substring(0, 35), x + 2, y);
+        x += colWidths[1];
+        
+        // Email
+        doc.text(t.email.substring(0, 30), x + 2, y);
+        x += colWidths[2];
+        
+        // Phone
+        doc.text(t.profile?.phone_number || '—', x + 2, y);
+        x += colWidths[3];
+        
+        // Department
+        doc.text(sanitizeForExport(t.profile?.department || '—').substring(0, 20), x + 2, y);
+        x += colWidths[4];
+        
+        // Status
+        const status = t.account_status;
+        if (status === 'active') {
+          doc.setTextColor(16, 185, 129);
+          doc.setFont('helvetica', 'bold');
+        } else {
+          doc.setTextColor(239, 68, 68);
+          doc.setFont('helvetica', 'bold');
+        }
+        doc.text(status.toUpperCase(), x + colWidths[5] / 2, y, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+        
+        y += 5;
+      });
+      
+      // ══════════════════════════════════════════════════════════════════════════
+      // FOOTER WITH SIGNATURES
+      // ══════════════════════════════════════════════════════════════════════════
+      
+      progress.update(3, 'Finalizing document');
+      
+      y += 10;
+      
+      if (y > pageHeight - 50) {
         doc.addPage();
-        y = 20;
+        y = 30;
       }
       
-      const name = `${t.profile?.title || ''} ${t.first_name} ${t.last_name}`.trim();
-      const email = t.email;
-      const phone = t.profile?.phone_number || '—';
-      const status = t.account_status;
-
-      let cx = 14;
-      doc.text(name.substring(0, 40), cx, y); cx += colWidths[0];
-      doc.text(email.substring(0, 35), cx, y); cx += colWidths[1];
-      doc.text(String(phone), cx, y); cx += colWidths[2];
-      doc.text(String(status), cx, y);
-
-      y += 7;
-      if (index % 2 === 0) {
-        doc.setFillColor(245, 245, 245);
-        doc.rect(14, y - 5, 182, 7, 'F');
+      addSignatureBlock(doc, y, [
+        {
+          title: 'Prepared by',
+          subtitle: 'HR Department',
+        },
+        {
+          title: 'Noted by',
+          subtitle: 'School Principal',
+        },
+      ], { spaceAbove: 15 });
+      
+      // Add footers to all pages
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addPDFFooter(doc, {
+          pageNumber: i,
+          totalPages: totalPages,
+          leftText: SCHOOL_INFO.shortName,
+          centerText: 'Faculty Directory',
+          rightText: 'Confidential',
+        });
       }
-    });
-
-    doc.save(`teachers_export_${new Date().toISOString().split('T')[0]}.pdf`);
-    toast.success('PDF exported successfully');
+      
+      const filename = generateExportFilename('Faculty_Directory', 'pdf', { includeDate: true });
+      doc.save(filename);
+      progress.complete('Faculty Directory PDF exported successfully!');
+      
+    } catch (error) {
+      handleExportError(error, 'PDF Export');
+    }
   };
 
   const handleImportExcel = async (e) => {

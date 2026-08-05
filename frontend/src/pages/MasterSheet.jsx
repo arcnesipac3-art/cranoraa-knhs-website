@@ -10,6 +10,23 @@ import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
 import { useSystemSettings } from '../hooks/useSystemSettings';
 import { Skeleton, Button } from '../components/ui';
 import toast from 'react-hot-toast';
+import {
+  ExportProgress,
+  getPDFPageSetup,
+  addPDFHeader,
+  addPDFFooter,
+  addSignatureBlock,
+  createStyledWorkbook,
+  addExcelHeader,
+  autoSizeColumns,
+  downloadExcelFile,
+  generateExportFilename,
+  validateExportData,
+  handleExportError,
+  sanitizeForExport,
+  SCHOOL_INFO,
+  DEPED_COLORS,
+} from '../utils/exportHelpers';
 
 const PASSING_GRADE = 75;
 const getRemark = (score) => {
@@ -220,143 +237,494 @@ export default function MasterSheet() {
   }, []);
 
   const handleExportPDF = async () => {
-    if (!canExport) { toast.error('Fix validation issues first'); return; }
-    const { default: jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const pw = 297, ph = 210, ml = 15, mr = 15, mt = 15;
-    let y = mt;
+    if (!canExport) { 
+      toast.error('Cannot export: Fix validation issues first'); 
+      return; 
+    }
 
-    doc.setFontSize(12); doc.setFont('helvetica', 'bold');
-    doc.text('REPUBLIC OF THE PHILIPPINES', pw / 2, y, { align: 'center' }); y += 5;
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-    doc.text('Department of Education', pw / 2, y, { align: 'center' }); y += 4;
-    doc.text('Region IV-A CALABARZON', pw / 2, y, { align: 'center' }); y += 4;
-    doc.text('Division of Cavite', pw / 2, y, { align: 'center' }); y += 6;
+    try {
+      validateExportData(filteredStudents, ['id', 'name', 'lrn']);
+    } catch (error) {
+      return handleExportError(error, 'PDF Export');
+    }
 
-    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-    doc.text('MASTER LIST OF LEARNERS', pw / 2, y, { align: 'center' }); y += 5;
-    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-    doc.text(`School Year: ${filters.academic_year || 'N/A'}`, pw / 2, y, { align: 'center' }); y += 8;
+    const progress = new ExportProgress(4, 'Preparing Master Sheet PDF');
 
-    const co = classroomObj;
-    doc.setFontSize(9);
-    doc.text(`Grade Level: ${co?.grade_level || 'N/A'}`, ml, y);
-    doc.text(`Section: ${co?.name || 'N/A'}`, pw / 3, y);
-    doc.text(`Teacher: ${teacherObj ? `${teacherObj.last_name || ''}, ${teacherObj.first_name || ''}` : 'N/A'}`, pw * 2 / 3, y);
-    y += 5;
-    doc.text(`Term: ${filters.quarter}`, ml, y);
-    doc.text(`Total Students: ${students.length}`, pw / 3, y);
-    y += 8;
-
-    const cols = ['No.', 'LRN', 'Last Name', 'First Name', 'Middle Name', 'Sex'];
-    const colWidths = [12, 30, 50, 50, 40, 15];
-    const subjectCols = gradeColumns.filter(c => c.endsWith('__final_grade'));
-    const subWidths = subjectCols.map(() => 22);
-    const totalW = colWidths.reduce((a, b) => a + b, 0) + subWidths.reduce((a, b) => a + b, 0) + 25;
-
-    doc.setFontSize(7); doc.setFont('helvetica', 'bold');
-    let x = ml;
-    cols.forEach((h, i) => { doc.text(h, x + 1, y); x += colWidths[i]; });
-    subjectCols.forEach((c, i) => {
-      const name = c.split('__')[0];
-      const sub = sectionSubjects.find(s => String(s.subject) === name);
-      doc.text(sub?.subject_code || sub?.subject_name || name, x + 1, y); x += subWidths[i];
-    });
-    doc.text('Avg', x + 1, y); x += 25;
-    y += 1;
-    doc.line(ml, y, ml + totalW, y); y += 1;
-
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
-    filteredStudents.forEach((st, idx) => {
-      if (y > ph - 20) { doc.addPage(); y = mt; }
-      const parts = (st.name || '').split(',').map(s => s.trim());
-      const lastName = parts[0] || '';
-      const firstMiddle = parts[1] || '';
-      const fmParts = firstMiddle.split(' ').filter(Boolean);
-      const firstName = fmParts[0] || '';
-      const middleName = fmParts.slice(1).join(' ');
-      let x = ml;
-      const row = [String(idx + 1), st.lrn || '', lastName, firstName, middleName, st.sex === 'male' ? 'M' : st.sex === 'female' ? 'F' : ''];
-      row.forEach((v, i) => { doc.text(String(v), x + 1, y); x += colWidths[i]; });
-      const avgs = [];
-      subjectCols.forEach((c, i) => {
-        const val = gradeMatrix[st.id]?.[c];
-        const display = val !== null && val !== undefined ? parseFloat(val).toFixed(1) : '-';
-        doc.text(display, x + 1, y); x += subWidths[i];
-        if (val !== null && val !== undefined) avgs.push(parseFloat(val));
+    try {
+      progress.update(1, 'Loading PDF library');
+      const { jsPDF } = await import('jspdf');
+      
+      progress.update(2, 'Building document');
+      const doc = new jsPDF(getPDFPageSetup('landscape'));
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 12;
+      
+      // ══════════════════════════════════════════════════════════════════════════
+      // HEADER SECTION
+      // ══════════════════════════════════════════════════════════════════════════
+      
+      let y = addPDFHeader(doc, 'Master List of Learners', `School Year ${filters.academic_year || 'N/A'}`, {
+        startY: 12,
+        includeRepublic: true,
+        includeDepEd: true,
+        includeLogo: true,
+        logoSize: 12,
       });
-      const avg = avgs.length ? (avgs.reduce((a, b) => a + b, 0) / avgs.length).toFixed(1) : '-';
-      doc.text(avg, x + 1, y);
-      y += 4;
-    });
-
-    y += 5;
-    doc.line(ml, y, ml + totalW, y); y += 5;
-    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
-    doc.text(`Class Average: ${stats.average}`, ml, y);
-    doc.text(`Highest: ${stats.highest}`, ml + 60, y);
-    doc.text(`Lowest: ${stats.lowest}`, ml + 120, y);
-    doc.text(`Passing Rate: ${stats.passingRate}%`, ml + 180, y);
-    y += 10;
-    doc.text('Prepared by: __________________________', ml, y);
-    doc.text('Noted by: __________________________', ml + 120, y);
-
-    doc.save(`MasterSheet-${co?.name || 'class'}-Q${filters.quarter}.pdf`);
-    toast.success('PDF exported');
+      
+      // Classroom information box
+      const co = classroomObj;
+      const boxHeight = 20;
+      doc.setFillColor(248, 250, 252); // Light gray background
+      doc.setDrawColor(...DEPED_COLORS.border.match(/\w\w/g).map(x => parseInt(x, 16)));
+      doc.roundedRect(margin, y, pageWidth - 2 * margin, boxHeight, 2, 2, 'FD');
+      
+      const infoY = y + 6;
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      
+      // First row
+      doc.text('Grade Level:', margin + 5, infoY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(co?.grade_level || 'N/A', margin + 30, infoY);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Section:', pageWidth / 2 - 20, infoY);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(co?.name || 'N/A', pageWidth / 2 + 5, infoY);
+      
+      // Second row
+      const info2Y = infoY + 6;
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Adviser:', margin + 5, info2Y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      const teacherName = teacherObj ? `${teacherObj.last_name || ''}, ${teacherObj.first_name || ''}` : 'N/A';
+      doc.text(teacherName, margin + 30, info2Y);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Term:', pageWidth / 2 - 20, info2Y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Quarter ${filters.quarter}`, pageWidth / 2 + 5, info2Y);
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      doc.text('Total Students:', pageWidth - 80, info2Y);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text(String(students.length), pageWidth - 50, info2Y);
+      
+      y += boxHeight + 5;
+      
+      // ══════════════════════════════════════════════════════════════════════════
+      // TABLE HEADER
+      // ══════════════════════════════════════════════════════════════════════════
+      
+      progress.update(3, 'Generating grade table');
+      
+      const cols = ['No.', 'LRN', 'Last Name', 'First Name', 'Middle', 'Sex'];
+      const colWidths = [10, 28, 42, 42, 35, 12];
+      const subjectCols = gradeColumns.filter(c => c.endsWith('__final_grade'));
+      const subWidths = subjectCols.map(() => 20);
+      const avgWidth = 18;
+      const totalW = colWidths.reduce((a, b) => a + b, 0) + 
+                     subWidths.reduce((a, b) => a + b, 0) + avgWidth;
+      
+      // Header background
+      doc.setFillColor(...DEPED_COLORS.primary.match(/\w\w/g).map(x => parseInt(x, 16)));
+      doc.rect(margin, y, totalW, 7, 'F');
+      
+      // Header text
+      doc.setFontSize(6);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(255, 255, 255);
+      
+      let x = margin;
+      cols.forEach((h, i) => {
+        doc.text(h, x + colWidths[i] / 2, y + 4.5, { align: 'center' });
+        x += colWidths[i];
+      });
+      
+      subjectCols.forEach((c, i) => {
+        const name = c.split('__')[0];
+        const sub = sectionSubjects.find(s => String(s.subject) === name);
+        const code = sub?.subject_code || sub?.subject_name || name;
+        doc.text(sanitizeForExport(code).substring(0, 10), x + subWidths[i] / 2, y + 4.5, { align: 'center' });
+        x += subWidths[i];
+      });
+      
+      doc.text('Gen Avg', x + avgWidth / 2, y + 4.5, { align: 'center' });
+      y += 8;
+      
+      // ══════════════════════════════════════════════════════════════════════════
+      // STUDENT DATA ROWS
+      // ══════════════════════════════════════════════════════════════════════════
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6);
+      doc.setTextColor(0, 0, 0);
+      
+      filteredStudents.forEach((st, idx) => {
+        // Check for page break
+        if (y > pageHeight - 25) {
+          addPDFFooter(doc, {
+            pageNumber: doc.internal.getNumberOfPages(),
+            leftText: SCHOOL_INFO.shortName,
+            centerText: `${co?.grade_level || ''} - ${co?.name || ''}`,
+            rightText: `Q${filters.quarter}`,
+          });
+          doc.addPage();
+          y = 15;
+          
+          // Repeat header on new page
+          doc.setFillColor(...DEPED_COLORS.primary.match(/\w\w/g).map(x => parseInt(x, 16)));
+          doc.rect(margin, y, totalW, 7, 'F');
+          doc.setFontSize(6);
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(255, 255, 255);
+          
+          x = margin;
+          cols.forEach((h, i) => {
+            doc.text(h, x + colWidths[i] / 2, y + 4.5, { align: 'center' });
+            x += colWidths[i];
+          });
+          subjectCols.forEach((c, i) => {
+            const name = c.split('__')[0];
+            const sub = sectionSubjects.find(s => String(s.subject) === name);
+            const code = sub?.subject_code || sub?.subject_name || name;
+            doc.text(sanitizeForExport(code).substring(0, 10), x + subWidths[i] / 2, y + 4.5, { align: 'center' });
+            x += subWidths[i];
+          });
+          doc.text('Gen Avg', x + avgWidth / 2, y + 4.5, { align: 'center' });
+          y += 8;
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0, 0, 0);
+        }
+        
+        // Alternating row colors
+        if (idx % 2 === 0) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(margin, y - 3, totalW, 4, 'F');
+        }
+        
+        // Parse student name
+        const parts = (st.name || '').split(',').map(s => s.trim());
+        const lastName = sanitizeForExport(parts[0] || '');
+        const firstMiddle = sanitizeForExport(parts[1] || '');
+        const fmParts = firstMiddle.split(' ').filter(Boolean);
+        const firstName = fmParts[0] || '';
+        const middleName = fmParts.slice(1).join(' ');
+        
+        x = margin;
+        
+        // Student info columns
+        const rowData = [
+          String(idx + 1),
+          st.lrn || '',
+          lastName.substring(0, 20),
+          firstName.substring(0, 20),
+          middleName.substring(0, 15),
+          st.sex === 'male' ? 'M' : st.sex === 'female' ? 'F' : ''
+        ];
+        
+        rowData.forEach((v, i) => {
+          const align = i === 0 ? 'center' : 'left';
+          const xPos = i === 0 ? x + colWidths[i] / 2 : x + 2;
+          doc.text(String(v), xPos, y, { align });
+          x += colWidths[i];
+        });
+        
+        // Grade columns
+        const avgs = [];
+        subjectCols.forEach((c, i) => {
+          const val = gradeMatrix[st.id]?.[c];
+          const display = val !== null && val !== undefined ? parseFloat(val).toFixed(1) : '-';
+          
+          // Color code grades
+          if (val !== null && val !== undefined) {
+            const numVal = parseFloat(val);
+            if (numVal >= 90) doc.setTextColor(16, 185, 129); // Green
+            else if (numVal >= 75) doc.setTextColor(0, 0, 0); // Black
+            else doc.setTextColor(239, 68, 68); // Red
+            avgs.push(numVal);
+          } else {
+            doc.setTextColor(150, 150, 150); // Gray
+          }
+          
+          doc.text(display, x + subWidths[i] / 2, y, { align: 'center' });
+          x += subWidths[i];
+          doc.setTextColor(0, 0, 0);
+        });
+        
+        // General average
+        const avg = avgs.length ? (avgs.reduce((a, b) => a + b, 0) / avgs.length) : null;
+        const avgDisplay = avg !== null ? avg.toFixed(1) : '-';
+        
+        if (avg !== null) {
+          doc.setFont('helvetica', 'bold');
+          if (avg >= 90) doc.setTextColor(16, 185, 129);
+          else if (avg >= 75) doc.setTextColor(0, 0, 0);
+          else doc.setTextColor(239, 68, 68);
+        }
+        
+        doc.text(avgDisplay, x + avgWidth / 2, y, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+        
+        y += 4;
+      });
+      
+      // ══════════════════════════════════════════════════════════════════════════
+      // SUMMARY STATISTICS
+      // ══════════════════════════════════════════════════════════════════════════
+      
+      y += 3;
+      doc.setDrawColor(...DEPED_COLORS.border.match(/\w\w/g).map(x => parseInt(x, 16)));
+      doc.line(margin, y, margin + totalW, y);
+      y += 6;
+      
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      
+      const summaryItems = [
+        `Class Average: ${stats.average}`,
+        `Highest: ${stats.highest}`,
+        `Lowest: ${stats.lowest}`,
+        `Passing Rate: ${stats.passingRate}%`,
+        `Male: ${stats.male}`,
+        `Female: ${stats.female}`,
+      ];
+      
+      const itemWidth = totalW / 3;
+      summaryItems.forEach((item, i) => {
+        const row = Math.floor(i / 3);
+        const col = i % 3;
+        doc.text(item, margin + col * itemWidth, y + row * 5);
+      });
+      
+      y += 15;
+      
+      // ══════════════════════════════════════════════════════════════════════════
+      // SIGNATURE BLOCKS
+      // ══════════════════════════════════════════════════════════════════════════
+      
+      progress.update(4, 'Finalizing document');
+      
+      addSignatureBlock(doc, y, [
+        {
+          name: teacherName,
+          title: 'Prepared by',
+          subtitle: 'Class Adviser',
+        },
+        {
+          title: 'Noted by',
+          subtitle: 'School Principal',
+        },
+      ], { spaceAbove: 10 });
+      
+      // Add footer to all pages
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        addPDFFooter(doc, {
+          pageNumber: i,
+          totalPages: totalPages,
+          leftText: SCHOOL_INFO.shortName,
+          centerText: `${co?.grade_level || ''} - ${co?.name || ''} - Q${filters.quarter}`,
+          rightText: 'Master Sheet',
+        });
+      }
+      
+      // Save PDF
+      const filename = generateExportFilename(
+        `MasterSheet_${co?.grade_level || 'Grade'}_${co?.name || 'Section'}_Q${filters.quarter}`,
+        'pdf',
+        { includeDate: true }
+      );
+      
+      doc.save(filename);
+      progress.complete('Master Sheet PDF exported successfully!');
+      
+    } catch (error) {
+      handleExportError(error, 'PDF Export');
+    }
   };
 
   const handleExportExcel = async () => {
-    if (!canExport) { toast.error('Fix validation issues first'); return; }
-    const XLSX = await import('xlsx');
-    const wb = XLSX.utils.book_new();
-    const headers = ['No.', 'LRN', 'Last Name', 'First Name', 'Middle Name', 'Sex'];
-    const subjectCols = gradeColumns.filter(c => c.endsWith('__final_grade'));
-    subjectCols.forEach(c => {
-      const sub = sectionSubjects.find(s => String(s.subject) === c.split('__')[0]);
-      headers.push(sub?.subject_code || sub?.subject_name || c);
-    });
-    headers.push('General Average', 'Remarks');
+    if (!canExport) { 
+      toast.error('Cannot export: Fix validation issues first'); 
+      return; 
+    }
 
-    const rows = filteredStudents.map((st, idx) => {
-      const parts = (st.name || '').split(',').map(s => s.trim());
-      const lastName = parts[0] || '';
-      const firstMiddle = parts[1] || '';
-      const fmParts = firstMiddle.split(' ').filter(Boolean);
-      const firstName = fmParts[0] || '';
-      const middleName = fmParts.slice(1).join(' ');
-      const row = [idx + 1, st.lrn || '', lastName, firstName, middleName, st.sex === 'male' ? 'M' : st.sex === 'female' ? 'F' : ''];
-      const avgs = [];
+    try {
+      validateExportData(filteredStudents, ['id', 'name', 'lrn']);
+    } catch (error) {
+      return handleExportError(error, 'Excel Export');
+    }
+
+    const progress = new ExportProgress(4, 'Preparing Master Sheet Excel');
+
+    try {
+      progress.update(1, 'Initializing workbook');
+      const { wb, XLSX } = await createStyledWorkbook('Master Sheet');
+      
+      progress.update(2, 'Building grade table');
+      
+      // Build headers
+      const headers = ['No.', 'LRN', 'Last Name', 'First Name', 'Middle Name', 'Sex'];
+      const subjectCols = gradeColumns.filter(c => c.endsWith('__final_grade'));
+      
       subjectCols.forEach(c => {
-        const val = gradeMatrix[st.id]?.[c];
-        row.push(val !== null && val !== undefined ? parseFloat(val) : '');
-        if (val !== null && val !== undefined) avgs.push(parseFloat(val));
+        const sub = sectionSubjects.find(s => String(s.subject) === c.split('__')[0]);
+        const name = sub?.subject_code || sub?.subject_name || c;
+        headers.push(sanitizeForExport(name));
       });
-      const avg = avgs.length ? (avgs.reduce((a, b) => a + b, 0) / avgs.length).toFixed(2) : '';
-      row.push(avg, avg ? getRemark(parseFloat(avg)) : '');
-      return row;
-    });
-
-    const wsData = [
-      ['Republic of the Philippines'],
-      ['Department of Education'],
-      ['Region IV-A CALABARZON - Division of Cavite'],
-      ['MASTER LIST OF LEARNERS'],
-      [`School Year: ${filters.academic_year || ''}`],
-      [`Grade Level: ${classroomObj?.grade_level || ''}`, `Section: ${classroomObj?.name || ''}`, `Term: ${filters.quarter}`],
-      [],
-      headers,
-      ...rows,
-      [],
-      ['Summary'],
-      ['Total Students', students.length], ['Male', stats.male], ['Female', stats.female],
-      ['Class Average', stats.average], ['Highest', stats.highest], ['Lowest', stats.lowest],
-      ['Passing Rate', `${stats.passingRate}%`], ['Failing Rate', `${stats.failingRate}%`],
-    ];
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    ws['!cols'] = headers.map((_, i) => ({ wch: i === 0 ? 5 : i === 1 ? 15 : i <= 4 ? 18 : i === 5 ? 5 : 12 }));
-    XLSX.utils.book_append_sheet(wb, ws, 'Master Sheet');
-    XLSX.writeFile(wb, `MasterSheet-${classroomObj?.name || 'class'}-Q${filters.quarter}.xlsx`);
-    toast.success('Excel exported');
+      
+      headers.push('General Average', 'Remarks');
+      
+      // Build data rows
+      const rows = filteredStudents.map((st, idx) => {
+        const parts = (st.name || '').split(',').map(s => s.trim());
+        const lastName = sanitizeForExport(parts[0] || '');
+        const firstMiddle = sanitizeForExport(parts[1] || '');
+        const fmParts = firstMiddle.split(' ').filter(Boolean);
+        const firstName = fmParts[0] || '';
+        const middleName = fmParts.slice(1).join(' ');
+        
+        const row = [
+          idx + 1,
+          st.lrn || '',
+          lastName,
+          firstName,
+          middleName,
+          st.sex === 'male' ? 'M' : st.sex === 'female' ? 'F' : ''
+        ];
+        
+        const avgs = [];
+        subjectCols.forEach(c => {
+          const val = gradeMatrix[st.id]?.[c];
+          row.push(val !== null && val !== undefined ? parseFloat(val) : '');
+          if (val !== null && val !== undefined) avgs.push(parseFloat(val));
+        });
+        
+        const avg = avgs.length ? (avgs.reduce((a, b) => a + b, 0) / avgs.length) : null;
+        row.push(avg !== null ? parseFloat(avg.toFixed(2)) : '');
+        row.push(avg !== null ? getRemark(avg) : '');
+        
+        return row;
+      });
+      
+      progress.update(3, 'Formatting worksheet');
+      
+      // Add school header
+      const wsData = addExcelHeader(
+        [headers, ...rows],
+        'MASTER LIST OF LEARNERS',
+        {
+          includeRepublic: true,
+          includeDepEd: true,
+          subtitle: null,
+          metadata: {
+            'School Year': filters.academic_year || 'N/A',
+            'Grade Level': classroomObj?.grade_level || 'N/A',
+            'Section': classroomObj?.name || 'N/A',
+            'Adviser': teacherObj ? `${teacherObj.last_name || ''}, ${teacherObj.first_name || ''}` : 'N/A',
+            'Term': `Quarter ${filters.quarter}`,
+            'Total Students': students.length,
+          },
+        }
+      );
+      
+      // Add summary statistics
+      wsData.push([]);
+      wsData.push(['SUMMARY STATISTICS']);
+      wsData.push(['Total Students', students.length]);
+      wsData.push(['Male Students', stats.male]);
+      wsData.push(['Female Students', stats.female]);
+      wsData.push([]);
+      wsData.push(['Class Average', stats.average]);
+      wsData.push(['Highest Grade', stats.highest]);
+      wsData.push(['Lowest Grade', stats.lowest]);
+      wsData.push(['Passing Rate', `${stats.passingRate}%`]);
+      wsData.push(['Failing Rate', `${stats.failingRate}%`]);
+      
+      // Create worksheet
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      
+      // Auto-size columns
+      autoSizeColumns(ws, XLSX, 8, 35);
+      
+      // Apply number formatting to grade columns
+      const headerRowIndex = wsData.findIndex(row => row[0] === 'No.');
+      if (headerRowIndex >= 0) {
+        const firstDataRow = headerRowIndex + 1;
+        const lastDataRow = firstDataRow + rows.length - 1;
+        const firstGradeCol = headers.indexOf(headers.find(h => !['No.', 'LRN', 'Last Name', 'First Name', 'Middle Name', 'Sex'].includes(h)));
+        const lastGradeCol = headers.length - 2; // Before Remarks column
+        
+        for (let row = firstDataRow; row <= lastDataRow; row++) {
+          for (let col = firstGradeCol; col <= lastGradeCol; col++) {
+            const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+            if (ws[cellRef] && typeof ws[cellRef].v === 'number') {
+              ws[cellRef].z = '0.00'; // Number format
+              
+              // Conditional formatting via cell style
+              const value = ws[cellRef].v;
+              ws[cellRef].s = ws[cellRef].s || {};
+              
+              if (value >= 90) {
+                ws[cellRef].s.font = { color: { rgb: '10B981' }, bold: true };
+              } else if (value < 75) {
+                ws[cellRef].s.font = { color: { rgb: 'EF4444' }, bold: true };
+              }
+            }
+          }
+        }
+        
+        // Style summary section
+        const summaryStartRow = wsData.findIndex(row => row[0] === 'SUMMARY STATISTICS');
+        if (summaryStartRow >= 0) {
+          const summaryCell = XLSX.utils.encode_cell({ r: summaryStartRow, c: 0 });
+          if (ws[summaryCell]) {
+            ws[summaryCell].s = {
+              font: { bold: true, sz: 12, color: { rgb: '003366' } },
+              fill: { fgColor: { rgb: 'E2E8F0' } },
+            };
+          }
+        }
+      }
+      
+      // Freeze panes (freeze first row after header)
+      if (headerRowIndex >= 0) {
+        ws['!freeze'] = { xSplit: 0, ySplit: headerRowIndex + 1 };
+      }
+      
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Master Sheet');
+      
+      // Save file
+      progress.update(4, 'Saving file');
+      const filename = generateExportFilename(
+        `MasterSheet_${classroomObj?.grade_level || 'Grade'}_${classroomObj?.name || 'Section'}_Q${filters.quarter}`,
+        'xlsx',
+        { includeDate: true }
+      );
+      
+      await downloadExcelFile(wb, XLSX, filename);
+      progress.complete('Master Sheet Excel exported successfully!');
+      
+    } catch (error) {
+      handleExportError(error, 'Excel Export');
+    }
   };
 
   const selectedSubject = filters.subject ? sectionSubjects.find(s => String(s.subject) === String(filters.subject)) : null;
