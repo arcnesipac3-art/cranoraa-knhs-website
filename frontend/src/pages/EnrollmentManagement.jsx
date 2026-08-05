@@ -91,8 +91,10 @@ const EnrollmentManagement = () => {
 
     try {
       if (app.status === 'pending') {
-        await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
-        refetch();
+        try {
+          await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
+          refetch();
+        } catch { /* continue to fetch detail even if start-review fails */ }
       }
       // Always fetch the full detail so documents are backfilled and up-to-date
       const res = await api.get(`/enrollment-applications/${app.id}/`);
@@ -336,19 +338,30 @@ const EnrollmentManagement = () => {
         _fromUrlField: true,
       }));
 
-    const uploadedDocTypes = new Set(urlDocs.map(d => d.document_type));
-    const missingDocs = URL_DOC_FIELDS
-      .filter(({ docType }) => !uploadedDocTypes.has(docType))
-      .map(({ field, type }) => ({
-        id: `missing-${field}`,
-        document_type_display: type,
-        file_url: null,
-        verification_status: 'missing',
-        verification_status_display: 'Not Uploaded',
-        _isMissing: true,
-      }));
+    if (urlDocs.length > 0) {
+      const uploadedDocTypes = new Set(urlDocs.map(d => d.document_type));
+      const missingDocs = URL_DOC_FIELDS
+        .filter(({ docType }) => !uploadedDocTypes.has(docType))
+        .map(({ field, type }) => ({
+          id: `missing-${field}`,
+          document_type_display: type,
+          file_url: null,
+          verification_status: 'missing',
+          verification_status_display: 'Not Uploaded',
+          _isMissing: true,
+        }));
+      return [...urlDocs, ...missingDocs];
+    }
 
-    return [...urlDocs, ...missingDocs];
+    // No documents at all — return all as missing
+    return URL_DOC_FIELDS.map(({ field, type }) => ({
+      id: `missing-${field}`,
+      document_type_display: type,
+      file_url: null,
+      verification_status: 'missing',
+      verification_status_display: 'Not Uploaded',
+      _isMissing: true,
+    }));
   };
 
   if (loading) return <ApplicationsTableSkeleton />;
