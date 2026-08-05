@@ -29,6 +29,28 @@ const getGradeColor = (score) => {
   return 'text-red-700';
 };
 
+function FilterSelect({ label, value, onChange, options, required = false }) {
+  return (
+    <div>
+      <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase mb-1">
+        {label}
+        {required && <span className="text-red-400">*</span>}
+      </label>
+      <select
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className={`w-full rounded-lg border px-3 py-2 text-sm bg-white transition-colors
+          focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500
+          ${!value && required ? 'border-red-300 text-gray-400' : 'border-gray-300 text-gray-900'}`}
+      >
+        {options.map(opt => (
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export default function MasterSheet() {
   const { academicYear } = useActiveAcademicYear();
   const { periodValues } = useSystemSettings();
@@ -424,65 +446,103 @@ export default function MasterSheet() {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Academic Year</label>
-            <select value={filters.academic_year} onChange={e => setFilters(f => ({ ...f, academic_year: e.target.value }))}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="">All</option>
-              {['2024-2025', '2025-2026', '2026-2027'].map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
+      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
+        {/* Row 1: Primary filters */}
+        <div>
+          <div className="flex items-center gap-1.5 mb-2">
+            <Filter className="w-3 h-3 text-gray-400" />
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Primary Filters</span>
           </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Grade Level</label>
-            <select value={filters.grade_level} onChange={e => setFilters(f => ({ ...f, grade_level: e.target.value, classroom: '' }))}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="">All</option>
-              {[7, 8, 9, 10, 11, 12].map(g => <option key={g} value={g}>Grade {g}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Section</label>
-            <select value={filters.classroom} onChange={e => setFilters(f => ({ ...f, classroom: e.target.value }))}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="">Select section</option>
-              {filteredClassrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Subject</label>
-            <select value={filters.subject} onChange={e => setFilters(f => ({ ...f, subject: e.target.value }))}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="">All</option>
-              {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Quarter</label>
-            <select value={filters.quarter} onChange={e => setFilters(f => ({ ...f, quarter: e.target.value }))}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              {periodValues.map(q => <option key={q} value={q}>Term {q}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Teacher</label>
-            <select value={filters.teacher} onChange={e => setFilters(f => ({ ...f, teacher: e.target.value, classroom: '' }))}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm">
-              <option value="">All</option>
-              {teachers.map(t => <option key={t.id} value={t.id}>{t.last_name}, {t.first_name}</option>)}
-            </select>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <FilterSelect
+              label="Academic Year"
+              value={filters.academic_year}
+              onChange={v => setFilters(f => ({ ...f, academic_year: v }))}
+              options={[
+                { value: '', label: 'All Years' },
+                ...['2024-2025', '2025-2026', '2026-2027'].map(y => ({ value: y, label: y })),
+              ]}
+            />
+            <FilterSelect
+              label="Grade Level"
+              value={filters.grade_level}
+              onChange={v => setFilters(f => ({ ...f, grade_level: v, classroom: '' }))}
+              options={[
+                { value: '', label: 'All Grades' },
+                ...[7, 8, 9, 10, 11, 12].map(g => ({ value: g, label: `Grade ${g}` })),
+              ]}
+            />
+            <FilterSelect
+              label="Section"
+              value={filters.classroom}
+              onChange={v => setFilters(f => ({ ...f, classroom: v }))}
+              options={[
+                { value: '', label: 'Select section...' },
+                ...filteredClassrooms.map(c => ({ value: c.id, label: c.name })),
+              ]}
+              required
+            />
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2">
-          <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search student name or LRN..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm" />
+
+        <div className="border-t border-gray-100" />
+
+        {/* Row 2: Refinement filters */}
+        <div>
+          <div className="flex items-center gap-1.5 mb-2">
+            <ChevronDown className="w-3 h-3 text-gray-400" />
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Refinement</span>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchGrades}>
-            <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
-          </Button>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <FilterSelect
+              label="Quarter"
+              value={filters.quarter}
+              onChange={v => setFilters(f => ({ ...f, quarter: v }))}
+              options={periodValues.map(q => ({ value: q, label: `Term ${q}` }))}
+            />
+            <FilterSelect
+              label="Subject"
+              value={filters.subject}
+              onChange={v => setFilters(f => ({ ...f, subject: v }))}
+              options={[
+                { value: '', label: 'All Subjects' },
+                ...subjects.map(s => ({ value: s.id, label: s.name })),
+              ]}
+            />
+            <FilterSelect
+              label="Teacher"
+              value={filters.teacher}
+              onChange={v => setFilters(f => ({ ...f, teacher: v, classroom: '' }))}
+              options={[
+                { value: '', label: 'All Teachers' },
+                ...teachers.map(t => ({ value: t.id, label: `${t.last_name}, ${t.first_name}` })),
+              ]}
+            />
+          </div>
+        </div>
+
+        <div className="border-t border-gray-100" />
+
+        {/* Row 3: Search + actions */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search student name or LRN..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => { setFilters({ academic_year: '', grade_level: '', classroom: '', subject: '', quarter: '1', teacher: '' }); setSearch(''); }}>
+              <X className="w-3.5 h-3.5 mr-1" /> Reset
+            </Button>
+            <Button variant="outline" size="sm" onClick={fetchGrades}>
+              <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+            </Button>
+          </div>
         </div>
       </div>
 
