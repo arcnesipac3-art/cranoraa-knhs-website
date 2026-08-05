@@ -259,6 +259,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         return Response({
             'schedule': {
                 'id': sch.id,
+                'classroom_id': sch.classroom_id,
                 'classroom_name': sch.classroom.name,
                 'subject_name': sch.subject.name,
                 'subject_code': sch.subject.code,
@@ -362,6 +363,106 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             'updated': updated_count,
             'errors': errors,
         })
+
+    @action(detail=False, methods=['post'], url_path='bulk-save-cross-period')
+    def bulk_save_cross_period(self, request):
+        """Copy attendance from one schedule to all other schedules for the same classroom on the same day.
+
+        Request body:
+            schedule_id: int  — source schedule
+            date: str         — YYYY-MM-DD
+            records: [{ student_id, status, remarks }]
+        """
+        if request.user.role not in ['staff', 'admin']:
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        schedule_id = request.data.get('schedule_id') or request.data.get('schedule')
+        date_str = request.data.get('date')
+        records = request.data.get('records', [])
+
+        if not schedule_id or not date_str:
+            return Response({'error': 'schedule_id and date are required'}, status=400)
+        if not records:
+            return Response({'error': 'records array is required'}, status=400)
+
+        try:
+            source = Schedule.objects.select_related('classroom', 'subject', 'time_slot').get(id=schedule_id)
+        except Schedule.DoesNotExist:
+            return Response({'error': 'Source schedule not found'}, status=404)
+
+        if source.teacher != request.user and request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        try:
+            att_date = datetime.date.fromisoformat(date_str)
+        except ValueError:
+            return Response({'error': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
+
+        day_name = att_date.strftime('%A').lower()
+        target_schedules = Schedule.objects.filter(
+            classroom=source.classroom,
+            is_active=True,
+            time_slot__day=day_name,
+        ).exclude(id=source.id).select_related('subject', 'time_slot')
+
+        if not target_schedules.exists():
+            return Response({'affected_schedules': [], 'message': 'No other periods found for this classroom on this date'})
+
+        affected = []
+        with transaction.atomic():
+            for target in target_schedules:
+                created_count = 0
+                updated_count = 0
+                for rec in records:
+                    student_id = rec.get('student_id')
+                    status_val = rec.get('status')
+                    remarks = rec.get('remarks', '')
+
+                    if not student_id or not status_val:
+                        continue
+                    if status_val not in ['present', 'absent', 'late', 'excused', 'school_activity', 'medical_leave']:
+                        continue
+
+                    _, created = Attendance.objects.update_or_create(
+                        student_id=student_id,
+                        schedule=target,
+                        date=att_date,
+                        defaults={
+                            'status': status_val,
+                            'remarks': remarks,
+                            'classroom': target.classroom,
+                            'subject': target.subject,
+                            'time_slot': target.time_slot,
+                            'marked_by': request.user,
+                        }
+                    )
+                    if created:
+                        created_count += 1
+                    else:
+                        updated_count += 1
+
+                affected.append({
+                    'schedule_id': target.id,
+                    'subject_name': target.subject.name if target.subject else None,
+                    'time_slot': f"{target.time_slot.start_time.strftime('%I:%M %p')} - {target.time_slot.end_time.strftime('%I:%M %p')}",
+                    'created': created_count,
+                    'updated': updated_count,
+                })
+
+        try:
+            log_audit_action(
+                user=request.user,
+                action='create',
+                model_name='Attendance',
+                object_id=None,
+                object_repr=f'Cross-period {source.classroom.name} on {date_str}',
+                description=f'{request.user.username} copied attendance from {source.subject.name} to {len(affected)} other periods for {source.classroom.name} on {date_str}',
+                request=request
+            )
+        except Exception as audit_err:
+            logger.warning(f"Audit log failed on bulk_save_cross_period: {audit_err}")
+
+        return Response({'affected_schedules': affected})
 
     def create(self, request, *args, **kwargs):
         try:

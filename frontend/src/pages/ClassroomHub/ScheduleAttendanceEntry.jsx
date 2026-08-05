@@ -7,7 +7,8 @@ import {
 } from '../../components/ui';
 import {
   ArrowLeft, Users, Calendar, Clock, CheckCircle, XCircle,
-  Search, Send, Save, Lock, Unlock, MessageSquare, BookOpen
+  Search, Send, Save, Lock, Unlock, MessageSquare, BookOpen,
+  Copy, ChevronDown, ChevronUp
 } from 'lucide-react';
 
 const statusConfig = {
@@ -28,6 +29,9 @@ const ScheduleAttendanceEntry = ({ scheduleId, date, classroom, onBack }) => {
   const [remarks, setRemarks] = useState({});
   const [workflowStatus, setWorkflowStatus] = useState('draft');
   const [existingRecords, setExistingRecords] = useState({});
+  const [applyToOtherPeriods, setApplyToOtherPeriods] = useState(false);
+  const [otherPeriods, setOtherPeriods] = useState([]);
+  const [showPeriodInfo, setShowPeriodInfo] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -56,6 +60,13 @@ const ScheduleAttendanceEntry = ({ scheduleId, date, classroom, onBack }) => {
       setAttendance(attMap);
       setExistingRecords(recMap);
       setWorkflowStatus(wfStatus);
+
+      const dayName = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const allSchedulesRes = await api.get('/attendance/teacher-dashboard/', { params: { date } }).catch(() => ({ data: {} }));
+      const sameClassroomPeriods = (allSchedulesRes.data.classes || []).filter(
+        c => c.classroom_id === sched.classroom_id && c.schedule_id !== parseInt(scheduleId)
+      );
+      setOtherPeriods(sameClassroomPeriods);
     } catch {
       toast.error('Failed to load attendance data');
     } finally {
@@ -104,7 +115,20 @@ const ScheduleAttendanceEntry = ({ scheduleId, date, classroom, onBack }) => {
       if (res.data.errors?.length > 0) {
         toast.error(`Some records failed: ${res.data.errors.join('; ')}`);
       }
-      // Refresh to get updated records
+
+      if (applyToOtherPeriods && otherPeriods.length > 0) {
+        const crossRes = await api.post('/attendance/bulk-save-cross-period/', {
+          schedule_id: parseInt(scheduleId),
+          date,
+          records,
+        });
+        const affected = crossRes.data.affected_schedules || [];
+        if (affected.length > 0) {
+          const names = affected.map(a => a.subject_name).join(', ');
+          toast.success(`Attendance also saved for: ${names}`);
+        }
+      }
+
       await fetchData();
       return true;
     } catch (err) {
@@ -269,6 +293,64 @@ const ScheduleAttendanceEntry = ({ scheduleId, date, classroom, onBack }) => {
           </div>
         </CardBody>
       </Card>
+
+      {/* Cross-Period Bulk Attendance */}
+      {otherPeriods.length > 0 && workflowStatus === 'draft' && (
+        <Card>
+          <CardBody className="p-3 md:p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                <Copy className="w-4.5 h-4.5 text-indigo-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">Apply to Other Periods</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Save the same attendance for {otherPeriods.length} other period{otherPeriods.length > 1 ? 's' : ''} today
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setApplyToOtherPeriods(!applyToOtherPeriods)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ml-2 ${
+                      applyToOtherPeriods ? 'bg-indigo-600' : 'bg-slate-300'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${
+                      applyToOtherPeriods ? 'translate-x-6' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+                {applyToOtherPeriods && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPeriodInfo(!showPeriodInfo)}
+                    className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 mt-1.5 hover:text-indigo-800"
+                  >
+                    {showPeriodInfo ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                    {showPeriodInfo ? 'Hide' : 'Show'} periods
+                  </button>
+                )}
+              </div>
+            </div>
+            {applyToOtherPeriods && showPeriodInfo && (
+              <div className="mt-3 ml-12 space-y-1.5">
+                {otherPeriods.map(p => (
+                  <div key={p.schedule_id} className="flex items-center gap-2 text-[11px] text-slate-600">
+                    <div className={`w-1.5 h-1.5 rounded-full ${p.status === 'completed' ? 'bg-green-500' : 'bg-amber-500'}`} />
+                    <span className="font-semibold">{p.subject_name}</span>
+                    <span className="text-slate-400">{p.start_time} - {p.end_time}</span>
+                    <span className={`ml-auto text-[10px] font-bold ${p.status === 'completed' ? 'text-green-600' : 'text-amber-600'}`}>
+                      {p.status === 'completed' ? 'Done' : 'Pending'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardBody>
+        </Card>
+      )}
 
       {/* Attendance Entry */}
       <Card>
