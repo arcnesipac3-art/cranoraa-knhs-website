@@ -175,7 +175,7 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades }) => {
   );
 };
 
-const SubmitConfirmationModal = ({ isOpen, onClose, submission, summary, onConfirm }) => {
+const SubmitConfirmationModal = ({ isOpen, onClose, submission, summary, onConfirm, warnings }) => {
   if (!submission) return null;
 
   return (
@@ -202,13 +202,19 @@ const SubmitConfirmationModal = ({ isOpen, onClose, submission, summary, onConfi
                 <div><span className="text-gray-500">Highest:</span> <span className="font-medium">{summary.highest_grade?.toFixed(1) || 'N/A'}</span></div>
                 <div><span className="text-gray-500">Lowest:</span> <span className="font-medium">{summary.lowest_grade?.toFixed(1) || 'N/A'}</span></div>
               </div>
-              {!summary.validation_passed && (
-                <div className="mt-3 p-2 bg-amber-100 rounded-lg">
-                  <p className="text-xs text-amber-800 font-medium">
-                    Warning: {summary.missing_grades} student(s) have missing grades.
-                  </p>
-                </div>
-              )}
+            </div>
+          )}
+
+          {warnings && warnings.warnings && warnings.warnings.length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h4 className="font-semibold text-red-800 mb-2">
+                {warnings.warning_count} Warning(s) Detected
+              </h4>
+              <ul className="max-h-40 overflow-y-auto space-y-1 text-sm text-red-700">
+                {warnings.warnings.map((w, i) => (
+                  <li key={i}>• {w.student_name}: {w.message}</li>
+                ))}
+              </ul>
             </div>
           )}
 
@@ -221,9 +227,15 @@ const SubmitConfirmationModal = ({ isOpen, onClose, submission, summary, onConfi
       </ModalBody>
       <ModalFooter>
         <Button variant="ghost" onClick={onClose}>Cancel</Button>
-        <Button onClick={onConfirm} className="bg-brand-600 hover:bg-brand-700 text-white">
-          Confirm Submission
-        </Button>
+        {warnings ? (
+          <Button onClick={() => onConfirm(true)} className="bg-red-600 hover:bg-red-700 text-white">
+            Submit Anyway ({warnings.warning_count} warnings)
+          </Button>
+        ) : (
+          <Button onClick={() => onConfirm(false)} className="bg-brand-600 hover:bg-brand-700 text-white">
+            Confirm Submission
+          </Button>
+        )}
       </ModalFooter>
     </Modal>
   );
@@ -277,6 +289,7 @@ export default function TeacherGradeDashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [pendingWarnings, setPendingWarnings] = useState(null);
   const [showReopenModal, setShowReopenModal] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [submissionSummary, setSubmissionSummary] = useState(null);
@@ -307,17 +320,20 @@ export default function TeacherGradeDashboard() {
     setShowSubmitModal(true);
   };
 
-  const confirmSubmit = async () => {
+  const confirmSubmit = async (force = false) => {
     if (!selectedSubmission) return;
     try {
-      await api.post(`/grade-submissions/${selectedSubmission.id}/submit/`);
+      const payload = force ? { force: true } : {};
+      await api.post(`/grade-submissions/${selectedSubmission.id}/submit/`, payload);
       toast.success('Grades submitted successfully');
       setShowSubmitModal(false);
       setSelectedSubmission(null);
+      setPendingWarnings(null);
       fetchDashboard();
     } catch (err) {
       if (err.response?.data?.warnings) {
-        toast.error(`${err.response.data.warning_count} warnings found. Check your grades.`);
+        setPendingWarnings(err.response.data);
+        toast.error(`${err.response.data.warning_count} warnings found. Review and submit anyway or go back.`);
       } else {
         toast.error(err.response?.data?.error || 'Failed to submit grades');
       }
@@ -551,10 +567,11 @@ export default function TeacherGradeDashboard() {
 
       <SubmitConfirmationModal
         isOpen={showSubmitModal}
-        onClose={() => { setShowSubmitModal(false); setSelectedSubmission(null); }}
+        onClose={() => { setShowSubmitModal(false); setSelectedSubmission(null); setPendingWarnings(null); }}
         submission={selectedSubmission}
         summary={submissionSummary}
         onConfirm={confirmSubmit}
+        warnings={pendingWarnings}
       />
 
       <ReopeningRequestModal
