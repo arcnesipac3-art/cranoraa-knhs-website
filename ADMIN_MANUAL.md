@@ -18,7 +18,8 @@ Welcome to the KNHS School Portal Admin Manual! This guide covers everything you
 6. [Class Management](#6-class-management)
 7. [Subject Management](#7-subject-management)
 8. [User Management](#8-user-management)
-9. [Troubleshooting](#9-troubleshooting)
+9. [Performance Testing](#9-performance-testing)
+10. [Troubleshooting](#10-troubleshooting)
 
 ---
 
@@ -598,3 +599,270 @@ Once subjects are created, you need to assign them to specific sections (classro
 ---
 
 *This guide is for the KNHS School Portal (Kiwalan National High School Digital Campus). Features and interface elements may be updated over time. Refer to the latest version of the portal for any changes.*
+
+
+---
+
+## 9. Performance Testing
+
+As the portal grows and more users access it simultaneously, it's crucial to understand how the system performs under load. Performance testing helps you identify bottlenecks, plan capacity, and ensure smooth operation during peak usage periods like enrollment season or report card release.
+
+### 9.1 Why Performance Testing Matters
+
+**Ensure Reliability**
+- Verify the portal can handle all students, teachers, and parents logging in at once
+- Identify breaking points before they impact real users
+- Plan infrastructure upgrades based on actual capacity needs
+
+**Optimize User Experience**
+- Ensure pages load quickly even during peak usage
+- Identify and fix slow endpoints before users complain
+- Maintain responsive performance as the school grows
+
+**Plan for Growth**
+- Understand current system capacity
+- Forecast infrastructure needs for next school year
+- Budget for necessary upgrades
+
+### 9.2 Getting Started with Load Testing
+
+The portal includes a comprehensive load testing suite using k6, an industry-standard performance testing tool.
+
+**Prerequisites:**
+1. k6 installed on your system (see QUICKSTART.md in load-tests directory)
+2. Backend server running
+3. Test users created in database
+
+**Quick Start:**
+```powershell
+# Navigate to load-tests directory
+cd load-tests
+
+# Setup test data (first time only)
+python setup-test-data.py
+
+# Run a quick smoke test
+.\run-tests.ps1 smoke
+
+# Run a full load test
+.\run-tests.ps1 load
+```
+
+**For detailed instructions, see:**
+- `load-tests/QUICKSTART.md` — 5-minute quick start guide
+- `load-tests/README.md` — Complete documentation
+- `load-tests/performance-checklist.md` — Pre/post-test checklist
+
+### 9.3 Understanding Test Scenarios
+
+The load testing suite includes several predefined scenarios:
+
+**Smoke Test (1 minute)**
+- Purpose: Quick validation that everything works
+- Users: 1 concurrent user
+- When to use: After deployments, before major tests
+
+**Load Test (24 minutes) — Recommended**
+- Purpose: Test normal operating capacity
+- Users: Gradually increases to 100 concurrent users
+- When to use: Monthly capacity checks, before peak periods
+
+**Stress Test (28 minutes)**
+- Purpose: Find the breaking point
+- Users: Up to 300 concurrent users
+- When to use: Capacity planning, infrastructure decisions
+
+**Spike Test (8 minutes)**
+- Purpose: Test sudden traffic surges
+- Users: Sudden jump to 200 users
+- When to use: Before enrollment opening, report card release
+
+**Endpoint Test (5 minutes)**
+- Purpose: Identify which specific APIs are slow
+- Users: 20 concurrent users testing each endpoint
+- When to use: Performance optimization, debugging
+
+### 9.4 Reading Test Results
+
+After each test, k6 generates a detailed HTML report (`load-test-summary.html`) and console output.
+
+**Key Metrics to Watch:**
+
+| Metric | What It Means | Good | Acceptable | Poor |
+|--------|---------------|------|------------|------|
+| **http_req_duration (avg)** | Average response time | < 500ms | < 1000ms | > 1000ms |
+| **http_req_duration (p95)** | 95% of requests complete within | < 1000ms | < 2000ms | > 2000ms |
+| **http_req_failed** | Percentage of failed requests | < 2% | < 5% | > 5% |
+| **iterations** | Complete user journeys | Higher is better | - | - |
+| **checks** | Successful validation checks | > 95% | > 90% | < 90% |
+
+**Example Output:**
+```
+✓ health check status is 200
+✓ login status is 200
+✓ student profile status is 200
+
+checks.........................: 95.23% ✓ 1234      ✗ 62
+http_req_duration..............: avg=245ms  p(95)=850ms  max=3s
+http_req_failed................: 2.45%  ✓ 62        ✗ 2472
+iterations.....................: 456    1.5/s
+vus............................: 100    min=0       max=100
+```
+
+**Interpreting Results:**
+- ✅ **Excellent**: All metrics in "Good" range, no errors
+- ⚠️ **Needs Attention**: Metrics in "Acceptable" range, minor issues
+- ❌ **Critical**: Metrics in "Poor" range, immediate action needed
+
+### 9.5 Common Performance Issues and Solutions
+
+**Slow Response Times (avg > 1000ms)**
+
+*Symptoms:*
+- Pages take several seconds to load
+- Users experience lag when navigating
+- p95 metric is very high
+
+*Solutions:*
+1. **Enable Redis caching** — Dramatically speeds up repeated queries
+2. **Add database indexes** — Especially on frequently queried fields
+3. **Optimize queries** — Use `select_related()` and `prefetch_related()`
+4. **Implement pagination** — Limit result set sizes
+5. **Review slow query logs** — Identify and optimize expensive queries
+
+**High Error Rates (> 5%)**
+
+*Symptoms:*
+- Many 500/502/503 errors during test
+- Database connection errors
+- Timeout errors
+
+*Solutions:*
+1. **Increase database connection pool** — Set `conn_max_age` in settings
+2. **Add more workers** — Increase gunicorn/uvicorn workers
+3. **Check Django logs** — Fix application errors
+4. **Adjust rate limits** — Ensure they're not too aggressive
+5. **Monitor system resources** — CPU/memory may be exhausted
+
+**Database Bottlenecks**
+
+*Symptoms:*
+- High database CPU usage
+- Connection pool exhausted
+- Slow queries dominate response time
+
+*Solutions:*
+1. **Add indexes** — Run `python manage.py dbshell` and analyze slow queries
+2. **Use connection pooling** — Install PgBouncer for PostgreSQL
+3. **Implement query caching** — Cache frequent, expensive queries
+4. **Consider read replicas** — For read-heavy workloads
+5. **Optimize complex queries** — Review Django ORM usage
+
+**Memory Leaks**
+
+*Symptoms:*
+- Memory usage grows continuously during test
+- System becomes unresponsive over time
+- Out of Memory (OOM) errors
+
+*Solutions:*
+1. **Use iterator()** — For processing large querysets
+2. **Close file handles** — Ensure proper cleanup
+3. **Review WebSocket cleanup** — Check Channels layer
+4. **Process data in chunks** — Don't load entire datasets
+5. **Profile memory usage** — Use Django Debug Toolbar
+
+### 9.6 Capacity Planning
+
+Based on test results, you can estimate infrastructure needs:
+
+**Current Capacity Assessment:**
+1. Run load test to determine maximum concurrent users
+2. Note the point where errors exceed 5%
+3. Record resource usage (CPU, memory, database connections)
+
+**Example:**
+```
+Current capacity: 150 concurrent users
+At 150 users: avg response = 1.2s, error rate = 4%
+Breaking point: 200 users (error rate jumps to 15%)
+```
+
+**Infrastructure Recommendations:**
+
+| Concurrent Users | CPU Cores | RAM | Workers | Database Connections |
+|-----------------|-----------|-----|---------|---------------------|
+| < 50 | 2 | 2GB | 2-3 | 20 |
+| 50-100 | 4 | 4GB | 4-6 | 40 |
+| 100-200 | 8 | 8GB | 8-12 | 80 |
+| 200+ | 16+ | 16GB+ | 12-20 | 100+ |
+
+### 9.7 Best Practices
+
+**Regular Testing Schedule:**
+- **Monthly**: Run load test to establish baseline
+- **Before major events**: Test before enrollment, grade releases
+- **After major changes**: Test after infrastructure or code changes
+- **Quarterly**: Run stress test to verify capacity
+
+**Pre-Test Checklist:**
+- [ ] Backend is running
+- [ ] Test users are created
+- [ ] Database has representative data
+- [ ] Monitoring tools are ready
+- [ ] No other heavy processes running
+
+**During Test:**
+- [ ] Monitor system resources (CPU, memory)
+- [ ] Watch database connections
+- [ ] Observe error logs
+- [ ] Record any anomalies
+
+**Post-Test:**
+- [ ] Review HTML report
+- [ ] Document findings
+- [ ] Create optimization tasks
+- [ ] Update capacity plan
+- [ ] Archive results for comparison
+
+### 9.8 Automated Performance Testing
+
+The portal includes a GitHub Actions workflow that automatically runs performance tests:
+
+**Triggers:**
+- Pull requests to main branch (smoke test only)
+- Manual trigger via GitHub Actions UI
+- Weekly schedule (Sunday at 2 AM UTC)
+
+**To run manually:**
+1. Go to GitHub repository
+2. Click Actions tab
+3. Select "Performance Testing" workflow
+4. Click "Run workflow"
+5. Choose scenario and click "Run"
+
+Results are uploaded as artifacts and can be downloaded from the workflow run.
+
+### 9.9 Resources and Support
+
+**Documentation:**
+- Quick start: `load-tests/QUICKSTART.md`
+- Full guide: `load-tests/README.md`
+- Checklist: `load-tests/performance-checklist.md`
+- k6 documentation: https://k6.io/docs/
+
+**Getting Help:**
+1. Check Django logs: `backend/logs/`
+2. Review test output for specific errors
+3. Consult performance checklist
+4. Review this manual's troubleshooting section
+
+**Recommended Tools:**
+- **k6**: Load testing (already included)
+- **Django Debug Toolbar**: Query analysis (dev only)
+- **PgBouncer**: PostgreSQL connection pooling
+- **Redis**: Caching layer
+- **Sentry**: Error monitoring (if configured)
+
+---
+

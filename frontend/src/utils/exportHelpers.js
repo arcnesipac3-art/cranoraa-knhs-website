@@ -744,3 +744,11 @@ export default {
   withExportErrorHandling,
   generateExportFilename,
 };
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// EXPORT PREVIEW COMPONENT
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Export the ExportPreview component for easy importing
+export { default as ExportPreview } from '../components/ExportPreview';

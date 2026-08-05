@@ -7,6 +7,12 @@ import {
   Download, FileText, Printer,
   CheckCircle, XCircle, Clock, ShieldCheck, X, Loader2, AlertTriangle
 } from 'lucide-react';
+import {
+  ExportProgress,
+  downloadFromAPI,
+  generateExportFilename,
+  handleExportError,
+} from '../utils/exportHelpers';
 
 const STATUS_OPTIONS = ['present', 'absent', 'late', 'excused'];
 const STATUS_DISPLAY = { present: 'P', absent: 'A', late: 'L', excused: 'E', school_activity: 'SA', medical_leave: 'ML' };
@@ -253,44 +259,115 @@ const AttendanceDashboard = () => {
   const femaleStudents = useMemo(() => studentSummaries.filter(s => (s.sex || '').toLowerCase() === 'female'), [studentSummaries]);
 
   const handleExportPDF = async () => {
+    // Validation
     if (!filters.academic_year || !filters.grade_level || !filters.section) {
-      toast.error('Select grade level and section first');
+      toast.error('Please select academic year, grade level, and section first');
       return;
     }
-    setExporting('pdf');
+    
+    if (!students || students.length === 0) {
+      toast.error('No students found for the selected classroom');
+      return;
+    }
+    
+    if (!filters.month || !filters.year) {
+      toast.error('Please select month and year');
+      return;
+    }
+
+    const progress = new ExportProgress(2, 'Preparing SF2 Attendance PDF');
+    
     try {
+      progress.update(1, 'Generating SF2 from server');
+      
       const { start_date, end_date } = getMonthDateRange(filters.year, filters.month);
-      const params = { academic_year: filters.academic_year, grade_level: filters.grade_level, section: filters.section, start_date, end_date };
-      const res = await api.post('/sf2/export/pdf/', {}, { params, responseType: 'blob' });
-      const blob = new Blob([res.data], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      URL.revokeObjectURL(url);
-      toast.success('PDF exported');
-    } catch { toast.error('PDF export failed'); }
-    finally { setExporting(null); }
+      const params = {
+        academic_year: filters.academic_year,
+        grade_level: filters.grade_level,
+        section: filters.section,
+        start_date,
+        end_date,
+      };
+      
+      const monthName = MONTHS.find(m => m.value === filters.month)?.label || filters.month;
+      const filename = generateExportFilename(
+        `SF2_${filters.grade_level}_${filters.section}_${monthName}_${filters.year}`,
+        'pdf',
+        { includeDate: false }
+      );
+      
+      await downloadFromAPI(
+        api,
+        '/sf2/export/pdf/',
+        filename,
+        {
+          method: 'post',
+          params,
+          responseType: 'blob',
+        }
+      );
+      
+      progress.complete('SF2 Attendance Report PDF exported successfully!');
+      
+    } catch (error) {
+      handleExportError(error, 'PDF Export');
+    }
   };
 
   const handleExportExcel = async () => {
+    // Validation
     if (!filters.academic_year || !filters.grade_level || !filters.section) {
-      toast.error('Select grade level and section first');
+      toast.error('Please select academic year, grade level, and section first');
       return;
     }
-    setExporting('excel');
+    
+    if (!students || students.length === 0) {
+      toast.error('No students found for the selected classroom');
+      return;
+    }
+    
+    if (!filters.month || !filters.year) {
+      toast.error('Please select month and year');
+      return;
+    }
+
+    const progress = new ExportProgress(2, 'Preparing SF2 Attendance Excel');
+    
     try {
+      progress.update(1, 'Generating SF2 from server');
+      
       const { start_date, end_date } = getMonthDateRange(filters.year, filters.month);
-      const params = { academic_year: filters.academic_year, grade_level: filters.grade_level, section: filters.section, start_date, end_date };
-      const res = await api.post('/sf2/export/excel/', {}, { params, responseType: 'blob' });
-      const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `SF2_${filters.grade_level}_${filters.section}_${filters.month}_${filters.year}.xlsx`;
-      a.click();
-      URL.revokeObjectURL(url);
-      toast.success('Excel exported');
-    } catch { toast.error('Excel export failed'); }
-    finally { setExporting(null); }
+      const params = {
+        academic_year: filters.academic_year,
+        grade_level: filters.grade_level,
+        section: filters.section,
+        start_date,
+        end_date,
+      };
+      
+      const monthName = MONTHS.find(m => m.value === filters.month)?.label || filters.month;
+      const filename = generateExportFilename(
+        `SF2_${filters.grade_level}_${filters.section}_${monthName}_${filters.year}`,
+        'xlsx',
+        { includeDate: false }
+      );
+      
+      await downloadFromAPI(
+        api,
+        '/sf2/export/excel/',
+        filename,
+        {
+          method: 'post',
+          params,
+          responseType: 'blob',
+        }
+      );
+      
+      progress.complete('SF2 Attendance Report Excel exported successfully!');
+      
+    } catch (error) {
+      handleExportError(error, 'Excel Export');
+    }
   };
 
   const handlePrint = () => window.print();

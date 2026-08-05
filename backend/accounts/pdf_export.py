@@ -2,6 +2,12 @@
 PDF Export utilities for Enrollment Management System.
 Generates professional school-branded enrollment documents.
 Falls back to HTML download if PDF library is unavailable.
+
+Enhanced with:
+- Improved CSS styling and typography
+- Better page breaks and layout
+- Compressed output
+- Professional DepEd-compliant formatting
 """
 import io
 import logging
@@ -24,93 +30,120 @@ from .serializers import full_name
 
 SCHOOL_NAME = "Kiwalan National High School"
 SCHOOL_ADDRESS = "Kiwalan, Iligan City, Lanao del Norte"
+SCHOOL_REGION = "Region X - Northern Mindanao"
+SCHOOL_DIVISION = "Division of Iligan City"
 SCHOOL_CONTACT = "(063) 221-XXXX"
+SCHOOL_EMAIL = "knhs@deped.gov.ph"
 
 
 def _base_css():
+    """Enhanced base CSS for all PDF documents with better typography and layout."""
     return """
     @page {
         size: A4;
         margin: 1.5cm 2cm;
     }
     body {
-        font-family: Helvetica, Arial, sans-serif;
+        font-family: 'Helvetica', 'Arial', sans-serif;
         font-size: 11pt;
         color: #1a1a1a;
-        line-height: 1.5;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
     }
     .header {
         text-align: center;
-        border-bottom: 3px solid #2D1B4D;
-        padding-bottom: 12px;
-        margin-bottom: 20px;
+        border-bottom: 3px solid #003366;
+        padding-bottom: 14px;
+        margin-bottom: 24px;
     }
     .header h1 {
-        font-size: 18pt;
-        color: #2D1B4D;
-        margin: 0;
-        letter-spacing: 1px;
+        font-size: 20pt;
+        color: #003366;
+        margin: 0 0 6px 0;
+        letter-spacing: 0.5px;
+        font-weight: bold;
+        text-transform: uppercase;
     }
     .header h2 {
-        font-size: 13pt;
-        color: #6B21A8;
-        margin: 4px 0 0 0;
-        font-weight: normal;
+        font-size: 14pt;
+        color: #0066CC;
+        margin: 4px 0;
+        font-weight: 600;
     }
     .header p {
         font-size: 9pt;
         color: #666;
-        margin: 2px 0 0 0;
+        margin: 3px 0 0 0;
+        line-height: 1.4;
+    }
+    .header .republic {
+        font-size: 10pt;
+        color: #333;
+        font-weight: bold;
+        margin: 0 0 4px 0;
     }
     .section-title {
-        font-size: 12pt;
+        font-size: 13pt;
         font-weight: bold;
-        color: #2D1B4D;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 4px;
-        margin: 18px 0 10px 0;
+        color: #003366;
+        border-bottom: 2px solid #E2E8F0;
+        padding-bottom: 6px;
+        margin: 22px 0 12px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
     table td {
-        padding: 5px 8px;
+        padding: 8px 10px;
         vertical-align: top;
         border-bottom: 1px solid #f0f0f0;
     }
     table td.label {
-        font-weight: bold;
+        font-weight: 600;
         color: #555;
-        width: 35%;
+        width: 38%;
         font-size: 10pt;
     }
     table td.value {
         color: #1a1a1a;
+        font-size: 10pt;
     }
-    .two-col {
-        display: flex;
-        gap: 20px;
+    .metadata-box {
+        background-color: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 6px;
+        padding: 14px;
+        margin: 16px 0;
     }
-    .two-col > div {
-        flex: 1;
+    .metadata-box table td {
+        border: none;
+        padding: 6px 10px;
     }
     .footer {
-        margin-top: 30px;
-        padding-top: 10px;
-        border-top: 2px solid #2D1B4D;
+        margin-top: 36px;
+        padding-top: 12px;
+        border-top: 2px solid #003366;
         text-align: center;
         font-size: 8pt;
         color: #888;
+        line-height: 1.5;
+    }
+    .footer p {
+        margin: 3px 0;
     }
     .badge {
         display: inline-block;
-        padding: 2px 10px;
+        padding: 3px 12px;
         border-radius: 4px;
         font-size: 9pt;
         font-weight: bold;
         color: white;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     .badge-pending { background: #F59E0B; }
     .badge-approved { background: #10B981; }
@@ -119,19 +152,60 @@ def _base_css():
     .badge-review { background: #3B82F6; }
     .badge-reqs { background: #F97316; }
     .signature-area {
-        margin-top: 40px;
-        display: flex;
-        justify-content: space-between;
+        margin-top: 48px;
+        display: table;
+        width: 100%;
     }
     .signature-block {
+        display: table-cell;
         text-align: center;
-        width: 40%;
+        width: 48%;
+        padding: 0 10px;
     }
     .signature-line {
-        border-top: 1px solid #333;
-        margin-top: 50px;
-        padding-top: 5px;
+        border-top: 2px solid #333;
+        margin-top: 60px;
+        padding-top: 8px;
         font-size: 9pt;
+        font-weight: 600;
+    }
+    .signature-name {
+        font-weight: bold;
+        margin-top: 4px;
+        font-size: 10pt;
+    }
+    .document-notice {
+        background: #FEF3C7;
+        border-left: 4px solid #F59E0B;
+        padding: 12px;
+        margin: 16px 0;
+        font-size: 9pt;
+        color: #92400E;
+        border-radius: 4px;
+    }
+    .info-row {
+        display: table;
+        width: 100%;
+        margin: 8px 0;
+    }
+    .info-label {
+        display: table-cell;
+        width: 35%;
+        font-weight: 600;
+        color: #555;
+        padding-right: 10px;
+    }
+    .info-value {
+        display: table-cell;
+        color: #1a1a1a;
+    }
+    @media print {
+        body { 
+            font-size: 10pt; 
+        }
+        .page-break { 
+            page-break-before: always; 
+        }
     }
     """
 
@@ -155,7 +229,7 @@ def _render_html(template_html, context):
 
 
 def generate_enrollment_form_pdf(application):
-    """Generate a professional enrollment form PDF for a single application."""
+    """Generate a professional enrollment form PDF for a single application with enhanced styling."""
     status_label, status_class = STATUS_MAP.get(application.status, ('Unknown', ''))
 
     html_content = f"""<!DOCTYPE html>
@@ -163,31 +237,38 @@ def generate_enrollment_form_pdf(application):
 <style>{_base_css()}</style>
 </head><body>
 <div class="header">
+    <p class="republic">Republic of the Philippines</p>
+    <p>Department of Education</p>
+    <p>{SCHOOL_REGION} · {SCHOOL_DIVISION}</p>
     <h1>{SCHOOL_NAME}</h1>
-    <h2>ENROLLMENT APPLICATION FORM</h2>
-    <p>{SCHOOL_ADDRESS} | {SCHOOL_CONTACT}</p>
+    <h2>Enrollment Application Form</h2>
+    <p>{SCHOOL_ADDRESS} · {SCHOOL_CONTACT}</p>
 </div>
 
-<table>
-<tr><td class="label">Enrollment Number:</td><td class="value"><strong>{application.enrollment_number or 'N/A'}</strong></td></tr>
-<tr><td class="label">Enrollment Type:</td><td class="value">{application.get_enrollment_type_display()}</td></tr>
-<tr><td class="label">School Year:</td><td class="value">{application.school_year or 'N/A'}</td></tr>
-<tr><td class="label">Status:</td><td class="value"><span class="badge {status_class}">{status_label}</span></td></tr>
-<tr><td class="label">Date Submitted:</td><td class="value">{application.submitted_at.strftime('%B %d, %Y') if application.submitted_at else 'N/A'}</td></tr>
-</table>
+<div class="metadata-box">
+    <table>
+    <tr><td class="label">Enrollment Number:</td><td class="value"><strong>{application.enrollment_number or 'Pending Assignment'}</strong></td></tr>
+    <tr><td class="label">Application Status:</td><td class="value"><span class="badge {status_class}">{status_label}</span></td></tr>
+    <tr><td class="label">Enrollment Type:</td><td class="value">{application.get_enrollment_type_display()}</td></tr>
+    <tr><td class="label">School Year:</td><td class="value">{application.school_year or 'N/A'}</td></tr>
+    <tr><td class="label">Date Submitted:</td><td class="value">{application.submitted_at.strftime('%B %d, %Y at %I:%M %p') if application.submitted_at else 'Not yet submitted'}</td></tr>
+    </table>
+</div>
 
-<div class="section-title">I. PERSONAL INFORMATION</div>
+<div class="section-title">I. Personal Information</div>
 <table>
-<tr><td class="label">Full Name:</td><td class="value">{application.last_name}, {application.first_name} {application.middle_name or ''}</td></tr>
+<tr><td class="label">Full Name:</td><td class="value"><strong>{application.last_name}, {application.first_name} {application.middle_name or ''}</strong></td></tr>
 <tr><td class="label">Sex / Gender:</td><td class="value">{application.get_sex_display()}</td></tr>
-<tr><td class="label">Date of Birth:</td><td class="value">{application.date_of_birth.strftime('%B %d, %Y') if application.date_of_birth else 'N/A'} (Age: {application.age or 'N/A'})</td></tr>
+<tr><td class="label">Date of Birth:</td><td class="value">{application.date_of_birth.strftime('%B %d, %Y') if application.date_of_birth else 'N/A'}</td></tr>
+<tr><td class="label">Age:</td><td class="value">{application.age or 'N/A'} years old</td></tr>
 <tr><td class="label">Place of Birth:</td><td class="value">{application.place_of_birth or 'N/A'}</td></tr>
 <tr><td class="label">Nationality:</td><td class="value">{application.nationality or 'N/A'}</td></tr>
 <tr><td class="label">Religion:</td><td class="value">{application.religion or 'N/A'}</td></tr>
 </table>
 
-<div class="section-title">II. ADDRESS INFORMATION</div>
+<div class="section-title">II. Address Information</div>
 <table>
+<tr><td class="label">Complete Address:</td><td class="value">{application.street_address}, {application.barangay}, {application.city_municipality}, {application.province} {application.zip_code or ''}</td></tr>
 <tr><td class="label">Street Address:</td><td class="value">{application.street_address}</td></tr>
 <tr><td class="label">Barangay:</td><td class="value">{application.barangay}</td></tr>
 <tr><td class="label">City / Municipality:</td><td class="value">{application.city_municipality}</td></tr>
@@ -195,64 +276,77 @@ def generate_enrollment_form_pdf(application):
 <tr><td class="label">Zip Code:</td><td class="value">{application.zip_code or 'N/A'}</td></tr>
 </table>
 
-<div class="section-title">III. CONTACT INFORMATION</div>
+<div class="section-title">III. Contact Information</div>
 <table>
 <tr><td class="label">Email Address:</td><td class="value">{application.email}</td></tr>
 <tr><td class="label">Phone Number:</td><td class="value">{application.phone_number}</td></tr>
 </table>
 
-<div class="section-title">IV. PARENT / GUARDIAN INFORMATION</div>
+<div class="section-title">IV. Parent / Guardian Information</div>
 <table>
 <tr><td class="label">Father's Name:</td><td class="value">{application.father_name or 'N/A'}</td></tr>
 <tr><td class="label">Father's Occupation:</td><td class="value">{application.father_occupation or 'N/A'}</td></tr>
 <tr><td class="label">Father's Contact:</td><td class="value">{application.father_contact or 'N/A'}</td></tr>
+</table>
+<table>
 <tr><td class="label">Mother's Name:</td><td class="value">{application.mother_name or 'N/A'}</td></tr>
 <tr><td class="label">Mother's Occupation:</td><td class="value">{application.mother_occupation or 'N/A'}</td></tr>
 <tr><td class="label">Mother's Contact:</td><td class="value">{application.mother_contact or 'N/A'}</td></tr>
 </table>
 <table>
 <tr><td class="label">Guardian Name:</td><td class="value">{application.guardian_name or 'N/A'}</td></tr>
-<tr><td class="label">Relationship:</td><td class="value">{application.guardian_relationship or 'N/A'}</td></tr>
-<tr><td class="label">Contact Number:</td><td class="value">{application.guardian_contact or 'N/A'}</td></tr>
+<tr><td class="label">Relationship to Student:</td><td class="value">{application.guardian_relationship or 'N/A'}</td></tr>
+<tr><td class="label">Guardian Contact:</td><td class="value">{application.guardian_contact or 'N/A'}</td></tr>
 </table>
 
-<div class="section-title">V. ACADEMIC INFORMATION</div>
+<div class="section-title">V. Academic Information</div>
 <table>
-<tr><td class="label">Grade Level Applied For:</td><td class="value">Grade {application.grade_level}</td></tr>
-<tr><td class="label">Strand:</td><td class="value">{application.strand or 'N/A'}</td></tr>
-<tr><td class="label">LRN:</td><td class="value">{application.lrn or 'N/A'}</td></tr>
+<tr><td class="label">Grade Level Applied For:</td><td class="value"><strong>Grade {application.grade_level}</strong></td></tr>
+<tr><td class="label">Strand (SHS only):</td><td class="value">{application.strand or 'Not Applicable'}</td></tr>
+<tr><td class="label">Learner Reference Number (LRN):</td><td class="value">{application.lrn or 'Not Provided'}</td></tr>
 <tr><td class="label">Previous School:</td><td class="value">{application.previous_school or 'N/A'}</td></tr>
 <tr><td class="label">Previous School Address:</td><td class="value">{application.previous_school_address or 'N/A'}</td></tr>
-<tr><td class="label">ALS Applicant:</td><td class="value">{'Yes' if application.is_als else 'No'}</td></tr>
+<tr><td class="label">ALS Applicant:</td><td class="value">{'Yes - Alternative Learning System' if application.is_als else 'No - Regular Program'}</td></tr>
 </table>
 
-<div class="section-title">VI. EMERGENCY CONTACT</div>
+<div class="section-title">VI. Emergency Contact</div>
 <table>
-<tr><td class="label">Name:</td><td class="value">{application.emergency_contact_name}</td></tr>
+<tr><td class="label">Emergency Contact Name:</td><td class="value">{application.emergency_contact_name}</td></tr>
 <tr><td class="label">Relationship:</td><td class="value">{application.emergency_contact_relationship}</td></tr>
-<tr><td class="label">Phone Number:</td><td class="value">{application.emergency_contact_phone}</td></tr>
+<tr><td class="label">Emergency Phone Number:</td><td class="value">{application.emergency_contact_phone}</td></tr>
 </table>
 
-<div class="section-title">VII. DOCUMENTS SUBMITTED</div>
+<div class="section-title">VII. Documents Submitted</div>
 <table>
-<tr><td class="label">Birth Certificate:</td><td class="value">{'Submitted' if application.birth_certificate else 'Not submitted'}</td></tr>
-<tr><td class="label">Report Card:</td><td class="value">{'Submitted' if application.report_card else 'Not submitted'}</td></tr>
-<tr><td class="label">Good Moral Certificate:</td><td class="value">{'Submitted' if application.good_moral_certificate else 'Not submitted'}</td></tr>
-<tr><td class="label">ID Picture:</td><td class="value">{'Submitted' if application.id_picture else 'Not submitted'}</td></tr>
+<tr><td class="label">Birth Certificate (PSA Copy):</td><td class="value">{'✓ Submitted' if application.birth_certificate else '✗ Not submitted'}</td></tr>
+<tr><td class="label">Report Card / Form 138:</td><td class="value">{'✓ Submitted' if application.report_card else '✗ Not submitted'}</td></tr>
+<tr><td class="label">Certificate of Good Moral Character:</td><td class="value">{'✓ Submitted' if application.good_moral_certificate else '✗ Not submitted'}</td></tr>
+<tr><td class="label">ID Picture (2x2):</td><td class="value">{'✓ Submitted' if application.id_picture else '✗ Not submitted'}</td></tr>
 </table>
+
+<div class="document-notice">
+    <strong>Important Notice:</strong> This enrollment application form serves as an official document for admission to {SCHOOL_NAME}. 
+    All information provided herein must be accurate and truthful. Any falsification may result in the denial or cancellation of enrollment.
+</div>
 
 <div class="signature-area">
     <div class="signature-block">
-        <div class="signature-line">Applicant's Signature</div>
+        <div class="signature-line">
+            Applicant's Signature over Printed Name
+        </div>
     </div>
     <div class="signature-block">
-        <div class="signature-line">Parent / Guardian Signature</div>
+        <div class="signature-line">
+            Parent / Guardian Signature over Printed Name
+        </div>
     </div>
 </div>
 
 <div class="footer">
-    <p>This document was generated on {timezone.now().strftime('%B %d, %Y at %I:%M %p')}</p>
+    <p><strong>Document Reference: {application.enrollment_number or 'PENDING'}</strong></p>
+    <p>Generated on {timezone.now().strftime('%B %d, %Y at %I:%M %p')}</p>
     <p>{SCHOOL_NAME} — Enrollment Management System</p>
+    <p>{SCHOOL_EMAIL} · {SCHOOL_CONTACT}</p>
 </div>
 </body></html>"""
 
@@ -319,19 +413,66 @@ def generate_enrollment_summary_pdf(applications, filters=None):
     return html_content
 
 
-def render_to_pdf_response(html_content, filename):
-    """Convert HTML to PDF and return as HttpResponse, or return HTML fallback."""
+def render_to_pdf_response(html_content, filename, compress=True):
+    """
+    Convert HTML to PDF and return as HttpResponse, or return HTML fallback.
+    
+    Args:
+        html_content: HTML string to convert
+        filename: Output filename
+        compress: Enable PDF compression (default: True)
+    """
     if HAS_PDF:
         buffer = io.BytesIO()
-        pisa_status = pisa.CreatePDF(io.StringIO(html_content), dest=buffer)
+        
+        # Create PDF with optional compression
+        pisa_status = pisa.CreatePDF(
+            io.StringIO(html_content), 
+            dest=buffer,
+            encoding='utf-8'
+        )
+        
         if not pisa_status.err:
             buffer.seek(0)
-            response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+            pdf_data = buffer.getvalue()
+            
+            # Optional: Add compression if available
+            if compress:
+                try:
+                    from PyPDF2 import PdfReader, PdfWriter
+                    
+                    # Read the PDF
+                    pdf_buffer = io.BytesIO(pdf_data)
+                    reader = PdfReader(pdf_buffer)
+                    writer = PdfWriter()
+                    
+                    # Copy all pages with compression
+                    for page in reader.pages:
+                        page.compress_content_streams()
+                        writer.add_page(page)
+                    
+                    # Write compressed PDF
+                    compressed_buffer = io.BytesIO()
+                    writer.write(compressed_buffer)
+                    compressed_buffer.seek(0)
+                    pdf_data = compressed_buffer.getvalue()
+                    
+                    logger.info(f"PDF compressed successfully for {filename}")
+                except ImportError:
+                    logger.debug("PyPDF2 not available for compression")
+                except Exception as e:
+                    logger.warning(f"PDF compression failed: {e}. Using uncompressed version.")
+            
+            response = HttpResponse(pdf_data, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response['Content-Length'] = len(pdf_data)
             return response
+        else:
+            logger.error(f"PDF generation error for {filename}: {pisa_status.err}")
 
     # Fallback: return HTML as downloadable file
-    response = HttpResponse(html_content, content_type='text/html')
+    logger.warning(f"Falling back to HTML export for {filename}")
+    response = HttpResponse(html_content, content_type='text/html; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="{filename.replace(".pdf", ".html")}"'
     return response
 
