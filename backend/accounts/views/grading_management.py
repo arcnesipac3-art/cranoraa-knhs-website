@@ -131,7 +131,7 @@ class GradingPeriodViewSet(viewsets.ModelViewSet):
         if period.status != 'locked':
             return Response({'error': 'Only locked grading periods can be unlocked'}, status=400)
         period.status = 'open'
-        period.is_manually_opened = True
+        period.is_manually_opened = False
         period.is_manually_closed = False
         period.save(update_fields=['status', 'is_manually_opened', 'is_manually_closed'])
         Grade.objects.filter(
@@ -200,19 +200,16 @@ class GradingPeriodViewSet(viewsets.ModelViewSet):
         today = date.today()
 
         sys_ay = SystemSetting.get_settings().academic_year
-        ay_filter = {'academic_year__name': sys_ay} if sys_ay else {'academic_year__is_active': True}
+        if sys_ay:
+            ay_filter = {'academic_year__name': sys_ay}
+        else:
+            ay_filter = {'academic_year__is_active': True}
 
         period = GradingPeriod.objects.filter(
             **ay_filter,
             start_date__lte=today,
-            submission_deadline__gte=today,
             status__in=['open', 'closing_soon'],
-        ).select_related('academic_year').first()
-        if not period:
-            period = GradingPeriod.objects.filter(
-                **ay_filter,
-                status='open',
-            ).select_related('academic_year').first()
+        ).select_related('academic_year').order_by('-quarter').first()
         if period:
             return Response(GradingPeriodSerializer(period).data)
         return Response(None)
