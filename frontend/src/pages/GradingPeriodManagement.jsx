@@ -284,7 +284,7 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYear
                   onClick={() => {
                     Swal.fire({
                       title: 'Unlock Period?',
-                      html: `This will unlock <strong>Q${editingPeriod.quarter}</strong> and allow teachers to edit grades again.`,
+                      html: `This will unlock <strong>Q${editingPeriod.quarter}</strong> and reopen the period for teacher submissions.`,
                       icon: 'warning',
                       showCancelButton: true,
                       confirmButtonColor: '#d97706',
@@ -301,7 +301,7 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYear
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 13v-2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                   </svg>
-                  Unlock Period — allow teachers to edit grades
+                  Unlock Period — reopen for teacher submissions
                 </button>
               )}
               <button
@@ -499,7 +499,7 @@ export default function GradingPeriodManagement() {
   const handleDeleteGrades = async (id) => {
     try {
       const res = await api.post(`/grading-periods/${id}/delete_grades/`);
-      toast.success(`Deleted ${res.data.deleted} grades — period unlocked`);
+      toast.success(`Deleted ${res.data.deleted} grades — period reset to closed`);
       fetchPeriods();
     } catch {
       toast.error('Failed to delete grades');

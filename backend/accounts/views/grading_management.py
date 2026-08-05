@@ -130,8 +130,10 @@ class GradingPeriodViewSet(viewsets.ModelViewSet):
         period = self.get_object()
         if period.status != 'locked':
             return Response({'error': 'Only locked grading periods can be unlocked'}, status=400)
-        period.status = 'closed'
-        period.save(update_fields=['status'])
+        period.status = 'open'
+        period.is_manually_opened = True
+        period.is_manually_closed = False
+        period.save(update_fields=['status', 'is_manually_opened', 'is_manually_closed'])
         Grade.objects.filter(
             classroom__academic_year=period.academic_year,
             quarter=period.quarter,
@@ -160,7 +162,6 @@ class GradingPeriodViewSet(viewsets.ModelViewSet):
         if count == 0:
             return Response({'error': 'No grades found for this period'}, status=400)
         grades_qs.delete()
-        # Also unlock the period after deleting grades
         period.status = 'closed'
         period.save(update_fields=['status'])
         log_audit_action(
