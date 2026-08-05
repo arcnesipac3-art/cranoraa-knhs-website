@@ -41,7 +41,6 @@ const SubmissionReportTable = ({ data }) => (
       <thead>
         <tr className="bg-gray-50 border-b border-gray-200">
           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teacher</th>
-          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Department</th>
           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Classes</th>
           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
           <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pending</th>
@@ -53,7 +52,6 @@ const SubmissionReportTable = ({ data }) => (
         {data.map((row) => (
           <tr key={row.id} className="hover:bg-gray-50">
             <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.name}</td>
-            <td className="px-4 py-3 text-sm text-gray-500">{row.department}</td>
             <td className="px-4 py-3 text-sm">{row.total_classes}</td>
             <td className="px-4 py-3 text-sm text-green-600">{row.submitted}</td>
             <td className="px-4 py-3 text-sm text-amber-600">{row.pending}</td>
