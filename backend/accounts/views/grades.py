@@ -839,12 +839,14 @@ class GradeViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def by_classroom(self, request):
-        """Get grades by classroom (for teachers)"""
+        """Get grades by classroom (for master sheet and grade management)"""
         if request.user.role not in ['admin', 'staff']:
             return Response({'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
 
         classroom_id = request.query_params.get('classroom_id')
         quarter = request.query_params.get('quarter')
+        academic_year = request.query_params.get('academic_year')
+        grade_type = request.query_params.get('grade_type')
 
         if not classroom_id:
             return Response({'error': 'classroom_id is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -852,6 +854,10 @@ class GradeViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().filter(classroom_id=classroom_id)
         if quarter:
             queryset = queryset.filter(quarter=quarter)
+        if academic_year:
+            queryset = queryset.filter(academic_year=academic_year)
+        if grade_type:
+            queryset = queryset.filter(grade_type=grade_type)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

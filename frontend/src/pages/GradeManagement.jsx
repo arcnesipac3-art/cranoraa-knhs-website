@@ -601,13 +601,25 @@ const ClassroomDetailModal = ({
   const [selectedSubject, setSelectedSubject] = useState(null);
   const subjects = Object.values(classroom.subjects);
 
+  const openMasterSheet = () => {
+    window.open(`/grade-management-admin?tab=master&classroom=${classroom.id}`, '_blank');
+  };
+
   return (
     <Modal isOpen={true} onClose={onClose} size="xl">
       <ModalHeader onClose={onClose}>
-        <ModalTitle
-          title={classroom.name}
-          subtitle={`Grade Records — ${classroom.studentCount} Students`}
-        />
+        <div className="flex items-center justify-between w-full">
+          <ModalTitle
+            title={classroom.name}
+            subtitle={`Grade Records — ${classroom.studentCount} Students`}
+          />
+          <Button variant="outline" size="sm" onClick={openMasterSheet}>
+            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Master Sheet
+          </Button>
+        </div>
       </ModalHeader>
 
       <ModalBody>

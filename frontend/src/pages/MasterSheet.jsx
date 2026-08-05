@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Search, Download, Filter, ChevronDown, Printer, RefreshCw,
   AlertTriangle, CheckCircle2, XCircle, FileText, Eye, EyeOff,
@@ -32,9 +33,15 @@ export default function MasterSheet() {
   const { academicYear } = useActiveAcademicYear();
   const { periodValues } = useSystemSettings();
   const printRef = useRef(null);
+  const [searchParams] = useSearchParams();
 
   const [filters, setFilters] = useState({
-    academic_year: '', grade_level: '', classroom: '', subject: '', quarter: '1', teacher: '',
+    academic_year: '',
+    grade_level: '',
+    classroom: searchParams.get('classroom') || '',
+    subject: '',
+    quarter: searchParams.get('quarter') || '1',
+    teacher: '',
   });
   const [classrooms, setClassrooms] = useState([]);
   const [subjects, setSubjects] = useState([]);
@@ -70,7 +77,11 @@ export default function MasterSheet() {
     setLoading(true);
     try {
       const res = await api.get('/grades/by_classroom/', {
-        params: { classroom_id: filters.classroom, quarter: filters.quarter },
+        params: {
+          classroom_id: filters.classroom,
+          quarter: filters.quarter,
+          academic_year: filters.academic_year || undefined,
+        },
       });
       setGrades(res.data);
     } catch {
@@ -78,7 +89,7 @@ export default function MasterSheet() {
     } finally {
       setLoading(false);
     }
-  }, [filters.classroom, filters.quarter]);
+  }, [filters.classroom, filters.quarter, filters.academic_year]);
 
   useEffect(() => { fetchGrades(); }, [fetchGrades]);
 
