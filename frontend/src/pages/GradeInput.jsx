@@ -548,7 +548,6 @@ const GradeInput = () => {
                   </button>
                 );
               })}
-              ))}
             </div>
           </div>
 
