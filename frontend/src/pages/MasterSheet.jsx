@@ -390,7 +390,7 @@ function StudentSheet({ profile, grades, attendance, classroom, teacher, index }
           <div><span className="text-gray-500">Birthday:</span> <span className="font-semibold">{p.date_of_birth || '-'}</span></div>
           <div><span className="text-gray-500">Age:</span> <span className="font-semibold">{calculateAge(p.date_of_birth) || '-'}</span></div>
           <div><span className="text-gray-500">Address:</span> <span className="font-semibold">{p.address || '-'}</span></div>
-          <div><span className="text-gray-500">Grade/Section:</span> <span className="font-semibold">{classroom?.grade_level || '-'} - {classroom?.name || '-'}</span></div>
+          <div><span className="text-gray-500">Section:</span> <span className="font-semibold">{classroom?.name || '-'}</span></div>
           <div><span className="text-gray-500">Adviser:</span> <span className="font-semibold">{teacherName}</span></div>
           <div><span className="text-gray-500">School Year:</span> <span className="font-semibold">{classroom?.academic_year_name || '-'}</span></div>
         </div>
@@ -503,7 +503,7 @@ function PrintContent({ profile, classroom, teacher, grades, attendance }) {
           <div><b>Birthday:</b> {p.date_of_birth || '-'}</div>
           <div><b>Age:</b> {calculateAge(p.date_of_birth) || '-'}</div>
           <div><b>Address:</b> {p.address || '-'}</div>
-          <div><b>Grade/Section:</b> {classroom?.grade_level || '-'} - {classroom?.name || '-'}</div>
+          <div><b>Section:</b> {classroom?.name || '-'}</div>
           <div><b>Adviser:</b> {teacherName}</div>
         </div>
       </div>
