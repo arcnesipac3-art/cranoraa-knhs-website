@@ -496,7 +496,7 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
                     # compute_progress failed — manually count from Grade table
                     try:
                         from ..models.assignments import Grade as GradeModel
-                        enrolled = cs.classroom.student_enrollments.count()
+                        enrolled = cs.classroom.enrollments.count()
                         graded = GradeModel.objects.filter(
                             classroom=cs.classroom,
                             subject=cs.subject,

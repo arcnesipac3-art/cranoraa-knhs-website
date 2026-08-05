@@ -131,7 +131,7 @@ class GradeSubmission(models.Model):
         return f"{self.teacher.get_full_name()} - {self.classroom.name} - {self.subject.code} - Q{self.grading_period.quarter}"
 
     def compute_progress(self):
-        enrolled = self.classroom.student_enrollments.count()
+        enrolled = self.classroom.enrollments.count()
         from .assignments import Grade
         graded = Grade.objects.filter(
             classroom=self.classroom,
@@ -151,7 +151,7 @@ class GradeSubmission(models.Model):
     def validate_grades(self):
         from .assignments import Grade
         warnings = []
-        enrolled = self.classroom.student_enrollments.select_related('student')
+        enrolled = self.classroom.enrollments.select_related('student')
         subjects = ClassroomSubject.objects.filter(
             classroom=self.classroom,
             subject=self.subject,
