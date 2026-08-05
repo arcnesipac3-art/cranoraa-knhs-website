@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
+import { useAcademicYear } from '../context/AcademicYearContext';
 import {
   Button, Badge,
   Modal, ModalHeader, ModalBody, ModalFooter,
@@ -155,7 +156,8 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onExtend, onEdit }
   </motion.div>
 );
 
-const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPeriod }) => {
+const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYears, editingPeriod }) => {
+  const activeYearObj = academicYears?.find(y => y.name === academicYear) || null;
   const [form, setForm] = useState({
     quarter: '1',
     start_date: '',
@@ -179,7 +181,7 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
   }, [editingPeriod, isOpen]);
 
   const handleSubmit = () => {
-    if (!academicYear?.id) {
+    if (!activeYearObj?.id) {
       toast.error('No active school year found. Set one before creating a grading period.');
       return;
     }
@@ -195,7 +197,7 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
       ...form,
       quarter: parseInt(form.quarter),
       grace_period_days: parseInt(form.grace_period_days) || 0,
-      academic_year: academicYear.id,
+      academic_year: activeYearObj.id,
     });
   };
 
@@ -218,7 +220,7 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
           )}
           <FormField label="School Year">
             <div className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-700">
-              {academicYear?.name || <span className="text-red-500">No active school year</span>}
+              {activeYearObj?.name || academicYear || <span className="text-red-500">No active school year</span>}
             </div>
           </FormField>
           <FormField label="Term">
@@ -267,7 +269,7 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, editingPerio
       </ModalBody>
       <ModalFooter>
         <Button variant="ghost" onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} disabled={!academicYear} className="bg-brand-600 hover:bg-brand-700 text-white">
+        <Button onClick={handleSubmit} disabled={!activeYearObj} className="bg-brand-600 hover:bg-brand-700 text-white">
           {editingPeriod ? 'Save Changes' : 'Create Period'}
         </Button>
       </ModalFooter>
@@ -316,6 +318,7 @@ const ExtendDeadlineModal = ({ isOpen, onClose, period, onExtend }) => {
 
 export default function GradingPeriodManagement() {
   const { academicYear } = useActiveAcademicYear();
+  const { academicYears } = useAcademicYear();
   const [periods, setPeriods] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -328,7 +331,7 @@ export default function GradingPeriodManagement() {
     if (!academicYear) return;
     setLoading(true);
     try {
-      const params = new URLSearchParams({ academic_year: academicYear.name });
+      const params = new URLSearchParams({ academic_year: academicYear });
       if (filterStatus !== 'all') params.append('status', filterStatus);
       const res = await api.get(`/grading-periods/?${params}`);
       setPeriods(res.data);
@@ -556,6 +559,7 @@ export default function GradingPeriodManagement() {
         onClose={() => { setShowCreate(false); setEditingPeriod(null); }}
         onSave={handleCreate}
         academicYear={academicYear}
+        academicYears={academicYears}
         editingPeriod={editingPeriod}
       />
 
