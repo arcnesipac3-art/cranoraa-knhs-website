@@ -18,10 +18,11 @@ const getGradeColor = (score) => {
   return 'text-red-700';
 };
 
-const SUBJECT_LIST = [
+const SUBJECT_ORDER = [
   'Filipino', 'English', 'Mathematics', 'Science',
-  'Araling Panlipunan', 'Values Education', 'TLE',
-  'MAPEH', 'Music', 'Arts', 'PE', 'Health',
+  'Araling Panlipunan', 'Values Education', 'Edukasyon sa Pagpapakatao',
+  'TLE', 'Technology and Livelihood Education',
+  'MAPEH', 'Music', 'Arts', 'Physical Education', 'PE', 'Health',
 ];
 
 const MONTHS = ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'];
@@ -39,13 +40,15 @@ function calculateAge(dob) {
 function computeTermGrades(grades) {
   const matrix = {};
   for (const g of grades) {
-    const subName = g.subject_name || g.subject__name || '';
+    const subName = g.subject_name || g.subject__name || g.subject_name__name || '';
+    if (!subName) continue;
     const q = g.quarter;
     const key = `${subName}__${q}`;
-    if (g.grade_type === 'final_grade' || (!g.component && g.raw_score !== null)) {
-      if (!matrix[key] || g.grade_type === 'final_grade') {
-        matrix[key] = g.raw_score !== null ? parseFloat(g.raw_score) : null;
-      }
+    const val = g.raw_score !== null && g.raw_score !== undefined ? parseFloat(g.raw_score) : null;
+    if (g.grade_type === 'final_grade' && !g.component) {
+      matrix[key] = val;
+    } else if (!(key in matrix) && val !== null) {
+      matrix[key] = val;
     }
   }
   const subjectNames = [...new Set(grades.map(g => g.subject_name || g.subject__name).filter(Boolean))];
@@ -105,14 +108,19 @@ function computeAttendance(attendance) {
 }
 
 function getMatchedSubjects(termGrades) {
-  return SUBJECT_LIST.filter(name =>
-    Object.keys(termGrades).some(k => k.toLowerCase().includes(name.toLowerCase()))
-  );
+  const keys = Object.keys(termGrades);
+  return keys.sort((a, b) => {
+    const aIdx = SUBJECT_ORDER.findIndex(s => a.toLowerCase().includes(s.toLowerCase()));
+    const bIdx = SUBJECT_ORDER.findIndex(s => b.toLowerCase().includes(s.toLowerCase()));
+    const aOrder = aIdx >= 0 ? aIdx : 999;
+    const bOrder = bIdx >= 0 ? bIdx : 999;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return a.localeCompare(b);
+  });
 }
 
 function getSubjectGrade(termGrades, subjectName) {
-  const key = Object.keys(termGrades).find(k => k.toLowerCase().includes(subjectName.toLowerCase()));
-  return key ? termGrades[key] : null;
+  return termGrades[subjectName] || null;
 }
 
 export default function MasterSheet() {
@@ -254,7 +262,7 @@ export default function MasterSheet() {
         <div className="text-center mb-4">
           <p className="text-[10px]">Republic of the Philippines</p>
           <p className="text-[10px] font-bold">Department of Education</p>
-          <p className="text-[10px]">Region IV-A CALABARZON · Division of Cavite</p>
+          <p className="text-[10px]">Region X - Iligan City · Division of Lanao del Norte</p>
           <h1 className="text-sm font-bold mt-2">MASTER SHEET</h1>
           <p className="text-[10px] mt-1">{classroomObj?.grade_level || ''} - {classroomObj?.name || ''} · {academicYear}</p>
         </div>
@@ -373,7 +381,7 @@ function StudentSheet({ profile, grades, attendance, classroom, teacher, index }
         <div className="text-center mb-2">
           <p className="text-[10px] text-gray-500">Republic of the Philippines</p>
           <p className="text-[11px] font-bold text-gray-700">Department of Education</p>
-          <p className="text-[10px] text-gray-500">Region IV-A CALABARZON · Division of Cavite</p>
+          <p className="text-[10px] text-gray-500">Region X - Iligan City · Division of Lanao del Norte</p>
         </div>
         <div className="grid grid-cols-3 gap-x-6 gap-y-1 text-[11px]">
           <div><span className="text-gray-500">Name:</span> <span className="font-semibold">{profile ? `${profile.last_name || ''}, ${profile.first_name || ''} ${profile.middle_name || ''}` : '-'}</span></div>
@@ -441,7 +449,7 @@ function GradesTable({ matchedSubjects, termGrades, termAverages }) {
       </thead>
       <tbody>
         {matchedSubjects.map((sub, idx) => {
-          const sg = getSubjectGrade(termGrades, sub);
+          const sg = termGrades[sub] || null;
           return (
             <tr key={sub} className={`border-b border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
               <td className="px-3 py-2 font-medium border-r border-gray-200">{sub}</td>
@@ -524,7 +532,7 @@ function PrintContent({ profile, classroom, teacher, grades, attendance }) {
             </thead>
             <tbody>
               {matchedSubjects.map(sub => {
-                const sg = getSubjectGrade(termGrades, sub);
+                const sg = termGrades[sub] || null;
                 return (
                   <tr key={sub}>
                     <td className="border border-gray-400 px-2 py-0.5">{sub}</td>
