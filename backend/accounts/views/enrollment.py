@@ -1,3 +1,4 @@
+from django.http import StreamingHttpResponse
 from rest_framework import viewsets, status, filters, parsers
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -837,6 +838,32 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             return Response({'status': 'Document rejected', 'notes': notes})
         except EnrollmentDocument.DoesNotExist:
             return Response({'error': 'Document not found'}, status=404)
+
+    @action(detail=True, methods=['get'], url_path='documents/(?P<doc_id>[^/.]+)/view')
+    def view_document(self, request, pk=None, doc_id=None):
+        """Proxy endpoint: streams the document file from Supabase to the admin."""
+        try:
+            doc = EnrollmentDocument.objects.get(id=doc_id, application_id=pk)
+        except EnrollmentDocument.DoesNotExist:
+            return Response({'error': 'Document not found'}, status=404)
+
+        if not doc.file_url:
+            return Response({'error': 'Document has no file URL'}, status=404)
+
+        from ..storage import download_file
+        content, content_type = download_file(doc.file_url, bucket_key='enrollment-docs')
+        if content is None:
+            logger.error(f"Document proxy download failed for doc {doc_id}: {content_type}")
+            return Response({'error': 'Failed to download document from storage'}, status=502)
+
+        response = StreamingHttpResponse(
+            iter([content]),
+            content_type=content_type,
+        )
+        filename = doc.file_name or f'{doc.document_type}_{doc_id}'
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
 
     @action(detail=True, methods=['post'])
     def request_requirements(self, request, pk=None):

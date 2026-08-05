@@ -688,15 +688,21 @@ const EnrollmentManagement = () => {
                                 }`}>{doc.verification_status_display}</span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <a href={doc.file_url} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-violet-600 rounded-lg" title="View">
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                                </a>
-                                {!doc._fromUrlField && doc.verification_status !== 'verified' && (
+                                {doc.file_url && doc.id && !String(doc.id).startsWith('url-') && !String(doc.id).startsWith('missing-') ? (
+                                  <a href={`/api/v1/enrollment-applications/${selected.id}/documents/${doc.id}/view/`} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-violet-600 rounded-lg" title="View">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                  </a>
+                                ) : doc.file_url ? (
+                                  <a href={doc.file_url} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-violet-600 rounded-lg" title="View">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                  </a>
+                                ) : null}
+                                {!doc._isMissing && !doc._fromUrlField && doc.verification_status !== 'verified' && (
                                   <button onClick={() => verifyDoc(selected.id, doc.id, 'verified')} className="p-1.5 text-emerald-400 hover:text-emerald-600 rounded-lg" title="Verify">
                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                                   </button>
                                 )}
-                                {!doc._fromUrlField && doc.verification_status !== 'rejected' && (
+                                {!doc._isMissing && !doc._fromUrlField && doc.verification_status !== 'rejected' && (
                                   <button onClick={() => verifyDoc(selected.id, doc.id, 'rejected')} className="p-1.5 text-rose-400 hover:text-rose-600 rounded-lg" title="Reject">
                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                                   </button>

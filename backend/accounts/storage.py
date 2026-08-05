@@ -354,6 +354,39 @@ def upload_file(file, bucket_key: str, folder: str = '') -> tuple[Optional[str],
 
 # ─── Delete ───────────────────────────────────────────────────────────────────
 
+def download_file(public_url: str, bucket_key: str):
+    """
+    Download a file from Supabase Storage given its public URL.
+    Returns (content_bytes, content_type) on success, (None, error_msg) on failure.
+    """
+    if not public_url:
+        return None, 'No URL provided'
+    try:
+        client, base_url = _get_supabase_client()
+        bucket_name = _get_bucket_name(bucket_key)
+
+        marker = f'/object/public/{bucket_name}/'
+        idx = public_url.find(marker)
+        if idx == -1:
+            return None, f'Cannot parse path from URL'
+        path = public_url[idx + len(marker):]
+
+        storage = client.storage.from_(bucket_name)
+        res = storage.download(path)
+        if isinstance(res, bytes):
+            content_type = mimetypes.guess_type(public_url)[0] or 'application/octet-stream'
+            return res, content_type
+        if hasattr(res, 'data'):
+            content_type = mimetypes.guess_type(public_url)[0] or 'application/octet-stream'
+            return res.data, content_type
+        return None, 'Unexpected response from storage'
+    except Exception as e:
+        logger.error(f"Download failed [{bucket_key}]: {e}", exc_info=True)
+        return None, str(e)
+
+
+# ─── Delete ───────────────────────────────────────────────────────────────────
+
 def delete_file(public_url: str, bucket_key: str) -> bool:
     """
     Delete a file from Supabase Storage given its public URL.
