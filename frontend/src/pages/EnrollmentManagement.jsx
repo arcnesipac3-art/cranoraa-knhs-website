@@ -309,11 +309,46 @@ const EnrollmentManagement = () => {
   ];
 
   const getAppDocs = (app) => {
-    // Prefer EnrollmentDocument records (set after backfill on retrieve)
+    // Build a map from both EnrollmentDocument records AND URL fields
+    const docMap = new Map();
+
+    // 1) EnrollmentDocument records (from API / backfill)
     if (app?.documents && app.documents.length > 0) {
-      const uploadedDocTypes = new Set(app.documents.map(d => d.document_type));
+      for (const doc of app.documents) {
+        if (doc.file_url) {
+          docMap.set(doc.document_type, {
+            id: doc.id,
+            document_type: doc.document_type,
+            document_type_display: doc.document_type_display || URL_DOC_FIELDS.find(f => f.docType === doc.document_type)?.type || doc.document_type,
+            file_url: doc.file_url,
+            verification_status: doc.verification_status || 'submitted',
+            verification_status_display: doc.verification_status_display || 'Submitted',
+          });
+        }
+      }
+    }
+
+    // 2) URL fields on the application (fallback / legacy)
+    for (const { field, docType, type } of URL_DOC_FIELDS) {
+      const url = app?.[field];
+      if (url && typeof url === 'string' && url.length > 5 && !docMap.has(docType)) {
+        docMap.set(docType, {
+          id: `url-${field}`,
+          document_type: docType,
+          document_type_display: type,
+          file_url: url,
+          verification_status: 'submitted',
+          verification_status_display: 'Submitted',
+          _fromUrlField: true,
+        });
+      }
+    }
+
+    // 3) If we have any documents, return them plus missing ones
+    if (docMap.size > 0) {
+      const uploadedTypes = new Set(docMap.keys());
       const missingDocs = URL_DOC_FIELDS
-        .filter(({ docType }) => !uploadedDocTypes.has(docType))
+        .filter(({ docType }) => !uploadedTypes.has(docType))
         .map(({ field, type }) => ({
           id: `missing-${field}`,
           document_type_display: type,
@@ -322,38 +357,10 @@ const EnrollmentManagement = () => {
           verification_status_display: 'Not Uploaded',
           _isMissing: true,
         }));
-      return [...app.documents, ...missingDocs];
+      return [...docMap.values(), ...missingDocs];
     }
 
-    // Fall back to URL fields (legacy / partial uploads)
-    const urlDocs = URL_DOC_FIELDS
-      .filter(({ field }) => app?.[field] && typeof app[field] === 'string' && app[field].length > 5)
-      .map(({ field, docType, type }) => ({
-        id: `url-${field}`,
-        document_type: docType,
-        document_type_display: type,
-        file_url: app[field],
-        verification_status: 'submitted',
-        verification_status_display: 'Submitted',
-        _fromUrlField: true,
-      }));
-
-    if (urlDocs.length > 0) {
-      const uploadedDocTypes = new Set(urlDocs.map(d => d.document_type));
-      const missingDocs = URL_DOC_FIELDS
-        .filter(({ docType }) => !uploadedDocTypes.has(docType))
-        .map(({ field, type }) => ({
-          id: `missing-${field}`,
-          document_type_display: type,
-          file_url: null,
-          verification_status: 'missing',
-          verification_status_display: 'Not Uploaded',
-          _isMissing: true,
-        }));
-      return [...urlDocs, ...missingDocs];
-    }
-
-    // No documents at all — return all as missing
+    // 4) No documents at all — return all as missing
     return URL_DOC_FIELDS.map(({ field, type }) => ({
       id: `missing-${field}`,
       document_type_display: type,
