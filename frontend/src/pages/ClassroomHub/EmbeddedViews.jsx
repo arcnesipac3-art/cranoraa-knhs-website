@@ -330,7 +330,7 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
       let schoolYear = ''; let gradeLevel = '';
       try { const s = await api.get('/system/settings/'); schoolYear = s.data?.academic_year || ''; gradeLevel = s.data?.current_grade_level || ''; } catch { /* ignore */ }
       const adviser = subjects[0]?.teacher_name || '';
-      await exportSF10PDF(classroom, enrolledStudents, allGrades, { schoolYear, gradeLevel, section: classroom.name, adviser });
+      await exportSF10PDF(classroom, enrolledStudents, allGrades, { schoolYear, gradeLevel, section: classroom.name, adviser }, subjects);
       toast.success('SF10 PDF exported');
     } catch (err) {
       if (err.message?.includes('Template file not found')) toast.error('SF10 template missing. Place SF10_Template.xlsx in frontend/public/templates/', { duration: 5000 });

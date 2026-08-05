@@ -11,6 +11,7 @@
 import { jsPDF } from 'jspdf';
 import {
   JHS_LEARNING_AREAS, SHS_LEARNING_AREAS,
+  buildAreasFromSubjects,
   mapToLearningArea, depedRound, calcFinalGrade, gradeRemarks,
   buildGradeIndex, buildStudentData,
 } from './sf10Export';
@@ -23,7 +24,7 @@ const COL_W   = PAGE_W - MARGIN * 2;
 
 // ─── Single-student PDF page builder ─────────────────────────────────────────
 
-function addStudentPage(doc, student, schoolInfo, isFirstPage) {
+function addStudentPage(doc, student, schoolInfo, isFirstPage, customAreas) {
   if (!isFirstPage) doc.addPage();
 
   const isSHS = /grade\s*1[12]/i.test(schoolInfo.gradeLevel || '');
@@ -123,7 +124,9 @@ function addStudentPage(doc, student, schoolInfo, isFirstPage) {
   doc.line(MARGIN, y, PAGE_W - MARGIN, y); y += 4;
 
   doc.setFont('helvetica', 'normal');
-  const areas = isSHS ? SHS_LEARNING_AREAS : JHS_LEARNING_AREAS;
+  const areas = customAreas && customAreas.length > 0
+    ? customAreas
+    : (isSHS ? SHS_LEARNING_AREAS : JHS_LEARNING_AREAS);
   const areaGrades = student.areaGrades || {};
   const finalsForAvg = [];
 
@@ -202,14 +205,15 @@ function addLegendPage(doc) {
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 /**
- * Export SF10 PDF for ALL enrolled students (was broken — only exported first student).
+ * Export SF10 PDF for ALL enrolled students.
  *
- * @param {Object}   classroom   - { id, name }
- * @param {Array}    enrollments - enrollment records
- * @param {Array}    allGrades   - flat grade records { student, subject_name, quarter, raw_score }
- * @param {Object}   info        - school metadata
+ * @param {Object}   classroom          - { id, name }
+ * @param {Array}    enrollments        - enrollment records
+ * @param {Array}    allGrades          - flat grade records { student, subject_name, quarter, raw_score }
+ * @param {Object}   info               - school metadata
+ * @param {Array}    [classroomSubjects] - optional array of { subject_name } from ClassroomSubject
  */
-export async function exportSF10PDF(classroom, enrollments, allGrades, info = {}) {
+export async function exportSF10PDF(classroom, enrollments, allGrades, info = {}, classroomSubjects) {
   const schoolInfo = {
     schoolName: info.schoolName || 'Kiwalan National High School',
     schoolId:   info.schoolId   || '304147',
@@ -223,16 +227,20 @@ export async function exportSF10PDF(classroom, enrollments, allGrades, info = {}
     strand:     info.strand     || '',
   };
 
-  const gradeIndex  = buildGradeIndex(allGrades, schoolInfo.gradeLevel);
+  const gradeIndex  = buildGradeIndex(allGrades, schoolInfo.gradeLevel, classroomSubjects);
   const studentData = buildStudentData(enrollments, gradeIndex);
 
   if (studentData.length === 0) throw new Error('No students to export');
+
+  const customAreas = classroomSubjects && classroomSubjects.length > 0
+    ? buildAreasFromSubjects(classroomSubjects)
+    : null;
 
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   // Export ALL students — one student per page group
   studentData.forEach((student, idx) => {
-    addStudentPage(doc, student, schoolInfo, idx === 0);
+    addStudentPage(doc, student, schoolInfo, idx === 0, customAreas);
     addLegendPage(doc);
   });
 

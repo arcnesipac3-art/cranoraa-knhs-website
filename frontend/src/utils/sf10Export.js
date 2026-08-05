@@ -43,6 +43,18 @@ export const SHS_LEARNING_AREAS = [
   'Specialized Subject 3',
 ];
 
+/**
+ * Build the list of learning areas from the classroom's assigned subjects
+ * (ClassroomSubject records) instead of using the hardcoded DepEd arrays.
+ *
+ * @param {Array} classroomSubjects - Array of { subject, subject_name, teacher_name }
+ * @returns {Array} Ordered list of subject display names for the SF10 form
+ */
+export function buildAreasFromSubjects(classroomSubjects) {
+  if (!classroomSubjects || classroomSubjects.length === 0) return [];
+  return classroomSubjects.map(cs => cs.subject_name || cs.name || '').filter(Boolean);
+}
+
 // ─── Grading scale ────────────────────────────────────────────────────────────
 
 const GRADE_SCALE = [
@@ -141,11 +153,13 @@ function extendRange(ws, maxRow, maxCol) {
 
 // ─── Unified per-student block (3 terms — both JHS and SHS) ──────────────────
 
-function appendStudentBlock(ws, startRow, student, schoolInfo) {
+function appendStudentBlock(ws, startRow, student, schoolInfo, customAreas) {
   let r = startRow;
   const { schoolName, schoolId, district, division, region, schoolYear, gradeLevel, section, adviser } = schoolInfo;
   const isSHS = /grade\s*1[12]/i.test(gradeLevel || '');
-  const areas = isSHS ? SHS_LEARNING_AREAS : JHS_LEARNING_AREAS;
+  const areas = customAreas && customAreas.length > 0
+    ? customAreas
+    : (isSHS ? SHS_LEARNING_AREAS : JHS_LEARNING_AREAS);
   const formTitle = isSHS
     ? "Learner's Permanent Academic Record for Senior High School (SF10-SHS)"
     : "Learner's Permanent Academic Record for Junior High School (SF10-JHS)";
@@ -260,13 +274,13 @@ function buildColWidths() {
   return [{ wch: 52 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 14 }, { wch: 10 }];
 }
 
-function buildWorkbook(studentData, schoolInfo, sheetLabel) {
+function buildWorkbook(studentData, schoolInfo, sheetLabel, customAreas) {
   const wb = XLSX.utils.book_new();
   const ws = { '!cols': buildColWidths() };
   let row = 0;
 
   studentData.forEach(student => {
-    row = appendStudentBlock(ws, row, student, schoolInfo);
+    row = appendStudentBlock(ws, row, student, schoolInfo, customAreas);
     row = appendLegendAndCertification(ws, row, schoolInfo.schoolName, schoolInfo.schoolId);
     row += 2;
   });
@@ -282,11 +296,35 @@ function buildWorkbook(studentData, schoolInfo, sheetLabel) {
 
 // ─── Grade index builder (shared with PDF export) ────────────────────────────
 
-export function buildGradeIndex(allGrades, gradeLevel) {
+/**
+ * Build grade index: { studentId: { learningArea: { t1, t2, t3 } } }
+ *
+ * When classroomSubjects is provided, matches grades by exact subject name
+ * instead of using the hardcoded mapToLearningArea function. This ensures
+ * only subjects assigned to the classroom appear in the export.
+ */
+export function buildGradeIndex(allGrades, gradeLevel, classroomSubjects) {
   const index = {};
+
+  // If classroom subjects provided, build a lookup for direct name matching
+  const subjectNames = classroomSubjects && classroomSubjects.length > 0
+    ? classroomSubjects.map(cs => (cs.subject_name || '').toLowerCase())
+    : null;
+
   allGrades.forEach(g => {
-    const sid  = String(g.student);
-    const area = mapToLearningArea(g.subject_name, gradeLevel);
+    const sid = String(g.student);
+    const rawName = (g.subject_name || '').trim();
+
+    let area;
+    if (subjectNames) {
+      // Direct match: check if this grade's subject is one of the classroom's subjects
+      const matchIdx = subjectNames.indexOf(rawName.toLowerCase());
+      if (matchIdx === -1) return; // subject not in this classroom — skip
+      area = classroomSubjects[matchIdx].subject_name; // use the canonical name
+    } else {
+      area = mapToLearningArea(rawName, gradeLevel);
+    }
+
     if (!area) return;
     if (!index[sid]) index[sid] = {};
     if (!index[sid][area]) index[sid][area] = {};
@@ -326,13 +364,14 @@ export function buildStudentData(enrollments, gradeIndex) {
 /**
  * Main entry point.
  *
- * @param {Object}   classroom   - { id, name }
- * @param {Array}    enrollments - enrollment records
- * @param {Array}    allGrades   - flat grade records { student, subject_name, quarter, raw_score }
- * @param {Object}   info        - schoolName, schoolId, district, division, region,
- *                                 schoolYear, gradeLevel, section, adviser, strand (SHS)
+ * @param {Object}   classroom          - { id, name }
+ * @param {Array}    enrollments        - enrollment records
+ * @param {Array}    allGrades          - flat grade records { student, subject_name, quarter, raw_score }
+ * @param {Object}   info               - schoolName, schoolId, district, division, region,
+ *                                        schoolYear, gradeLevel, section, adviser, strand (SHS)
+ * @param {Array}    [classroomSubjects] - optional array of { subject_name } from ClassroomSubject
  */
-export function exportSF10(classroom, enrollments, allGrades, info = {}) {
+export function exportSF10(classroom, enrollments, allGrades, info = {}, classroomSubjects) {
   const schoolInfo = {
     schoolName: info.schoolName || 'Kiwalan National High School',
     schoolId:   info.schoolId   || '304147',
@@ -346,14 +385,18 @@ export function exportSF10(classroom, enrollments, allGrades, info = {}) {
     strand:     info.strand     || '',
   };
 
-  const gradeIndex  = buildGradeIndex(allGrades, schoolInfo.gradeLevel);
+  const gradeIndex  = buildGradeIndex(allGrades, schoolInfo.gradeLevel, classroomSubjects);
   const studentData = buildStudentData(enrollments, gradeIndex);
 
   if (studentData.length === 0) {
     throw new Error('No students to export');
   }
 
-  const blob = buildWorkbook(studentData, schoolInfo, classroom.name || 'SF10');
+  const customAreas = classroomSubjects && classroomSubjects.length > 0
+    ? buildAreasFromSubjects(classroomSubjects)
+    : null;
+
+  const blob = buildWorkbook(studentData, schoolInfo, classroom.name || 'SF10', customAreas);
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
   a.href     = url;
