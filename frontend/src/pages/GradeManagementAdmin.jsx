@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import GradingPeriodManagement from './GradingPeriodManagement';
 import AdminGradeMonitoring from './AdminGradeMonitoring';
@@ -23,8 +24,14 @@ const TAB_COMPONENTS = {
 };
 
 export default function GradeManagementAdmin() {
-  const [activeTab, setActiveTab] = useState('periods');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'periods');
   const ActiveComponent = TAB_COMPONENTS[activeTab];
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSearchParams({ tab: tabId });
+  };
 
   return (
     <div className="space-y-6">
@@ -37,7 +44,7 @@ export default function GradeManagementAdmin() {
         {TABS.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
             className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === tab.id
                 ? 'text-brand-600'
