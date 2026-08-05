@@ -1700,52 +1700,48 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, activePeriod, onN
       )}
 
       {/* Quick Actions for Teachers */}
-      <div className="grid grid-cols-2 gap-2">
-        <Card
-          className="hover:shadow-md transition-shadow cursor-pointer group col-span-2"
+      <div className="grid grid-cols-4 gap-2">
+        <button
           onClick={() => onNavigate('input')}
+          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-violet-200 bg-violet-50 hover:bg-violet-100 transition-colors group"
         >
-          <CardBody className="p-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-              <FileText className="w-5 h-5 text-violet-600" />
-            </div>
-            <div className="min-w-0">
-              <h3 className="text-xs font-bold text-slate-900">Input Grades</h3>
-              <p className="text-[9px] text-slate-500">Enter final grades for students this term</p>
-            </div>
-            {activePeriod && !['locked', 'closed'].includes(activePeriod.status) && (
-              <span className="ml-auto text-[9px] font-bold text-violet-600 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                Active
-              </span>
-            )}
-          </CardBody>
-        </Card>
+          <div className="w-8 h-8 rounded-lg bg-violet-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <FileText className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-[10px] font-bold text-violet-800">Input Grades</span>
+        </button>
 
-        <Card
-          className="hover:shadow-md transition-shadow cursor-pointer group"
+        <button
           onClick={() => onNavigate('manage')}
+          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-colors group"
         >
-          <CardBody className="p-3 text-center">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mx-auto mb-1.5 group-hover:scale-110 transition-transform">
-              <Award className="w-4 h-4 text-blue-600" />
-            </div>
-            <h3 className="text-[10px] font-semibold text-slate-900 mb-0.5">Manage</h3>
-            <p className="text-[8px] text-slate-500">Review & edit</p>
-          </CardBody>
-        </Card>
+          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <Award className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-[10px] font-bold text-blue-800">Grading Sheet</span>
+        </button>
 
-        <Card
-          className="hover:shadow-md transition-shadow cursor-pointer group"
-          onClick={() => onNavigate('analytics')}
+        <button
+          onClick={() => navigate(`/grade-management-admin?tab=master&classroom=${classroom.id}`)}
+          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 transition-colors group"
         >
-          <CardBody className="p-3 text-center">
-            <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center mx-auto mb-1.5 group-hover:scale-110 transition-transform">
-              <BarChart2 className="w-4 h-4 text-amber-600" />
-            </div>
-            <h3 className="text-[10px] font-semibold text-slate-900 mb-0.5">Analytics</h3>
-            <p className="text-[8px] text-slate-500">Performance</p>
-          </CardBody>
-        </Card>
+          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <span className="text-[10px] font-bold text-emerald-800">Master Sheet</span>
+        </button>
+
+        <button
+          onClick={() => onNavigate('analytics')}
+          className="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 transition-colors group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+            <BarChart2 className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-[10px] font-bold text-amber-800">Analytics</span>
+        </button>
       </div>
 
       {/* Grade Overview */}
@@ -1773,20 +1769,136 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, activePeriod, onN
               icon={<Award className="w-6 h-6" />}
             />
           ) : (
-            <div className="text-center py-4">
-              <p className="text-xs text-slate-600">{grades.length} grade records</p>
-              <Button
-                variant="primary"
-                className="mt-2 text-[10px] px-2 py-1"
-                onClick={() => onNavigate('manage')}
-              >
-                View All
-              </Button>
-            </div>
+            <GradeOverviewTable grades={grades} classroom={classroom} />
           )}
         </CardBody>
       </Card>
     </>
+  );
+};
+
+// Grade Overview Table - per-subject breakdown with stats
+const GradeOverviewTable = ({ grades, classroom }) => {
+  const subjectData = useMemo(() => {
+    const map = {};
+    for (const g of grades) {
+      if (!g.subject_name) continue;
+      if (!map[g.subject]) {
+        map[g.subject] = {
+          id: g.subject,
+          name: g.subject_name,
+          code: g.subject_code,
+          grades: [],
+        };
+      }
+      if (g.grade_type === 'final_grade' && g.raw_score != null) {
+        map[g.subject].grades.push({
+          student: g.student_name,
+          score: parseFloat(g.raw_score),
+          quarter: g.quarter,
+        });
+      }
+    }
+    return Object.values(map).sort((a, b) => a.name.localeCompare(b.name));
+  }, [grades]);
+
+  const getRemark = (score) => {
+    if (score >= 90) return { label: 'Outstanding', color: 'text-emerald-700 bg-emerald-50' };
+    if (score >= 85) return { label: 'Very Satisfactory', color: 'text-blue-700 bg-blue-50' };
+    if (score >= 80) return { label: 'Satisfactory', color: 'text-green-700 bg-green-50' };
+    if (score >= 75) return { label: 'Fairly Satisfactory', color: 'text-amber-700 bg-amber-50' };
+    return { label: 'Did Not Meet', color: 'text-red-700 bg-red-50' };
+  };
+
+  if (subjectData.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-xs text-slate-500">No final grades recorded yet</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Stats summary */}
+      <div className="grid grid-cols-4 gap-2">
+        {(() => {
+          const allScores = subjectData.flatMap(s => s.grades.map(g => g.score));
+          const avg = allScores.length ? (allScores.reduce((a, b) => a + b, 0) / allScores.length).toFixed(1) : '-';
+          const highest = allScores.length ? Math.max(...allScores).toFixed(1) : '-';
+          const lowest = allScores.length ? Math.min(...allScores).toFixed(1) : '-';
+          const passing = allScores.length ? ((allScores.filter(s => s >= 75).length / allScores.length) * 100).toFixed(0) : '-';
+          return (
+            <>
+              <div className="text-center p-2 bg-slate-50 rounded-lg">
+                <p className="text-[10px] font-bold text-slate-400 uppercase">Avg</p>
+                <p className="text-sm font-extrabold text-slate-800">{avg}</p>
+              </div>
+              <div className="text-center p-2 bg-emerald-50 rounded-lg">
+                <p className="text-[10px] font-bold text-emerald-400 uppercase">Highest</p>
+                <p className="text-sm font-extrabold text-emerald-700">{highest}</p>
+              </div>
+              <div className="text-center p-2 bg-red-50 rounded-lg">
+                <p className="text-[10px] font-bold text-red-400 uppercase">Lowest</p>
+                <p className="text-sm font-extrabold text-red-700">{lowest}</p>
+              </div>
+              <div className="text-center p-2 bg-violet-50 rounded-lg">
+                <p className="text-[10px] font-bold text-violet-400 uppercase">Passing</p>
+                <p className="text-sm font-extrabold text-violet-700">{passing}%</p>
+              </div>
+            </>
+          );
+        })()}
+      </div>
+
+      {/* Per-subject table */}
+      <div className="overflow-x-auto rounded-lg border border-slate-200">
+        <table className="w-full text-[10px]">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className="px-2 py-1.5 text-left font-bold text-slate-600">Subject</th>
+              <th className="px-2 py-1.5 text-center font-bold text-slate-600">Students</th>
+              <th className="px-2 py-1.5 text-center font-bold text-slate-600">Average</th>
+              <th className="px-2 py-1.5 text-center font-bold text-slate-600">Highest</th>
+              <th className="px-2 py-1.5 text-center font-bold text-slate-600">Lowest</th>
+              <th className="px-2 py-1.5 text-center font-bold text-slate-600">Passing</th>
+              <th className="px-2 py-1.5 text-center font-bold text-slate-600">Remarks</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {subjectData.map(sub => {
+              const scores = sub.grades.map(g => g.score);
+              const avg = scores.length ? (scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+              const highest = scores.length ? Math.max(...scores) : null;
+              const lowest = scores.length ? Math.min(...scores) : null;
+              const passCount = scores.filter(s => s >= 75).length;
+              const passRate = scores.length ? ((passCount / scores.length) * 100).toFixed(0) : '-';
+              const remark = avg !== null ? getRemark(avg) : null;
+
+              return (
+                <tr key={sub.id} className="hover:bg-slate-50">
+                  <td className="px-2 py-1.5">
+                    <span className="font-bold text-slate-800">{sub.code}</span>
+                  </td>
+                  <td className="px-2 py-1.5 text-center text-slate-600">{scores.length}</td>
+                  <td className="px-2 py-1.5 text-center font-bold text-slate-800">{avg !== null ? avg.toFixed(1) : '-'}</td>
+                  <td className="px-2 py-1.5 text-center text-emerald-700">{highest !== null ? highest.toFixed(1) : '-'}</td>
+                  <td className="px-2 py-1.5 text-center text-red-600">{lowest !== null ? lowest.toFixed(1) : '-'}</td>
+                  <td className="px-2 py-1.5 text-center text-slate-600">{passRate}%</td>
+                  <td className="px-2 py-1.5 text-center">
+                    {remark && (
+                      <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${remark.color}`}>
+                        {remark.label}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
   );
 };
 
