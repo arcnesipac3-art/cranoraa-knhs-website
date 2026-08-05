@@ -351,16 +351,24 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                 'remarks': getattr(app, 'remarks', '') or '',
             }
 
+            # Always return enrollment credentials when student is enrolled
+            enrolled_email = None
+            temp_pw = None
+            try:
+                if app.enrolled_student_id:
+                    enrolled_email = app.enrolled_student.email if app.enrolled_student else None
+                    if app.status == 'enrolled' and app.enrolled_student and getattr(app.enrolled_student, 'must_change_password', False):
+                        temp_pw = getattr(app, 'temp_password_display', None)
+            except Exception:
+                pass
+
+            data.update({
+                'lrn': getattr(app, 'lrn', '') or '',
+                'enrolled_student_email': enrolled_email,
+                'temp_password_display': temp_pw,
+            })
+
             if is_authed:
-                enrolled_email = None
-                temp_pw = None
-                try:
-                    if app.enrolled_student_id:
-                        enrolled_email = app.enrolled_student.email if app.enrolled_student else None
-                        if app.status == 'enrolled' and app.enrolled_student and getattr(app.enrolled_student, 'must_change_password', False):
-                            temp_pw = getattr(app, 'temp_password_display', None)
-                except Exception:
-                    pass
 
                 docs = []
                 try:
@@ -399,9 +407,6 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                     pass
 
                 data.update({
-                    'lrn': getattr(app, 'lrn', '') or '',
-                    'enrolled_student_email': enrolled_email,
-                    'temp_password_display': temp_pw,
                     'documents': docs,
                     'status_history': history,
                 })
