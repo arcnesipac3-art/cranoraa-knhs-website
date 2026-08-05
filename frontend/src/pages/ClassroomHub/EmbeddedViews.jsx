@@ -28,6 +28,7 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
   const [exportingSF10, setExportingSF10] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState(null); // GradeSubmission for current subject
   const [submitting, setSubmitting] = useState(false);
+  const [activeQuarters, setActiveQuarters] = useState([1, 2, 3]);
 
   // Modal state for confirmations
   const [modalState, setModalState] = useState({
@@ -51,6 +52,31 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
       }
     };
     fetchSubjects();
+  }, [classroom.id]);
+
+  // Fetch active semesters for the current academic year
+  useEffect(() => {
+    const fetchActiveSemesters = async () => {
+      try {
+        const settingsRes = await api.get('/system/settings/');
+        const ay = settingsRes.data?.academic_year;
+        if (!ay) return;
+        const semRes = await api.get('/admin/semesters/', { params: { academic_year: ay } });
+        const semesters = Array.isArray(semRes.data) ? semRes.data : [];
+        const active = semesters
+          .filter(s => s.is_active)
+          .map(s => {
+            const t = (s.semester_type || '').toLowerCase();
+            if (t.startsWith('1st')) return 1;
+            if (t.startsWith('2nd')) return 2;
+            if (t.startsWith('3rd')) return 3;
+            return null;
+          })
+          .filter(q => q !== null);
+        if (active.length > 0) setActiveQuarters(active);
+      } catch {}
+    };
+    fetchActiveSemesters();
   }, [classroom.id]);
 
   // Load grades - includes academic_year to avoid cross-year contamination
@@ -453,9 +479,11 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500"
               >
                 <option value="all">All Terms</option>
-                <option value="q1">Term 1</option>
-                <option value="q2">Term 2</option>
-                <option value="q3">Term 3</option>
+                {[1, 2, 3].map(q => (
+                  <option key={q} value={`q${q}`} disabled={!activeQuarters.includes(q)}>
+                    Term {q}{!activeQuarters.includes(q) ? ' (Locked)' : ''}
+                  </option>
+                ))}
               </select>
             </div>
             <div>

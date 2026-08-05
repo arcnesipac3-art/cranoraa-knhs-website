@@ -21,7 +21,7 @@ import { PERFORMANCE_LEVELS, getPerformanceLevel } from '../utils/grading';
 const GradeInput = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { settings, periodValues, periodShortLabels, periodLabel, isSHS, currentQuarter } = useSystemSettings();
+  const { settings, periodValues: allPeriodValues, periodShortLabels, periodLabel, isSHS, currentQuarter } = useSystemSettings();
 
   // Check if we're in embedded mode (iframe)
   const searchParams = new URLSearchParams(location.search);
@@ -37,11 +37,7 @@ const GradeInput = () => {
   );
   const [selSubject, setSelSubject] = useState(location.state?.subjectId || '');
   const [selComponent, setSelComponent] = useState('');
-  const [selQuarter, setSelQuarter] = useState(() => {
-    const q = Number(currentQuarter) || 1;
-    const maxPeriods = periodValues.length;
-    return q > maxPeriods ? maxPeriods : q;
-  });
+  const [activeSemesters, setActiveSemesters] = useState(null);
   const { academicYear, setAcademicYear } = useActiveAcademicYear();
 
   const [cells, setCells] = useState({});
@@ -59,6 +55,47 @@ const GradeInput = () => {
   }, []);
 
   const inputRefs = useRef({});
+
+  // Semester type → quarter number mapping
+  const semesterTypeToQuarter = (type) => {
+    if (!type) return null;
+    const t = type.toLowerCase();
+    if (t.startsWith('1st')) return 1;
+    if (t.startsWith('2nd')) return 2;
+    if (t.startsWith('3rd')) return 3;
+    return null;
+  };
+
+  // Fetch active semesters for current academic year
+  useEffect(() => {
+    if (!academicYear) return;
+    api.get('/admin/semesters/', { params: { academic_year: academicYear } })
+      .then(r => {
+        const semesters = Array.isArray(r.data) ? r.data : [];
+        const activeQuarters = semesters
+          .filter(s => s.is_active)
+          .map(s => semesterTypeToQuarter(s.semester_type))
+          .filter(q => q !== null);
+        setActiveSemesters(activeQuarters.length > 0 ? activeQuarters : allPeriodValues);
+      })
+      .catch(() => setActiveSemesters(allPeriodValues));
+  }, [academicYear]);
+
+  // Derive periodValues from active semesters
+  const periodValues = activeSemesters || allPeriodValues;
+
+  // selQuarter state — initialized to first active period
+  const [selQuarter, setSelQuarter] = useState(() => {
+    const q = Number(currentQuarter) || 1;
+    return periodValues.includes(q) ? q : periodValues[0] || 1;
+  });
+
+  // Reset selQuarter if it's no longer active
+  useEffect(() => {
+    if (activeSemesters && !activeSemesters.includes(selQuarter)) {
+      setSelQuarter(activeSemesters[0] || 1);
+    }
+  }, [activeSemesters, selQuarter]);
 
   // Academic year navigation
   const handleYearChange = (dir) => {
@@ -476,23 +513,41 @@ const GradeInput = () => {
               onChange={e => setSelQuarter(Number(e.target.value))}
               className="sm:hidden w-full px-3 py-2.5 border border-slate-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 text-sm font-semibold shadow-sm"
             >
-              {periodValues.map(q => (
-                <option key={q} value={q}>{periodLabel} {q}</option>
-              ))}
+              {allPeriodValues.map(q => {
+                const isActive = periodValues.includes(q);
+                return (
+                  <option key={q} value={q} disabled={!isActive}>
+                    {periodLabel} {q}{!isActive ? ' (Locked)' : ''}
+                  </option>
+                );
+              })}
             </select>
             <div className="hidden sm:flex rounded-lg border border-slate-300 overflow-hidden shadow-sm">
-              {periodValues.map(q => (
-                <button
-                  key={q}
-                  onClick={() => setSelQuarter(q)}
-                  className={`flex-1 px-3 py-3 text-xs font-extrabold uppercase tracking-wide transition-all ${
-                    selQuarter === q
-                      ? 'bg-violet-600 text-white'
-                      : 'bg-white text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  {periodShortLabels[q - 1]}
-                </button>
+              {allPeriodValues.map(q => {
+                const isActive = periodValues.includes(q);
+                return (
+                  <button
+                    key={q}
+                    onClick={() => isActive && setSelQuarter(q)}
+                    disabled={!isActive}
+                    title={!isActive ? 'This period is not open' : ''}
+                    className={`flex-1 px-3 py-3 text-xs font-extrabold uppercase tracking-wide transition-all ${
+                      !isActive
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed line-through'
+                        : selQuarter === q
+                          ? 'bg-violet-600 text-white'
+                          : 'bg-white text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {periodShortLabels[q - 1]}
+                    {!isActive && (
+                      <svg className="inline w-3 h-3 ml-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
               ))}
             </div>
           </div>

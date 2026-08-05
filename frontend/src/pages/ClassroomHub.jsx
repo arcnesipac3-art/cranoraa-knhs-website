@@ -1750,6 +1750,39 @@ const GradeInputView = ({ classroom, onBack }) => {
   const [submitting, setSubmitting] = useState(false);
   const [currentAcademicYear, setCurrentAcademicYear] = useState(null);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [activeQuarters, setActiveQuarters] = useState([1, 2, 3]);
+
+  // Semester type → quarter number
+  const semesterTypeToQuarter = (type) => {
+    if (!type) return null;
+    const t = type.toLowerCase();
+    if (t.startsWith('1st')) return 1;
+    if (t.startsWith('2nd')) return 2;
+    if (t.startsWith('3rd')) return 3;
+    return null;
+  };
+
+  // Fetch active semesters for current academic year
+  useEffect(() => {
+    if (!currentAcademicYear) return;
+    api.get('/admin/semesters/', { params: { academic_year: currentAcademicYear } })
+      .then(r => {
+        const semesters = Array.isArray(r.data) ? r.data : [];
+        const active = semesters
+          .filter(s => s.is_active)
+          .map(s => semesterTypeToQuarter(s.semester_type))
+          .filter(q => q !== null);
+        if (active.length > 0) setActiveQuarters(active);
+      })
+      .catch(() => {});
+  }, [currentAcademicYear]);
+
+  // Reset selectedQuarter if it's no longer active
+  useEffect(() => {
+    if (!activeQuarters.includes(selectedQuarter)) {
+      setSelectedQuarter(activeQuarters[0] || 1);
+    }
+  }, [activeQuarters]);
 
   // Grading period gate
   const [gradingPeriod, setGradingPeriod] = useState(undefined); // undefined=loading, null=none
@@ -2151,19 +2184,31 @@ const GradeInputView = ({ classroom, onBack }) => {
                 Term
               </label>
               <div className="flex flex-wrap gap-2">
-                {[1, 2, 3].map(q => (
-                  <button
-                    key={q}
-                    onClick={() => setSelectedQuarter(q)}
-                    className={`px-4 py-3 min-h-[44px] min-w-[44px] text-sm font-semibold transition-colors rounded-md ${
-                      selectedQuarter === q
-                        ? 'bg-violet-600 text-white'
-                        : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-300'
-                    }`}
-                  >
-                    T{q}
-                  </button>
-                ))}
+                {[1, 2, 3].map(q => {
+                  const isActive = activeQuarters.includes(q);
+                  return (
+                    <button
+                      key={q}
+                      onClick={() => isActive && setSelectedQuarter(q)}
+                      disabled={!isActive}
+                      title={!isActive ? 'This term is not open' : ''}
+                      className={`px-4 py-3 min-h-[44px] min-w-[44px] text-sm font-semibold transition-colors rounded-md ${
+                        !isActive
+                          ? 'bg-slate-100 text-slate-400 cursor-not-allowed line-through'
+                          : selectedQuarter === q
+                            ? 'bg-violet-600 text-white'
+                            : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-300'
+                      }`}
+                    >
+                      T{q}
+                      {!isActive && (
+                        <svg className="inline w-3 h-3 ml-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
