@@ -319,6 +319,25 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
         )
         return Response(GradeSubmissionSerializer(submission).data)
 
+    @action(detail=True, methods=['delete'])
+    def remove(self, request, pk=None):
+        submission = self.get_object()
+        if request.user.role != 'admin':
+            return Response({'error': 'Only admins can delete submissions'}, status=403)
+        if submission.status == 'locked':
+            return Response({'error': 'Cannot delete locked submissions'}, status=400)
+        title = str(submission)
+        sub_id = submission.id
+        submission.delete()
+        log_audit_action(
+            user=request.user, action='grade_delete',
+            model_name='GradeSubmission', object_id=sub_id,
+            object_repr=title,
+            description=f'Deleted grade submission: {title}',
+            request=request
+        )
+        return Response({'message': 'Submission deleted'}, status=200)
+
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         if request.user.role != 'admin':
