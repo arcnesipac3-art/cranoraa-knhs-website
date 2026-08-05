@@ -157,27 +157,6 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             )
         return EnrollmentApplication.objects.filter(email=user.email).prefetch_related('documents')
 
-    def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        # Backfill EnrollmentDocument records for any applications that have
-        # URL fields but no corresponding document records (old or partial uploads)
-        if response.status_code == 200:
-            ids = [item['id'] for item in response.data.get('results', response.data) if isinstance(item, dict)]
-            if ids:
-                apps = EnrollmentApplication.objects.filter(pk__in=ids)
-                for app in apps:
-                    self._ensure_documents(app)
-                # Re-fetch to pick up newly created documents
-                apps = EnrollmentApplication.objects.filter(pk__in=ids).prefetch_related('documents')
-                app_map = {a.pk: a for a in apps}
-                results = response.data.get('results', response.data)
-                for item in results:
-                    if isinstance(item, dict) and item['id'] in app_map:
-                        item['documents'] = EnrollmentDocumentSerializer(
-                            app_map[item['id']].documents.all(), many=True
-                        ).data
-        return response
-
     def create(self, request, *args, **kwargs):
         try:
             # Enforce enrollment_open setting
