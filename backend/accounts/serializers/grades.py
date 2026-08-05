@@ -7,7 +7,7 @@ from ._base import full_name
 class GradeSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
     student_email = serializers.CharField(source='student.email', read_only=True)
-    student_sex = serializers.CharField(source='student.profile.sex', read_only=True)
+    student_sex = serializers.SerializerMethodField()
     student_lrn = serializers.SerializerMethodField()
     student_profile_picture = serializers.SerializerMethodField()
     subject_name = serializers.CharField(source='subject.name', read_only=True)
@@ -36,14 +36,17 @@ class GradeSerializer(serializers.ModelSerializer):
     def get_student_name(self, obj): return full_name(obj.student)
     def get_teacher_name(self, obj): return full_name(obj.teacher)
     def get_percentage(self, obj): return obj.get_percentage()
+    def get_student_sex(self, obj):
+        profile = getattr(obj.student, 'profile', None)
+        return getattr(profile, 'sex', None) if profile else None
     def get_student_lrn(self, obj):
         profile = getattr(obj.student, 'profile', None)
-        return profile.registration_number if profile else None
+        return getattr(profile, 'registration_number', None) if profile else None
     def get_has_components(self, obj):
         return hasattr(obj.subject, 'has_components') and obj.subject.has_components
     def get_student_profile_picture(self, obj):
         profile = getattr(obj.student, 'profile', None)
-        return profile.profile_picture if profile else None
+        return getattr(profile, 'profile_picture', None) if profile else None
 
 
 class GradeReportSerializer(serializers.ModelSerializer):
