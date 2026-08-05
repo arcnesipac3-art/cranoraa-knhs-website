@@ -52,7 +52,7 @@ const Notifications = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { setUnreadCount, unreadCount, realtimeConnected, isPolling } = useNotifications();
-  const { permission, requestPermission, isSupported } = usePushNotificationContext();
+  const { permission, requestPermission, registerToken, isSupported } = usePushNotificationContext();
 
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading]             = useState(true);
