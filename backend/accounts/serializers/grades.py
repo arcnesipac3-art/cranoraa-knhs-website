@@ -8,6 +8,7 @@ class GradeSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()
     student_email = serializers.CharField(source='student.email', read_only=True)
     student_sex = serializers.CharField(source='student.profile.sex', read_only=True)
+    student_lrn = serializers.SerializerMethodField()
     student_profile_picture = serializers.SerializerMethodField()
     subject_name = serializers.CharField(source='subject.name', read_only=True)
     subject_code = serializers.CharField(source='subject.code', read_only=True)
@@ -22,7 +23,7 @@ class GradeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Grade
         fields = [
-            'id', 'student', 'student_name', 'student_email', 'student_sex', 'student_profile_picture', 'subject',
+            'id', 'student', 'student_name', 'student_email', 'student_sex', 'student_lrn', 'student_profile_picture', 'subject',
             'subject_name', 'subject_code', 'classroom', 'classroom_name',
             'teacher', 'teacher_name', 'grade_type', 'grade_type_display',
             'component', 'component_display', 'has_components',
@@ -35,6 +36,9 @@ class GradeSerializer(serializers.ModelSerializer):
     def get_student_name(self, obj): return full_name(obj.student)
     def get_teacher_name(self, obj): return full_name(obj.teacher)
     def get_percentage(self, obj): return obj.get_percentage()
+    def get_student_lrn(self, obj):
+        profile = getattr(obj.student, 'profile', None)
+        return profile.registration_number if profile else None
     def get_has_components(self, obj):
         return hasattr(obj.subject, 'has_components') and obj.subject.has_components
     def get_student_profile_picture(self, obj):
