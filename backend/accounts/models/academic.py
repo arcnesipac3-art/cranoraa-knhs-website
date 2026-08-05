@@ -55,6 +55,8 @@ class Subject(models.Model):
     grade_level = models.CharField(max_length=20, help_text="Grade level this subject is for")
     component = models.CharField(max_length=20, choices=COMPONENT_CHOICES, blank=True, null=True,
         help_text="Subject component category (core, mapeh, guidance)")
+    has_components = models.BooleanField(default=False,
+        help_text="True for composite subjects like MAPEH that have sub-components (music_arts, pe_health)")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

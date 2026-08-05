@@ -758,6 +758,51 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
     other: 'Other Document',
   };
 
+  const URL_DOC_FIELDS = [
+    { field: 'birth_certificate',         docType: 'birth_certificate',         type: 'PSA Birth Certificate' },
+    { field: 'report_card',               docType: 'report_card',               type: 'Report Card' },
+    { field: 'form_138',                  docType: 'form_138',                  type: 'Form 138 / Certificate' },
+    { field: 'certificate_of_completion', docType: 'certificate_of_completion', type: 'Certificate of Completion' },
+    { field: 'good_moral_certificate',    docType: 'good_moral',                type: 'Good Moral Certificate' },
+    { field: 'id_picture',                docType: 'id_picture',                type: 'ID Picture' },
+    { field: 'last_school_attended_cert', docType: 'last_school_attended',      type: 'Last School Attended Certificate' },
+  ];
+
+  const getAppDocs = (app) => {
+    const docMap = new Map();
+    if (app?.documents && app.documents.length > 0) {
+      for (const doc of app.documents) {
+        if (doc.file_url) {
+          docMap.set(doc.document_type, {
+            id: doc.id, document_type: doc.document_type,
+            document_type_display: doc.document_type_display || URL_DOC_FIELDS.find(f => f.docType === doc.document_type)?.type || doc.document_type,
+            file_url: doc.file_url,
+            verification_status: doc.verification_status || 'submitted',
+            verification_status_display: doc.verification_status_display || 'Submitted',
+          });
+        }
+      }
+    }
+    for (const { field, docType, type } of URL_DOC_FIELDS) {
+      const url = app?.[field];
+      if (url && typeof url === 'string' && url.length > 5 && !docMap.has(docType)) {
+        docMap.set(docType, {
+          id: `url-${field}`, document_type: docType, document_type_display: type,
+          file_url: url, verification_status: 'submitted', verification_status_display: 'Submitted',
+        });
+      }
+    }
+    if (docMap.size > 0) {
+      const uploadedTypes = new Set(docMap.keys());
+      const missingDocs = URL_DOC_FIELDS.filter(({ docType }) => !uploadedTypes.has(docType))
+        .map(({ field, type }) => ({ id: `missing-${field}`, document_type_display: type, file_url: null, verification_status: 'missing', verification_status_display: 'Not Uploaded' }));
+      return [...docMap.values(), ...missingDocs];
+    }
+    return URL_DOC_FIELDS.map(({ field, type }) => ({ id: `missing-${field}`, document_type_display: type, file_url: null, verification_status: 'missing', verification_status_display: 'Not Uploaded' }));
+  };
+
+  const displayDocs = getAppDocs(appData);
+
   return (
     <div className="fixed inset-0 z-[9999] flex">
       <div className="flex-1 bg-black/40" onClick={onClose} />
@@ -931,25 +976,28 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                     <p className="text-[9px] text-amber-800">Documents submitted during enrollment.</p>
                   </div>
 
-                  {appData?.documents && appData.documents.length > 0 ? (
+                  {displayDocs.length > 0 ? (
                     <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
-                      {appData.documents.map(doc => (
+                      {displayDocs.map(doc => (
                         <div key={doc.id} className="flex items-center justify-between px-3 py-2">
                           <div className="flex items-center gap-2 min-w-0">
                             <div className={`w-6 h-6 rounded flex items-center justify-center flex-shrink-0 ${
                               doc.verification_status === 'verified' ? 'bg-emerald-50' :
-                              doc.verification_status === 'rejected' ? 'bg-rose-50' : 'bg-slate-100'
+                              doc.verification_status === 'rejected' ? 'bg-rose-50' :
+                              doc.verification_status === 'missing' ? 'bg-amber-50' : 'bg-slate-100'
                             }`}>
                               <FileText className={`w-3 h-3 ${
                                 doc.verification_status === 'verified' ? 'text-emerald-600' :
-                                doc.verification_status === 'rejected' ? 'text-rose-600' : 'text-slate-400'
+                                doc.verification_status === 'rejected' ? 'text-rose-600' :
+                                doc.verification_status === 'missing' ? 'text-amber-500' : 'text-slate-400'
                               }`} />
                             </div>
                             <div className="min-w-0">
-                              <p className="text-[10px] font-bold text-slate-900 truncate">{docTypeLabel[doc.document_type] || doc.document_type_display || doc.document_type}</p>
+                              <p className="text-[10px] font-bold text-slate-900 truncate">{doc.document_type_display || docTypeLabel[doc.document_type] || doc.document_type}</p>
                               <span className={`text-[8px] font-bold uppercase px-1 py-0 rounded ${
                                 doc.verification_status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
                                 doc.verification_status === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                                doc.verification_status === 'missing' ? 'bg-amber-100 text-amber-700' :
                                 'bg-slate-100 text-slate-600'
                               }`}>{doc.verification_status_display || doc.verification_status}</span>
                             </div>
