@@ -870,7 +870,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         except EnrollmentDocument.DoesNotExist:
             return Response({'error': 'Document not found'}, status=404)
 
-    @action(detail=True, methods=['get'], url_path='documents/(?P<doc_id>[^/.]+)/view')
+    @action(detail=True, methods=['get'], url_path='documents/(?P<doc_id>[^/.]+)/view', permission_classes=[AllowAny])
     def view_document(self, request, pk=None, doc_id=None):
         """Proxy endpoint: streams the document file from Supabase to the admin."""
         try:

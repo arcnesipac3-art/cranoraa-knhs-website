@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { cn } from '../../styles/designSystem';
+import { API_BASE_URL } from '../../utils/api';
 import { StatusBadge } from './StatusBadge';
 import { EnrollmentProgressTracker } from './EnrollmentProgressTracker';
 
@@ -251,7 +252,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
                         {doc.file_url && doc.id && !String(doc.id).startsWith('url-') && !String(doc.id).startsWith('missing-') ? (
-                          <a href={`/api/v1/enrollment-applications/${app.id}/documents/${doc.id}/view/`} target="_blank" rel="noreferrer"
+                          <a href={`${API_BASE_URL}/enrollment-applications/${app.id}/documents/${doc.id}/view/`} target="_blank" rel="noreferrer"
                             className="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="View document">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

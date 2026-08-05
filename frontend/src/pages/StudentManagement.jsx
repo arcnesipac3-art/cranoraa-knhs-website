@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import api from '../utils/api';
+import api, { API_BASE_URL } from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import { useParallelFetch } from '../hooks/useFetch';
 import toast from 'react-hot-toast';
@@ -356,7 +356,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                             </div>
                           </div>
                           {doc.file_url && doc.id && !String(doc.id).startsWith('url-') && !String(doc.id).startsWith('missing-') ? (
-                            <a href={`/api/v1/enrollment-applications/${appData?.id}/documents/${doc.id}/view/`} target="_blank" rel="noreferrer"
+                            <a href={`${API_BASE_URL}/enrollment-applications/${appData?.id}/documents/${doc.id}/view/`} target="_blank" rel="noreferrer"
                               className="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors flex-shrink-0">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                             </a>
