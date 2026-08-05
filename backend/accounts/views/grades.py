@@ -16,7 +16,7 @@ from rest_framework.response import Response
 
 from accounts.models import (
     Grade, ClassroomSubject, StudentClassEnrollment,
-    AcademicYear, AuditLog, log_audit_action,
+    AcademicYear, AuditLog,
 )
 from accounts.models.grading_management import GradingPeriod
 
