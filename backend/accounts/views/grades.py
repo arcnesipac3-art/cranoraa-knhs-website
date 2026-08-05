@@ -370,18 +370,19 @@ class GradeViewSet(viewsets.ModelViewSet):
         # Restrict teachers from submitting grades when grading period is not open
         if request.user.role == 'staff' and quarter and academic_year:
             try:
-                ay = AcademicYear.objects.get(name=academic_year)
-                period = GradingPeriod.objects.filter(
-                    academic_year=ay,
-                    quarter=quarter,
-                    status__in=['open', 'closing_soon'],
-                ).first()
-                if not period:
-                    return Response(
-                        {'error': f'Grading period for Term {quarter} is not open. Contact your admin to open it.'},
-                        status=status.HTTP_403_FORBIDDEN,
-                    )
-            except AcademicYear.DoesNotExist:
+                ay = AcademicYear.objects.filter(name=academic_year).first()
+                if ay:
+                    period = GradingPeriod.objects.filter(
+                        academic_year=ay,
+                        quarter=quarter,
+                        status__in=['open', 'closing_soon'],
+                    ).first()
+                    if not period:
+                        return Response(
+                            {'error': f'Grading period for Term {quarter} is not open. Contact your admin to open it.'},
+                            status=status.HTTP_403_FORBIDDEN,
+                        )
+            except Exception:
                 pass
 
         if all([student_id, subject_id, grade_type, quarter, academic_year]):
@@ -587,18 +588,19 @@ class GradeViewSet(viewsets.ModelViewSet):
         # Restrict teachers from submitting grades when grading period is not open
         if request.user.role == 'staff':
             try:
-                ay = AcademicYear.objects.get(name=academic_year)
-                period = GradingPeriod.objects.filter(
-                    academic_year=ay,
-                    quarter=quarter,
-                    status__in=['open', 'closing_soon'],
-                ).first()
-                if not period:
-                    return Response(
-                        {'error': f'Grading period for Term {quarter} is not open. Contact your admin to open it.'},
-                        status=status.HTTP_403_FORBIDDEN,
-                    )
-            except AcademicYear.DoesNotExist:
+                ay = AcademicYear.objects.filter(name=academic_year).first()
+                if ay:
+                    period = GradingPeriod.objects.filter(
+                        academic_year=ay,
+                        quarter=quarter,
+                        status__in=['open', 'closing_soon'],
+                    ).first()
+                    if not period:
+                        return Response(
+                            {'error': f'Grading period for Term {quarter} is not open. Contact your admin to open it.'},
+                            status=status.HTTP_403_FORBIDDEN,
+                        )
+            except Exception:
                 pass
 
         try:
@@ -736,27 +738,11 @@ class GradeViewSet(viewsets.ModelViewSet):
             serializer.save(teacher=user)
         except Exception as e:
             from django.db import IntegrityError
-            if isinstance(e, IntegrityError) and 'unique' in str(e).lower():
-                # Duplicate grade — try to update instead
-                grade_data = serializer.validated_data
-                existing = Grade.objects.filter(
-                    student=grade_data.get('student'),
-                    subject=grade_data.get('subject'),
-                    component=grade_data.get('component', ''),
-                    grade_type=grade_data.get('grade_type'),
-                    quarter=grade_data.get('quarter'),
-                    academic_year=grade_data.get('academic_year'),
-                ).first()
-                if existing:
-                    for key, val in grade_data.items():
-                        setattr(existing, key, val)
-                    existing.teacher = user
-                    existing.save()
-                    serializer.instance = existing
-                else:
-                    raise
-            else:
-                raise
+            if isinstance(e, IntegrityError):
+                raise serializers.ValidationError(
+                    'A grade for this student, subject, and term already exists. Please update it instead.'
+                )
+            raise
         grade = serializer.instance
 
         try:
