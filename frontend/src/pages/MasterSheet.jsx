@@ -29,18 +29,20 @@ const getGradeColor = (score) => {
   return 'text-red-700';
 };
 
-function FilterSelect({ label, value, onChange, options, required = false }) {
+function FilterSelect({ label, value, onChange, options, required = false, compact = false, disabled = false }) {
   return (
-    <div>
-      <label className="flex items-center gap-1 text-[10px] font-bold text-gray-500 uppercase mb-1">
+    <div className={compact ? 'min-w-[120px]' : ''}>
+      <label className="flex items-center gap-1 text-[9px] font-bold text-gray-500 uppercase mb-0.5">
         {label}
         {required && <span className="text-red-400">*</span>}
       </label>
       <select
         value={value}
         onChange={e => onChange(e.target.value)}
-        className={`w-full rounded-lg border px-3 py-2 text-sm bg-white transition-colors
+        disabled={disabled}
+        className={`w-full rounded-lg border px-2.5 py-[7px] text-xs bg-white transition-colors
           focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500
+          disabled:bg-gray-50 disabled:text-gray-400 disabled:cursor-not-allowed
           ${!value && required ? 'border-red-300 text-gray-400' : 'border-gray-300 text-gray-900'}`}
       >
         {options.map(opt => (
@@ -59,14 +61,12 @@ export default function MasterSheet() {
 
   const [filters, setFilters] = useState({
     academic_year: '',
-    grade_level: '',
     classroom: searchParams.get('classroom') || '',
     subject: '',
     quarter: searchParams.get('quarter') || '1',
-    teacher: '',
   });
   const [classrooms, setClassrooms] = useState([]);
-  const [subjects, setSubjects] = useState([]);
+  const [sectionSubjects, setSectionSubjects] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -78,21 +78,25 @@ export default function MasterSheet() {
     if (academicYear) setFilters(f => ({ ...f, academic_year: academicYear }));
     Promise.all([
       api.get('/classrooms/').catch(() => ({ data: [] })),
-      api.get('/subjects/').catch(() => ({ data: [] })),
       api.get('/users/?role=staff').catch(() => ({ data: [] })),
-    ]).then(([c, s, t]) => {
+    ]).then(([c, t]) => {
       setClassrooms(c.data);
-      setSubjects(s.data);
       setTeachers(t.data);
     });
   }, [academicYear]);
 
+  // Fetch subjects for selected section
+  useEffect(() => {
+    if (!filters.classroom) { setSectionSubjects([]); return; }
+    api.get(`/classroom-subjects/by_classroom/?classroom_id=${filters.classroom}`)
+      .then(r => setSectionSubjects(r.data))
+      .catch(() => setSectionSubjects([]));
+  }, [filters.classroom]);
+
   const filteredClassrooms = useMemo(() => {
     let list = classrooms;
-    if (filters.grade_level) list = list.filter(c => String(c.grade_level) === String(filters.grade_level));
-    if (filters.teacher) list = list.filter(c => String(c.teacher) === String(filters.teacher));
     return list;
-  }, [classrooms, filters.grade_level, filters.teacher]);
+  }, [classrooms]);
 
   const fetchGrades = useCallback(async () => {
     if (!filters.classroom || !filters.quarter) return;
@@ -255,8 +259,8 @@ export default function MasterSheet() {
     cols.forEach((h, i) => { doc.text(h, x + 1, y); x += colWidths[i]; });
     subjectCols.forEach((c, i) => {
       const name = c.split('__')[0];
-      const sub = subjects.find(s => String(s.id) === name);
-      doc.text(sub?.code || sub?.name || name, x + 1, y); x += subWidths[i];
+      const sub = sectionSubjects.find(s => String(s.subject) === name);
+      doc.text(sub?.subject_code || sub?.subject_name || name, x + 1, y); x += subWidths[i];
     });
     doc.text('Avg', x + 1, y); x += 25;
     y += 1;
@@ -308,8 +312,8 @@ export default function MasterSheet() {
     const headers = ['No.', 'LRN', 'Last Name', 'First Name', 'Middle Name', 'Sex'];
     const subjectCols = gradeColumns.filter(c => c.endsWith('__final_grade'));
     subjectCols.forEach(c => {
-      const sub = subjects.find(s => String(s.id) === c.split('__')[0]);
-      headers.push(sub?.code || sub?.name || c);
+      const sub = sectionSubjects.find(s => String(s.subject) === c.split('__')[0]);
+      headers.push(sub?.subject_code || sub?.subject_name || c);
     });
     headers.push('General Average', 'Remarks');
 
@@ -355,7 +359,7 @@ export default function MasterSheet() {
     toast.success('Excel exported');
   };
 
-  const selectedSubject = filters.subject ? subjects.find(s => String(s.id) === String(filters.subject)) : null;
+  const selectedSubject = filters.subject ? sectionSubjects.find(s => String(s.subject) === String(filters.subject)) : null;
 
   if (printMode) {
     return (
@@ -374,7 +378,7 @@ export default function MasterSheet() {
           <div><strong>Term:</strong> {filters.quarter}</div>
           <div><strong>Total Students:</strong> {students.length}</div>
         </div>
-        <PrintTable students={filteredStudents} gradeColumns={gradeColumns} gradeMatrix={gradeMatrix} subjects={subjects} stats={stats} />
+        <PrintTable students={filteredStudents} gradeColumns={gradeColumns} gradeMatrix={gradeMatrix} subjects={sectionSubjects} stats={stats} />
         <div className="mt-8 grid grid-cols-2 gap-8 text-sm">
           <div>Prepared by: __________________________</div>
           <div>Noted by: __________________________</div>
@@ -446,101 +450,63 @@ export default function MasterSheet() {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-4">
-        {/* Row 1: Primary filters */}
-        <div>
-          <div className="flex items-center gap-1.5 mb-2">
-            <Filter className="w-3 h-3 text-gray-400" />
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Primary Filters</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <FilterSelect
-              label="Academic Year"
-              value={filters.academic_year}
-              onChange={v => setFilters(f => ({ ...f, academic_year: v }))}
-              options={[
-                { value: '', label: 'All Years' },
-                ...['2024-2025', '2025-2026', '2026-2027'].map(y => ({ value: y, label: y })),
-              ]}
-            />
-            <FilterSelect
-              label="Grade Level"
-              value={filters.grade_level}
-              onChange={v => setFilters(f => ({ ...f, grade_level: v, classroom: '' }))}
-              options={[
-                { value: '', label: 'All Grades' },
-                ...[7, 8, 9, 10, 11, 12].map(g => ({ value: g, label: `Grade ${g}` })),
-              ]}
-            />
-            <FilterSelect
-              label="Section"
-              value={filters.classroom}
-              onChange={v => setFilters(f => ({ ...f, classroom: v }))}
-              options={[
-                { value: '', label: 'Select section...' },
-                ...filteredClassrooms.map(c => ({ value: c.id, label: c.name })),
-              ]}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100" />
-
-        {/* Row 2: Refinement filters */}
-        <div>
-          <div className="flex items-center gap-1.5 mb-2">
-            <ChevronDown className="w-3 h-3 text-gray-400" />
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Refinement</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <FilterSelect
-              label="Quarter"
-              value={filters.quarter}
-              onChange={v => setFilters(f => ({ ...f, quarter: v }))}
-              options={periodValues.map(q => ({ value: q, label: `Term ${q}` }))}
-            />
-            <FilterSelect
-              label="Subject"
-              value={filters.subject}
-              onChange={v => setFilters(f => ({ ...f, subject: v }))}
-              options={[
-                { value: '', label: 'All Subjects' },
-                ...subjects.map(s => ({ value: s.id, label: s.name })),
-              ]}
-            />
-            <FilterSelect
-              label="Teacher"
-              value={filters.teacher}
-              onChange={v => setFilters(f => ({ ...f, teacher: v, classroom: '' }))}
-              options={[
-                { value: '', label: 'All Teachers' },
-                ...teachers.map(t => ({ value: t.id, label: `${t.last_name}, ${t.first_name}` })),
-              ]}
-            />
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100" />
-
-        {/* Row 3: Search + actions */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-3">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
+          <FilterSelect
+            label="Year"
+            value={filters.academic_year}
+            onChange={v => setFilters(f => ({ ...f, academic_year: v }))}
+            options={[
+              { value: '', label: 'All Years' },
+              ...['2024-2025', '2025-2026', '2026-2027'].map(y => ({ value: y, label: y })),
+            ]}
+            compact
+          />
+          <FilterSelect
+            label="Section"
+            value={filters.classroom}
+            onChange={v => setFilters(f => ({ ...f, classroom: v, subject: '' }))}
+            options={[
+              { value: '', label: 'Select section...' },
+              ...filteredClassrooms.map(c => ({ value: c.id, label: c.name })),
+            ]}
+            required
+            compact
+          />
+          <FilterSelect
+            label="Subject"
+            value={filters.subject}
+            onChange={v => setFilters(f => ({ ...f, subject: v }))}
+            options={[
+              { value: '', label: 'All Subjects' },
+              ...sectionSubjects.map(s => ({ value: s.subject, label: s.subject_name })),
+            ]}
+            disabled={!filters.classroom}
+            compact
+          />
+          <FilterSelect
+            label="Term"
+            value={filters.quarter}
+            onChange={v => setFilters(f => ({ ...f, quarter: v }))}
+            options={periodValues.map(q => ({ value: q, label: `Term ${q}` }))}
+            compact
+          />
+          <div className="relative flex-1 min-w-[180px] max-w-xs">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search student name or LRN..."
+              placeholder="Search name or LRN..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="w-full pl-8 pr-2.5 py-[7px] rounded-lg border border-gray-300 text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => { setFilters({ academic_year: '', grade_level: '', classroom: '', subject: '', quarter: '1', teacher: '' }); setSearch(''); }}>
-              <X className="w-3.5 h-3.5 mr-1" /> Reset
+          <div className="flex items-center gap-1.5">
+            <Button variant="ghost" size="sm" onClick={() => { setFilters({ academic_year: '', classroom: '', subject: '', quarter: '1' }); setSearch(''); }}>
+              <X className="w-3.5 h-3.5" />
             </Button>
             <Button variant="outline" size="sm" onClick={fetchGrades}>
-              <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             </Button>
           </div>
         </div>
@@ -565,10 +531,10 @@ export default function MasterSheet() {
                   <th className="px-2 py-2 text-center font-bold text-gray-700 w-8 border-r border-gray-300">Sex</th>
                   {gradeColumns.filter(c => c.endsWith('__final_grade')).map(col => {
                     const subId = col.split('__')[0];
-                    const sub = subjects.find(s => String(s.id) === subId);
+                    const sub = sectionSubjects.find(s => String(s.subject) === subId);
                     return (
                       <th key={col} className="px-1 py-2 text-center font-bold text-gray-700 min-w-[60px] border-r border-gray-200">
-                        <div className="truncate max-w-[60px]" title={sub?.name}>{sub?.code || sub?.name || subId}</div>
+                        <div className="truncate max-w-[60px]" title={sub?.subject_name}>{sub?.subject_code || sub?.subject_name || subId}</div>
                       </th>
                     );
                   })}
@@ -683,8 +649,8 @@ function PrintTable({ students, gradeColumns, gradeMatrix, subjects, stats }) {
           <th className="border border-gray-400 px-1 py-1 text-left">Middle Name</th>
           <th className="border border-gray-400 px-1 py-1 text-center w-8">Sex</th>
           {finalCols.map(col => {
-            const sub = subjects.find(s => String(s.id) === col.split('__')[0]);
-            return <th key={col} className="border border-gray-400 px-1 py-1 text-center">{sub?.code || sub?.name}</th>;
+            const sub = sectionSubjects.find(s => String(s.subject) === col.split('__')[0]);
+            return <th key={col} className="border border-gray-400 px-1 py-1 text-center">{sub?.subject_code || sub?.subject_name}</th>;
           })}
           <th className="border border-gray-400 px-1 py-1 text-center bg-violet-50">Average</th>
           <th className="border border-gray-400 px-1 py-1 text-center">Remarks</th>
