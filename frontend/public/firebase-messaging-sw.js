@@ -18,36 +18,56 @@ const _senderId  = '__VITE_FIREBASE_MESSAGING_SENDER_ID__';
 if (!_projectId || _projectId.startsWith('__VITE_')) {
   console.warn('[firebase-messaging-sw] Firebase config not injected — push notifications disabled.');
 } else {
-  firebase.initializeApp({
-    apiKey:            '__VITE_FIREBASE_API_KEY__',
-    authDomain:        '__VITE_FIREBASE_AUTH_DOMAIN__',
-    projectId:         _projectId,
-    storageBucket:     '__VITE_FIREBASE_STORAGE_BUCKET__',
-    messagingSenderId: _senderId,
-    appId:             '__VITE_FIREBASE_APP_ID__',
-  });
+  console.log('[firebase-messaging-sw] Initializing Firebase with project:', _projectId);
 
-  const messaging = firebase.messaging();
+  try {
+    firebase.initializeApp({
+      apiKey:            '__VITE_FIREBASE_API_KEY__',
+      authDomain:        '__VITE_FIREBASE_AUTH_DOMAIN__',
+      projectId:         _projectId,
+      storageBucket:     '__VITE_FIREBASE_STORAGE_BUCKET__',
+      messagingSenderId: _senderId,
+      appId:             '__VITE_FIREBASE_APP_ID__',
+    });
 
-  // ── Background Message Handler ────────────────────────────────────────────
-  // Called when a push notification arrives while the app is backgrounded,
-  // minimised, or the tab is closed.
-  messaging.onBackgroundMessage((payload) => {
-    const { title, body, icon, link } = payload.notification || {};
-    const data = payload.data || {};
+    const messaging = firebase.messaging();
 
-    const notificationTitle = title || 'KNHS Portal';
-    const notificationOptions = {
-      body: body || '',
-      icon: icon || '/icons/school-logo-source.png',
-      badge: '/icons/school-logo-source.png',
-      data: { link: link || data.link || '/notifications' },
-      tag: data.notification_id || data.link || 'notification',
-      requireInteraction: false,
-    };
+    // ── Background Message Handler ────────────────────────────────────────────
+    // Called when a push notification arrives while the app is backgrounded,
+    // minimised, or the tab is closed.
+    messaging.onBackgroundMessage((payload) => {
+      console.log('[firebase-messaging-sw] onBackgroundMessage received:', payload);
 
-    self.registration.showNotification(notificationTitle, notificationOptions);
-  });
+      const notificationTitle = payload.notification?.title
+        || payload.data?.title
+        || 'KNHS Portal';
+      const notificationBody = payload.notification?.body
+        || payload.data?.body
+        || '';
+      const notificationIcon = payload.notification?.icon
+        || payload.data?.icon
+        || '/icons/school-logo-source.png';
+      const link = payload.notification?.link
+        || payload.data?.link
+        || '/notifications';
+      const data = payload.data || {};
+
+      const notificationOptions = {
+        body: notificationBody,
+        icon: notificationIcon,
+        badge: '/icons/school-logo-source.png',
+        data: { link },
+        tag: data.notification_id || link || 'notification',
+        requireInteraction: false,
+      };
+
+      self.registration.showNotification(notificationTitle, notificationOptions);
+    });
+
+    console.log('[firebase-messaging-sw] onBackgroundMessage handler registered');
+  } catch (err) {
+    console.error('[firebase-messaging-sw] Firebase initialization failed:', err);
+  }
 }
 
 // ── Notification Click Handler ───────────────────────────────────────────────

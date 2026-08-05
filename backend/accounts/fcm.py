@@ -55,35 +55,51 @@ def _get_access_token() -> str:
 
 
 def _send_to_token(access_token: str, project_id: str, fcm_token: str,
-                   title: str, body: str, data: dict) -> dict:
+                   title: str, body: str, data: dict,
+                   device_type: str = 'web') -> dict:
     """Send a single FCM message. Returns the parsed JSON response."""
     url = f'https://fcm.googleapis.com/v1/projects/{project_id}/messages:send'
 
     # All data values must be strings for FCM
     str_data = {k: str(v) for k, v in (data or {}).items()}
 
-    payload = {
-        'message': {
-            'token': fcm_token,
-            'notification': {
-                'title': title,
-                'body': body,
-            },
-            'webpush': {
+    # Build the message payload.
+    # For WEB tokens: use webpush + data only (NO top-level notification key).
+    # Including the "notification" key tells FCM to handle delivery itself,
+    # which bypasses the service-worker onBackgroundMessage handler — so
+    # background push notifications silently fail on web.
+    # For non-web tokens (android/ios): use the notification key so the
+    # platform SDK can display natively.
+    if device_type == 'web':
+        payload = {
+            'message': {
+                'token': fcm_token,
+                'webpush': {
+                    'notification': {
+                        'title': title,
+                        'body': body,
+                        'icon': '/icons/school-logo-source.png',
+                        'badge': '/icons/school-logo-source.png',
+                        'requireInteraction': False,
+                    },
+                    'fcm_options': {
+                        'link': str_data.get('link', '/'),
+                    },
+                },
+                'data': str_data,
+            }
+        }
+    else:
+        payload = {
+            'message': {
+                'token': fcm_token,
                 'notification': {
                     'title': title,
                     'body': body,
-                    'icon': '/icons/school-logo-source.png',
-                    'badge': '/icons/school-logo-source.png',
-                    'requireInteraction': False,
                 },
-                'fcm_options': {
-                    'link': str_data.get('link', '/'),
-                },
-            },
-            'data': str_data,
+                'data': str_data,
+            }
         }
-    }
 
     resp = requests.post(
         url,
@@ -143,7 +159,8 @@ def send_push_notification(user, title: str, body: str, data: dict = None) -> li
         try:
             status_code, response = _send_to_token(
                 access_token, project_id, token_obj.token,
-                title, body, data or {}
+                title, body, data or {},
+                device_type=token_obj.device_type,
             )
 
             if status_code == 200:

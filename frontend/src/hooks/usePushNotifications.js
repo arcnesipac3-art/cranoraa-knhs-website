@@ -53,11 +53,14 @@ export function usePushNotifications() {
       // double-notify.
       if (document.visibilityState === 'visible') return;
 
-      const { title, body, icon } = payload.notification || {};
+      const title = payload.notification?.title || payload.data?.title || 'KNHS Portal';
+      const body = payload.notification?.body || payload.data?.body || '';
+      const icon = payload.notification?.icon || payload.data?.icon || '/icons/school-logo-source.png';
+
       if (Notification.permission === 'granted') {
-        new Notification(title || 'KNHS Portal', {
-          body: body || '',
-          icon: icon || '/icons/school-logo-source.png',
+        new Notification(title, {
+          body,
+          icon,
           badge: '/icons/school-logo-source.png',
           data: payload.data,
           tag: payload.data?.notification_id || payload.data?.link || 'notification',
