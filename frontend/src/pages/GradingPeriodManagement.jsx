@@ -165,7 +165,7 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onUnlock, onExtend
   </motion.div>
 );
 
-const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYears, editingPeriod, onUnlock, onDeleteGrades }) => {
+const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYears, editingPeriod, onUnlock, onDeleteGrades, onOpen }) => {
   const activeYearObj = academicYears?.find(y => y.name === academicYear) || null;
   const [form, setForm] = useState({
     quarter: '1',
@@ -275,9 +275,35 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYear
             />
           </FormField>
 
-          {editingPeriod && (editingPeriod.status === 'locked' || editingPeriod.status === 'closed') && (
+          {editingPeriod && (editingPeriod.status === 'locked' || editingPeriod.status === 'closed' || editingPeriod.status === 'scheduled') && (
             <div className="border-t border-gray-200 pt-4 mt-4 space-y-3">
               <p className="text-xs font-black text-red-500 uppercase tracking-widest">Danger Zone</p>
+              {(editingPeriod.status === 'scheduled' || editingPeriod.status === 'closed') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    Swal.fire({
+                      title: 'Open Submissions?',
+                      html: `This will open <strong>Q${editingPeriod.quarter}</strong> for teacher grade submissions.`,
+                      icon: 'info',
+                      showCancelButton: true,
+                      confirmButtonColor: '#16a34a',
+                      confirmButtonText: 'Yes, Open',
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        onOpen(editingPeriod.id);
+                        onClose();
+                      }
+                    });
+                  }}
+                  className="w-full flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 13v-2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                  </svg>
+                  Open Submissions — allow teachers to submit grades
+                </button>
+              )}
               {editingPeriod.status === 'locked' && (
                 <button
                   type="button"
@@ -649,6 +675,7 @@ export default function GradingPeriodManagement() {
         editingPeriod={editingPeriod}
         onUnlock={handleUnlock}
         onDeleteGrades={handleDeleteGrades}
+        onOpen={handleOpen}
       />
 
       <ExtendDeadlineModal
