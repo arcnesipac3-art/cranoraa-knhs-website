@@ -28,6 +28,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+AUDIENCE_TO_ROLE = {
+    'admins': 'admin',
+    'students': 'student',
+    'teachers': 'staff',
+    'parents': 'parent',
+}
+
+
 def _invalidate_public_announcements_cache():
     from django.core.cache import cache
     cache.delete('public_announcements:v1')
@@ -142,7 +150,8 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
             target_users = User.objects.filter(is_active=True, is_verified=True)
             
             if announcement.target_audience != 'all':
-                target_users = target_users.filter(role=announcement.target_audience.rstrip('s'))
+                role = AUDIENCE_TO_ROLE.get(announcement.target_audience, announcement.target_audience)
+                target_users = target_users.filter(role=role)
             
             if announcement.target_classrooms.exists():
                 target_users = target_users.filter(enrollments__classroom__in=announcement.target_classrooms.all()).distinct()
@@ -256,15 +265,18 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         # Create notifications for target audience
         User = get_user_model()
         
-        users = User.objects.all()
+        users = User.objects.filter(is_active=True, is_verified=True)
         
         # Filter by target audience
-        if announcement.target_audience == 'admins':
-            users = users.filter(role='admin')
-        elif announcement.target_audience == 'students':
-            users = users.filter(role='student')
-        elif announcement.target_audience == 'teachers':
-            users = users.filter(role='staff')
+        if announcement.target_audience != 'all':
+            role = AUDIENCE_TO_ROLE.get(announcement.target_audience, announcement.target_audience)
+            users = users.filter(role=role)
+        
+        # Filter by target classrooms
+        if announcement.target_classrooms.exists():
+            users = users.filter(
+                enrollments__classroom__in=announcement.target_classrooms.all()
+            ).distinct()
         
         # Find users who already have an unread notification for this announcement
         existing_recipients = set(

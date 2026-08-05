@@ -124,6 +124,32 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             return [TrackRateThrottle()]
         return super().get_throttles()
 
+    def list(self, request, *args, **kwargs):
+        """Override list to auto-backfill missing EnrollmentDocument records."""
+        response = super().list(request, *args, **kwargs)
+        if response.status_code == 200:
+            data = response.data
+            items = data.get('results', data) if isinstance(data, dict) else data
+            if isinstance(items, list):
+                app_ids = [item.get('id') for item in items if isinstance(item, dict) and item.get('id')]
+                if app_ids:
+                    applications = EnrollmentApplication.objects.filter(pk__in=app_ids)
+                    for app in applications:
+                        self._ensure_documents(app)
+                    # Re-serialize with updated documents
+                    applications = (
+                        EnrollmentApplication.objects
+                        .select_related('enrolled_student', 'assigned_classroom', 'linked_parent', 'reviewed_by')
+                        .prefetch_related('documents', 'status_history__changed_by')
+                        .filter(pk__in=app_ids)
+                    )
+                    serializer = self.get_serializer(applications, many=True)
+                    if isinstance(data, dict) and 'results' in data:
+                        response.data['results'] = serializer.data
+                    else:
+                        response.data = serializer.data
+        return response
+
     def get_queryset(self):
         user = self.request.user
         if not user.is_authenticated:
