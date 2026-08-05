@@ -152,10 +152,6 @@ class GradeSubmission(models.Model):
         from .assignments import Grade
         warnings = []
         enrolled = self.classroom.enrollments.select_related('student')
-        subjects = ClassroomSubject.objects.filter(
-            classroom=self.classroom,
-            subject=self.subject,
-        )
 
         for enrollment in enrolled:
             student = enrollment.student
@@ -182,26 +178,6 @@ class GradeSubmission(models.Model):
                     'type': 'blank_score',
                     'message': f'Blank score for {student.get_full_name()}'
                 })
-
-            for cs in subjects:
-                for gtype in ['written_work', 'performance_task']:
-                    if gtype == 'performance_task' and getattr(self.subject, 'has_components', False):
-                        continue
-                    exists = Grade.objects.filter(
-                        student=student,
-                        classroom=self.classroom,
-                        subject=self.subject,
-                        quarter=self.grading_period.quarter,
-                        grade_type=gtype,
-                        academic_year=self.grading_period.academic_year.name,
-                    ).exists()
-                    if not exists:
-                        warnings.append({
-                            'student_id': student.id,
-                            'student_name': student.get_full_name(),
-                            'type': 'missing_assessment',
-                            'message': f'Missing {gtype} for {student.get_full_name()}'
-                        })
 
         return warnings
 
