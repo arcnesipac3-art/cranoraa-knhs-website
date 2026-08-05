@@ -45,3 +45,5 @@ backend/.env.*
 !backend/.env.example
 
 .vercel
+
+.github/workflows/
