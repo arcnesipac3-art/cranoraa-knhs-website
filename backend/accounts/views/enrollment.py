@@ -430,6 +430,33 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         'last_school_attended_cert':'last_school_attended',
     }
 
+    def _get_required_doc_types(self, application):
+        grade_level = str(application.grade_level or '')
+        enrollment_type = application.enrollment_type or 'new'
+        is_als = application.is_als
+        is_returning = enrollment_type == 'returning'
+        is_transferee = enrollment_type == 'transferee'
+        is_shs = grade_level in ('11', '12')
+
+        required = set()
+        if is_als:
+            required.update(['birth_certificate', 'last_school_attended'])
+        elif is_shs:
+            required.update(['birth_certificate', 'report_card', 'certificate_of_completion'])
+            if not is_returning:
+                required.add('good_moral')
+        elif grade_level == '7':
+            required.update(['form_138', 'birth_certificate'])
+        elif grade_level == '11':
+            required.update(['birth_certificate', 'report_card', 'certificate_of_completion'])
+        else:
+            required.add('birth_certificate')
+            if is_transferee or not is_returning:
+                required.add('report_card')
+            if is_transferee:
+                required.add('good_moral')
+        return required
+
     def _ensure_documents(self, application):
         """
         Backfill EnrollmentDocument records from URL fields on the application.
@@ -576,7 +603,8 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         remarks = request.data.get('remarks', '')
         if application.status not in ('under_review', 'pending_requirements', 'pending'):
             return Response({'error': f'Cannot approve: status is {application.status}'}, status=400)
-        docs = application.documents.all()
+        required_types = self._get_required_doc_types(application)
+        docs = application.documents.filter(document_type__in=required_types)
         if docs.exists():
             unverified = docs.exclude(verification_status='verified')
             if unverified.exists():

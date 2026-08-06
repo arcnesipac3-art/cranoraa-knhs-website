@@ -3,6 +3,7 @@ import api, { API_BASE_URL } from '../utils/api';
 import Swal from 'sweetalert2';
 import { useParallelFetch } from '../hooks/useFetch';
 import { ApplicationsTableSkeleton } from '../components/enrollment/Skeletons';
+import { getRequiredDocTypes, DOC_FIELD_MAP } from '../utils/enrollmentDocs';
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 
 const STATUS_CONFIG = {
@@ -298,24 +299,17 @@ const EnrollmentManagement = () => {
     setSelectedIds([]);
   };
 
-  const URL_DOC_FIELDS = [
-    { field: 'birth_certificate',         docType: 'birth_certificate',         type: 'PSA Birth Certificate' },
-    { field: 'report_card',               docType: 'report_card',               type: 'Report Card' },
-    { field: 'form_138',                  docType: 'form_138',                  type: 'Form 138 / Grade 6 Certificate' },
-    { field: 'certificate_of_completion', docType: 'certificate_of_completion', type: 'Certificate of Completion' },
-    { field: 'good_moral_certificate',    docType: 'good_moral',                type: 'Good Moral Certificate' },
-    { field: 'id_picture',                docType: 'id_picture',                type: 'ID Picture' },
-    { field: 'last_school_attended_cert', docType: 'last_school_attended',      type: 'Last School Attended Certificate' },
-  ];
+  const URL_DOC_FIELDS = DOC_FIELD_MAP;
 
   const getAppDocs = (app) => {
-    // Build a map from both EnrollmentDocument records AND URL fields
+    const requiredTypes = getRequiredDocTypes(app);
+    const relevantFields = URL_DOC_FIELDS.filter(d => requiredTypes.has(d.docType));
+
     const docMap = new Map();
 
-    // 1) EnrollmentDocument records (from API / backfill)
     if (app?.documents && app.documents.length > 0) {
       for (const doc of app.documents) {
-        if (doc.file_url) {
+        if (doc.file_url && requiredTypes.has(doc.document_type)) {
           docMap.set(doc.document_type, {
             id: doc.id,
             document_type: doc.document_type,
@@ -328,8 +322,7 @@ const EnrollmentManagement = () => {
       }
     }
 
-    // 2) URL fields on the application (fallback / legacy)
-    for (const { field, docType, type } of URL_DOC_FIELDS) {
+    for (const { field, docType, type } of relevantFields) {
       const url = app?.[field];
       if (url && typeof url === 'string' && url.length > 5 && !docMap.has(docType)) {
         docMap.set(docType, {
@@ -344,10 +337,9 @@ const EnrollmentManagement = () => {
       }
     }
 
-    // 3) If we have any documents, return them plus missing ones
     if (docMap.size > 0) {
       const uploadedTypes = new Set(docMap.keys());
-      const missingDocs = URL_DOC_FIELDS
+      const missingDocs = relevantFields
         .filter(({ docType }) => !uploadedTypes.has(docType))
         .map(({ field, type }) => ({
           id: `missing-${field}`,
@@ -360,8 +352,7 @@ const EnrollmentManagement = () => {
       return [...docMap.values(), ...missingDocs];
     }
 
-    // 4) No documents at all — return all as missing
-    return URL_DOC_FIELDS.map(({ field, type }) => ({
+    return relevantFields.map(({ field, type }) => ({
       id: `missing-${field}`,
       document_type_display: type,
       file_url: null,
