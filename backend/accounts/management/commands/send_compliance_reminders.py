@@ -109,7 +109,7 @@ class Command(BaseCommand):
 
             for cs in cs_list:
                 for ctype in _applicable_types(cs.subject_id, all_types, assignments_map):
-                    period_num = calculate_period_number(ctype)
+                    period_num = calculate_period_number(ctype, academic_year=academic_year)
 
                     sub_qs = ComplianceSubmission.objects.filter(
                         teacher=teacher, compliance_type=ctype,

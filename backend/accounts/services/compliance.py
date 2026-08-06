@@ -5,12 +5,21 @@ from ..models.compliance import ComplianceType, ComplianceSubmission, Compliance
 from ..models.infrastructure import AcademicYear, Semester
 
 
-def calculate_period_number(compliance_type, target_date=None):
+def calculate_period_number(compliance_type, target_date=None, academic_year=None):
     if target_date is None:
         target_date = date.today()
 
     if compliance_type.frequency == 'weekly':
-        return target_date.isocalendar()[1]
+        # Calculate week number relative to academic year start, not ISO calendar week
+        if academic_year and hasattr(academic_year, 'start_date') and academic_year.start_date:
+            start = academic_year.start_date
+        else:
+            # Default to June 1 of current year (typical PH school year start)
+            start = date(target_date.year, 6, 1)
+        days_diff = (target_date - start).days
+        if days_diff < 0:
+            return 1
+        return (days_diff // 7) + 1
     elif compliance_type.frequency == 'monthly':
         return target_date.month
     elif compliance_type.frequency == 'quarterly':
@@ -38,10 +47,17 @@ def get_deadline(compliance_type, period_number, academic_year=None):
         base_year = date.today().year
 
     if compliance_type.frequency == 'weekly':
-        jan4 = date(base_year, 1, 4)
-        start_of_week1 = jan4 - timedelta(days=jan4.weekday())
-        period_start = start_of_week1 + timedelta(weeks=period_number - 1)
-        return period_start + timedelta(days=4)  # Friday
+        # Deadline is based on school-year-relative week number
+        if academic_year and hasattr(academic_year, 'start_date') and academic_year.start_date:
+            start = academic_year.start_date
+        else:
+            start = date(base_year, 6, 1)
+        period_start = start + timedelta(weeks=period_number - 1)
+        # Deadline = Friday of that week
+        days_until_friday = (4 - period_start.weekday()) % 7
+        if days_until_friday == 0 and date.today() > period_start:
+            days_until_friday = 7
+        return period_start + timedelta(days=days_until_friday)
     elif compliance_type.frequency == 'monthly':
         try:
             return date(base_year, period_number, compliance_type.deadline_day or 15)
@@ -76,7 +92,7 @@ def create_submission_for_teacher(teacher, compliance_type, academic_year=None, 
     if not academic_year:
         return None
 
-    period_number = calculate_period_number(compliance_type)
+    period_number = calculate_period_number(compliance_type, academic_year=academic_year)
 
     submission, created = ComplianceSubmission.objects.get_or_create(
         teacher=teacher,
@@ -114,10 +130,11 @@ def mark_overdue_submissions():
     """
     today = date.today()
     active_types = ComplianceType.objects.filter(is_active=True)
+    active_ay = get_active_academic_year()
     marked = 0
 
     for ct in active_types:
-        period_num = calculate_period_number(ct)
+        period_num = calculate_period_number(ct, academic_year=active_ay)
         # Get all drafts/submitted for this type
         submissions = ComplianceSubmission.objects.filter(
             compliance_type=ct,
@@ -268,7 +285,7 @@ def get_compliance_stats(academic_year=None, semester=None, subject_id=None):
             if sids and cs.subject_id not in sids:
                 continue
 
-            period_num = calculate_period_number(ctype)
+            period_num = calculate_period_number(ctype, academic_year=academic_year)
             sub_qs = ComplianceSubmission.objects.filter(
                 teacher_id=cs.teacher_id,
                 compliance_type=ctype,

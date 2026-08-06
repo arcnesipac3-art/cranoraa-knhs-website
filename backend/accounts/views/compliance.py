@@ -542,7 +542,7 @@ def my_compliance_status(request):
 
         types_with_status = []
         for ctype in applicable_types:
-            period_num = calculate_period_number(ctype)
+            period_num = calculate_period_number(ctype, academic_year=academic_year)
             sub = submissions_map.get((ctype.id, assignment.id))
 
             # Also check for the current period specifically
@@ -780,7 +780,7 @@ def trigger_compliance_reminders(request):
                 if type_subject_ids and cs.subject_id not in type_subject_ids:
                     continue
 
-                period_num = calculate_period_number(ctype)
+                period_num = calculate_period_number(ctype, academic_year=academic_year)
                 qs = ComplianceSubmission.objects.filter(
                     teacher=teacher, compliance_type=ctype,
                     classroom_subject=cs, period_number=period_num,

@@ -39,10 +39,11 @@ const FREQ_LABELS = { weekly: 'Weekly', monthly: 'Monthly', quarterly: 'Quarterl
 function getPeriodHint(frequency) {
   const now = new Date();
   if (frequency === 'weekly') {
-    const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    const week = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    // School-year-relative week: June 1 = Week 1
+    const schoolYearStart = new Date(now.getFullYear(), 5, 1); // June 1
+    if (now < schoolYearStart) schoolYearStart.setFullYear(now.getFullYear() - 1);
+    const diffDays = Math.floor((now - schoolYearStart) / 86400000);
+    const week = Math.floor(diffDays / 7) + 1;
     return `Week ${week}`;
   }
   if (frequency === 'monthly') {
