@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App.jsx'
 import './index.css'
 import './styles/accessibility.css'
@@ -18,6 +19,16 @@ import { initSyncEngine, processSyncQueue } from './utils/syncEngine'
 
 // Polyfill Buffer for xlsx-populate in browser
 window.Buffer = Buffer;
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // ── Initialize IndexedDB + Sync Engine ───────────────────────────────────────
 initOfflineDb().catch(() => {
@@ -94,6 +105,7 @@ Swal.fire = (...args) => {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
     <ServiceProviderUpdate>
       <PushNotificationProvider>
         {/* Global overlays — outside App so they always render */}
@@ -123,6 +135,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     />
       </PushNotificationProvider>
     </ServiceProviderUpdate>
+    </QueryClientProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 )
