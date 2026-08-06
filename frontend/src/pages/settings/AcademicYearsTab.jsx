@@ -91,7 +91,7 @@ const AcademicYearsTab = () => {
       await api.delete(`/admin/academic-years/${y.id}/`);
       toast.success('Academic year deleted');
       fetchYears();
-    } catch { toast.error('Failed to delete'); }
+    } catch (err) { toast.error(err?.response?.data?.detail || err?.response?.data?.error || 'Failed to delete academic year'); }
   };
 
   const getStatus = (y) => {
