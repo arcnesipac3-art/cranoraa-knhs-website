@@ -28,92 +28,96 @@ class SF2DailyAttendanceReportService:
 
         self._queryset = None
 
-    def get_queryset(self):
-        if self._queryset is not None:
-            return self._queryset
-
-        qs = StudentClassEnrollment.objects.select_related(
-            'student', 'student__profile', 'classroom',
-            'classroom__teacher', 'classroom__teacher__profile',
-            'classroom__academic_year'
-        )
-
-        logger.debug("SF2 filters: academic_year_id=%s, grade_level=%s, section=%s, adviser=%s",
-                     self.academic_year_id, self.grade_level, self.section, self.adviser)
-
+    def _build_filters(self, qs):
+        """Apply common filters to a queryset"""
         if self.academic_year_id:
             qs = qs.filter(classroom__academic_year_id=self.academic_year_id)
         elif AcademicYear.objects.filter(is_active=True).exists():
             qs = qs.filter(classroom__academic_year__is_active=True)
-
         if self.grade_level:
             qs = qs.filter(classroom__grade_level=self.grade_level)
         if self.section:
             qs = qs.filter(classroom__name__icontains=self.section)
         if self.adviser:
             qs = qs.filter(classroom__teacher_id=self.adviser)
+        return qs
+
+    def get_queryset(self):
+        if self._queryset is not None:
+            return self._queryset
+
+        logger.debug("SF2 filters: academic_year_id=%s, grade_level=%s, section=%s, adviser=%s",
+                     self.academic_year_id, self.grade_level, self.section, self.adviser)
+
+        # Strategy 1: Start from Attendance records (most reliable for attendance report)
+        start_date, end_date = self.get_date_range()
+        att_students = Attendance.objects.filter(
+            date__range=[start_date, end_date]
+        ).values_list('student_id', 'classroom_id').distinct()
+
+        att_q = Q()
+        for sid, cid in att_students:
+            att_q |= Q(student_id=sid, classroom_id=cid)
+
+        # Strategy 2: Also include all enrolled students
+        enroll_q = Q()
+        enroll_students = StudentClassEnrollment.objects.values_list('student_id', 'classroom_id').distinct()
+        for sid, cid in enroll_students:
+            enroll_q |= Q(student_id=sid, classroom_id=cid)
+
+        combined_q = att_q | enroll_q
+
+        qs = StudentClassEnrollment.objects.select_related(
+            'student', 'student__profile', 'classroom',
+            'classroom__teacher', 'classroom__teacher__profile',
+            'classroom__academic_year'
+        )
+        if combined_q:
+            qs = qs.filter(combined_q)
+        qs = self._build_filters(qs)
 
         count = qs.count()
-        logger.debug("SF2 enrollment query count: %s", count)
+        logger.debug("SF2 combined enrollment query count: %s", count)
 
+        # Strategy 3: If still no results, try without academic_year filter
         if count == 0:
-            logger.info("SF2: No enrollments found, falling back to attendance records")
-            att_qs = Attendance.objects.select_related(
+            logger.info("SF2: No results with academic year filter, trying without it")
+            qs_no_ay = StudentClassEnrollment.objects.select_related(
                 'student', 'student__profile', 'classroom',
                 'classroom__teacher', 'classroom__teacher__profile',
                 'classroom__academic_year'
             )
-            if self.academic_year_id:
-                att_qs = att_qs.filter(classroom__academic_year_id=self.academic_year_id)
-            elif AcademicYear.objects.filter(is_active=True).exists():
-                att_qs = att_qs.filter(classroom__academic_year__is_active=True)
+            if combined_q:
+                qs_no_ay = qs_no_ay.filter(combined_q)
             if self.grade_level:
-                att_qs = att_qs.filter(classroom__grade_level=self.grade_level)
+                qs_no_ay = qs_no_ay.filter(classroom__grade_level=self.grade_level)
             if self.section:
-                att_qs = att_qs.filter(classroom__name__icontains=self.section)
+                qs_no_ay = qs_no_ay.filter(classroom__name__icontains=self.section)
             if self.adviser:
-                att_qs = att_qs.filter(classroom__teacher_id=self.adviser)
+                qs_no_ay = qs_no_ay.filter(classroom__teacher_id=self.adviser)
 
-            seen = set()
-            fallback_ids = []
-            for att in att_qs.order_by('student_id', 'date').values_list('student_id', 'classroom_id').distinct():
-                key = (att[0], att[1])
-                if key not in seen:
-                    seen.add(key)
-                    fallback_ids.append(key)
+            count = qs_no_ay.count()
+            if count > 0:
+                logger.info("SF2: Found %s enrollments without academic year filter", count)
+                qs = qs_no_ay
 
-            if fallback_ids:
-                from django.db.models import Q
-                q = Q()
-                for sid, cid in fallback_ids:
-                    q |= Q(student_id=sid, classroom_id=cid)
-                qs = StudentClassEnrollment.objects.select_related(
-                    'student', 'student__profile', 'classroom',
-                    'classroom__teacher', 'classroom__teacher__profile',
-                    'classroom__academic_year'
-                ).filter(q)
-            # If still no enrollments (students truly aren't enrolled), create them
-            if qs.count() == 0 and fallback_ids:
-                for sid, cid in fallback_ids:
+            # Auto-create missing enrollments from attendance
+            if count == 0 and att_students:
+                logger.info("SF2: Creating missing enrollments from attendance records")
+                for sid, cid in att_students:
                     try:
                         StudentClassEnrollment.objects.get_or_create(
                             student_id=sid, classroom_id=cid
                         )
                     except Exception:
                         pass
-                qs = StudentClassEnrollment.objects.select_related(
-                    'student', 'student__profile', 'classroom',
-                    'classroom__teacher', 'classroom__teacher__profile',
-                    'classroom__academic_year'
+                qs = self._build_filters(
+                    StudentClassEnrollment.objects.select_related(
+                        'student', 'student__profile', 'classroom',
+                        'classroom__teacher', 'classroom__teacher__profile',
+                        'classroom__academic_year'
+                    )
                 )
-                if self.academic_year_id:
-                    qs = qs.filter(classroom__academic_year_id=self.academic_year_id)
-                if self.grade_level:
-                    qs = qs.filter(classroom__grade_level=self.grade_level)
-                if self.section:
-                    qs = qs.filter(classroom__name__icontains=self.section)
-                if self.adviser:
-                    qs = qs.filter(classroom__teacher_id=self.adviser)
 
         self._queryset = qs
         return qs
