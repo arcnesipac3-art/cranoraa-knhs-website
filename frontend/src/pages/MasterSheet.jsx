@@ -510,7 +510,7 @@ function StudentSheet({ profile, grades, attendance, classroom, teacher, index }
       </div>
 
       <div className="flex">
-        <div className="w-44 flex-shrink-0 border-r border-gray-200">
+        <div className="w-52 flex-shrink-0 border-r border-gray-200">
           <AttendanceSidebar months={attData.months} total={attData.total} />
         </div>
         <div className="flex-1 overflow-x-auto">
@@ -522,28 +522,52 @@ function StudentSheet({ profile, grades, attendance, classroom, teacher, index }
 }
 
 function AttendanceSidebar({ months, total }) {
+  const totalDays = total.present + total.late + total.absent + total.excused;
   return (
-    <div className="text-[10px]">
-      <div className="bg-violet-600 text-white font-bold text-center py-1.5 px-2 uppercase tracking-wide">
+    <div className="text-[10px] min-h-full">
+      <div className="bg-violet-600 text-white font-bold text-center py-2 px-2 uppercase tracking-widest text-[9px]">
         Attendance
       </div>
-      <div className="grid grid-cols-2 border-b border-gray-200">
-        <div className="px-2 py-1 font-bold text-gray-600 border-r border-gray-200">Month</div>
-        <div className="px-2 py-1 font-bold text-gray-600 text-center">Days</div>
+      <div className="grid grid-cols-4 border-b border-gray-200 bg-gray-50">
+        <div className="px-1.5 py-1 font-bold text-gray-500 border-r border-gray-200">Month</div>
+        <div className="px-1 py-1 font-bold text-gray-500 text-center border-r border-gray-200">P</div>
+        <div className="px-1 py-1 font-bold text-gray-500 text-center border-r border-gray-200">L</div>
+        <div className="px-1 py-1 font-bold text-gray-500 text-center">A</div>
       </div>
-      {months.map((m, i) => (
-        <div key={m.key} className={`grid grid-cols-2 border-b border-gray-100 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-          <div className="px-2 py-1 border-r border-gray-200">{m.label}</div>
-          <div className="px-2 py-1 text-center">{m.present + m.late}</div>
+      {months.length === 0 ? (
+        <div className="px-2 py-4 text-center text-gray-400 italic">No data</div>
+      ) : months.map((m, i) => (
+        <div key={m.key} className={`grid grid-cols-4 border-b border-gray-100 ${i % 2 === 0 ? 'bg-white' : 'bg-violet-50/30'}`}>
+          <div className="px-1.5 py-1 border-r border-gray-200 font-medium text-gray-700 truncate">{m.label}</div>
+          <div className="px-1 py-1 text-center border-r border-gray-200 text-emerald-700 font-semibold">{m.present}</div>
+          <div className="px-1 py-1 text-center border-r border-gray-200 text-amber-600 font-semibold">{m.late}</div>
+          <div className="px-1 py-1 text-center text-red-500 font-semibold">{m.absent}</div>
         </div>
       ))}
-      <div className="grid grid-cols-2 bg-violet-50 font-bold border-t border-gray-300">
-        <div className="px-2 py-1.5 border-r border-gray-300">Total</div>
-        <div className="px-2 py-1.5 text-center">{total.days}</div>
-      </div>
-      <div className="px-2 py-1 text-[9px] text-gray-500 border-t border-gray-200">
-        Present: {total.present} | Late: {total.late}
-      </div>
+      {months.length > 0 && (
+        <>
+          <div className="grid grid-cols-4 bg-violet-100 font-bold border-t-2 border-violet-300">
+            <div className="px-1.5 py-1.5 border-r border-violet-300 text-violet-800">Total</div>
+            <div className="px-1 py-1.5 text-center border-r border-violet-300 text-emerald-800">{total.present}</div>
+            <div className="px-1 py-1.5 text-center border-r border-violet-300 text-amber-800">{total.late}</div>
+            <div className="px-1 py-1.5 text-center text-red-700">{total.absent}</div>
+          </div>
+          <div className="px-2 py-1.5 bg-gray-50 border-t border-gray-200 space-y-0.5">
+            <div className="flex justify-between text-gray-600">
+              <span>School Days:</span><span className="font-bold">{totalDays}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>Days Attended:</span><span className="font-bold text-emerald-700">{total.present + total.late}</span>
+            </div>
+            <div className="flex justify-between text-gray-600">
+              <span>Attendance Rate:</span>
+              <span className={`font-bold ${totalDays > 0 && ((total.present + total.late) / totalDays * 100) >= 85 ? 'text-emerald-700' : 'text-red-600'}`}>
+                {totalDays > 0 ? ((total.present + total.late) / totalDays * 100).toFixed(0) : 0}%
+              </span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
