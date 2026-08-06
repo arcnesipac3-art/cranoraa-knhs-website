@@ -123,7 +123,7 @@ export default function SF9Dashboard() {
             School Form 9 (SF9)
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-semibold">
-            Report Card / Permanent Record — {records.length} record{records.length !== 1 ? 's' : ''}
+            Learner Progress Report — {records.length} record{records.length !== 1 ? 's' : ''}
           </p>
         </div>
       </div>

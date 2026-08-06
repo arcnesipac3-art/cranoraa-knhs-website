@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   FileText, Search, Filter, Download, RefreshCw,
@@ -17,7 +16,6 @@ const STATUS_STYLES = {
 };
 
 export default function SF5Dashboard() {
-  const navigate = useNavigate();
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -26,7 +24,6 @@ export default function SF5Dashboard() {
   const [actionMenu, setActionMenu] = useState(null);
   const [deleteModal, setDeleteModal] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const debounceRef = useRef(null);
 
@@ -277,7 +274,7 @@ export default function SF5Dashboard() {
                                     onClick={() => handleStatusChange(record.id, 'archived')}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
                                   >
-                                    <ArchiveIcon className="w-4 h-4" /> Archive
+                                    <Archive className="w-4 h-4" /> Archive
                                   </button>
                                 )}
                                 <button
