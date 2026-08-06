@@ -4,6 +4,7 @@ import {
   Search, Printer, RefreshCw, X, FileText, Download, Loader2,
 } from 'lucide-react';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
 import { useSystemSettings } from '../hooks/useSystemSettings';
 import { Skeleton, Button } from '../components/ui';
@@ -124,11 +125,13 @@ function getSubjectGrade(termGrades, subjectName) {
 }
 
 export default function MasterSheet() {
+  const { user } = useAuth();
   const { academicYear } = useActiveAcademicYear();
   const printRef = useRef(null);
   const [searchParams] = useSearchParams();
+  const isTeacher = user?.role === 'staff';
 
-  const [classrooms, setClassrooms] = useState([]);
+  const [allClassrooms, setAllClassrooms] = useState([]);
   const [selectedClassroom, setSelectedClassroom] = useState(searchParams.get('classroom') || '');
   const [students, setStudents] = useState([]);
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -149,10 +152,43 @@ export default function MasterSheet() {
       api.get('/classrooms/').catch(() => ({ data: [] })),
       api.get('/users/?role=staff').catch(() => ({ data: [] })),
     ]).then(([c, t]) => {
-      setClassrooms(Array.isArray(c.data) ? c.data : c.data?.results || []);
+      setAllClassrooms(Array.isArray(c.data) ? c.data : c.data?.results || []);
       setTeachers(Array.isArray(t.data) ? t.data : t.data?.results || []);
     });
   }, []);
+
+  // For teachers: fetch their classroom-subject assignments to determine which classrooms/subjects they can see
+  const [myAssignments, setMyAssignments] = useState([]);
+  useEffect(() => {
+    if (!isTeacher) return;
+    api.get('/classroom-subjects/')
+      .then(r => {
+        const list = Array.isArray(r.data) ? r.data : r.data?.results || [];
+        setMyAssignments(list.filter(a => a.teacher === user?.id));
+      })
+      .catch(() => setMyAssignments([]);
+  }, [isTeacher, user?.id]);
+
+  // Filtered classrooms: teachers only see classrooms where they have assigned subjects
+  const classrooms = useMemo(() => {
+    if (!isTeacher) return allClassrooms;
+    const myClassroomIds = new Set(myAssignments.map(a => a.classroom));
+    return allClassrooms.filter(c => myClassroomIds.has(c.id));
+  }, [allClassrooms, isTeacher, myAssignments]);
+
+  // Auto-select first section for teachers
+  useEffect(() => {
+    if (isTeacher && classrooms.length > 0 && !selectedClassroom) {
+      setSelectedClassroom(String(classrooms[0].id));
+    }
+  }, [isTeacher, classrooms, selectedClassroom]);
+
+  // Filtered section subjects: teachers only see subjects they're assigned to in this section
+  const filteredSectionSubjects = useMemo(() => {
+    if (!isTeacher) return sectionSubjects;
+    const mySubjectIds = new Set(myAssignments.filter(a => a.classroom === parseInt(selectedClassroom)).map(a => a.subject));
+    return sectionSubjects.filter(s => mySubjectIds.has(s.subject));
+  }, [sectionSubjects, isTeacher, myAssignments, selectedClassroom]);
 
   useEffect(() => {
     if (!selectedClassroom) { setStudents([]); setSelectedStudentId(''); return; }
@@ -306,7 +342,10 @@ export default function MasterSheet() {
         if (!item.profile) continue;
         const p = item.profile?.profile || {};
         const studentName = `${item.profile.last_name || ''}, ${item.profile.first_name || ''} ${item.profile.middle_name || ''}`.trim();
-        const termGrades = computeTermGrades(item.grades);
+        const grades = isTeacher && myAssignments?.length
+          ? item.grades.filter(g => new Set(myAssignments.map(a => a.subject)).has(g.subject))
+          : item.grades;
+        const termGrades = computeTermGrades(grades);
         const matchedSubjects = getMatchedSubjects(termGrades);
         const attData = computeAttendance(item.attendance);
 
@@ -376,6 +415,7 @@ export default function MasterSheet() {
             <PrintContent
               profile={item.profile} classroom={classroomObj} teacher={teacherObj}
               grades={item.grades} attendance={item.attendance}
+              myAssignments={myAssignments} isTeacher={isTeacher}
             />
           </div>
         ))}
@@ -460,6 +500,8 @@ export default function MasterSheet() {
               classroom={classroomObj}
               teacher={teacherObj}
               index={idx}
+              myAssignments={myAssignments}
+              isTeacher={isTeacher}
             />
           ))}
         </div>
@@ -472,6 +514,8 @@ export default function MasterSheet() {
           classroom={classroomObj}
           teacher={teacherObj}
           index={0}
+          myAssignments={myAssignments}
+          isTeacher={isTeacher}
         />
         </div>
       )}
@@ -479,8 +523,14 @@ export default function MasterSheet() {
   );
 }
 
-function StudentSheet({ profile, grades, attendance, classroom, teacher, index }) {
-  const termGrades = useMemo(() => computeTermGrades(grades), [grades]);
+function StudentSheet({ profile, grades, attendance, classroom, teacher, index, myAssignments, isTeacher }) {
+  const filteredGrades = useMemo(() => {
+    if (!isTeacher || !myAssignments?.length) return grades;
+    const mySubjectIds = new Set(myAssignments.map(a => a.subject));
+    return grades.filter(g => mySubjectIds.has(g.subject));
+  }, [grades, isTeacher, myAssignments]);
+
+  const termGrades = useMemo(() => computeTermGrades(filteredGrades), [filteredGrades]);
   const termAverages = useMemo(() => computeTermAverages(termGrades), [termGrades]);
   const attData = useMemo(() => computeAttendance(attendance), [attendance]);
   const matchedSubjects = useMemo(() => getMatchedSubjects(termGrades), [termGrades]);
@@ -623,8 +673,11 @@ function GradesTable({ matchedSubjects, termGrades, termAverages }) {
   );
 }
 
-function PrintContent({ profile, classroom, teacher, grades, attendance }) {
-  const termGrades = computeTermGrades(grades);
+function PrintContent({ profile, classroom, teacher, grades, attendance, myAssignments, isTeacher }) {
+  const filteredGrades = isTeacher && myAssignments?.length
+    ? grades.filter(g => new Set(myAssignments.map(a => a.subject)).has(g.subject))
+    : grades;
+  const termGrades = computeTermGrades(filteredGrades);
   const termAverages = computeTermAverages(termGrades);
   const attData = computeAttendance(attendance);
   const matchedSubjects = getMatchedSubjects(termGrades);
