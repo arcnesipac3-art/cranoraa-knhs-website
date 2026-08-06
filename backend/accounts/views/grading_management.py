@@ -582,7 +582,7 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def admin_monitoring(self, request):
-        if request.user.role != 'admin':
+        if request.user.role not in ('admin', 'staff'):
             return Response({'error': 'Only admins can view monitoring'}, status=403)
 
         from ..models import SystemSetting
