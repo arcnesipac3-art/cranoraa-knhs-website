@@ -596,7 +596,7 @@ export default function ComplianceSubmissionsPage() {
                 {/* Decision */}
                 <div>
                   <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Decision</h4>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => setReviewForm(prev => ({ ...prev, status: 'reviewed' }))}
                       className={`py-3 rounded-xl text-sm font-bold border-2 transition-all ${

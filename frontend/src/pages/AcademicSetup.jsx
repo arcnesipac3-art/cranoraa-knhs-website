@@ -940,7 +940,7 @@ const AcademicSetup = () => {
                 <ModalField label="Year Name" required hint='Format: "YYYY-YYYY"'>
                   <input type="text" value={ayForm.name} onChange={e => setAyForm({ ...ayForm, name: e.target.value })} placeholder="2026-2027" className={modalInputCls} required />
                 </ModalField>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <ModalField label="Start Date" required>
                     <input type="date" value={ayForm.start_date} onChange={e => setAyForm({ ...ayForm, start_date: e.target.value })} className={modalInputCls} required />
                   </ModalField>
@@ -979,7 +979,7 @@ const AcademicSetup = () => {
                   <ModalField label="Display Name" required hint="Auto-filled from type; override if needed">
                     <input type="text" value={semesterForm.name} onChange={e => setSemesterForm({ ...semesterForm, name: e.target.value })} placeholder="1st Term" className={modalInputCls} required />
                   </ModalField>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <ModalField label="Start Date" hint="When this term begins">
                       <input type="date" value={semesterForm.start_date} onChange={e => setSemesterForm({ ...semesterForm, start_date: e.target.value })}
                         className={modalInputCls} />
@@ -1035,7 +1035,7 @@ const AcademicSetup = () => {
           <form onSubmit={handleCreateSubject}>
             <ModalBody>
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <ModalField label="Subject Code" required>
                     <input type="text" value={subjectForm.code} onChange={e => setSubjectForm({ ...subjectForm, code: e.target.value.toUpperCase() })} placeholder="MATH7" className={modalInputCls + ' font-mono'} required />
                   </ModalField>

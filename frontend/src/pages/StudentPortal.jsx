@@ -188,12 +188,12 @@ export default function StudentPortal() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 space-y-6"
+      className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6"
     >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Student Portal</h1>
-          <p className="text-sm text-gray-500">Welcome back, {user?.first_name || 'Student'}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Student Portal</h1>
+          <p className="text-xs sm:text-sm text-gray-500">Welcome back, {user?.first_name || 'Student'}</p>
         </div>
       </div>
 
@@ -218,7 +218,7 @@ export default function StudentPortal() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {featureCards.map((feature, index) => (
           <motion.div
             key={feature.title}
@@ -365,7 +365,7 @@ export default function StudentPortal() {
                   <span className="text-xl">&times;</span>
                 </button>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-3 sm:p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Certificate Type

@@ -98,7 +98,7 @@ function SF9Page() {
 
           <Card>
             <CardBody>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div><p className="font-bold text-slate-700 mb-1">Attendance</p><p>Present: {attendanceSummary.present || 0} | Absent: {attendanceSummary.absent || 0}</p><p>Rate: {attendanceSummary.attendance_rate || 0}%</p></div>
                 <div><p className="font-bold text-slate-700 mb-1">Remarks</p><p>Adviser: {remarks.adviser_name || ''}</p><p>Academic Year: {data?.academic_year || ''}</p></div>
               </div>

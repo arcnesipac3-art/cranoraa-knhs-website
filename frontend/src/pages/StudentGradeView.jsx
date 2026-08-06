@@ -549,7 +549,7 @@ const StudentGradeView = () => {
           {loading ? (
             <Skeleton.Table />
             ) : subjectEntries.length === 0 ? (
-              <div className="p-6 sm:p-8">
+              <div className="p-3 sm:p-6 sm:p-8">
                 <EmptyState
                 title="No Grades Available"
                 description={filterQuarter || filterSubject ? "Try adjusting your filters" : "Grades will appear here once they are entered by your teachers"}

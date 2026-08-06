@@ -199,7 +199,7 @@ export const QuizManagementView = ({ classroom }) => {
       {loading ? (
         <div className="flex items-center justify-center h-32"><Skeleton.CardGrid count={4} cols={2} /></div>
       ) : filtered.length === 0 ? (
-        <Card><CardBody className="p-6">
+        <Card><CardBody className="p-3 sm:p-6">
           <EmptyState title="No Quizzes" description="Create your first quiz for this class" icon={<HelpCircle className="w-6 h-6" />} />
         </CardBody></Card>
       ) : (
@@ -646,7 +646,7 @@ export const StudentQuizzesView = ({ classroom }) => {
 
           {/* Empty State */}
           {available.length === 0 && past.length === 0 && (
-            <Card><CardBody className="p-6">
+            <Card><CardBody className="p-3 sm:p-6">
               <EmptyState title="No Quizzes Yet" description="Your teacher hasn't posted any quizzes for this class" icon={<HelpCircle className="w-6 h-6" />} />
             </CardBody></Card>
           )}
@@ -764,7 +764,7 @@ export const LessonPlansView = ({ classroom }) => {
       {loading ? (
         <div className="flex items-center justify-center h-32"><Skeleton.CardGrid count={4} cols={2} /></div>
       ) : filtered.length === 0 ? (
-        <Card><CardBody className="p-6">
+        <Card><CardBody className="p-3 sm:p-6">
           <EmptyState title="No Lesson Plans" description="Create your first lesson plan" icon={<FileText className="w-6 h-6" />} />
         </CardBody></Card>
       ) : (

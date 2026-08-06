@@ -116,7 +116,7 @@ const Programs = () => {
                   </div>
                 </div>
                 {/* Content */}
-                <div className="p-6 flex-1 flex flex-col">
+                <div className="p-3 sm:p-6 flex-1 flex flex-col">
                   <p className="text-sm text-gray-600 leading-relaxed flex-1">{program.content}</p>
                   <div className="mt-5 pt-4 border-t border-violet-100 flex items-center justify-between">
                     <span className="text-xs font-bold text-violet-800 uppercase">DepEd Curriculum</span>

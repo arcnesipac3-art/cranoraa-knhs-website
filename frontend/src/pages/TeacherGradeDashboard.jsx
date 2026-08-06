@@ -258,7 +258,7 @@ const SubmitConfirmationModal = ({ isOpen, onClose, submission, summary, onConfi
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-lg p-4">
             <h4 className="font-semibold text-gray-900 mb-2">Submission Summary</h4>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div><span className="text-gray-500">Quarter:</span> <span className="font-medium">Q{submission.grading_period_quarter}</span></div>
               <div><span className="text-gray-500">Subject:</span> <span className="font-medium">{submission.subject_name}</span></div>
               <div><span className="text-gray-500">Section:</span> <span className="font-medium">{submission.classroom_name}</span></div>
@@ -269,7 +269,7 @@ const SubmitConfirmationModal = ({ isOpen, onClose, submission, summary, onConfi
           {summary && (
             <div className="bg-blue-50 rounded-lg p-4">
               <h4 className="font-semibold text-gray-900 mb-2">Grade Statistics</h4>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                 <div><span className="text-gray-500">Average Grade:</span> <span className="font-medium">{summary.average_grade?.toFixed(1) || 'N/A'}</span></div>
                 <div><span className="text-gray-500">Missing Grades:</span> <span className={`font-medium ${summary.missing_grades > 0 ? 'text-red-600' : 'text-green-600'}`}>{summary.missing_grades}</span></div>
                 <div><span className="text-gray-500">Highest:</span> <span className="font-medium">{summary.highest_grade?.toFixed(1) || 'N/A'}</span></div>

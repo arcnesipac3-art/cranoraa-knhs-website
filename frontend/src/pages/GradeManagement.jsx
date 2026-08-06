@@ -370,7 +370,7 @@ const GradeManagement = () => {
                 </div>
                 {/* Stats row */}
                 <div className="p-4 space-y-4">
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3">
                     {[1, 2, 3].map(j => (
                       <div key={j} className="text-center space-y-1">
                         <Skeleton className="h-6 w-8 rounded mx-auto" />
@@ -509,7 +509,7 @@ const GradeManagement = () => {
 
                   <CardBody>
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
                       <div className="text-center">
                         <div className="text-lg font-extrabold text-violet-600">
                           {classroom.subjectCount}

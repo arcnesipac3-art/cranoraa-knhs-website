@@ -387,7 +387,7 @@ export default function ParentManagement() {
         </ModalHeader>
         <form onSubmit={handleCreate}>
           <ModalBody className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <ModalField label="First Name" required>
                 <input required value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
                   className={modalInputCls} />

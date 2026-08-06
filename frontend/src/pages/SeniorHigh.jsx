@@ -73,7 +73,7 @@ const SeniorHigh = () => {
             {tracks.map((track, i) => (
               <div key={i} className="bg-white rounded-2xl border-2 border-violet-200 overflow-hidden hover:shadow-xl transition-all">
                 <div className={`h-2 bg-gradient-to-r ${track.color}`} />
-                <div className="p-6">
+                <div className="p-3 sm:p-6">
                   <div className="flex flex-col md:flex-row gap-6">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">

@@ -209,7 +209,7 @@ const StudentQuizzes = () => {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-2 gap-1.5 sm:gap-2 text-xs">
                       <div className="bg-slate-50 rounded-lg p-2 text-center">
                         <p className="text-slate-500">Questions</p>
                         <p className="font-bold text-slate-900">{quiz.question_count ?? 0}</p>

@@ -224,7 +224,7 @@ const AcademicYearsTab = () => {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <form onSubmit={handleSave} className="p-6 space-y-4">
+            <form onSubmit={handleSave} className="p-3 sm:p-6 space-y-4">
               <Field label="Year Name *" hint='e.g. "2026-2027"'>
                 <Input value={form.name} onChange={e => setForm(p => ({...p, name: e.target.value}))} placeholder="2026-2027" required />
               </Field>

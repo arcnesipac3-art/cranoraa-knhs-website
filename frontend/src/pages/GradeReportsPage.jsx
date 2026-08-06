@@ -207,7 +207,7 @@ export default function GradeReportsPage() {
                 <EmptyState title="No Data" description="No data available for this report." />
               ) : selectedReport.id === 'completion' ? (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 text-center">
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <p className="text-3xl font-bold text-gray-900">{reportData.total}</p>
                       <p className="text-sm text-gray-500">Total Teachers</p>

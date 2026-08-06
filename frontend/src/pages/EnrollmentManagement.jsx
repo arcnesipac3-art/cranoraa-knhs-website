@@ -645,7 +645,7 @@ const EnrollmentManagement = () => {
 
               <div>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Parents / Guardian</p>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <div className="bg-emerald-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-emerald-600 uppercase">Father</p><p className="font-bold text-slate-800">{selected.father_name || 'N/A'}</p><p className="text-xs text-slate-500">{selected.father_contact || ''}</p>{selected.father_email && <p className="text-[10px] text-slate-400">{selected.father_email}</p>}</div>
                   <div className="bg-rose-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-rose-600 uppercase">Mother</p><p className="font-bold text-slate-800">{selected.mother_name || 'N/A'}</p><p className="text-xs text-slate-500">{selected.mother_contact || ''}</p>{selected.mother_email && <p className="text-[10px] text-slate-400">{selected.mother_email}</p>}</div>
                   {selected.guardian_name && <div className="bg-amber-50 p-3 rounded-xl col-span-2"><p className="text-[9px] font-bold text-amber-600 uppercase">Guardian</p><p className="font-bold text-slate-800">{selected.guardian_name} ({selected.guardian_relationship})</p><p className="text-xs text-slate-500">{selected.guardian_contact || ''}</p></div>}

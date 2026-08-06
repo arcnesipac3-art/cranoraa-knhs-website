@@ -93,7 +93,7 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onUnlock, onExtend
         {period.status === 'locked' && '🔐 Locked — all grades are finalized.'}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="text-sm">
           <span className="text-gray-500">Start:</span>
           <span className="ml-2 font-medium text-gray-700">{period.start_date}</span>
@@ -103,7 +103,7 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onUnlock, onExtend
           <span className="ml-2 font-medium text-gray-700">{period.submission_deadline}</span>
         </div>
         {period.grace_period_days > 0 && (
-          <div className="text-sm col-span-2">
+          <div className="text-sm sm:col-span-2">
             <span className="text-gray-500">Grace Period:</span>
             <span className="ml-2 font-medium text-gray-700">+{period.grace_period_days} days (effective: {period.effective_deadline})</span>
           </div>

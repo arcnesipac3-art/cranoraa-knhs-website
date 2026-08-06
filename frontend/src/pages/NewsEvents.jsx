@@ -86,7 +86,7 @@ const NewsEvents = () => {
                     announcement.category === 'holiday' ? 'bg-yellow-500' :
                     'bg-slate-500'
                   }`} />
-                  <div className="p-6">
+                  <div className="p-3 sm:p-6">
                     <div className="flex items-start justify-between mb-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${
                         announcement.category === 'emergency' ? 'bg-red-100 text-red-700' :

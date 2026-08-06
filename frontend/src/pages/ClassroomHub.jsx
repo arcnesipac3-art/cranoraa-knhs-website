@@ -629,7 +629,7 @@ const ClassroomHub = () => {
               <textarea value={uploadForm.description} onChange={e => setUploadForm({ ...uploadForm, description: e.target.value })}
                 className={modalInputCls + ' text-xs'} rows={2} placeholder="Brief description (optional)" />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Type *</label>
                 <select value={uploadForm.material_type} onChange={e => setUploadForm({ ...uploadForm, material_type: e.target.value })}
@@ -648,7 +648,7 @@ const ClassroomHub = () => {
                   className="w-full text-[10px] text-slate-700 file:mr-1 file:py-1 file:px-2 file:rounded file:border-0 file:text-[9px] file:font-semibold file:bg-violet-100 file:text-violet-700 hover:file:bg-violet-200" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
                 <label className="block text-[9px] font-semibold text-slate-700 mb-0.5">Term</label>
                 <select value={uploadForm.quarter} onChange={e => setUploadForm({ ...uploadForm, quarter: e.target.value })}
@@ -1191,7 +1191,7 @@ const StreamTab = ({ classroom, isTeacher, announcements, classroomSubjects, ann
 
     {filteredAnnouncements.length === 0 ? (
       <Card>
-        <CardBody className="p-6 text-center">
+        <CardBody className="p-3 sm:p-6 text-center">
           <Bell className="w-8 h-8 text-slate-300 mx-auto mb-2" />
           <p className="text-xs text-slate-600">{announcementSearch ? 'No matching announcements' : 'No announcements yet'}</p>
         </CardBody>
@@ -2326,7 +2326,7 @@ const GradeInputView = ({ classroom, onBack }) => {
             )}
           </div>
         </CardHeader>
-        <CardBody className="p-6">
+        <CardBody className="p-3 sm:p-6">
           {/* Controls */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div>

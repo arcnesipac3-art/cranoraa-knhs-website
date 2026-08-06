@@ -237,7 +237,7 @@ const HomeDepEd = () => {
       {/* ═══════════════════════════════════════════════════════════ */}
       <section className="bg-slate-50 border-b-2 border-violet-200 py-8">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 text-center">
             {[
               { val: '1,200+', label: 'Enrolled Students', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' },
               { val: '5,000+', label: 'Total Graduates',   icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
@@ -340,7 +340,7 @@ const HomeDepEd = () => {
               <div>
                 <div className="bg-violet-900 text-white px-4 py-2 font-black uppercase text-sm tracking-wider">FEATURED PROGRAMS</div>
                 <div className="bg-white border-2 border-violet-200 p-4">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
                       { code: 'Academic', img: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=300&q=60' },
                       { code: 'TechPro',  img: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=300&q=60' },

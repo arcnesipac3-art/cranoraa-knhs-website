@@ -221,7 +221,7 @@ export default function GradeAnalytics() {
           <>
             {[...Array(4)].map((_, i) => (
               <Card key={i}>
-                <CardBody className="p-6">
+                <CardBody className="p-3 sm:p-6">
                   <Skeleton className="h-20 w-full" />
                 </CardBody>
               </Card>
@@ -428,7 +428,7 @@ export default function GradeAnalytics() {
           </CardHeader>
           <CardBody className="p-0">
             {loading ? (
-              <div className="p-6">
+              <div className="p-3 sm:p-6">
                 <Skeleton className="h-48 w-full" />
               </div>
             ) : atRiskStudents.length === 0 ? (

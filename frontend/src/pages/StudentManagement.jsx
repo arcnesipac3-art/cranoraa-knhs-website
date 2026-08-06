@@ -1410,7 +1410,7 @@ setSelectedIds([]);
               <input required value={newStudent.username} onChange={e => setNewStudent({...newStudent, username: e.target.value})}
                 placeholder="12-digit LRN" className={modalInputCls} />
             </ModalField>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <ModalField label="First Name" required>
                 <input required value={newStudent.first_name} onChange={e => setNewStudent({...newStudent, first_name: e.target.value})}
                   className={modalInputCls} />
@@ -1424,7 +1424,7 @@ setSelectedIds([]);
               <input type="email" value={newStudent.email} onChange={e => setNewStudent({...newStudent, email: e.target.value})}
                 className={modalInputCls} />
             </ModalField>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <ModalField label="Grade Level" required>
                 <select required value={newStudent.grade_level} onChange={e => setNewStudent({...newStudent, grade_level: e.target.value})}
                   className={modalSelectCls}>

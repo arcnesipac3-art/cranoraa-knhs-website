@@ -114,8 +114,8 @@ const ImageCropModal = ({ isOpen, onClose, onCrop, imageSrc }) => {
           <p className="text-xs text-slate-500 mt-0.5">Drag to reposition, use slider to zoom</p>
         </div>
 
-        <div className="p-6">
-          <div ref={containerRef} className="relative mx-auto w-48 h-48 rounded-full overflow-hidden bg-slate-100 border-4 border-white shadow-lg cursor-grab active:cursor-grabbing select-none"
+        <div className="p-3 sm:p-6">
+          <div ref={containerRef} className="relative mx-auto w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden bg-slate-100 border-4 border-white shadow-lg cursor-grab active:cursor-grabbing select-none"
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -207,11 +207,11 @@ const RolesPermissionsTab = () => {
   return (
     <div className="space-y-6">
       <SectionCard title="Role Overview" subtitle="User distribution by role" icon="shield">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           {Object.entries(roleConfig).map(([key, config]) => (
-            <div key={key} className={`${config.color} rounded-lg p-3 text-center`}>
-              <p className="text-2xl font-extrabold">{roleCounts[key] || 0}</p>
-              <p className="text-xs font-bold mt-1">{config.label}</p>
+            <div key={key} className={`${config.color} rounded-lg p-2 sm:p-3 text-center`}>
+              <p className="text-xl sm:text-2xl font-extrabold">{roleCounts[key] || 0}</p>
+              <p className="text-[10px] sm:text-xs font-bold mt-1">{config.label}</p>
             </div>
           ))}
         </div>
@@ -630,7 +630,7 @@ const SchoolInfoTab = () => {
       </SectionCard>
 
       <SectionCard title="Brand Colors" subtitle="Used in portal UI accents" icon="palette">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Field label="Primary Color">
             <div className="flex items-center gap-3">
               <input type="color" value={form.primary_color} onChange={e => setForm(p => ({...p, primary_color: e.target.value}))}
@@ -1223,7 +1223,7 @@ const SecurityTab = () => {
 // ── Settings Dashboard ──────────────────────────────────────────────────────
 
 const SettingsDashboard = ({ activeYear, totalUsers }) => (
-  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
     <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">School Profile</p>
       <div className="flex items-center gap-2">

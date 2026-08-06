@@ -546,7 +546,7 @@ function StudentSheet({ profile, grades, attendance, classroom, teacher, index, 
           <p className="text-[11px] font-bold text-gray-700">Department of Education</p>
           <p className="text-[10px] text-gray-500">Region X - Iligan City · Division of Lanao del Norte</p>
         </div>
-        <div className="grid grid-cols-3 gap-x-6 gap-y-1 text-[11px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1 text-[11px]">
           <div><span className="text-gray-500">Name:</span> <span className="font-semibold">{profile ? `${profile.last_name || ''}, ${profile.first_name || ''} ${profile.middle_name || ''}` : '-'}</span></div>
           <div><span className="text-gray-500">LRN:</span> <span className="font-mono">{p.lrn || '-'}</span></div>
           <div><span className="text-gray-500">Sex:</span> <span className="font-semibold">{p.sex ? p.sex.charAt(0).toUpperCase() + p.sex.slice(1) : '-'}</span></div>
@@ -686,7 +686,7 @@ function PrintContent({ profile, classroom, teacher, grades, attendance, myAssig
   return (
     <div className="space-y-3">
       <div className="border border-gray-400 p-3 text-[10px]">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
           <div><b>Name:</b> {profile ? `${profile.last_name || ''}, ${profile.first_name || ''}` : '-'}</div>
           <div><b>LRN:</b> {p.lrn || '-'}</div>
           <div><b>Sex:</b> {p.sex || '-'}</div>

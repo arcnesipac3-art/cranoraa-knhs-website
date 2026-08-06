@@ -341,7 +341,7 @@ function DashboardOverview() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">School Overview</h2>
         </div>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-1.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5">
           <StatCard
             label="Students" value={stats?.total_students} sub="Enrolled"
             icon={<Users className="w-5 h-5 md:w-6 md:h-6" />}

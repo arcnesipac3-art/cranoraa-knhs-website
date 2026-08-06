@@ -470,18 +470,18 @@ export default function ClassesHub() {
                   <label htmlFor="section-name" className="block text-xs font-bold text-slate-700 mb-1">Section Name <span className="text-red-500" aria-hidden="true">*</span></label>
                   <input id="section-name" type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} placeholder="e.g. Grade 7 - St. Michael" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required aria-required="true" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Grade Level <span className="text-red-500">*</span></label>
                     <select value={formData.grade_level} onChange={e => setFormData({ ...formData, grade_level: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required>
-                      <option value="">� Select �</option>
+                      <option value="">-- Select --</option>
                       {GRADE_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">Adviser</label>
                     <select value={formData.teacher} onChange={e => setFormData({ ...formData, teacher: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
-                      <option value="">� None �</option>
+                      <option value="">-- None --</option>
                       {teachers.map(t => <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>)}
                     </select>
                   </div>

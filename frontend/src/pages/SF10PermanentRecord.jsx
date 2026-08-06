@@ -81,7 +81,7 @@ function SF10Page() {
           <Card className="mb-6">
             <CardHeader><h3 className="font-bold text-slate-900">Student Information</h3></CardHeader>
             <CardBody>
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <p><span className="font-bold text-slate-700">Name:</span> {studentInfo.first_name} {studentInfo.last_name}</p>
                 <p><span className="font-bold text-slate-700">LRN:</span> {studentInfo.lrn}</p>
                 <p><span className="font-bold text-slate-700">Age:</span> {studentInfo.age || '-'}</p>

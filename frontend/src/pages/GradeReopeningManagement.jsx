@@ -36,7 +36,7 @@ const RequestCard = ({ request, onApprove, onReject }) => {
           </span>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-sm mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-3">
           <div><span className="text-gray-500">Quarter:</span> <span className="font-medium">Q{detail?.quarter}</span></div>
           <div><span className="text-gray-500">Status:</span> <span className="font-medium">{detail?.status}</span></div>
         </div>

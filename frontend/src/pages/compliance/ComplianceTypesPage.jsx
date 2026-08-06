@@ -373,7 +373,7 @@ export default function ComplianceTypesPage() {
               />
             </ModalField>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <ModalField label="Frequency" required>
                 <select
                   value={form.frequency}

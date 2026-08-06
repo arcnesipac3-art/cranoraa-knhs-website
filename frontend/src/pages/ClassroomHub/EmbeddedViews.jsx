@@ -446,7 +446,7 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
             <CardTitle>Grade Management — {classroom.name}</CardTitle>
           </div>
         </CardHeader>
-        <CardBody className="p-6">
+        <CardBody className="p-3 sm:p-6">
           {/* Controls */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
@@ -1827,7 +1827,7 @@ export const AnalyticsView = ({ classroom, onBack }) => {
         <CardHeader divider>
           <CardTitle>Analytics - {classroom.name}</CardTitle>
         </CardHeader>
-        <CardBody className="p-6">
+        <CardBody className="p-3 sm:p-6">
           <div className="mb-6">
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Subject
@@ -1863,7 +1863,7 @@ export const AnalyticsView = ({ classroom, onBack }) => {
             />
           ) : (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                 <div className="bg-violet-50 rounded-lg p-4 text-center">
                   <div className="text-3xl font-bold text-violet-600">{analytics.average}</div>
                   <div className="text-xs text-violet-700 uppercase font-semibold mt-1">Average</div>

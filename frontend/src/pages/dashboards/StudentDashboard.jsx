@@ -155,7 +155,7 @@ const StudentDashboard = () => {
       {/* Role manual */}
       <Skeleton className="h-12 w-full rounded-lg" />
       {/* Quick access tiles */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {[1,2,3,4,5,6].map(i => <Skeleton.QuickTile key={i} />)}
       </div>
       {/* Row 1: schedule (6) | attendance (3) | grades (3) */}
@@ -171,7 +171,7 @@ const StudentDashboard = () => {
           <div key={col} className="lg:col-span-3 rounded-lg border border-slate-200 bg-white p-4 space-y-3">
             <Skeleton className="h-4 w-24 rounded" />
             <Skeleton className="h-16 w-full rounded-md" />
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[1,2,3].map(i => <Skeleton className="h-14 rounded-md" key={i} />)}
             </div>
           </div>
@@ -438,7 +438,7 @@ const StudentDashboard = () => {
                   <div className="p-2 bg-slate-50 border border-slate-200 rounded-md mb-3">
                     <p className="text-xs font-semibold text-slate-700">{todayAttLabel}</p>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 mt-auto">
+                  <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-auto">
                     <div className="text-center p-2 bg-emerald-50 border border-emerald-200 rounded-md">
                       <p className="text-lg font-extrabold text-emerald-600">{presentCount}</p>
                       <p className="text-xs font-bold text-emerald-700 uppercase">Present</p>
