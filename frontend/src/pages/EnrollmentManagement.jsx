@@ -811,59 +811,122 @@ const EnrollmentManagement = () => {
       )}
 
       {showEnrollModal && enrollApp && (
-        <div className="fixed inset-0 z-[10010] bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
+        <div className="fixed inset-0 z-[10010] bg-black/50 flex items-center justify-center p-4" onClick={() => { setShowEnrollModal(false); setEnrollApp(null); setEnrollClassroom(''); setEnrollParentEmail(''); }}>
+          <div className="bg-white w-full max-w-md border border-slate-200 shadow-2xl rounded-xl flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
+            {/* ── Header ── */}
+            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-4 flex-shrink-0 rounded-t-xl">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-9 h-9 rounded-full bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
                   </svg>
                 </div>
                 <div>
                   <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Enroll Student</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">{enrollApp?.first_name} {enrollApp?.last_name}</p>
+                  <p className="text-violet-200 text-[11px] mt-1 font-medium">
+                    {enrollApp?.first_name} {enrollApp?.last_name}
+                    {enrollApp?.grade_level && <span className="text-violet-300 ml-1.5">· Grade {enrollApp.grade_level}</span>}
+                  </p>
                 </div>
               </div>
               <button type="button" onClick={() => { setShowEnrollModal(false); setEnrollApp(null); setEnrollClassroom(''); setEnrollParentEmail(''); }}
-                className="ml-4 w-7 h-7 flex items-center justify-center rounded text-white/60 hover:bg-white/20 hover:text-white transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
+                className="ml-4 w-8 h-8 flex items-center justify-center rounded-lg text-white/50 hover:bg-white/15 hover:text-white transition-all" aria-label="Close">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                 </svg>
               </button>
             </div>
-            <div className="px-6 py-5 overflow-y-auto flex-1 space-y-4">
-              <div>
-                <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Assign Section</label>
-                <select value={enrollClassroom} onChange={e => setEnrollClassroom(e.target.value)}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500">
-                  <option value="">Auto-assign</option>
-                  {classrooms.filter(c => String(c.grade_level) === String(enrollApp.grade_level)).map(c => {
-                    const count = c.student_count || 0;
-                    const cap = c.capacity || 40;
-                    return <option key={c.id} value={c.id}>{c.name} ({count}/{cap})</option>;
-                  })}
-                </select>
+
+            {/* ── Body ── */}
+            <div className="px-6 pt-5 pb-2 flex-1 overflow-y-auto">
+              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                Select a section for Grade {enrollApp?.grade_level || '—'}
+              </label>
+
+              <div className="space-y-1.5">
+                {/* Auto-assign option */}
+                <label className={`flex items-center gap-3 px-3.5 py-3 rounded-lg border cursor-pointer transition-all ${
+                  enrollClassroom === '' ? 'bg-violet-50 border-violet-300 ring-1 ring-violet-200' : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                }`}>
+                  <input type="radio" name="enroll-classroom" value="" checked={enrollClassroom === ''}
+                    onChange={() => setEnrollClassroom('')}
+                    className="w-4 h-4 text-violet-600 border-slate-300 focus:ring-violet-500" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-bold text-slate-800">Auto-assign</span>
+                    <p className="text-[10px] text-slate-400 mt-0.5">System picks the best available section</p>
+                  </div>
+                </label>
+
+                {classrooms.filter(c => String(c.grade_level) === String(enrollApp.grade_level)).map(c => {
+                  const count = c.student_count ?? 0;
+                  const cap = c.capacity ?? 40;
+                  const isFull = count >= cap;
+                  const isSelected = String(enrollClassroom) === String(c.id);
+                  const pct = cap > 0 ? Math.round((count / cap) * 100) : 0;
+
+                  return (
+                    <label key={c.id} className={`flex items-center gap-3 px-3.5 py-3 rounded-lg border cursor-pointer transition-all ${
+                      isFull ? 'opacity-50 cursor-not-allowed bg-slate-50 border-slate-200' :
+                      isSelected ? 'bg-violet-50 border-violet-300 ring-1 ring-violet-200' :
+                      'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                    }`}>
+                      <input type="radio" name="enroll-classroom" value={c.id} checked={isSelected} disabled={isFull}
+                        onChange={() => setEnrollClassroom(c.id)}
+                        className="w-4 h-4 text-violet-600 border-slate-300 focus:ring-violet-500" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-slate-800">{c.name}</span>
+                          {isFull && (
+                            <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded border border-rose-200">Full</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden max-w-[120px]">
+                            <div className={`h-full rounded-full transition-all ${pct >= 100 ? 'bg-rose-400' : pct >= 80 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                              style={{ width: `${Math.min(pct, 100)}%` }} />
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-400 tabular-nums">{count}/{cap} enrolled</span>
+                        </div>
+                      </div>
+                    </label>
+                  );
+                })}
+
+                {classrooms.filter(c => String(c.grade_level) === String(enrollApp.grade_level)).length === 0 && (
+                  <div className="flex items-center gap-2.5 px-4 py-6 bg-amber-50 border border-amber-200 rounded-lg">
+                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <p className="text-xs font-semibold text-amber-700">No sections available for this grade level.</p>
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">Parent Email (optional)</label>
+
+              <div className="mt-4">
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Parent Email (optional)</label>
                 <input type="email" value={enrollParentEmail} onChange={e => setEnrollParentEmail(e.target.value)}
                   placeholder="parent@email.com"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
-                <p className="text-[10px] text-gray-400 mt-1">If a parent account exists with this email, it will be linked.</p>
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" />
+                <p className="text-[10px] text-slate-400 mt-1">If a parent account exists with this email, it will be linked.</p>
               </div>
-              <div className="bg-amber-50 border border-amber-200 rounded p-3 text-xs text-amber-700">
-                <strong>Note:</strong> A student account will be created automatically. Save the credentials shown after enrollment.
+
+              <div className="flex items-start gap-2.5 px-4 py-3 mt-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <svg className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-[11px] text-amber-700 font-medium">A student account will be created automatically. Save the credentials shown after enrollment.</p>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
+
+            {/* ── Footer ── */}
+            <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl flex-shrink-0">
               <button type="button"
                 onClick={() => { setShowEnrollModal(false); setEnrollApp(null); setEnrollClassroom(''); setEnrollParentEmail(''); }}
-                className="px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
+                className="px-6 py-2.5 bg-white text-slate-600 text-[11px] font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors">
                 Cancel
               </button>
               <button type="button" onClick={enrollStudent} disabled={enrolling}
-                className="px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm">
+                className="px-6 py-2.5 bg-[#5e2a84] text-white text-[11px] font-black uppercase tracking-widest hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {enrolling ? 'Enrolling...' : 'Enroll Now'}
               </button>
             </div>
