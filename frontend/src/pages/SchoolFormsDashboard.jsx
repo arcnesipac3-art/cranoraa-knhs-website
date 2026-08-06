@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileText, ClipboardList, GraduationCap, FolderOpen, BarChart3, ChevronRight, Star, ArrowRight } from 'lucide-react';
+import { FileText, ClipboardList, GraduationCap, FolderOpen, BarChart3, ChevronRight, Star } from 'lucide-react';
 import { useAcademicYear } from '../context/AcademicYearContext';
 
 const FORM_CARDS = [
@@ -16,7 +15,6 @@ const FORM_CARDS = [
     iconColor: 'text-violet-600',
     borderHover: 'hover:border-violet-300',
     path: '/school-forms/sf1',
-    roles: ['admin', 'staff'],
     features: ['Excel Export', 'PDF Export', 'Print', 'Male/Female Split'],
     status: 'ready',
   },
@@ -31,22 +29,6 @@ const FORM_CARDS = [
     iconColor: 'text-blue-600',
     borderHover: 'hover:border-blue-300',
     path: '/school-forms/sf2',
-    roles: ['admin', 'staff'],
-    features: ['PDF Export', 'Excel Export', 'Print'],
-    status: 'ready',
-  },
-  {
-    id: 'sf5',
-    title: 'SF5',
-    subtitle: 'Promotion Report',
-    description: 'Report on promotion, retention, and learning progress with summary statistics.',
-    icon: BarChart3,
-    gradient: 'from-amber-500 to-orange-600',
-    bgLight: 'bg-amber-50',
-    iconColor: 'text-amber-600',
-    borderHover: 'hover:border-amber-300',
-    path: '/school-forms/sf5',
-    roles: ['admin', 'staff'],
     features: ['PDF Export', 'Excel Export', 'Print'],
     status: 'ready',
   },
@@ -61,7 +43,6 @@ const FORM_CARDS = [
     iconColor: 'text-emerald-600',
     borderHover: 'hover:border-emerald-300',
     path: '/school-forms/sf9',
-    roles: ['admin', 'staff', 'student', 'parent'],
     features: ['PDF Export', 'Print'],
     status: 'ready',
   },
@@ -76,7 +57,6 @@ const FORM_CARDS = [
     iconColor: 'text-rose-600',
     borderHover: 'hover:border-rose-300',
     path: '/school-forms/sf10',
-    roles: ['admin', 'staff'],
     features: ['PDF Export', 'Excel Export', 'Print'],
     status: 'ready',
   },
@@ -84,17 +64,11 @@ const FORM_CARDS = [
 
 const STATUS_MAP = {
   ready: { label: 'Ready', dot: 'bg-emerald-400', text: 'text-emerald-700', bg: 'bg-emerald-50' },
-  draft: { label: 'Draft', dot: 'bg-amber-400', text: 'text-amber-700', bg: 'bg-amber-50' },
-  unavailable: { label: 'Unavailable', dot: 'bg-slate-400', text: 'text-slate-500', bg: 'bg-slate-50' },
 };
 
 export default function SchoolFormsDashboard() {
   const navigate = useNavigate();
   const { activeYear } = useAcademicYear();
-  const userRole = localStorage.getItem('userRole') || 'student';
-
-  const filteredCards = FORM_CARDS.filter(card => card.roles.includes(userRole));
-  const readyCount = filteredCards.filter(c => c.status === 'ready').length;
 
   return (
     <div className="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -128,12 +102,11 @@ export default function SchoolFormsDashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8"
+        className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8"
       >
         {[
-          { label: 'Available Forms', value: filteredCards.length, color: 'text-violet-600', bg: 'bg-violet-50' },
-          { label: 'Ready', value: readyCount, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Form Types', value: FORM_CARDS.length, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Available Forms', value: FORM_CARDS.length, color: 'text-violet-600', bg: 'bg-violet-50' },
+          { label: 'Ready', value: FORM_CARDS.length, color: 'text-emerald-600', bg: 'bg-emerald-50' },
           { label: 'Active Year', value: activeYear?.name || 'N/A', color: 'text-amber-600', bg: 'bg-amber-50', isText: true },
         ].map((stat, i) => (
           <div key={i} className={`${stat.bg} rounded-xl px-4 py-3 border border-white`}>
@@ -145,7 +118,7 @@ export default function SchoolFormsDashboard() {
 
       {/* ── Form Cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filteredCards.map((card, index) => {
+        {FORM_CARDS.map((card, index) => {
           const Icon = card.icon;
           const status = STATUS_MAP[card.status];
 
