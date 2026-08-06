@@ -460,6 +460,13 @@ const Enrollment = () => {
             </div>
             <h2 className="text-2xl font-black text-gray-900 mb-2 uppercase">Application Submitted</h2>
             <p className="text-sm text-gray-600 mb-6">Your enrollment application has been received. Please keep your enrollment number for tracking.</p>
+            {submitted?.upload_warnings && (
+              <div className="bg-amber-50 border border-amber-300 p-4 mb-6 rounded-sm text-left">
+                <p className="text-xs font-black text-amber-800 uppercase mb-1">Document Upload Issue</p>
+                <p className="text-sm text-amber-700">{submitted.upload_warnings}</p>
+                <p className="text-xs text-amber-600 mt-2">Please contact the registrar or resubmit with valid documents.</p>
+              </div>
+            )}
             <div className="bg-slate-50 border-2 border-violet-200 p-6 mb-6 rounded-sm">
               <p className="text-[10px] font-black text-violet-800 uppercase tracking-widest mb-1">Enrollment Reference Number</p>
               <p className="text-3xl font-black text-slate-900 tracking-wider font-mono">{submitted.enrollment_number}</p>

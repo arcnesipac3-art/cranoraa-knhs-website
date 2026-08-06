@@ -218,12 +218,19 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                         logger.info(f"  Upload OK for {field_name}: {url[:80]}...")
 
             if upload_errors:
-                # Log the errors but do NOT abort — save the application with
-                # whatever docs uploaded successfully. Admin can request missing
-                # docs later via the "Request Docs" workflow.
                 logger.warning(
-                    f"Partial upload errors on enrollment submission: {upload_errors}. "
+                    f"Upload errors on enrollment submission: {upload_errors}. "
                     f"Application will be saved with {len(uploaded_urls)} doc(s)."
+                )
+
+            # If NO files uploaded at all, reject — student must re-upload
+            if len(uploaded_urls) == 0 and len(request.FILES) > 0:
+                return Response(
+                    {
+                        'error': 'Document upload failed. Please try again.',
+                        'upload_errors': upload_errors,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             data = request.data.copy()
@@ -289,6 +296,12 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             # Inject uploaded URLs into the response so frontend immediately has them
             for field_name, url in uploaded_urls.items():
                 response_data[field_name] = url
+            if upload_errors:
+                response_data['upload_errors'] = upload_errors
+                response_data['upload_warnings'] = (
+                    f'{len(uploaded_urls)} of {len(request.FILES)} documents uploaded successfully. '
+                    f'Failed: {", ".join(upload_errors)}'
+                )
             return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
         except Exception as e:
             import traceback
