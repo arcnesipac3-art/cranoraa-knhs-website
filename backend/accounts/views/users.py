@@ -178,6 +178,10 @@ class UserViewSet(viewsets.ModelViewSet):
             if role == 'parent':
                 return queryset.filter(role='parent', is_active=True)
 
+            # For students/parents viewing teachers (directory), return all active staff
+            if role is None and user.role in ['student', 'parent']:
+                return queryset.filter(role='staff', is_active=True)
+
             if user.role == 'student':
                 return queryset.filter(id=user.id)
 

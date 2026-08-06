@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParallelFetch } from '../hooks/useFetch';
+import { useCurrentUser } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
@@ -11,10 +12,11 @@ import ParentManagement from './ParentManagement';
 
 // ─── Tab shell ────────────────────────────────────────────────────────────────
 
-const TABS = [
+const ALL_TABS = [
   {
     id: 'teachers',
     label: 'Teachers',
+    roles: ['admin', 'staff', 'student', 'parent'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -25,6 +27,7 @@ const TABS = [
   {
     id: 'students',
     label: 'Students',
+    roles: ['admin', 'staff', 'student', 'parent'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -35,6 +38,7 @@ const TABS = [
   {
     id: 'parents',
     label: 'Parents',
+    roles: ['admin'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -45,19 +49,30 @@ const TABS = [
 ];
 
 export default function PeopleHub() {
+  const { user } = useCurrentUser();
   const [activeTab, setActiveTab] = useState('teachers');
+
+  const tabs = useMemo(() =>
+    ALL_TABS.filter(t => t.roles.includes(user?.role)),
+    [user?.role]
+  );
+
+  // Auto-switch if current tab is hidden
+  if (!tabs.find(t => t.id === activeTab) && tabs.length > 0) {
+    setActiveTab(tabs[0].id);
+  }
 
   return (
     <div className="page-bottom-safe bg-slate-50 min-h-screen">
 
       {/* ── Tab bar ── */}
-      <div className="bg-white border-b border-slate-200 px-4 md:px-6 py-3">
-        <div className="flex items-center gap-1">
-          {TABS.map(tab => (
+      <div className="bg-white border-b border-slate-200 px-3 sm:px-4 md:px-6 py-3">
+        <div className="flex items-center gap-1 overflow-x-auto">
+          {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+              className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-violet-600 text-white'
                   : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'

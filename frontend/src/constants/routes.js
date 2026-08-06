@@ -123,7 +123,7 @@ export const protectedRoutes = [
   { path: 'parent-dashboard', element: ParentDashboard, roles: [Role.PARENT] },
 
   // New Hub routes
-  { path: 'people', element: PeopleHub, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'people', element: PeopleHub, roles: Role.ALL },
   { path: 'classes', element: ClassesHub, roles: [Role.ADMIN] },
   { path: 'enrollment', element: EnrollmentHub, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'subjects', element: SubjectsHub, roles: [Role.ADMIN] },

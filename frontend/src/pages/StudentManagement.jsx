@@ -1062,7 +1062,7 @@ setSelectedIds([]);
                   <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                   View Profile
                 </button>
-                {(user?.role === 'admin' || user?.role === 'staff') && (
+                {user?.role === 'admin' && (
                   <button
                     onClick={() => { handleAssignSection(student.id, student.profile?.classroom_name, student.profile?.grade_level); setOpenMenuId(null); }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left"
@@ -1071,14 +1071,16 @@ setSelectedIds([]);
                     Set Section
                   </button>
                 )}
-                <button
-                  onClick={() => { handleResetPassword(student.id); setOpenMenuId(null); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left"
-                >
-                  <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
-                  Reset Password
-                </button>
-                {(user?.role === 'admin' || user?.role === 'staff') && (
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => { handleResetPassword(student.id); setOpenMenuId(null); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left"
+                  >
+                    <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                    Reset Password
+                  </button>
+                )}
+                {user?.role === 'admin' && (
                   <button
                     onClick={() => { handleDelete(student.id); setOpenMenuId(null); }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 text-left"
@@ -1120,6 +1122,7 @@ setSelectedIds([]);
 
       <div className="px-3 sm:px-4 md:px-6 space-y-3 md:space-y-4">
       {/* Action buttons */}
+      {user?.role === 'admin' && (
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 md:gap-4">
         <div className="flex-1"></div>
         <div className="flex flex-wrap items-center justify-center gap-1.5">
@@ -1229,6 +1232,7 @@ setSelectedIds([]);
           </div>
         </div>
       </div>
+      )}
 
       {/* Search Bar */}
       <div className="bg-white p-2 sm:p-2.5 md:p-3 border border-slate-200">

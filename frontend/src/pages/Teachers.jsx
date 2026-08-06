@@ -937,16 +937,20 @@ const Teachers = () => {
             </select>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
-            <button onClick={() => { setNewTeacher({ email: '', first_name: '', last_name: '', title: '', sex: '', staff_title: 'teacher' }); setShowAddModal(true); }}
-              className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Add Staff
-            </button>
+            {user?.role === 'admin' && (
+              <>
+                <button onClick={() => { setNewTeacher({ email: '', first_name: '', last_name: '', title: '', sex: '', staff_title: 'teacher' }); setShowAddModal(true); }}
+                  className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  Add Staff
+                </button>
 
-            <button onClick={() => setShowImportModal(true)} className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-bold py-2 px-3 rounded-lg text-sm hover:bg-slate-50 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-              Import
-            </button>
+                <button onClick={() => setShowImportModal(true)} className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-bold py-2 px-3 rounded-lg text-sm hover:bg-slate-50 transition-colors">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                  Import
+                </button>
+              </>
+            )}
 
             <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
               <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-3 py-2 text-emerald-600 hover:bg-emerald-50 transition-colors border-r border-slate-200" title="Export as Excel spreadsheet">
@@ -985,7 +989,7 @@ const Teachers = () => {
         ) : (
           <>
             {/* Bulk action bar */}
-            {selectedIds.length > 0 && (
+            {user?.role === 'admin' && selectedIds.length > 0 && (
               <div className="bg-violet-50 border border-violet-200 rounded-lg px-4 py-2.5 flex items-center gap-3 animate-in slide-in-from-top-2 fade-in duration-200">
                 <span className="text-xs font-bold text-violet-700">{selectedIds.length} selected</span>
                 <button onClick={() => handleBulkStatus('active')}
@@ -1008,6 +1012,7 @@ const Teachers = () => {
             )}
 
             {/* Select all row */}
+            {user?.role === 'admin' && (
             <div className="flex items-center gap-2 px-1">
               <button
                 onClick={() => {
@@ -1035,6 +1040,7 @@ const Teachers = () => {
                 Select all
               </button>
             </div>
+            )}
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {filteredTeachers.map((teacher) => {
@@ -1042,6 +1048,7 @@ const Teachers = () => {
               return (
               <div key={teacher.id} className={`bg-white border rounded-xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 group relative flex flex-col ${isSelected ? 'border-violet-400 ring-1 ring-violet-200' : 'border-slate-200'}`}>
                 {/* Select checkbox */}
+                {user?.role === 'admin' && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1057,6 +1064,7 @@ const Teachers = () => {
                     )}
                   </div>
                 </button>
+                )}
 
                 {/* ── Portrait photo ── */}
                 <TeacherAvatar teacher={teacher} size="card" />
@@ -1142,6 +1150,8 @@ const Teachers = () => {
                               View Profile
                             </button>
 
+                            {user?.role === 'admin' && (
+                            <>
                             <button onClick={() => { setActiveMenu(null); setEditingTeacher({ ...teacher, profile: { title: teacher.profile?.title || '', phone_number: teacher.profile?.phone_number || '', sex: teacher.profile?.sex || '' } }); setShowEditModal(true); }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 text-left">
                               <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -1178,6 +1188,8 @@ const Teachers = () => {
                                 Delete
                               </button>
                             </div>
+                            </>
+                            )}
                           </div>
                         </>
                       )}
