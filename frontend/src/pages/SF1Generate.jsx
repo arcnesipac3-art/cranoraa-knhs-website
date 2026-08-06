@@ -98,7 +98,7 @@ export default function SF1Generate() {
 
     setLoading(true);
     try {
-      const res = await api.post('/sf1/generate/', {
+      const res = await api.post('/school-forms/sf1/generate/', {
         academic_year: form.academic_year,
         grade_level: form.grade_level,
         // Send classroom id for reliable section resolution
@@ -106,7 +106,7 @@ export default function SF1Generate() {
         classroom_id: form.classroom_id,
       });
       toast.success('SF1 generated successfully!');
-      navigate(`/sf1/${res.data.id}`);
+      navigate(`/school-forms/sf1/${res.data.id}`);
     } catch (err) {
       const msg = err.response?.data;
       if (typeof msg === 'object' && msg !== null) {
@@ -136,7 +136,7 @@ export default function SF1Generate() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <button
-          onClick={() => navigate('/sf1')}
+          onClick={() => navigate('/school-forms/sf1')}
           className="p-2 rounded-lg hover:bg-slate-200 transition-colors"
         >
           <ArrowLeft className="w-5 h-5 text-slate-600" />
@@ -261,7 +261,7 @@ export default function SF1Generate() {
           <Button
             type="button"
             variant="secondary"
-            onClick={() => navigate('/sf1')}
+            onClick={() => navigate('/school-forms/sf1')}
             disabled={loading}
           >
             Cancel

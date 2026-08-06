@@ -50,7 +50,7 @@ export default function SF1Dashboard() {
       if (filters.school_year) params.school_year = filters.school_year;
       if (filters.grade_level) params.grade_level = filters.grade_level;
       if (filters.status) params.status = filters.status;
-      const res = await api.get('/sf1/', { params });
+      const res = await api.get('/school-forms/sf1/', { params });
       setRecords(Array.isArray(res.data) ? res.data : res.data?.results || []);
     } catch (err) {
       console.error('[SF1Dashboard] fetchRecords error:', err);
@@ -66,7 +66,7 @@ export default function SF1Dashboard() {
     if (!deleteModal) return;
     setDeleteLoading(true);
     try {
-      await api.delete(`/sf1/${deleteModal.id}/`);
+      await api.delete(`/school-forms/sf1/${deleteModal.id}/`);
       toast.success('SF1 record deleted');
       setDeleteModal(null);
       fetchRecords();
@@ -81,7 +81,7 @@ export default function SF1Dashboard() {
     setActionMenu(null);
     let url = null;
     try {
-      const res = await api.get(`/sf1/${id}/export_${type}/`, { responseType: 'blob' });
+      const res = await api.get(`/school-forms/sf1/${id}/export_${type}/`, { responseType: 'blob' });
       const mimeType = type === 'excel'
         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         : 'application/pdf';
@@ -106,7 +106,7 @@ export default function SF1Dashboard() {
     setActionMenu(null);
     let url = null;
     try {
-      const res = await api.get(`/sf1/${id}/print_view/`, { responseType: 'blob' });
+      const res = await api.get(`/school-forms/sf1/${id}/print_view/`, { responseType: 'blob' });
       url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const win = window.open(url, '_blank');
       if (!win) toast.error('Popup blocked — allow popups for this site to print.');
@@ -122,7 +122,7 @@ export default function SF1Dashboard() {
 
   const handleRegenerate = async (id) => {
     try {
-      await api.post(`/sf1/${id}/regenerate/`);
+      await api.post(`/school-forms/sf1/${id}/regenerate/`);
       toast.success('SF1 regenerated successfully');
       fetchRecords();
     } catch (err) {
@@ -133,7 +133,7 @@ export default function SF1Dashboard() {
 
   const handleStatusChange = async (id, newStatus) => {
     try {
-      await api.put(`/sf1/${id}/update_status/`, { status: newStatus });
+      await api.put(`/school-forms/sf1/${id}/update_status/`, { status: newStatus });
       toast.success(`SF1 marked as ${newStatus}`);
       fetchRecords();
     } catch {
@@ -167,7 +167,7 @@ export default function SF1Dashboard() {
           </p>
         </div>
         <button
-          onClick={() => navigate('/sf1/generate')}
+          onClick={() => navigate('/school-forms/sf1/generate')}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-bold hover:bg-violet-700 transition-all shadow-sm"
         >
           <Plus className="w-4 h-4" />
@@ -240,7 +240,7 @@ export default function SF1Dashboard() {
             <p className="text-sm font-bold text-slate-900">No SF1 Records Found</p>
             <p className="text-xs text-slate-500">Generate your first SF1 to get started</p>
             <button
-              onClick={() => navigate('/sf1/generate')}
+              onClick={() => navigate('/school-forms/sf1/generate')}
               className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-bold"
             >
               <Plus className="w-4 h-4" /> Generate SF1
@@ -304,7 +304,7 @@ export default function SF1Dashboard() {
                               <div className="fixed inset-0 z-40" onClick={() => setActionMenu(null)} />
                               <div className="absolute right-0 top-full mt-1 z-50 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1">
                                 <button
-                                  onClick={() => { navigate(`/sf1/${record.id}`); setActionMenu(null); }}
+                                  onClick={() => { navigate(`/school-forms/sf1/${record.id}`); setActionMenu(null); }}
                                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                                 >
                                   <Eye className="w-4 h-4" /> View

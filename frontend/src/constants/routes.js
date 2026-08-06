@@ -64,6 +64,7 @@ const SF10Page = lazy(() => retryImport(() => import('../pages/SF10PermanentReco
 // Grade Management
 const GradeManagementAdmin = lazy(() => retryImport(() => import('../pages/GradeManagementAdmin')));
 const TeacherGradeDashboard = lazy(() => retryImport(() => import('../pages/TeacherGradeDashboard')));
+const GradeInput = lazy(() => retryImport(() => import('../pages/GradeInput')));
 
 // Attendance Management
 const AttendanceDashboard = lazy(() => retryImport(() => import('../pages/AttendanceDashboard')));
@@ -73,6 +74,12 @@ const StudentAttendance = lazy(() => retryImport(() => import('../pages/StudentA
 // Compliance
 const ComplianceHub = lazy(() => retryImport(() => import('../pages/ComplianceHub')));
 const TeacherCompliancePage = lazy(() => retryImport(() => import('../pages/TeacherCompliancePage')));
+
+// Other
+const ForcePasswordChange = lazy(() => retryImport(() => import('../pages/ForcePasswordChange')));
+const QuizTake = lazy(() => retryImport(() => import('../pages/QuizTake')));
+const StudentQuizzes = lazy(() => retryImport(() => import('../pages/StudentQuizzes')));
+const LessonPlans = lazy(() => retryImport(() => import('../pages/LessonPlans')));
 
 // ── Route definitions ────────────────────────────────────────────────────────
 
@@ -138,6 +145,7 @@ export const protectedRoutes = [
   { path: 'grade-management', element: GradeManagementAdmin, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'grade-management-admin', element: GradeManagementAdmin, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'teacher-grade-dashboard', element: TeacherGradeDashboard, roles: [Role.STAFF] },
+  { path: 'grade-input', element: GradeInput, roles: [Role.STAFF] },
 
   // Attendance Management
   { path: 'attendance-dashboard', element: AttendanceDashboard, roles: [Role.STAFF] },
@@ -148,7 +156,14 @@ export const protectedRoutes = [
   { path: 'compliance', element: ComplianceHub, roles: [Role.ADMIN] },
   { path: 'my-compliance', element: TeacherCompliancePage, roles: [Role.STAFF] },
 
+  // Quizzes & Lesson Plans
+  { path: 'my-quizzes', element: StudentQuizzes, roles: [Role.STUDENT] },
+  { path: 'quizzes/take/:id', element: QuizTake, roles: [Role.STUDENT] },
+  { path: 'lesson-plans', element: LessonPlans, roles: [Role.STAFF] },
+  { path: 'lesson-plans/:id/edit', element: LessonPlans, roles: [Role.STAFF] },
+
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },
   { path: 'password-reset', element: PasswordReset, roles: [Role.PARENT] },
+  { path: 'force-password-change', element: ForcePasswordChange, roles: Role.ALL },
 ];

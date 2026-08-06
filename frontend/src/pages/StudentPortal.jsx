@@ -31,14 +31,14 @@ const featureCards = [
     title: 'My Grades',
     description: 'View your grades and academic performance',
     icon: BookOpen,
-    link: '/grades',
+    link: '/my-classes?view=grades',
     color: 'bg-blue-500',
   },
   {
     title: 'My Attendance',
     description: 'Track your attendance record',
     icon: CheckCircle,
-    link: '/attendance',
+    link: '/student-attendance',
     color: 'bg-green-500',
   },
   {
@@ -66,7 +66,7 @@ const featureCards = [
     title: 'My Progress',
     description: 'Academic progress overview',
     icon: Calendar,
-    link: '/progress',
+    link: '/my-classes',
     color: 'bg-indigo-500',
   },
 ];

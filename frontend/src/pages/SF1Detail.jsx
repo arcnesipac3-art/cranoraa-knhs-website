@@ -24,11 +24,11 @@ export default function SF1Detail() {
   useEffect(() => {
     const fetchSF1 = async () => {
       try {
-        const res = await api.get(`/sf1/${id}/`);
+        const res = await api.get(`/school-forms/sf1/${id}/`);
         setSf1(res.data);
       } catch {
         toast.error('Failed to load SF1 details');
-        navigate('/sf1');
+        navigate('/school-forms/sf1');
       } finally {
         setLoading(false);
       }
@@ -40,7 +40,7 @@ export default function SF1Detail() {
     setActionLoading(type);
     let url = null;
     try {
-      const res = await api.get(`/sf1/${id}/export_${type}/`, { responseType: 'blob' });
+      const res = await api.get(`/school-forms/sf1/${id}/export_${type}/`, { responseType: 'blob' });
       const mimeType = type === 'excel'
         ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         : 'application/pdf';
@@ -66,7 +66,7 @@ export default function SF1Detail() {
     setActionLoading('print');
     let url = null;
     try {
-      const res = await api.get(`/sf1/${id}/print_view/`, { responseType: 'blob' });
+      const res = await api.get(`/school-forms/sf1/${id}/print_view/`, { responseType: 'blob' });
       url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const win = window.open(url, '_blank');
       if (!win) toast.error('Popup blocked — allow popups for this site to print.');
@@ -94,7 +94,7 @@ export default function SF1Detail() {
     if (!result.isConfirmed) return;
     setActionLoading('regenerate');
     try {
-      const res = await api.post(`/sf1/${id}/regenerate/`);
+      const res = await api.post(`/school-forms/sf1/${id}/regenerate/`);
       setSf1(res.data);
       toast.success('SF1 regenerated successfully');
     } catch (err) {
@@ -109,7 +109,7 @@ export default function SF1Detail() {
   const handleStatusChange = async (newStatus) => {
     setActionLoading('status');
     try {
-      const res = await api.put(`/sf1/${id}/update_status/`, { status: newStatus });
+      const res = await api.put(`/school-forms/sf1/${id}/update_status/`, { status: newStatus });
       setSf1(res.data);
       toast.success(`SF1 marked as ${newStatus}`);
     } catch {
@@ -143,7 +143,7 @@ export default function SF1Detail() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate('/sf1')}
+            onClick={() => navigate('/school-forms/sf1')}
             className="p-2 rounded-lg hover:bg-slate-200 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-slate-600" />
