@@ -47,7 +47,6 @@ class SF1SchoolRegisterService:
         if self.student_id:
             qs = qs.filter(student_id=self.student_id)
 
-        qs = qs.filter(enrollment_status='enrolled')
         return qs.order_by('classroom__grade_level', 'classroom__name', 'student__last_name', 'student__first_name')
 
     def _compute_age(self, birthdate):

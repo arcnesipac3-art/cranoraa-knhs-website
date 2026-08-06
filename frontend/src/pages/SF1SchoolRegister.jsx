@@ -19,7 +19,6 @@ function SF1Page() {
   const { settings } = useSystemSettings();
   const [filters, setFilters] = useState({
     academic_year: '',
-    grade_level: '',
     section: '',
   });
   const [previewMode, setPreviewMode] = useState(false);
@@ -40,7 +39,7 @@ function SF1Page() {
       const res = await api.get(`/sf1/?${params.toString()}`);
       return res.data;
     },
-    enabled: true,
+    enabled: !!filters.academic_year,
   });
 
   const validation = data?.validation;
@@ -58,7 +57,7 @@ function SF1Page() {
   const handleExportPDF = async () => {
     // Validation
     if (!firstClassroom) {
-      toast.error('No classroom selected. Please select academic year, grade level, and section.');
+      toast.error('No classroom selected. Please select an academic year.');
       return;
     }
     
@@ -102,7 +101,7 @@ function SF1Page() {
   const handleExportExcel = async () => {
     // Validation
     if (!firstClassroom) {
-      toast.error('No classroom selected. Please select academic year, grade level, and section.');
+      toast.error('No classroom selected. Please select an academic year.');
       return;
     }
     
@@ -181,7 +180,7 @@ function SF1Page() {
       {/* Filters */}
       <Card className="mb-6">
         <CardBody>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Academic Year</label>
               <select
@@ -189,22 +188,9 @@ function SF1Page() {
                 onChange={e => handleFilterChange('academic_year', e.target.value)}
                 className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
               >
-                <option value="">All Years</option>
+                <option value="">Select Year</option>
                 {filterOptions?.academic_years?.map(ay => (
                   <option key={ay.id} value={ay.id}>{ay.name}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Grade Level</label>
-              <select
-                value={filters.grade_level}
-                onChange={e => handleFilterChange('grade_level', e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
-              >
-                <option value="">All Grades</option>
-                {filterOptions?.grade_levels?.map(gl => (
-                  <option key={gl} value={gl}>{gl}</option>
                 ))}
               </select>
             </div>
@@ -223,7 +209,7 @@ function SF1Page() {
             </div>
             <div className="flex items-end gap-2">
               <Button onClick={() => refetch()} size="sm">Generate SF1</Button>
-              <Button variant="ghost" size="sm" onClick={() => setFilters({ academic_year: '', grade_level: '', section: '' })}>Reset</Button>
+              <Button variant="ghost" size="sm" onClick={() => setFilters({ academic_year: '', section: '' })}>Reset</Button>
             </div>
           </div>
         </CardBody>
@@ -306,7 +292,7 @@ function SF1Page() {
             <div className="text-center py-12">
               <div className="text-4xl mb-3">📋</div>
               <h3 className="text-lg font-bold text-slate-900 mb-1">No Data Found</h3>
-              <p className="text-sm text-slate-500">Select filters and click Generate SF1 to create the school register.</p>
+              <p className="text-sm text-slate-500">Select an academic year and click Generate SF1 to create the school register.</p>
             </div>
           </CardBody>
         </Card>
