@@ -29,7 +29,8 @@ export function AcademicYearProvider({ children }) {
         setAcademicYear(null);
       }
       if (allRes?.data) {
-        setAcademicYears(allRes.data);
+        const data = allRes.data;
+        setAcademicYears(Array.isArray(data) ? data : data?.results || []);
       }
     }).finally(() => {
       if (!cancelled) setLoading(false);
