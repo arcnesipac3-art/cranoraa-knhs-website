@@ -49,18 +49,43 @@ class SF2DailyAttendanceReportService:
         if self.grade_level:
             qs = qs.filter(classroom__grade_level=self.grade_level)
         if self.section:
-            # Use icontains to match "STEM" in "Grade 12 - STEM"
             qs = qs.filter(classroom__name__icontains=self.section)
         if self.adviser:
             qs = qs.filter(classroom__teacher_id=self.adviser)
 
         logger.debug("SF2 enrollment query count: %s", qs.count())
-        if qs.count() == 0:
-            logger.debug("SF2 classroom values: %s",
-                         list(Classroom.objects.filter(
-                             academic_year_id=self.academic_year_id,
-                             grade_level=self.grade_level
-                         ).values('id', 'name', 'grade_level')))
+
+        if not qs.exists():
+            logger.info("SF2: No enrollments found, falling back to attendance records")
+            att_qs = Attendance.objects.select_related(
+                'student', 'student__profile', 'classroom',
+                'classroom__teacher', 'classroom__teacher__profile',
+                'classroom__academic_year'
+            )
+            if self.academic_year_id:
+                att_qs = att_qs.filter(classroom__academic_year_id=self.academic_year_id)
+            elif AcademicYear.objects.filter(is_active=True).exists():
+                att_qs = att_qs.filter(classroom__academic_year__is_active=True)
+            if self.grade_level:
+                att_qs = att_qs.filter(classroom__grade_level=self.grade_level)
+            if self.section:
+                att_qs = att_qs.filter(classroom__name__icontains=self.section)
+            if self.adviser:
+                att_qs = att_qs.filter(classroom__teacher_id=self.adviser)
+
+            seen = set()
+            fallback = []
+            for att in att_qs.order_by('student_id', 'date'):
+                key = (att.student_id, att.classroom_id)
+                if key not in seen:
+                    seen.add(key)
+                    fallback.append(att)
+
+            class AttendanceEnrollmentProxy:
+                def __init__(self, att):
+                    self.student = att.student
+                    self.classroom = att.classroom
+            qs = [AttendanceEnrollmentProxy(a) for a in fallback]
 
         self._queryset = qs
         return qs
@@ -90,7 +115,10 @@ class SF2DailyAttendanceReportService:
     def get_attendance_data(self):
         """Get attendance records for enrolled students in date range"""
         enrollments = self.get_queryset()
-        student_ids = list(enrollments.values_list('student_id', flat=True))
+        if hasattr(enrollments, 'values_list'):
+            student_ids = list(enrollments.values_list('student_id', flat=True))
+        else:
+            student_ids = [e.student.id for e in enrollments]
 
         if not student_ids:
             return []
@@ -187,12 +215,17 @@ class SF2DailyAttendanceReportService:
         attendance_records = self.get_attendance_data()
         start_date, end_date = self.get_date_range()
 
-        total_students = enrollments.count()
+        if hasattr(enrollments, 'count'):
+            total_students = enrollments.count()
+            enrollment_student_ids = list(enrollments.values_list('student_id', flat=True))
+        else:
+            total_students = len(enrollments)
+            enrollment_student_ids = [e.student.id for e in enrollments]
         total_days = (end_date - start_date).days + 1
 
         # Count by status
         status_counts = Attendance.objects.filter(
-            student_id__in=enrollments.values_list('student_id', flat=True),
+            student_id__in=enrollment_student_ids,
             date__range=[start_date, end_date]
         ).values('status').annotate(count=Count('id'))
 
@@ -247,7 +280,14 @@ class SF2DailyAttendanceReportService:
         warnings = []
 
         enrollments = self.get_queryset()
-        if not enrollments.exists():
+        if hasattr(enrollments, 'exists'):
+            has_enrollments = enrollments.exists()
+            enrollment_count = enrollments.count()
+        else:
+            has_enrollments = len(enrollments) > 0
+            enrollment_count = len(enrollments)
+
+        if not has_enrollments:
             warnings.append("No students found for the selected filters")
             # Log at INFO level so it appears in logs
             logger.info("SF2 validation: No enrollments found. Filters: ay=%s, grade=%s, section=%s, adviser=%s",
@@ -267,7 +307,7 @@ class SF2DailyAttendanceReportService:
             'valid': len(errors) == 0,
             'errors': errors,
             'warnings': warnings,
-            'total_students': enrollments.count(),
+            'total_students': enrollment_count,
             'date_range': f"{start_date} to {end_date}",
         }
 
