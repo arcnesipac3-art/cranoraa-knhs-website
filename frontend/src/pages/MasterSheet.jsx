@@ -166,7 +166,7 @@ export default function MasterSheet() {
         const list = Array.isArray(r.data) ? r.data : r.data?.results || [];
         setMyAssignments(list.filter(a => a.teacher === user?.id));
       })
-      .catch(() => setMyAssignments([]);
+      .catch(() => setMyAssignments([]));
   }, [isTeacher, user?.id]);
 
   // Filtered classrooms: teachers only see classrooms where they have assigned subjects
