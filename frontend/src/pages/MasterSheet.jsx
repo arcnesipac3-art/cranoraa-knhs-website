@@ -315,12 +315,12 @@ export default function MasterSheet() {
                 <p style={{ fontSize: '11px', fontWeight: 700 }}>Department of Education</p>
                 <p style={{ fontSize: '10px' }}>Region X - Iligan City · Division of Lanao del Norte</p>
                 <h1 style={{ fontSize: '13px', fontWeight: 700, marginTop: '8px' }}>MASTER SHEET</h1>
-                <p style={{ fontSize: '10px', marginTop: '4px' }}>{classroomObj?.grade_level || ''} - {classroomObj?.name || ''} · {academicYear}</p>
+                <p style={{ fontSize: '10px', marginTop: '4px' }}>{classroomObj?.name || ''} · {academicYear}</p>
               </div>
               <PrintContent
                 profile={item.profile} classroom={classroomObj} teacher={teacherObj}
                 grades={item.grades} attendance={item.attendance}
-                myAssignments={myAssignments} isTeacher={isTeacher}
+                myAssignments={myAssignments} isTeacher={isTeacher} academicYear={academicYear}
               />
             </div>
           );
@@ -435,14 +435,14 @@ export default function MasterSheet() {
           <p className="text-[10px] font-bold">Department of Education</p>
           <p className="text-[10px]">Region X - Iligan City · Division of Lanao del Norte</p>
           <h1 className="text-sm font-bold mt-2">MASTER SHEET</h1>
-          <p className="text-[10px] mt-1">{classroomObj?.grade_level || ''} - {classroomObj?.name || ''} · {academicYear}</p>
+          <p className="text-[10px] mt-1">{classroomObj?.name || ''} · {academicYear}</p>
         </div>
         {items.map((item, idx) => (
           <div key={item.profile?.id || idx} className={idx > 0 ? 'page-break-before mt-8' : ''}>
             <PrintContent
               profile={item.profile} classroom={classroomObj} teacher={teacherObj}
               grades={item.grades} attendance={item.attendance}
-              myAssignments={myAssignments} isTeacher={isTeacher}
+              myAssignments={myAssignments} isTeacher={isTeacher} academicYear={academicYear}
             />
           </div>
         ))}
@@ -700,7 +700,7 @@ function GradesTable({ matchedSubjects, termGrades, termAverages }) {
   );
 }
 
-function PrintContent({ profile, classroom, teacher, grades, attendance, myAssignments, isTeacher }) {
+function PrintContent({ profile, classroom, teacher, grades, attendance, myAssignments, isTeacher, academicYear }) {
   const filteredGrades = isTeacher && myAssignments?.length
     ? grades.filter(g => new Set(myAssignments.map(a => a.subject)).has(g.subject))
     : grades;
@@ -711,40 +711,41 @@ function PrintContent({ profile, classroom, teacher, grades, attendance, myAssig
   const p = profile?.profile || {};
   const teacherName = teacher ? `${teacher.last_name || ''}, ${teacher.first_name || ''}` : 'N/A';
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" style={{ overflow: 'hidden', wordBreak: 'break-word' }}>
       <div className="border border-gray-400 p-3 text-[10px]">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-          <div><b>Name:</b> {profile ? `${profile.last_name || ''}, ${profile.first_name || ''}` : '-'}</div>
-          <div><b>LRN:</b> {p.lrn || '-'}</div>
-          <div><b>Sex:</b> {p.sex || '-'}</div>
-          <div><b>Birthday:</b> {p.date_of_birth || '-'}</div>
-          <div><b>Age:</b> {calculateAge(p.date_of_birth) || '-'}</div>
-          <div><b>Address:</b> {p.address || '-'}</div>
-          <div><b>Section:</b> {classroom?.name || '-'}</div>
-          <div><b>Adviser:</b> {teacherName}</div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="min-w-0"><b>Name:</b> <span className="font-semibold">{profile ? `${profile.last_name || ''}, ${profile.first_name || ''} ${profile.middle_name || ''}` : '-'}</span></div>
+          <div className="min-w-0"><b>LRN:</b> <span className="font-mono">{p.lrn || '-'}</span></div>
+          <div><b>Sex:</b> <span className="font-semibold">{p.sex || '-'}</span></div>
+          <div><b>Birthday:</b> <span className="font-semibold">{p.date_of_birth || '-'}</span></div>
+          <div><b>Age:</b> <span className="font-semibold">{calculateAge(p.date_of_birth) || '-'}</span></div>
+          <div className="min-w-0"><b>Address:</b> <span className="font-semibold">{p.address || '-'}</span></div>
+          <div><b>Section:</b> <span className="font-semibold">{classroom?.name || '-'}</span></div>
+          <div><b>Adviser:</b> <span className="font-semibold">{teacherName}</span></div>
+          <div><b>School Year:</b> <span className="font-semibold">{academicYear || '-'}</span></div>
         </div>
       </div>
-      <div className="flex gap-4">
-        <div className="w-40 border border-gray-400 text-[9px]">
+      <div className="flex gap-3">
+        <div className="w-36 flex-shrink-0 border border-gray-400 text-[9px]">
           <div className="bg-gray-200 font-bold text-center py-1 border-b border-gray-400">Attendance</div>
           {attData.months.map(m => (
-            <div key={m.key} className="flex justify-between px-2 py-0.5 border-b border-gray-300">
-              <span>{m.label}</span><span>{m.present + m.late}</span>
+            <div key={m.key} className="flex justify-between px-1.5 py-0.5 border-b border-gray-300">
+              <span className="truncate">{m.label}</span><span className="flex-shrink-0 ml-1">{m.present + m.late}</span>
             </div>
           ))}
-          <div className="flex justify-between px-2 py-0.5 font-bold bg-gray-100 border-t border-gray-400">
+          <div className="flex justify-between px-1.5 py-0.5 font-bold bg-gray-100 border-t border-gray-400">
             <span>Total</span><span>{attData.total.days}</span>
           </div>
         </div>
-        <div className="flex-1 border border-gray-400 text-[10px]">
-          <table className="w-full border-collapse">
+        <div className="flex-1 border border-gray-400 text-[10px] min-w-0">
+          <table className="w-full border-collapse table-fixed">
             <thead>
               <tr className="bg-gray-200">
-                <th className="border border-gray-400 px-2 py-1 text-left">Subject</th>
-                <th className="border border-gray-400 px-2 py-1 text-center">Term 1</th>
-                <th className="border border-gray-400 px-2 py-1 text-center">Term 2</th>
-                <th className="border border-gray-400 px-2 py-1 text-center">Term 3</th>
-                <th className="border border-gray-400 px-2 py-1 text-center">Final</th>
+                <th className="border border-gray-400 px-2 py-1 text-left" style={{ width: '40%' }}>Subject</th>
+                <th className="border border-gray-400 px-2 py-1 text-center" style={{ width: '15%' }}>T1</th>
+                <th className="border border-gray-400 px-2 py-1 text-center" style={{ width: '15%' }}>T2</th>
+                <th className="border border-gray-400 px-2 py-1 text-center" style={{ width: '15%' }}>T3</th>
+                <th className="border border-gray-400 px-2 py-1 text-center" style={{ width: '15%' }}>Final</th>
               </tr>
             </thead>
             <tbody>
@@ -752,7 +753,7 @@ function PrintContent({ profile, classroom, teacher, grades, attendance, myAssig
                 const sg = termGrades[sub] || null;
                 return (
                   <tr key={sub}>
-                    <td className="border border-gray-400 px-2 py-0.5">{sub}</td>
+                    <td className="border border-gray-400 px-2 py-0.5 truncate">{sub}</td>
                     {[1, 2, 3].map(q => (
                       <td key={q} className="border border-gray-400 px-2 py-0.5 text-center">{sg?.[q] != null ? sg[q].toFixed(1) : ''}</td>
                     ))}
@@ -772,10 +773,6 @@ function PrintContent({ profile, classroom, teacher, grades, attendance, myAssig
             </tfoot>
           </table>
         </div>
-      </div>
-      <div className="mt-6 grid grid-cols-2 gap-8 text-[10px]">
-        <div>Prepared by: __________________________<br />{teacherName}</div>
-        <div>Noted by: __________________________<br />School Principal</div>
       </div>
     </div>
   );
