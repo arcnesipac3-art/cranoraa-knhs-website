@@ -424,3 +424,35 @@
 .animate-slide-in-right {
   animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* ─── Chat message entry animation ──────────────────────────────────────── */
+@keyframes chatMsgEnter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.chat-msg-enter {
+  animation: chatMsgEnter 0.15s ease-out;
+}
+
+/* ─── Slide up (bottom sheet / context menu) ────────────────────────────── */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── Bounce in (FAB) ───────────────────────────────────────────────────── */
+@keyframes bounceIn {
+  0%   { opacity: 0; transform: scale(0.3); }
+  50%  { opacity: 1; transform: scale(1.05); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.3s ease-out;
+}
