@@ -7,6 +7,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+import rest_framework_parsers
 
 from ..models import (
     User, Profile, Classroom, StudentClassEnrollment, Attendance, LearningMaterial,
@@ -1142,6 +1143,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                         'schedule_id': rec.get('schedule_id'),
                         'time_slot': rec.get('time_slot'),
                         'minutes_late': rec['minutes_late'],
+                        'has_excuse': rec.get('has_excuse', False),
                     })
 
             grouped_list = sorted(date_groups.values(), key=lambda g: g['date'])
@@ -1188,6 +1190,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 class AbsenceExcuseViewSet(viewsets.ModelViewSet):
     serializer_class = AbsenceExcuseSerializer
     permission_classes = [IsAuthenticated]
+    parser_classes = [rest_framework_parsers.MultiPartParser, rest_framework_parsers.FormParser, rest_framework_parsers.JSONParser]
 
     def get_queryset(self):
         user = self.request.user
@@ -1208,7 +1211,47 @@ class AbsenceExcuseViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        serializer.save(student=self.request.user)
+        excuse = serializer.save(student=self.request.user)
+
+        uploaded_file = self.request.FILES.get('document')
+        if uploaded_file:
+            from ..storage import upload_file
+            url, err = upload_file(uploaded_file, bucket_key='enrollment-docs', folder='excuses')
+            if url:
+                excuse.document_url = url
+                excuse.save(update_fields=['document_url'])
+
+        try:
+            attendance = excuse.attendance
+            teachers_notified = set()
+
+            # Notify the classroom teacher
+            classroom = getattr(attendance, 'classroom', None)
+            if classroom and classroom.teacher and classroom.teacher != self.request.user:
+                teachers_notified.add(classroom.teacher)
+
+            # Notify teachers of the subject's classroom subjects
+            subject = getattr(attendance, 'subject', None)
+            if subject:
+                from ..models import ClassroomSubject
+                cs_teachers = ClassroomSubject.objects.filter(
+                    subject=subject, classroom=classroom
+                ).values_list('teacher', flat=True) if classroom else []
+                for tid in cs_teachers:
+                    teacher = User.objects.filter(id=tid).first()
+                    if teacher and teacher != self.request.user:
+                        teachers_notified.add(teacher)
+
+            for teacher in teachers_notified:
+                student_name = full_name(self.request.user) or self.request.user.username
+                Notification.objects.create(
+                    user=teacher,
+                    title='Absence Excuse Submitted',
+                    message=f'{student_name} submitted an excuse for absence on {attendance.date}.',
+                    notification_type='info',
+                )
+        except Exception as notif_err:
+            logger.warning(f"Failed to notify teacher(s) about absence excuse: {notif_err}")
 
     @action(detail=True, methods=['post'], url_path='review')
     def review(self, request, pk=None):

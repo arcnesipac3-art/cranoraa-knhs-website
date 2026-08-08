@@ -7,8 +7,11 @@ import {
 } from '../components/ui';
 import {
   Calendar, ChevronLeft, ChevronRight, CheckCircle, XCircle,
-  Clock, ShieldCheck, TrendingUp, BookOpen, AlertTriangle
+  Clock, ShieldCheck, TrendingUp, BookOpen, AlertTriangle,
+  FileText, Upload, X
 } from 'lucide-react';
+import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter } from '../components/ui/Modal';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 const StudentAttendance = () => {
   const [records, setRecords] = useState([]);
@@ -17,7 +20,15 @@ const StudentAttendance = () => {
   const [loading, setLoading] = useState(true);
   const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
   const [expandedDate, setExpandedDate] = useState(null);
-  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
+  const [viewMode, setViewMode] = useState('calendar');
+
+  // Excuse modal state
+  const [excuseModal, setExcuseModal] = useState(null); // { attendanceId, subject, date, status }
+  const [excuseReason, setExcuseReason] = useState('');
+  const [excuseFile, setExcuseFile] = useState(null);
+  const [submittingExcuse, setSubmittingExcuse] = useState(false);
+
+  useScrollLock(!!excuseModal);
 
   useEffect(() => {
     fetchAttendance();
@@ -121,6 +132,27 @@ const StudentAttendance = () => {
   }, [month, groupedRecords]);
 
   const monthLabel = new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const handleSubmitExcuse = async () => {
+    if (!excuseReason.trim()) return toast.error('Please enter a reason');
+    setSubmittingExcuse(true);
+    try {
+      const fd = new FormData();
+      fd.append('attendance', excuseModal.attendanceId);
+      fd.append('reason', excuseReason.trim());
+      if (excuseFile) fd.append('document', excuseFile);
+      await api.post('/absence-excuses/', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      toast.success('Excuse submitted for review');
+      setExcuseModal(null);
+      setExcuseReason('');
+      setExcuseFile(null);
+      fetchAttendance();
+    } catch (err) {
+      toast.error(err.response?.data?.error || err.response?.data?.detail || 'Failed to submit excuse');
+    } finally {
+      setSubmittingExcuse(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -321,10 +353,20 @@ const StudentAttendance = () => {
                                       <span className="text-slate-400 ml-1">{period.time_slot.start_time}</span>
                                     )}
                                   </div>
-                                  <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusColor(period.status)}`}>
-                                    {statusIcon(period.status)}
-                                    {period.status}
-                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${statusColor(period.status)}`}>
+                                      {statusIcon(period.status)}
+                                      {period.status}
+                                    </span>
+                                    {(period.status === 'absent' || period.status === 'late') && !period.has_excuse && (
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); setExcuseModal({ attendanceId: period.id, subject: period.subject, date: item.date, status: period.status }); }}
+                                        className="text-[9px] font-bold text-violet-600 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded hover:bg-violet-100 transition-colors"
+                                      >
+                                        Excuse
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                               {dayGroup.homeroom === null && dayGroup.periods.length === 0 && (
@@ -406,6 +448,14 @@ const StudentAttendance = () => {
                                   {statusIcon(period.status)}
                                   {period.status}
                                 </span>
+                                {(period.status === 'absent' || period.status === 'late') && !period.has_excuse && (
+                                  <button
+                                    onClick={() => setExcuseModal({ attendanceId: period.id, subject: period.subject, date: dayGroup.date, status: period.status })}
+                                    className="text-[9px] font-bold text-violet-600 bg-violet-50 border border-violet-200 px-1.5 py-0.5 rounded hover:bg-violet-100 transition-colors"
+                                  >
+                                    Excuse
+                                  </button>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -419,6 +469,62 @@ const StudentAttendance = () => {
           )}
         </>
       )}
+
+      {/* Submit Excuse Modal */}
+      <Modal isOpen={!!excuseModal} onClose={() => { setExcuseModal(null); setExcuseReason(''); setExcuseFile(null); }} size="sm">
+        <ModalHeader onClose={() => { setExcuseModal(null); setExcuseReason(''); setExcuseFile(null); }}>
+          <ModalTitle title="Submit Excuse" subtitle={excuseModal ? `${excuseModal.subject} — ${excuseModal.date}` : ''} />
+        </ModalHeader>
+        <ModalBody className="space-y-4">
+          <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+            <p className="text-xs text-amber-700">
+              You are submitting an excuse for a <strong>{excuseModal?.status}</strong> record.
+              This will be sent to your teacher for review.
+            </p>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Reason *</label>
+            <textarea
+              value={excuseReason}
+              onChange={(e) => setExcuseReason(e.target.value)}
+              placeholder="Explain the reason for your absence/lateness..."
+              rows={4}
+              className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Supporting Document (optional)</label>
+            <div className="flex items-center gap-2">
+              <label className="flex-1 flex items-center gap-2 px-3 py-2 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
+                <Upload className="w-4 h-4 text-slate-400" />
+                <span className="text-sm text-slate-500 truncate">{excuseFile ? excuseFile.name : 'Choose file...'}</span>
+                <input type="file" className="hidden" accept="image/*,.pdf,.doc,.docx" onChange={(e) => setExcuseFile(e.target.files?.[0] || null)} />
+              </label>
+              {excuseFile && (
+                <button onClick={() => setExcuseFile(null)} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1">Image, PDF, or document (max 10MB)</p>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <button
+            onClick={() => { setExcuseModal(null); setExcuseReason(''); setExcuseFile(null); }}
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmitExcuse}
+            disabled={submittingExcuse || !excuseReason.trim()}
+            className="px-4 py-2 text-sm font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submittingExcuse ? 'Submitting...' : 'Submit Excuse'}
+          </button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };
