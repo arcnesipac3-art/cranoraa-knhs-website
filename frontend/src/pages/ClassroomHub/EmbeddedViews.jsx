@@ -1221,71 +1221,23 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
                     <h3 className="text-sm font-bold text-slate-700 mb-2 px-1">
                       {sex === 'male' ? 'Male' : 'Female'} Students ({group.length})
                     </h3>
-                    {/* Mobile: card layout */}
-                    <div className="md:hidden space-y-2">
-                      {group.map((student) => (
-                        <div key={student.id} className="p-3 bg-white border border-slate-200 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${sex === 'male' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
-                              {student.student_name ? student.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-xs font-semibold text-slate-900 truncate">
-                                {student.student_name || 'Unknown Student'}
-                              </p>
-                              <div className="flex gap-1 mt-1.5">
-                                {Object.entries(statusConfig).map(([key, cfg]) => {
-                                  const Icon = cfg.icon;
-                                  const isActive = attendance[student.student] === key;
-                                  return (
-                                    <button
-                                      key={key}
-                                      onClick={() => handleStatusChange(student.student, key)}
-                                      title={key.charAt(0).toUpperCase() + key.slice(1)}
-                                      disabled={isStudent}
-                                      className={`flex items-center justify-center w-7 h-7 rounded-md transition-all ${isActive ? cfg.active : cfg.idle} ${isStudent ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    >
-                                      <Icon className="w-3.5 h-3.5" />
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          </div>
-                          {!isStudent && (
-                            <div className="mt-2 flex items-center gap-1.5">
-                              <MessageSquare className="w-3 h-3 text-slate-400 shrink-0" />
-                              <input
-                                type="text"
-                                value={remarks[student.student] || ''}
-                                onChange={e => setRemarks(prev => ({ ...prev, [student.student]: e.target.value }))}
-                                placeholder="Remark..."
-                                className="flex-1 text-[11px] px-2 py-1 border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-violet-400"
-                              />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Desktop: table layout */}
-                    <div className="hidden md:block overflow-x-auto">
+                    <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead className="bg-slate-50 border-b-2 border-slate-200">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase w-10">#</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
-                            {!isStudent && <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase w-48">Remarks</th>}
+                            <th className="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase w-8">#</th>
+                            <th className="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
+                            {!isStudent && <th className="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase w-40">Remarks</th>}
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-slate-100">
                           {group.map((student, idx) => (
                             <tr key={student.id} className="hover:bg-slate-50 transition-colors">
-                              <td className="px-4 py-3 text-sm text-slate-500 font-semibold">{idx + 1}</td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${sex === 'male' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
+                              <td className="px-3 py-2 text-sm text-slate-500 font-semibold">{idx + 1}</td>
+                              <td className="px-3 py-2">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0 ${sex === 'male' ? 'bg-blue-100 text-blue-600' : 'bg-pink-100 text-pink-600'}`}>
                                     {student.student_name ? student.student_name.trim().split(/\s+/).slice(0, 2).map(n => n.charAt(0).toUpperCase()).join('') : '?'}
                                   </div>
                                   <div className="min-w-0">
@@ -1293,13 +1245,13 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
                                       {student.student_name || 'Unknown Student'}
                                     </p>
                                     {student.student_lrn && (
-                                      <p className="text-xs text-slate-400 truncate">LRN: {student.student_lrn}</p>
+                                      <p className="text-[10px] text-slate-400 truncate">LRN: {student.student_lrn}</p>
                                     )}
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-4 py-3">
-                                <div className="flex items-center justify-center gap-1.5">
+                              <td className="px-3 py-2">
+                                <div className="flex items-center justify-center gap-1">
                                   {Object.entries(statusConfig).map(([key, cfg]) => {
                                     const Icon = cfg.icon;
                                     const isActive = attendance[student.student] === key;
@@ -1309,23 +1261,23 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
                                         onClick={() => handleStatusChange(student.student, key)}
                                         title={key.charAt(0).toUpperCase() + key.slice(1)}
                                         disabled={isStudent}
-                                        className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all ${isActive ? cfg.active : cfg.idle} ${isStudent ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-semibold transition-all ${isActive ? cfg.active : cfg.idle} ${isStudent ? 'opacity-50 cursor-not-allowed' : ''}`}
                                       >
                                         <Icon className="w-3.5 h-3.5" />
-                                        <span>{key.charAt(0).toUpperCase() + key.slice(1)}</span>
+                                        <span className="hidden sm:inline">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
                                       </button>
                                     );
                                   })}
                                 </div>
                               </td>
                               {!isStudent && (
-                                <td className="px-4 py-3">
+                                <td className="px-3 py-2">
                                   <input
                                     type="text"
                                     value={remarks[student.student] || ''}
                                     onChange={e => setRemarks(prev => ({ ...prev, [student.student]: e.target.value }))}
-                                    placeholder="Optional remark..."
-                                    className="w-full text-xs px-2.5 py-1.5 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
+                                    placeholder="Remark..."
+                                    className="w-full text-xs px-2 py-1 border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-violet-400"
                                   />
                                 </td>
                               )}
