@@ -110,8 +110,7 @@ export default function GradeReportsPage() {
             pending: res.data.pending_teachers,
             overdue: res.data.overdue_teachers,
             percentage: res.data.completion_percentage,
-            by_department: res.data.by_department,
-            by_grade_level: res.data.by_grade_level,
+            teacher_details: res.data.teacher_details || [],
           });
           break;
         case 'late':
@@ -225,16 +224,8 @@ export default function GradeReportsPage() {
                       <p className="text-sm text-gray-500">Completion</p>
                     </div>
                   </div>
-                  {reportData.by_department?.length > 0 && (
-                    <div>
-                      <h3 className="font-semibold text-gray-900 mb-3">By Department</h3>
-                      <SubmissionReportTable data={reportData.by_department.map((d, i) => ({
-                        id: i, name: d.name, department: d.name,
-                        total_classes: d.total, submitted: d.submitted,
-                        pending: d.pending, completion_percentage: d.completion_percentage,
-                        last_submission: null,
-                      }))} />
-                    </div>
+                  {reportData.teacher_details?.length > 0 && (
+                    <SubmissionReportTable data={reportData.teacher_details} />
                   )}
                 </div>
               ) : Array.isArray(reportData) ? (
