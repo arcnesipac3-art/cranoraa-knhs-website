@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import { Skeleton, EmptyState } from '../components/ui';
@@ -115,6 +116,7 @@ function StatusPopup({ status, onSelect, onClose, anchorRef }) {
 }
 
 const AttendanceDashboard = () => {
+  const navigate = useNavigate();
   const { academicYears } = useAcademicYear();
   const now = new Date();
   const [filters, setFilters] = useState({
@@ -503,6 +505,37 @@ const AttendanceDashboard = () => {
           </span>
         </div>
       </div>
+
+      {/* Classroom quick links */}
+      {!loading && classrooms.length > 0 && (
+        <div className="no-print">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xs font-black text-slate-500 uppercase tracking-wider">Your Classes — View Attendance History</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {classrooms.map(cls => (
+              <button
+                key={cls.id}
+                onClick={() => navigate(`/my-classes?classroom=${cls.id}&view=attendance-history`)}
+                className="flex items-center gap-3 bg-white border border-slate-200 rounded-lg px-3 py-2.5 hover:border-violet-300 hover:shadow-md transition-all text-left group"
+              >
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white font-extrabold text-xs flex-shrink-0">
+                  {cls.name?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-extrabold text-slate-900 truncate">{cls.name}</p>
+                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
+                    {cls.grade_level || 'Grade'}{cls.teacher_name ? ` · ${cls.teacher_name}` : ''}
+                  </p>
+                </div>
+                <svg className="w-4 h-4 text-slate-300 group-hover:text-violet-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Loading */}
       {loading && (
