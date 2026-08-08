@@ -12,6 +12,7 @@ const SendIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0
 const XIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 const DownloadIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
 const PaperclipIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>;
+const LoaderIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`animate-spin ${p.className||''}`}><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>;
 const CheckIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><polyline points="20 6 9 17 4 12"/></svg>;
 const CheckCheckIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M18 7l-8 8-4-4"/><polyline points="22 7 14 17 11 14"/></svg>;
 const UsersIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>;
@@ -1210,10 +1211,16 @@ export default function CommunicationCenter() {
               )}
 
               <div className="px-4 py-3 border-t border-slate-200 bg-white relative">
+                {chatUploading && (
+                  <div className="flex items-center gap-2 px-4 py-2 mb-2 bg-violet-50 border border-violet-200 rounded-xl text-violet-700">
+                    <LoaderIcon size={14} className="text-violet-600" />
+                    <span className="text-xs font-semibold">Uploading file...</span>
+                  </div>
+                )}
                 <div className="flex items-end gap-2">
                   <input type="file" ref={chatFileInputRef} onChange={handleChatUpload} className="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" />
                   <button onClick={() => chatFileInputRef.current?.click()} disabled={chatUploading} className="p-2.5 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-50" title="Attach file">
-                    <PaperclipIcon size={18} />
+                    {chatUploading ? <LoaderIcon size={18} className="text-violet-500" /> : <PaperclipIcon size={18} />}
                   </button>
                   <div className="flex-1 relative">
                     {mentionQuery !== null && filteredMentionUsers.length > 0 && (
@@ -1234,17 +1241,19 @@ export default function CommunicationCenter() {
                     <textarea
                       ref={inputRef}
                       data-chat-input
-                      placeholder={editingMsgId ? "Edit message..." : "Type a message..."}
+                      placeholder={chatUploading ? "Uploading file..." : editingMsgId ? "Edit message..." : "Type a message..."}
                       rows={1}
                       onKeyDown={handleChatKeyDown}
                       onInput={handleChatInput}
                       onPaste={handlePaste}
-                      className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-12 resize-none max-h-[120px]"
+                      disabled={chatUploading}
+                      className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-12 resize-none max-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <button
                     onClick={() => { const v = inputRef.current?.value?.trim(); if (v) { sendMessage(v); inputRef.current.value = ''; inputRef.current.style.height = 'auto'; } }}
-                    className="p-2.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors disabled:opacity-50"
+                    disabled={chatUploading}
+                    className="p-2.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title="Send message"
                   >
                     <SendIcon size={18} />
