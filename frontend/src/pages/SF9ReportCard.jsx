@@ -31,7 +31,7 @@ function SF9Page() {
     try {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.post('/sf9/export/pdf/', {}, { params });
+      const res = await api.post('/sf9/export_pdf/', {}, { params });
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');

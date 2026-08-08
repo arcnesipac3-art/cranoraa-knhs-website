@@ -30,7 +30,7 @@ function SF10Page() {
 
   const handleExportPDF = async () => {
     try {
-      const res = await api.post('/sf10/export/pdf/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
+      const res = await api.post('/sf10/export_pdf/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       window.open(URL.createObjectURL(blob), '_blank');
     } catch { }
@@ -38,7 +38,7 @@ function SF10Page() {
 
   const handleExportExcel = async () => {
     try {
-      const res = await api.post('/sf10/export/excel/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
+      const res = await api.post('/sf10/export_excel/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
       const blob = new Blob([res.data.excel], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);

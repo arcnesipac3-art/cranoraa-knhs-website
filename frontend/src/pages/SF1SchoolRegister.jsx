@@ -114,7 +114,7 @@ function SF1Page() {
         'pdf',
         { includeDate: true }
       );
-      await downloadFromAPI(api, '/sf1/export/pdf/', filename, {
+      await downloadFromAPI(api, '/sf1/export_pdf/', filename, {
         method: 'post',
         params,
         responseType: 'blob',
@@ -140,7 +140,7 @@ function SF1Page() {
         'xlsx',
         { includeDate: true }
       );
-      await downloadFromAPI(api, '/sf1/export/excel/', filename, {
+      await downloadFromAPI(api, '/sf1/export_excel/', filename, {
         method: 'post',
         params,
         responseType: 'blob',

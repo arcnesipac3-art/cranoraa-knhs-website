@@ -366,7 +366,7 @@ const AttendanceDashboard = () => {
       
       await downloadFromAPI(
         api,
-        '/sf2/export/excel/',
+        '/sf2/export_excel/',
         filename,
         {
           method: 'post',
