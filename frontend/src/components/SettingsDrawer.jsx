@@ -14,6 +14,7 @@ const TrashIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 
 const EditIcon = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 const ShieldIcon = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>;
 const CrownIcon = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/><line x1="5" y1="20" x2="19" y2="20"/></svg>;
+const UserPlusIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>;
 
 const AVATAR_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500', 'bg-rose-500', 'bg-indigo-500'];
 
@@ -55,6 +56,12 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
   const [mediaMessages, setMediaMessages] = useState([]);
   const [fileMessages, setFileMessages] = useState([]);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [showAddPeople, setShowAddPeople] = useState(false);
+  const [addPeopleSearch, setAddPeopleSearch] = useState('');
+  const [addPeopleResults, setAddPeopleResults] = useState([]);
+  const [addPeopleLoading, setAddPeopleLoading] = useState(false);
+  const [addPeopleSelected, setAddPeopleSelected] = useState([]);
+  const [addPeopleSubmitting, setAddPeopleSubmitting] = useState(false);
   const nameInputRef = useRef(null);
   const descInputRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -225,6 +232,39 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
     }
   };
 
+  const handleSearchAddPeople = async (query) => {
+    setAddPeopleSearch(query);
+    if (!query.trim()) { setAddPeopleResults([]); return; }
+    setAddPeopleLoading(true);
+    try {
+      const res = await api.get('/users/', { params: { search: query, page_size: 20 } });
+      const users = (res.data.results || res.data || []).filter(u => u.id !== userId);
+      setAddPeopleResults(users);
+    } catch { setAddPeopleResults([]); }
+    setAddPeopleLoading(false);
+  };
+
+  const toggleAddPerson = (id) => {
+    setAddPeopleSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const handleAddPeopleSubmit = async () => {
+    if (addPeopleSelected.length === 0) return;
+    setAddPeopleSubmitting(true);
+    try {
+      await api.post(`/chat/rooms/${room.id}/add_participants/`, { user_ids: addPeopleSelected });
+      toast.success(`${addPeopleSelected.length} member(s) added`);
+      setShowAddPeople(false);
+      setAddPeopleSelected([]);
+      setAddPeopleSearch('');
+      setAddPeopleResults([]);
+      loadMembers();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to add members');
+    }
+    setAddPeopleSubmitting(false);
+  };
+
   const myMember = members.find(m => m.user === userId);
   const isMuted = myMember?.muted;
 
@@ -350,6 +390,17 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
         <div className="flex-1 overflow-y-auto">
           {activeTab === 'members' && (
             <div className="py-2">
+              {canManage && (
+                <div className="px-5 pb-2">
+                  <button
+                    onClick={() => setShowAddPeople(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-semibold text-violet-600 bg-violet-50 border border-violet-200 rounded-lg hover:bg-violet-100 transition-colors"
+                  >
+                    <UserPlusIcon size={16} />
+                    Add People
+                  </button>
+                </div>
+              )}
               {loadingMembers ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="w-5 h-5 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
@@ -475,7 +526,85 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
             </button>
           )}
         </div>
-      </div>
+        </div>
+
+        {/* Add People Modal */}
+        {showAddPeople && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setShowAddPeople(false); setAddPeopleSelected([]); setAddPeopleSearch(''); setAddPeopleResults([]); }}>
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <h3 className="text-base font-bold text-slate-900">Add People</h3>
+                <button onClick={() => { setShowAddPeople(false); setAddPeopleSelected([]); setAddPeopleSearch(''); setAddPeopleResults([]); }} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                  <XIcon size={18} className="text-slate-500" />
+                </button>
+              </div>
+              <div className="px-5 py-3">
+                <input
+                  type="text"
+                  value={addPeopleSearch}
+                  onChange={(e) => handleSearchAddPeople(e.target.value)}
+                  placeholder="Search by name or email..."
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                  autoFocus
+                />
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 pb-3">
+                {addPeopleLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-5 h-5 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+                  </div>
+                ) : addPeopleResults.length === 0 ? (
+                  <p className="text-center text-xs text-slate-400 py-8">
+                    {addPeopleSearch ? 'No users found' : 'Type to search for people'}
+                  </p>
+                ) : (
+                  addPeopleResults.map(user => {
+                    const isSelected = addPeopleSelected.includes(user.id);
+                    const memberIds = members.map(m => m.user);
+                    const alreadyMember = memberIds.includes(user.id);
+                    return (
+                      <div
+                        key={user.id}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${alreadyMember ? 'opacity-50' : 'hover:bg-slate-50 cursor-pointer'} ${isSelected ? 'bg-violet-50' : ''}`}
+                        onClick={() => !alreadyMember && toggleAddPerson(user.id)}
+                      >
+                        {user.profile?.profile_picture ? (
+                          <img src={user.profile.profile_picture} alt="" className="w-8 h-8 rounded-full object-cover" />
+                        ) : (
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${getAvatarColor(user.first_name + ' ' + user.last_name)}`}>
+                            {getInitials(user.first_name + ' ' + user.last_name)}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-800 truncate">{user.first_name} {user.last_name}</p>
+                          <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
+                        </div>
+                        {alreadyMember ? (
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">In group</span>
+                        ) : (
+                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-violet-500 bg-violet-500' : 'border-slate-300'}`}>
+                            {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              {addPeopleSelected.length > 0 && (
+                <div className="px-5 py-3 border-t border-slate-100">
+                  <button
+                    onClick={handleAddPeopleSubmit}
+                    disabled={addPeopleSubmitting}
+                    className="w-full px-4 py-2.5 text-sm font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
+                  >
+                    {addPeopleSubmitting ? 'Adding...' : `Add ${addPeopleSelected.length} member(s)`}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
       <style>{`
         @keyframes slideInRight {
