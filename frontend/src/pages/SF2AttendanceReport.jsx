@@ -40,7 +40,7 @@ function SF2Page() {
       setExporting('pdf');
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
-      const res = await api.post('/sf2/export/pdf/', {}, { params });
+      const res = await api.post('/sf2/export_pdf/', {}, { params });
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');

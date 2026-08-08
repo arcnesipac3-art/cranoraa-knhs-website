@@ -181,7 +181,7 @@ export default function SF2Dashboard() {
         year: selectedYear,
       };
       const endpoint = type === 'pdf' ? '/sf2/export_pdf/' : '/sf2/export_excel/';
-      const res = await api.get(endpoint, { params, responseType: 'blob' });
+      const res = await api.post(endpoint, params, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a');
       a.href = url;

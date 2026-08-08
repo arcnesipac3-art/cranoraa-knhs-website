@@ -310,7 +310,7 @@ const AttendanceDashboard = () => {
       
       await downloadFromAPI(
         api,
-        '/sf2/export/pdf/',
+        '/sf2/export_pdf/',
         filename,
         {
           method: 'post',
