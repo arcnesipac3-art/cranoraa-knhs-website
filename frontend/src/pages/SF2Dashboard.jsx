@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   Download, Loader2, BookOpen, ChevronLeft, ChevronRight,
-  Search, Calendar, FileText, Users,
+  Search, FileText, Users, Printer, TrendingUp, Calendar,
 } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -28,7 +28,6 @@ export default function SF2Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState(todayDate.month);
   const [selectedYear, setSelectedYear] = useState(todayDate.year);
   const [generating, setGenerating] = useState(false);
-
   const [overviewData, setOverviewData] = useState(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -106,6 +105,20 @@ export default function SF2Dashboard() {
     return days;
   }, [selectedYear, selectedMonth]);
 
+  const weekGroups = useMemo(() => {
+    const groups = [];
+    let currentWeek = [];
+    weekdayDates.forEach(wd => {
+      if (wd.dow === 1 && currentWeek.length > 0) {
+        groups.push(currentWeek);
+        currentWeek = [];
+      }
+      currentWeek.push(wd);
+    });
+    if (currentWeek.length > 0) groups.push(currentWeek);
+    return groups;
+  }, [weekdayDates]);
+
   const students = overviewData?.students || [];
   const filteredStudents = useMemo(() => {
     if (!searchQuery) return students;
@@ -153,6 +166,20 @@ export default function SF2Dashboard() {
     return { prs, abs, late, exc, pct };
   }, [weekdayDates]);
 
+  const getWeekStats = useCallback((student, days) => {
+    let prs = 0, abs = 0, late = 0, exc = 0;
+    days.forEach(wd => {
+      const code = student.daily?.[String(wd.dayNum)] || '—';
+      if (code === 'P') prs++;
+      else if (code === 'A') abs++;
+      else if (code === 'L') late++;
+      else if (code === 'E') exc++;
+    });
+    const total = prs + abs + late + exc;
+    const pct = total > 0 ? Math.round((prs / total) * 100) : 0;
+    return { prs, abs, late, exc, pct };
+  }, []);
+
   const getSectionTotals = useCallback((studentList) => {
     let prs = 0, abs = 0, late = 0, exc = 0;
     studentList.forEach(s => {
@@ -163,6 +190,17 @@ export default function SF2Dashboard() {
     const pct = total > 0 ? Math.round((prs / total) * 100) : 0;
     return { prs, abs, late, exc, pct };
   }, [getStudentStats]);
+
+  const getWeekSectionTotals = useCallback((studentList, days) => {
+    let prs = 0, abs = 0, late = 0, exc = 0;
+    studentList.forEach(s => {
+      const st = getWeekStats(s, days);
+      prs += st.prs; abs += st.abs; late += st.late; exc += st.exc;
+    });
+    const total = prs + abs + late + exc;
+    const pct = total > 0 ? Math.round((prs / total) * 100) : 0;
+    return { prs, abs, late, exc, pct };
+  }, [getWeekStats]);
 
   const maleTotals = useMemo(() => getSectionTotals(maleStudents), [getSectionTotals, maleStudents]);
   const femaleTotals = useMemo(() => getSectionTotals(femaleStudents), [getSectionTotals, femaleStudents]);
@@ -205,9 +243,26 @@ export default function SF2Dashboard() {
     }
   };
 
-  const headerRow = (studentList, sectionLabel, isGrand) => (
+  const handlePrint = () => window.print();
+
+  const weekSubtotalRow = (studentList, weekDays) => {
+    const totals = getWeekSectionTotals(studentList, weekDays);
+    const range = `${weekDays[0].dayNum}–${weekDays[weekDays.length - 1].dayNum}`;
+    return (
+      <tr className="bg-slate-100 font-semibold border-t border-slate-300">
+        <td colSpan={4} className="px-3 py-1.5 text-[10px] text-slate-600">Week {range}</td>
+        <td className="px-2 py-1.5 text-center text-[10px] text-green-800">{totals.prs}</td>
+        <td className="px-2 py-1.5 text-center text-[10px] text-red-800">{totals.abs}</td>
+        <td className="px-2 py-1.5 text-center text-[10px] text-amber-800">{totals.late}</td>
+        <td className="px-2 py-1.5 text-center text-[10px] text-blue-800">{totals.exc}</td>
+        <td className="px-2 py-1.5 text-center text-[10px] text-slate-800">{totals.pct}%</td>
+      </tr>
+    );
+  };
+
+  const headerRow = (sectionLabel, isGrand) => (
     <tr className={isGrand ? 'bg-indigo-50' : 'bg-slate-50'}>
-      <th colSpan={4} className={`px-3 py-2 text-left text-xs font-bold ${isGrand ? 'text-indigo-700' : 'text-slate-700'} uppercase`}>
+      <th colSpan={4} className={`px-3 py-2 text-left text-xs font-bold ${isGrand ? 'text-indigo-700' : 'text-slate-700'} uppercase sticky left-0 z-10 ${isGrand ? 'bg-indigo-50' : 'bg-slate-50'}`}>
         {sectionLabel}
       </th>
       <th className="px-2 py-2 text-center text-xs font-bold text-slate-500">Prs</th>
@@ -222,10 +277,10 @@ export default function SF2Dashboard() {
     const st = getStudentStats(student);
     return (
       <tr key={student.student_id} className="hover:bg-slate-50 transition-colors">
-        <td className="px-2 py-1.5 text-xs text-slate-500 text-center font-medium">{idx + 1}</td>
-        <td className="px-2 py-1.5 text-xs text-slate-700 max-w-[120px] truncate" title={student.lrn || ''}>{student.lrn || '—'}</td>
-        <td className="px-2 py-1.5 text-xs font-medium text-slate-900 max-w-[180px] truncate" title={student.student_name || ''}>{student.student_name || 'Unknown'}</td>
-        <td className="px-2 py-1.5 text-xs text-center">
+        <td className="px-2 py-1.5 text-xs text-slate-500 text-center font-medium sticky left-0 bg-white z-10 hover:bg-slate-50">{idx + 1}</td>
+        <td className="px-2 py-1.5 text-xs text-slate-700 max-w-[120px] truncate sticky left-[32px] bg-white z-10 hover:bg-slate-50" title={student.lrn || ''}>{student.lrn || '—'}</td>
+        <td className="px-2 py-1.5 text-xs font-medium text-slate-900 max-w-[180px] truncate sticky left-[104px] bg-white z-10 hover:bg-slate-50" title={student.student_name || ''}>{student.student_name || 'Unknown'}</td>
+        <td className="px-2 py-1.5 text-xs text-center sticky left-[240px] bg-white z-10 hover:bg-slate-50">
           <span className={(student.sex || '').toLowerCase() === 'male' ? 'text-blue-600' : 'text-pink-600'}>
             {(student.sex || '').charAt(0).toUpperCase() || '—'}
           </span>
@@ -249,7 +304,7 @@ export default function SF2Dashboard() {
 
   const totalsRow = (totals, label, isGrand) => (
     <tr className={isGrand ? 'bg-indigo-100 font-bold' : 'bg-slate-100 font-semibold'}>
-      <td colSpan={4} className={`px-3 py-2 text-xs ${isGrand ? 'text-indigo-800' : 'text-slate-700'}`}>{label}</td>
+      <td colSpan={4} className={`px-3 py-2 text-xs sticky left-0 z-10 ${isGrand ? 'bg-indigo-100 text-indigo-800' : 'bg-slate-100 text-slate-700'}`}>{label}</td>
       <td className="px-2 py-2 text-center text-xs text-green-800">{totals.prs}</td>
       <td className="px-2 py-2 text-center text-xs text-red-800">{totals.abs}</td>
       <td className="px-2 py-2 text-center text-xs text-amber-800">{totals.late}</td>
@@ -265,10 +320,10 @@ export default function SF2Dashboard() {
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr className="bg-slate-200">
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-8">#</th>
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-20">LRN</th>
-              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-600 uppercase border border-slate-300">Name of Learner</th>
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-8">Sex</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-8 sticky left-0 bg-slate-200 z-20">#</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-20 sticky left-[32px] bg-slate-200 z-20">LRN</th>
+              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-600 uppercase border border-slate-300 sticky left-[104px] bg-slate-200 z-20">Name of Learner</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-8 sticky left-[240px] bg-slate-200 z-20">Sex</th>
               {weekdayDates.map(wd => (
                 <th key={wd.dateStr} className="px-1 py-2 text-center border border-slate-300 min-w-[32px]">
                   <div className="text-[10px] font-bold text-slate-600">{wd.dayAbbr}</div>
@@ -283,8 +338,9 @@ export default function SF2Dashboard() {
             </tr>
           </thead>
           <tbody>
-            {headerRow(studentList, sectionLabel, isGrand)}
+            {headerRow(sectionLabel, isGrand)}
             {studentList.map((s, i) => studentRow(s, i))}
+            {weekGroups.map((wg, wi) => weekSubtotalRow(studentList, wg))}
             {totalsRow(totals, `${sectionLabel} Total`, isGrand)}
           </tbody>
         </table>
@@ -293,202 +349,269 @@ export default function SF2Dashboard() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="page-bottom-safe max-w-[1800px] mx-auto bg-slate-50 px-4 py-4 md:px-6 md:py-6 space-y-5"
-    >
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1.5">
-          <BookOpen className="w-3.5 h-3.5" />
-          <span>School Forms</span>
-        </div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
-          School Form 2 (SF2)
-        </h1>
-        <p className="text-xs text-slate-500 mt-1 font-semibold">
-          Daily Attendance Report of Learners
-        </p>
-      </div>
+    <>
+      <style>{`
+        @media print {
+          .no-print { display: none !important; }
+          .print-only { display: block !important; }
+          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; }
+          .overflow-x-auto { overflow: visible !important; }
+        }
+        .print-only { display: none; }
+      `}</style>
 
-      {/* Selection Form */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <h2 className="text-sm font-bold text-slate-700 mb-4">Generate Attendance Report</h2>
-        {loadingClasses ? (
-          <div className="space-y-4">
-            <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
-            <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* School Year */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">School Year</label>
-              <select
-                value={formData.academic_year}
-                onChange={(e) => handleFieldChange('academic_year', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-              >
-                <option value="">Select School Year</option>
-                {schoolYears.map(sy => <option key={sy} value={sy}>{sy}</option>)}
-              </select>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="page-bottom-safe max-w-[1800px] mx-auto bg-slate-50 px-4 py-4 md:px-6 md:py-6 space-y-5"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between no-print">
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1.5">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>School Forms</span>
             </div>
-
-            {/* Grade Level */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Grade Level</label>
-              <select
-                value={formData.grade_level}
-                onChange={(e) => handleFieldChange('grade_level', e.target.value)}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-              >
-                <option value="">Select Grade Level</option>
-                {gradeLevels.map(gl => <option key={gl} value={gl}>{gl}</option>)}
-              </select>
-            </div>
-
-            {/* Section */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1.5">Section</label>
-              <select
-                value={formData.section}
-                onChange={(e) => handleFieldChange('section', e.target.value)}
-                disabled={!formData.grade_level}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:opacity-50"
-              >
-                <option value="">Select Section</option>
-                {sections.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-
-            {/* Export Buttons */}
-            <div className="flex items-end gap-2">
-              <button
-                onClick={() => handleExport('pdf')}
-                disabled={!canGenerate || generating}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-600 text-white text-sm font-bold rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                PDF
-              </button>
-              <button
-                onClick={() => handleExport('excel')}
-                disabled={!canGenerate || generating}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                Excel
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Attendance Table */}
-      {overviewLoading ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-8">
-          <div className="flex flex-col items-center justify-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
-            <p className="text-sm text-slate-500 font-medium">Loading attendance data...</p>
-          </div>
-        </div>
-      ) : !overviewData ? (
-        canGenerate ? null : (
-          <div className="bg-white rounded-xl border border-slate-200 p-8">
-            <div className="flex flex-col items-center justify-center gap-3 text-center">
-              <FileText className="w-12 h-12 text-slate-300" />
-              <div>
-                <p className="text-sm font-bold text-slate-700">Select Class to View Attendance</p>
-                <p className="text-xs text-slate-500 mt-1">Choose a school year, grade level, and section above</p>
-              </div>
-            </div>
-          </div>
-        )
-      ) : filteredStudents.length === 0 ? (
-        <div className="bg-white rounded-xl border border-slate-200 p-8">
-          <div className="flex flex-col items-center justify-center gap-3 text-center">
-            <Users className="w-12 h-12 text-slate-300" />
-            <div>
-              <p className="text-sm font-bold text-slate-700">No Students Found</p>
-              <p className="text-xs text-slate-500 mt-1">{searchQuery ? 'No students match your search' : 'No students enrolled in this class'}</p>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Month navigation + search bar */}
-          <div className="flex items-center justify-between flex-wrap gap-3 px-4 py-3 border-b border-slate-200">
-            <div className="flex items-center gap-2">
-              <button onClick={() => navMonth(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                <ChevronLeft className="w-5 h-5 text-slate-600" />
-              </button>
-              <div className="text-sm font-bold text-slate-900 min-w-[160px] text-center">
-                {MONTHS[selectedMonth - 1]} {selectedYear}
-              </div>
-              <button onClick={() => navMonth(1)} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
-                <ChevronRight className="w-5 h-5 text-slate-600" />
-              </button>
-            </div>
-            <div className="relative max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search by name or LRN..."
-                className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
-            </div>
-          </div>
-
-          {/* School info header */}
-          <div className="bg-slate-800 text-white px-4 py-3 text-center">
-            <p className="text-sm font-bold tracking-wide">{overviewData.school_name || 'KNHS'}</p>
-            <p className="text-[10px] text-slate-300 uppercase tracking-widest">School Attendance Log</p>
-            <p className="text-xs font-semibold mt-1">
-              {MONTHS[selectedMonth - 1]} {selectedYear} — {formData.grade_level} {formData.section}
-              {overviewData.adviser_name && <span className="text-slate-400 ml-2">Adviser: {overviewData.adviser_name}</span>}
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+              School Form 2 (SF2)
+            </h1>
+            <p className="text-xs text-slate-500 mt-1 font-semibold">
+              Daily Attendance Report of Learners
             </p>
           </div>
-
-          {/* Male Section */}
-          {maleStudents.length > 0 && (
-            <div className="border-b border-slate-200">
-              {renderTable(maleStudents, 'Male', maleTotals, false)}
-            </div>
+          {overviewData && (
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-4 py-2.5 bg-slate-800 text-white text-sm font-bold rounded-lg hover:bg-slate-700 transition-colors"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </button>
           )}
+        </div>
 
-          {/* Female Section */}
-          {femaleStudents.length > 0 && (
-            <div>
-              {renderTable(femaleStudents, 'Female', femaleTotals, false)}
+        {/* Print-only header */}
+        {overviewData && (
+          <div className="print-only text-center mb-4">
+            <p className="text-sm font-bold">{overviewData.school_name || 'KNHS'}</p>
+            {overviewData.school_id && <p className="text-[10px]">School ID: {overviewData.school_id}</p>}
+            {(overviewData.region || overviewData.division) && (
+              <p className="text-[10px]">{[overviewData.region, overviewData.division].filter(Boolean).join(' — ')}</p>
+            )}
+            <p className="text-xs font-semibold mt-1">School Form 2 — Daily Attendance Report of Learners</p>
+          </div>
+        )}
+
+        {/* Selection Form */}
+        <div className="bg-white rounded-xl border border-slate-200 p-5 no-print">
+          <h2 className="text-sm font-bold text-slate-700 mb-4">Generate Attendance Report</h2>
+          {loadingClasses ? (
+            <div className="space-y-4">
+              <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
+              <div className="h-10 bg-slate-100 rounded-lg animate-pulse" />
             </div>
-          )}
-
-          {/* Grand Total */}
-          {(maleStudents.length > 0 || femaleStudents.length > 0) && (
-            <div className="bg-indigo-50 border-t-2 border-indigo-200">
-              <table className="w-full text-xs">
-                <tbody>
-                  {totalsRow(grandTotals, 'Grand Total', true)}
-                </tbody>
-              </table>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">School Year</label>
+                <select
+                  value={formData.academic_year}
+                  onChange={(e) => handleFieldChange('academic_year', e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                >
+                  <option value="">Select School Year</option>
+                  {schoolYears.map(sy => <option key={sy} value={sy}>{sy}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">Grade Level</label>
+                <select
+                  value={formData.grade_level}
+                  onChange={(e) => handleFieldChange('grade_level', e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                >
+                  <option value="">Select Grade Level</option>
+                  {gradeLevels.map(gl => <option key={gl} value={gl}>{gl}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1.5">Section</label>
+                <select
+                  value={formData.section}
+                  onChange={(e) => handleFieldChange('section', e.target.value)}
+                  disabled={!formData.grade_level}
+                  className="w-full px-3 py-2.5 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:opacity-50"
+                >
+                  <option value="">Select Section</option>
+                  {sections.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="flex items-end gap-2">
+                <button
+                  onClick={() => handleExport('pdf')}
+                  disabled={!canGenerate || generating}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-violet-600 text-white text-sm font-bold rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  PDF
+                </button>
+                <button
+                  onClick={() => handleExport('excel')}
+                  disabled={!canGenerate || generating}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  Excel
+                </button>
+              </div>
             </div>
           )}
         </div>
-      )}
 
-      {/* Info Box */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <h3 className="text-sm font-bold text-blue-800 mb-2">About SF2</h3>
-        <p className="text-xs text-blue-700 leading-relaxed">
-          School Form 2 (Daily Attendance Report of Learners) is generated on-the-fly from existing attendance records.
-          Select a class section to view the monthly attendance grid. Navigate months with the arrows.
-          Export as PDF or Excel for printing.
-        </p>
-      </div>
-    </motion.div>
+        {/* Attendance Table */}
+        {overviewLoading ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-8">
+            <div className="flex flex-col items-center justify-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+              <p className="text-sm text-slate-500 font-medium">Loading attendance data...</p>
+            </div>
+          </div>
+        ) : !overviewData ? (
+          canGenerate ? null : (
+            <div className="bg-white rounded-xl border border-slate-200 p-8">
+              <div className="flex flex-col items-center justify-center gap-3 text-center">
+                <FileText className="w-12 h-12 text-slate-300" />
+                <div>
+                  <p className="text-sm font-bold text-slate-700">Select Class to View Attendance</p>
+                  <p className="text-xs text-slate-500 mt-1">Choose a school year, grade level, and section above</p>
+                </div>
+              </div>
+            </div>
+          )
+        ) : filteredStudents.length === 0 ? (
+          <div className="bg-white rounded-xl border border-slate-200 p-8">
+            <div className="flex flex-col items-center justify-center gap-3 text-center">
+              <Users className="w-12 h-12 text-slate-300" />
+              <div>
+                <p className="text-sm font-bold text-slate-700">No Students Found</p>
+                <p className="text-xs text-slate-500 mt-1">{searchQuery ? 'No students match your search' : 'No students enrolled in this class'}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Summary Stats Bar */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-b border-slate-200">
+              <div className="px-4 py-3 border-r border-slate-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <Users className="w-3.5 h-3.5 text-violet-500" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Enrolled</span>
+                </div>
+                <p className="text-lg font-extrabold text-slate-900">{overviewData.total_learners || filteredStudents.length}</p>
+              </div>
+              <div className="px-4 py-3 border-r border-slate-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">School Days</span>
+                </div>
+                <p className="text-lg font-extrabold text-slate-900">{overviewData.total_school_days || weekdayDates.length}</p>
+              </div>
+              <div className="px-4 py-3 border-r border-slate-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="w-3.5 h-3.5 text-green-500" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Attendance</span>
+                </div>
+                <p className="text-lg font-extrabold text-green-600">{overviewData.overall_attendance_pct ?? grandTotals.pct}%</p>
+              </div>
+              <div className="px-4 py-3">
+                <div className="flex items-center gap-2 mb-1">
+                  <BookOpen className="w-3.5 h-3.5 text-amber-500" />
+                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Adviser</span>
+                </div>
+                <p className="text-sm font-bold text-slate-900 truncate">{overviewData.adviser_name || '—'}</p>
+              </div>
+            </div>
+
+            {/* Month navigation + search bar */}
+            <div className="flex items-center justify-between flex-wrap gap-3 px-4 py-3 border-b border-slate-200 no-print">
+              <div className="flex items-center gap-2">
+                <button onClick={() => navMonth(-1)} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                  <ChevronLeft className="w-5 h-5 text-slate-600" />
+                </button>
+                <div className="text-sm font-bold text-slate-900 min-w-[160px] text-center">
+                  {MONTHS[selectedMonth - 1]} {selectedYear}
+                </div>
+                <button onClick={() => navMonth(1)} className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                  <ChevronRight className="w-5 h-5 text-slate-600" />
+                </button>
+              </div>
+              <div className="relative max-w-xs">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="Search by name or LRN..."
+                  className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+              </div>
+            </div>
+
+            {/* School info header */}
+            <div className="bg-slate-800 text-white px-4 py-3 text-center">
+              <p className="text-sm font-bold tracking-wide">{overviewData.school_name || 'KNHS'}</p>
+              <div className="flex items-center justify-center gap-3 text-[10px] text-slate-300 uppercase tracking-widest">
+                {overviewData.school_id && <span>School ID: {overviewData.school_id}</span>}
+                {(overviewData.region || overviewData.division) && (
+                  <span>{[overviewData.region, overviewData.division].filter(Boolean).join(' — ')}</span>
+                )}
+              </div>
+              <p className="text-xs font-semibold mt-1">
+                {MONTHS[selectedMonth - 1]} {selectedYear} — {formData.grade_level} {formData.section}
+                {overviewData.adviser_name && <span className="text-slate-400 ml-2">Adviser: {overviewData.adviser_name}</span>}
+              </p>
+            </div>
+
+            {/* Male Section */}
+            {maleStudents.length > 0 && (
+              <div className="border-b border-slate-200">
+                {renderTable(maleStudents, 'Male', maleTotals, false)}
+              </div>
+            )}
+
+            {/* Female Section */}
+            {femaleStudents.length > 0 && (
+              <div>
+                {renderTable(femaleStudents, 'Female', femaleTotals, false)}
+              </div>
+            )}
+
+            {/* Grand Total */}
+            {(maleStudents.length > 0 || femaleStudents.length > 0) && (
+              <div className="bg-indigo-50 border-t-2 border-indigo-200">
+                <table className="w-full text-xs">
+                  <tbody>
+                    {totalsRow(grandTotals, 'Grand Total', true)}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Info Box */}
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 no-print">
+          <h3 className="text-sm font-bold text-blue-800 mb-2">About SF2</h3>
+          <p className="text-xs text-blue-700 leading-relaxed">
+            School Form 2 (Daily Attendance Report of Learners) is generated on-the-fly from existing attendance records.
+            Select a class section to view the monthly attendance grid. Navigate months with the arrows.
+            Export as PDF or Excel for printing, or use the Print button for a browser print preview.
+          </p>
+        </div>
+      </motion.div>
+    </>
   );
 }
