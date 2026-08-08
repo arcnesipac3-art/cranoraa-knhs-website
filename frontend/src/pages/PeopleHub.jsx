@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParallelFetch } from '../hooks/useFetch';
-import { useCurrentUser } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
@@ -49,7 +49,7 @@ const ALL_TABS = [
 ];
 
 export default function PeopleHub() {
-  const { user } = useCurrentUser();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('teachers');
 
   const tabs = useMemo(() =>
