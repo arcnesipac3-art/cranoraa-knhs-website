@@ -291,34 +291,61 @@ export default function MasterSheet() {
         import('html2canvas'),
         import('jspdf'),
       ]);
-      const container = printRef.current || document.querySelector('[data-master-sheet]');
-      if (!container) {
-        setPrintMode(true);
-        await new Promise(r => setTimeout(r, 400));
-        const el = printRef.current;
-        if (!el) { toast.error('Could not find content to export'); setExporting(null); return; }
-        const canvas = await html2canvas(el, { scale: 2, useCORS: true });
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-        const pw = pdf.internal.pageSize.getWidth();
-        const ph = pdf.internal.pageSize.getHeight();
-        const imgW = pw - 20;
-        const imgH = (canvas.height * imgW) / canvas.width;
-        pdf.addImage(imgData, 'PNG', 10, 10, imgW, Math.min(imgH, ph - 20));
-        pdf.save(`MasterSheet-${classroomObj?.name || 'class'}.pdf`);
-        setPrintMode(false);
-        toast.success('PDF exported');
-        setExporting(null);
-        return;
-      }
-      const canvas = await html2canvas(container, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/png');
+
       const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       const pw = pdf.internal.pageSize.getWidth();
       const ph = pdf.internal.pageSize.getHeight();
       const imgW = pw - 20;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 10, 10, imgW, Math.min(imgH, ph - 20));
+      const margin = 10;
+
+      const items = isAll ? allStudentData : [{ profile: singleProfile, grades: singleGrades, attendance: singleAttendance }];
+
+      const captureStudent = async (item) => {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:1024px;background:white;z-index:-1;font-family:Inter,system-ui,sans-serif;';
+        document.body.appendChild(wrapper);
+
+        const { createRoot } = await import('react-dom/client');
+        const root = createRoot(wrapper);
+        await new Promise(resolve => {
+          root.render(
+            <div className="bg-white p-6" style={{ width: '1024px' }}>
+              <div className="text-center mb-4">
+                <p style={{ fontSize: '10px' }}>Republic of the Philippines</p>
+                <p style={{ fontSize: '11px', fontWeight: 700 }}>Department of Education</p>
+                <p style={{ fontSize: '10px' }}>Region X - Iligan City · Division of Lanao del Norte</p>
+                <h1 style={{ fontSize: '13px', fontWeight: 700, marginTop: '8px' }}>MASTER SHEET</h1>
+                <p style={{ fontSize: '10px', marginTop: '4px' }}>{classroomObj?.grade_level || ''} - {classroomObj?.name || ''} · {academicYear}</p>
+              </div>
+              <PrintContent
+                profile={item.profile} classroom={classroomObj} teacher={teacherObj}
+                grades={item.grades} attendance={item.attendance}
+                myAssignments={myAssignments} isTeacher={isTeacher}
+              />
+            </div>
+          );
+          setTimeout(resolve, 100);
+        });
+
+        const canvas = await html2canvas(wrapper, { scale: 2, useCORS: true, width: 1024 });
+        root.unmount();
+        wrapper.remove();
+        return canvas;
+      };
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (!item.profile) continue;
+
+        if (i > 0) pdf.addPage();
+
+        const canvas = await captureStudent(item);
+        const imgData = canvas.toDataURL('image/png');
+        const imgH = (canvas.height * imgW) / canvas.width;
+        const scaledH = Math.min(imgH, ph - 2 * margin);
+        pdf.addImage(imgData, 'PNG', margin, margin, imgW, scaledH);
+      }
+
       pdf.save(`MasterSheet-${classroomObj?.name || 'class'}.pdf`);
       toast.success('PDF exported');
     } catch (err) {
