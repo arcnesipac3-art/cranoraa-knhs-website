@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { useAcademicYear } from '../context/AcademicYearContext';
 
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -19,6 +20,7 @@ const STATUS_COLORS = {
 };
 
 export default function SF2Dashboard() {
+  const { academicYears } = useAcademicYear();
   const [classrooms, setClassrooms] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [formData, setFormData] = useState({ academic_year: '', grade_level: '', section: '' });
@@ -31,26 +33,30 @@ export default function SF2Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const fetchClassrooms = async () => {
-      setLoadingClasses(true);
-      try {
-        const res = await api.get('/classrooms/', { params: { page_size: 1000 } });
-        setClassrooms(res.data.results || res.data);
-      } catch {
-        toast.error('Failed to load classrooms');
-      } finally {
-        setLoadingClasses(false);
-      }
-    };
-    fetchClassrooms();
-  }, []);
+    if (academicYears?.length > 0 && !formData.academic_year) {
+      const active = academicYears.find(y => y.is_active) || academicYears[0];
+      if (active) setFormData(f => ({ ...f, academic_year: String(active.id) }));
+    }
+  }, [academicYears, formData.academic_year]);
 
-  const gradeLevels = [...new Set(classrooms.map(c => c.grade_level))].sort();
-  const sections = classrooms
-    .filter(c => !formData.grade_level || c.grade_level === formData.grade_level)
-    .map(c => c.section)
-    .sort();
-  const schoolYears = [...new Set(classrooms.map(c => c.academic_year))].sort().reverse();
+  useEffect(() => {
+    const params = {};
+    if (formData.academic_year) params.academic_year = formData.academic_year;
+    setLoadingClasses(true);
+    api.get('/classrooms/', { params }).then(r => {
+      setClassrooms(r.data?.results || (Array.isArray(r.data) ? r.data : []));
+    }).catch(() => toast.error('Failed to load classrooms')).finally(() => setLoadingClasses(false));
+  }, [formData.academic_year]);
+
+  const gradeLevels = useMemo(() => [...new Set(classrooms.map(c => c.grade_level).filter(Boolean))].sort(), [classrooms]);
+  const sections = useMemo(() =>
+    classrooms.filter(c => !formData.grade_level || c.grade_level === formData.grade_level).map(c => c.name || c.section).filter(Boolean).sort(),
+    [classrooms, formData.grade_level]
+  );
+  const selectedClassroom = useMemo(() =>
+    classrooms.find(c => (c.name || c.section) === formData.section && (!formData.grade_level || c.grade_level === formData.grade_level)),
+    [classrooms, formData.section, formData.grade_level]
+  );
 
   const handleFieldChange = (field, value) => {
     setFormData(prev => {
@@ -179,7 +185,7 @@ export default function SF2Dashboard() {
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `SF2_${formData.academic_year}_${formData.grade_level}_${formData.section}_${MONTHS[selectedMonth - 1]}.${type === 'pdf' ? 'pdf' : 'xlsx'}`;
+      a.download = `SF2_${formData.grade_level}_${formData.section}_${monthName}_${selectedYear}.${type === 'pdf' ? 'pdf' : 'xlsx'}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -264,7 +270,7 @@ export default function SF2Dashboard() {
           </p>
           <p className="text-xs font-bold text-slate-900 mt-2">SCHOOL FORM 2 (SF2) — Daily Attendance Report of Learners</p>
           <p className="text-[10px] text-slate-600">
-            SY: {formData.academic_year} | Grade: {formData.grade_level} | Section: {formData.section} | Month: {monthName} {selectedYear} | Adviser: {overviewData?.adviser_name || '—'}
+            SY: {academicYears?.find(y => String(y.id) === formData.academic_year)?.name || formData.academic_year} | Grade: {formData.grade_level} | Section: {formData.section} | Month: {monthName} {selectedYear} | Adviser: {selectedClassroom?.teacher_name || overviewData?.adviser_name || '—'}
           </p>
         </div>
 
@@ -292,24 +298,24 @@ export default function SF2Dashboard() {
         {/* Filters */}
         <div className="flex flex-wrap items-end gap-3 p-4 bg-white border border-slate-200 rounded-xl no-print">
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">School Year</label>
-            <select value={formData.academic_year} onChange={e => handleFieldChange('academic_year', e.target.value)}
-              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
-              <option value="">Select Year</option>
-              {schoolYears.map(sy => <option key={sy} value={sy}>{sy}</option>)}
-            </select>
-          </div>
-          <div>
             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Month</label>
-            <select value={selectedMonth} onChange={e => setSelectedMonth(parseInt(e.target.value))}
-              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
-              {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
-            </select>
+            <div className="flex items-center gap-1">
+              <button onClick={() => navMonth(-1)} className="p-1 rounded hover:bg-slate-100 transition-colors">
+                <ChevronLeft className="w-4 h-4 text-slate-500" />
+              </button>
+              <select value={selectedMonth} onChange={e => setSelectedMonth(parseInt(e.target.value))}
+                className="px-2 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 min-w-[110px]">
+                {MONTHS.map((m, i) => <option key={i + 1} value={i + 1}>{m}</option>)}
+              </select>
+              <button onClick={() => navMonth(1)} className="p-1 rounded hover:bg-slate-100 transition-colors">
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
           </div>
           <div>
             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Grade Level</label>
             <select value={formData.grade_level} onChange={e => handleFieldChange('grade_level', e.target.value)}
-              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
+              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 min-w-[100px]">
               <option value="">All</option>
               {gradeLevels.map(gl => <option key={gl} value={gl}>{gl}</option>)}
             </select>
@@ -318,16 +324,18 @@ export default function SF2Dashboard() {
             <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Section</label>
             <select value={formData.section} onChange={e => handleFieldChange('section', e.target.value)}
               disabled={!formData.grade_level}
-              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50">
+              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 min-w-[120px] disabled:opacity-50">
               <option value="">Select Section</option>
               {sections.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
-          <div className="relative max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search name or LRN..."
-              className="w-full pl-9 pr-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500" />
-          </div>
+          {overviewData && (
+            <div className="relative max-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+              <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Search name or LRN..."
+                className="w-full pl-8 pr-2 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500" />
+            </div>
+          )}
           <div className="flex items-center gap-1 ml-auto">
             <span className="text-[10px] text-slate-400">
               {weekdayDates.length} school day{weekdayDates.length !== 1 ? 's' : ''} | {filteredStudents.length} learner{filteredStudents.length !== 1 ? 's' : ''}
