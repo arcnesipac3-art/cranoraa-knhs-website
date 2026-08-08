@@ -467,23 +467,17 @@ class SF1SchoolRegisterService:
 
 
 def generate_sf1(academic_year=None, grade_level=None, section=None, adviser=None, student_id=None):
-    service = SF1SchoolRegisterService(
-        academic_year=academic_year,
-        grade_level=grade_level,
-        section=section,
-        adviser=adviser,
-        student_id=student_id,
-    )
-    empty_result = {
+    from datetime import date as _date
+    empty = {
         'data': {
             'school_info': {},
             'school_head_name': '',
-            'generated_date': date.today().strftime('%B %d, %Y'),
+            'generated_date': _date.today().strftime('%B %d, %Y'),
             'classrooms': [],
         },
         'validation': {
             'valid': False,
-            'errors': ['An error occurred while generating SF1.'],
+            'errors': [],
             'warnings': [],
             'student_warnings': [],
             'total_students': 0,
@@ -493,22 +487,40 @@ def generate_sf1(academic_year=None, grade_level=None, section=None, adviser=Non
         'filters': {},
     }
     try:
-        data = service.get_data()
+        service = SF1SchoolRegisterService(
+            academic_year=academic_year,
+            grade_level=grade_level,
+            section=section,
+            adviser=adviser,
+            student_id=student_id,
+        )
+        empty['data'] = service.get_data()
     except Exception as e:
-        logger.exception("SF1 get_data error: %s", e)
-        data = empty_result['data']
+        import logging
+        logging.getLogger(__name__).exception("SF1 generate_sf1 error: %s", e)
     try:
-        validation = service.validate() if data.get('classrooms') else empty_result['validation']
+        service = SF1SchoolRegisterService(
+            academic_year=academic_year,
+            grade_level=grade_level,
+            section=section,
+            adviser=adviser,
+            student_id=student_id,
+        )
+        if empty['data'].get('classrooms'):
+            empty['validation'] = service.validate()
     except Exception as e:
-        logger.exception("SF1 validate error: %s", e)
-        validation = empty_result['validation']
+        import logging
+        logging.getLogger(__name__).exception("SF1 validate error: %s", e)
     try:
-        filters = service.get_filters_metadata()
+        service = SF1SchoolRegisterService(
+            academic_year=academic_year,
+            grade_level=grade_level,
+            section=section,
+            adviser=adviser,
+            student_id=student_id,
+        )
+        empty['filters'] = service.get_filters_metadata()
     except Exception as e:
-        logger.exception("SF1 filters error: %s", e)
-        filters = empty_result['filters']
-    return {
-        'data': data,
-        'validation': validation,
-        'filters': filters,
-    }
+        import logging
+        logging.getLogger(__name__).exception("SF1 filters error: %s", e)
+    return empty

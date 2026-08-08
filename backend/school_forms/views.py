@@ -1,6 +1,8 @@
 import base64
+import json
 import logging
-from django.http import HttpResponse
+from datetime import date, datetime
+from django.http import HttpResponse, JsonResponse
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -17,6 +19,22 @@ from school_forms.utils.pdf import generate_pdf_report
 from school_forms.utils.excel import generate_excel_report
 
 logger = logging.getLogger(__name__)
+
+
+def _json_safe(obj):
+    if isinstance(obj, (date, datetime)):
+        return obj.isoformat()
+    if hasattr(obj, 'pk'):
+        return obj.pk
+    return str(obj)
+
+
+def _safe_json_response(data, status_code=200):
+    return HttpResponse(
+        json.dumps(data, default=_json_safe, ensure_ascii=False),
+        content_type='application/json',
+        status=status_code,
+    )
 
 
 class SchoolFormsViewSet(viewsets.ViewSet):
@@ -50,10 +68,10 @@ class SF1ViewSet(SchoolFormsViewSet):
                 adviser=filters['adviser'],
                 student_id=filters['student_id'],
             )
-            return Response(result)
+            return _safe_json_response(result)
         except Exception as e:
             logger.exception("SF1 list error: %s", e)
-            return Response({
+            return _safe_json_response({
                 'data': {'school_info': {}, 'school_head_name': '', 'generated_date': '', 'classrooms': []},
                 'validation': {'valid': False, 'errors': [str(e)], 'warnings': [], 'student_warnings': [], 'total_students': 0, 'total_male': 0, 'total_female': 0},
                 'filters': {},
@@ -63,10 +81,10 @@ class SF1ViewSet(SchoolFormsViewSet):
     def get_filters_data(self, request):
         try:
             service = sf1_service.SF1SchoolRegisterService()
-            return Response(service.get_filters_metadata())
+            return _safe_json_response(service.get_filters_metadata())
         except Exception as e:
             logger.exception("SF1 filters error: %s", e)
-            return Response({'academic_years': [], 'grade_levels': [], 'sections': [], 'advisers': []})
+            return _safe_json_response({'academic_years': [], 'grade_levels': [], 'sections': [], 'advisers': []})
 
     @action(detail=False, methods=['post'])
     def validate(self, request):
