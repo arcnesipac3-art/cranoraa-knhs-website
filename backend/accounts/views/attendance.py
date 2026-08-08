@@ -1,5 +1,6 @@
 import datetime
 import logging
+from django.core.cache import cache
 from django.db import transaction, IntegrityError
 from django.db.models import Q, Count, Case, When, IntegerField
 from django.utils import timezone
@@ -7,7 +8,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-import rest_framework_parsers
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from ..models import (
     User, Profile, Classroom, StudentClassEnrollment, Attendance, LearningMaterial,
@@ -1190,7 +1191,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 class AbsenceExcuseViewSet(viewsets.ModelViewSet):
     serializer_class = AbsenceExcuseSerializer
     permission_classes = [IsAuthenticated]
-    parser_classes = [rest_framework_parsers.MultiPartParser, rest_framework_parsers.FormParser, rest_framework_parsers.JSONParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         user = self.request.user
