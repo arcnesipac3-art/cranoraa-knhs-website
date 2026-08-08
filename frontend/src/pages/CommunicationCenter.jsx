@@ -703,6 +703,24 @@ export default function CommunicationCenter() {
     } catch { toast.error('Failed to edit'); }
   }, [editingMsgId, editingContent]);
 
+  const handleChatUpload = useCallback(async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedRoom) return;
+    setChatUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('room_id', selectedRoom.id);
+      if (replyTo) formData.append('parent_id', replyTo.id);
+      const r = await api.post('/chat/messages/send_media/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setChatMessages(prev => [...prev, r.data]);
+      setReplyTo(null);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+    } catch { toast.error('Upload failed'); }
+    setChatUploading(false);
+    if (chatFileInputRef.current) chatFileInputRef.current.value = '';
+  }, [selectedRoom, replyTo]);
+
   const handlePaste = useCallback((e) => {
     const items = e.clipboardData?.items;
     if (!items || !selectedRoom) return;
@@ -866,24 +884,6 @@ export default function CommunicationCenter() {
       if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); }
     }, 50);
   }, []);
-
-  const handleChatUpload = useCallback(async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedRoom) return;
-    setChatUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('room_id', selectedRoom.id);
-      if (replyTo) formData.append('parent_id', replyTo.id);
-      const r = await api.post('/chat/messages/send_media/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      setChatMessages(prev => [...prev, r.data]);
-      setReplyTo(null);
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-    } catch { toast.error('Upload failed'); }
-    setChatUploading(false);
-    if (chatFileInputRef.current) chatFileInputRef.current.value = '';
-  }, [selectedRoom, replyTo]);
 
   const filteredChatRooms = useMemo(() => {
     let list = [...chatRooms];
