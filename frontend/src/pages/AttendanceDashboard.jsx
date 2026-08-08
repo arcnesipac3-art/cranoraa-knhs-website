@@ -249,6 +249,13 @@ const AttendanceDashboard = () => {
       const total = present + absent + late + excused;
       const pct = schoolDays.length > 0 ? Math.round(((present + late) / schoolDays.length) * 100) : 0;
       return { ...s, days_present: present, days_absent: absent, days_late: late, days_excused: excused, pct };
+    }).sort((a, b) => {
+      const nameA = (a.name || '').toLowerCase();
+      const nameB = (b.name || '').toLowerCase();
+      const lastA = nameA.includes(',') ? nameA.split(',')[0].trim() : nameA.split(' ').pop();
+      const lastB = nameB.includes(',') ? nameB.split(',')[0].trim() : nameB.split(' ').pop();
+      const cmp = lastA.localeCompare(lastB);
+      return cmp !== 0 ? cmp : nameA.localeCompare(nameB);
     });
   }, [students, schoolDays]);
 

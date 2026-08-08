@@ -861,7 +861,10 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
         const sorted = res.data.sort((a, b) => {
           const nameA = (a.student_name || '').toLowerCase();
           const nameB = (b.student_name || '').toLowerCase();
-          return nameA.localeCompare(nameB);
+          const lastA = nameA.split(' ').pop();
+          const lastB = nameB.split(' ').pop();
+          const cmp = lastA.localeCompare(lastB);
+          return cmp !== 0 ? cmp : nameA.localeCompare(nameB);
         });
         setStudents(sorted);
         const initAttendance = {};
@@ -1399,7 +1402,10 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
         const sorted = res.data.sort((a, b) => {
           const nameA = (a.student_name || '').toLowerCase();
           const nameB = (b.student_name || '').toLowerCase();
-          return nameA.localeCompare(nameB);
+          const lastA = nameA.split(' ').pop();
+          const lastB = nameB.split(' ').pop();
+          const cmp = lastA.localeCompare(lastB);
+          return cmp !== 0 ? cmp : nameA.localeCompare(nameB);
         });
         setStudents(sorted);
       } catch {
