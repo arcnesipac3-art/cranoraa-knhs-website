@@ -53,7 +53,11 @@ class SF1ViewSet(SchoolFormsViewSet):
             return Response(result)
         except Exception as e:
             logger.exception("SF1 list error: %s", e)
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({
+                'data': {'school_info': {}, 'school_head_name': '', 'generated_date': '', 'classrooms': []},
+                'validation': {'valid': False, 'errors': [str(e)], 'warnings': [], 'student_warnings': [], 'total_students': 0, 'total_male': 0, 'total_female': 0},
+                'filters': {},
+            })
 
     @action(detail=False, methods=['get'], url_path='filters')
     def get_filters_data(self, request):
@@ -61,7 +65,8 @@ class SF1ViewSet(SchoolFormsViewSet):
             service = sf1_service.SF1SchoolRegisterService()
             return Response(service.get_filters_metadata())
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception("SF1 filters error: %s", e)
+            return Response({'academic_years': [], 'grade_levels': [], 'sections': [], 'advisers': []})
 
     @action(detail=False, methods=['post'])
     def validate(self, request):

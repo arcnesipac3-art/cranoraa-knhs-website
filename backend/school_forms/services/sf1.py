@@ -474,8 +474,41 @@ def generate_sf1(academic_year=None, grade_level=None, section=None, adviser=Non
         adviser=adviser,
         student_id=student_id,
     )
+    empty_result = {
+        'data': {
+            'school_info': {},
+            'school_head_name': '',
+            'generated_date': date.today().strftime('%B %d, %Y'),
+            'classrooms': [],
+        },
+        'validation': {
+            'valid': False,
+            'errors': ['An error occurred while generating SF1.'],
+            'warnings': [],
+            'student_warnings': [],
+            'total_students': 0,
+            'total_male': 0,
+            'total_female': 0,
+        },
+        'filters': {},
+    }
+    try:
+        data = service.get_data()
+    except Exception as e:
+        logger.exception("SF1 get_data error: %s", e)
+        data = empty_result['data']
+    try:
+        validation = service.validate() if data.get('classrooms') else empty_result['validation']
+    except Exception as e:
+        logger.exception("SF1 validate error: %s", e)
+        validation = empty_result['validation']
+    try:
+        filters = service.get_filters_metadata()
+    except Exception as e:
+        logger.exception("SF1 filters error: %s", e)
+        filters = empty_result['filters']
     return {
-        'data': service.get_data(),
-        'validation': service.validate(),
-        'filters': service.get_filters_metadata(),
+        'data': data,
+        'validation': validation,
+        'filters': filters,
     }
