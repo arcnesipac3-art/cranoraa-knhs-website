@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { api } from '../utils/api';
 import { Card, CardHeader, CardBody, CardFooter } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
+import { Skeleton } from '../components/ui/Skeleton';
 import { useAcademicYear } from '../context/AcademicYearContext';
 import { useSystemSettings } from '../hooks/useSystemSettings';
 import {
@@ -15,15 +16,17 @@ import {
 } from '../utils/exportHelpers';
 
 function SF1Page() {
-  const { activeYear } = useAcademicYear();
+  const { academicYear: activeYearName, academicYears } = useAcademicYear();
   const { settings } = useSystemSettings();
+
   const [filters, setFilters] = useState({
     academic_year: '',
+    grade_level: '',
     section: '',
   });
   const [previewMode, setPreviewMode] = useState(false);
 
-  const { data: filterOptions } = useQuery({
+  const { data: filterOptions, isLoading: filtersLoading } = useQuery({
     queryKey: ['sf1-filters'],
     queryFn: async () => {
       const res = await api.get('/sf1/filters/');
@@ -31,11 +34,43 @@ function SF1Page() {
     },
   });
 
+  const academicYearOptions = useMemo(() => {
+    if (filterOptions?.academic_years?.length) return filterOptions.academic_years;
+    if (academicYears?.length) return academicYears;
+    return [];
+  }, [filterOptions, academicYears]);
+
+  const gradeLevelOptions = useMemo(() => {
+    if (filterOptions?.grade_levels?.length) return filterOptions.grade_levels;
+    return [];
+  }, [filterOptions]);
+
+  const sectionOptions = useMemo(() => {
+    if (filters.grade_level && filterOptions?.sections?.length) {
+      return filterOptions.sections;
+    }
+    return filterOptions?.sections || [];
+  }, [filterOptions, filters.grade_level]);
+
+  useEffect(() => {
+    if (filters.academic_year) return;
+    const match = academicYearOptions.find(
+      (ay) => ay.name === activeYearName
+    );
+    if (match) {
+      setFilters((prev) => ({ ...prev, academic_year: String(match.id) }));
+    } else if (academicYearOptions.length === 1) {
+      setFilters((prev) => ({ ...prev, academic_year: String(academicYearOptions[0].id) }));
+    }
+  }, [academicYearOptions, activeYearName, filters.academic_year]);
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['sf1', filters],
     queryFn: async () => {
       const params = new URLSearchParams();
-      Object.entries(filters).forEach(([k, v]) => { if (v) params.set(k, v); });
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v) params.set(k, v);
+      });
       const res = await api.get(`/sf1/?${params.toString()}`);
       return res.data;
     },
@@ -50,93 +85,67 @@ function SF1Page() {
   const totalMale = validation?.total_male || 0;
   const totalFemale = validation?.total_female || 0;
 
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  };
+  const handleFilterChange = useCallback((key, value) => {
+    setFilters((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === 'grade_level') {
+        next.section = '';
+      }
+      return next;
+    });
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setFilters({ academic_year: '', grade_level: '', section: '' });
+  }, []);
 
   const handleExportPDF = async () => {
-    // Validation
     if (!firstClassroom) {
-      toast.error('No classroom selected. Please select an academic year.');
+      toast.error('No data to export. Select filters and click Generate SF1 first.');
       return;
     }
-    
-    if (totalStudents === 0) {
-      toast.error('No students found in the selected classroom.');
-      return;
-    }
-
     const progress = new ExportProgress(2, 'Preparing SF1 School Register PDF');
-    
     try {
       progress.update(1, 'Generating PDF from server');
-      
       const params = {};
       Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
-      
       const filename = generateExportFilename(
         `SF1_${firstClassroom?.classroom?.grade_level || 'Grade'}_${firstClassroom?.classroom?.section || 'Section'}`,
         'pdf',
         { includeDate: true }
       );
-      
-      await downloadFromAPI(
-        api,
-        '/sf1/export/pdf/',
-        filename,
-        {
-          method: 'post',
-          params,
-          responseType: 'blob',
-        }
-      );
-      
+      await downloadFromAPI(api, '/sf1/export/pdf/', filename, {
+        method: 'post',
+        params,
+        responseType: 'blob',
+      });
       progress.complete('SF1 School Register PDF exported successfully!');
-      
     } catch (error) {
       handleExportError(error, 'PDF Export');
     }
   };
 
   const handleExportExcel = async () => {
-    // Validation
     if (!firstClassroom) {
-      toast.error('No classroom selected. Please select an academic year.');
+      toast.error('No data to export. Select filters and click Generate SF1 first.');
       return;
     }
-    
-    if (totalStudents === 0) {
-      toast.error('No students found in the selected classroom.');
-      return;
-    }
-
     const progress = new ExportProgress(2, 'Preparing SF1 School Register Excel');
-    
     try {
       progress.update(1, 'Generating Excel from server');
-      
       const params = {};
       Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
-      
       const filename = generateExportFilename(
         `SF1_${firstClassroom?.classroom?.grade_level || 'Grade'}_${firstClassroom?.classroom?.section || 'Section'}`,
         'xlsx',
         { includeDate: true }
       );
-      
-      await downloadFromAPI(
-        api,
-        '/sf1/export/excel/',
-        filename,
-        {
-          method: 'post',
-          params,
-          responseType: 'blob',
-        }
-      );
-      
+      await downloadFromAPI(api, '/sf1/export/excel/', filename, {
+        method: 'post',
+        params,
+        responseType: 'blob',
+      });
       progress.complete('SF1 School Register Excel exported successfully!');
-      
     } catch (error) {
       handleExportError(error, 'Excel Export');
     }
@@ -145,14 +154,6 @@ function SF1Page() {
   const handlePrint = () => {
     window.print();
   };
-
-  const genderSeparatedStudents = useMemo(() => {
-    if (!firstClassroom) return { males: [], females: [] };
-    return {
-      males: firstClassroom.male_students || [],
-      females: firstClassroom.female_students || [],
-    };
-  }, [firstClassroom]);
 
   return (
     <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -164,52 +165,83 @@ function SF1Page() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Official DepEd class register with enrolled students
-            {activeYear && <span className="ml-2">• SY {activeYear.name}</span>}
+            {activeYearName && (
+              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-violet-50 text-violet-600 rounded-full text-[10px] font-bold uppercase">
+                SY {activeYearName}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="secondary" size="sm" onClick={() => setPreviewMode(!previewMode)}>
+          <Button variant="secondary" size="sm" onClick={() => setPreviewMode(!previewMode)} disabled={!firstClassroom}>
             {previewMode ? 'List View' : 'Preview'}
           </Button>
-          <Button variant="secondary" size="sm" onClick={handlePrint}>Print</Button>
-          <Button variant="secondary" size="sm" onClick={handleExportPDF}>Download PDF</Button>
-          <Button variant="primary" size="sm" onClick={handleExportExcel}>Download Excel</Button>
+          <Button variant="secondary" size="sm" onClick={handlePrint} disabled={!firstClassroom}>Print</Button>
+          <Button variant="secondary" size="sm" onClick={handleExportPDF} disabled={!firstClassroom}>Download PDF</Button>
+          <Button variant="primary" size="sm" onClick={handleExportExcel} disabled={!firstClassroom}>Download Excel</Button>
         </div>
       </div>
 
       {/* Filters */}
       <Card className="mb-6">
         <CardBody>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Academic Year</label>
-              <select
-                value={filters.academic_year}
-                onChange={e => handleFilterChange('academic_year', e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
-              >
-                <option value="">Select Year</option>
-                {filterOptions?.academic_years?.map(ay => (
-                  <option key={ay.id} value={ay.id}>{ay.name}</option>
-                ))}
-              </select>
+              {filtersLoading ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <select
+                  value={filters.academic_year}
+                  onChange={(e) => handleFilterChange('academic_year', e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                >
+                  <option value="">Select Year</option>
+                  {academicYearOptions.map((ay) => (
+                    <option key={ay.id} value={ay.id}>{ay.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Grade Level</label>
+              {filtersLoading ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <select
+                  value={filters.grade_level}
+                  onChange={(e) => handleFilterChange('grade_level', e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                >
+                  <option value="">All Grades</option>
+                  {gradeLevelOptions.map((gl) => (
+                    <option key={gl} value={gl}>{gl}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Section</label>
-              <select
-                value={filters.section}
-                onChange={e => handleFilterChange('section', e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
-              >
-                <option value="">All Sections</option>
-                {filterOptions?.sections?.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+              {filtersLoading ? (
+                <Skeleton className="h-10 w-full" />
+              ) : (
+                <select
+                  value={filters.section}
+                  onChange={(e) => handleFilterChange('section', e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                >
+                  <option value="">All Sections</option>
+                  {sectionOptions.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="flex items-end gap-2">
-              <Button onClick={() => refetch()} size="sm">Generate SF1</Button>
-              <Button variant="ghost" size="sm" onClick={() => setFilters({ academic_year: '', section: '' })}>Reset</Button>
+              <Button onClick={() => refetch()} size="sm" disabled={!filters.academic_year || isLoading}>
+                {isLoading ? 'Generating...' : 'Generate SF1'}
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleReset}>Reset</Button>
             </div>
           </div>
         </CardBody>
@@ -252,17 +284,17 @@ function SF1Page() {
             <h3 className="text-sm font-bold text-amber-800 mb-2">Validation Checklist</h3>
             {validation.errors?.map((err, i) => (
               <div key={i} className="flex items-start gap-2 text-xs text-red-700 mb-1">
-                <span className="text-red-500 mt-0.5">❌</span> {err}
+                <span className="text-red-500 mt-0.5">&#10060;</span> {err}
               </div>
             ))}
             {validation.warnings?.map((warn, i) => (
               <div key={i} className="flex items-start gap-2 text-xs text-amber-700 mb-1">
-                <span className="text-amber-500 mt-0.5">⚠️</span> {warn}
+                <span className="text-amber-500 mt-0.5">&#9888;&#65039;</span> {warn}
               </div>
             ))}
             {validation.student_warnings?.slice(0, 10).map((sw, i) => (
               <div key={i} className="flex items-start gap-2 text-xs text-amber-700 mb-1">
-                <span className="text-amber-500 mt-0.5">⚠️</span>
+                <span className="text-amber-500 mt-0.5">&#9888;&#65039;</span>
                 <span><strong>{sw.student}</strong> {sw.lrn ? `(LRN: ${sw.lrn})` : ''}: {sw.warnings.join(', ')}</span>
               </div>
             ))}
@@ -286,13 +318,29 @@ function SF1Page() {
       )}
 
       {/* Empty State */}
-      {!isLoading && classrooms.length === 0 && (
+      {!isLoading && !filters.academic_year && (
         <Card>
           <CardBody>
             <div className="text-center py-12">
-              <div className="text-4xl mb-3">📋</div>
+              <div className="text-4xl mb-3">&#128203;</div>
+              <h3 className="text-lg font-bold text-slate-900 mb-1">Select Academic Year</h3>
+              <p className="text-sm text-slate-500">
+                Choose an academic year above to generate the School Register (SF1).
+              </p>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {!isLoading && filters.academic_year && classrooms.length === 0 && !validation && (
+        <Card>
+          <CardBody>
+            <div className="text-center py-12">
+              <div className="text-4xl mb-3">&#128203;</div>
               <h3 className="text-lg font-bold text-slate-900 mb-1">No Data Found</h3>
-              <p className="text-sm text-slate-500">Select an academic year and click Generate SF1 to create the school register.</p>
+              <p className="text-sm text-slate-500">
+                No enrolled students found for the selected filters. Try changing the grade level or section.
+              </p>
             </div>
           </CardBody>
         </Card>
@@ -320,8 +368,8 @@ function SF1Page() {
           {classrooms.map((classroomData, idx) => {
             const classroom = classroomData.classroom;
             const allStudents = [
-              ...classroomData.male_students.map(s => ({ ...s, gender: 'Male' })),
-              ...classroomData.female_students.map(s => ({ ...s, gender: 'Female' })),
+              ...classroomData.male_students.map((s) => ({ ...s, gender: 'Male' })),
+              ...classroomData.female_students.map((s) => ({ ...s, gender: 'Female' })),
             ];
             return (
               <Card key={idx}>
@@ -419,7 +467,7 @@ function SF1PrintPreview({ data, schoolInfo, schoolHead, generatedDate, settings
       {/* Header */}
       <div className="text-center mb-4">
         <h1 className="text-xl font-extrabold">School Form 1 (SF 1) School Register</h1>
-        <p className="text-[10px] text-slate-500 italic">(This replaces Form 1 Master List & SF1-Form 2-Family Background and Profile)</p>
+        <p className="text-[10px] text-slate-500 italic">(This replaces Form 1 Master List &amp; SF1-Form 2-Family Background and Profile)</p>
       </div>
 
       {/* School Info Header */}
@@ -451,7 +499,7 @@ function SF1PrintPreview({ data, schoolInfo, schoolHead, generatedDate, settings
         <table className="w-full border-collapse border border-slate-800 text-[8px]">
           <thead>
             <tr className="bg-slate-100">
-              {['No.', 'LRN', 'NAME (Last Name, First Name, Middle Name)', 'SEX', 'BIRTH DATE', 'AGE', 'MOTHER TONGUE', 'IP', 'RELIGION', 'HOUSE #/STREET', 'BARANGAY', 'CITY/MUNI', 'PROVINCE', "FATHER'S NAME", "MOTHER'S NAME", 'GUARDIAN', 'REL.', 'CONTACT', 'MODALITY', 'REMARKS'].map(h => (
+              {['No.', 'LRN', 'NAME (Last Name, First Name, Middle Name)', 'SEX', 'BIRTH DATE', 'AGE', 'MOTHER TONGUE', 'IP', 'RELIGION', 'HOUSE #/STREET', 'BARANGAY', 'CITY/MUNI', 'PROVINCE', "FATHER'S NAME", "MOTHER'S NAME", 'GUARDIAN', 'REL.', 'CONTACT', 'MODALITY', 'REMARKS'].map((h) => (
                 <th key={h} className="border border-slate-800 px-1 py-1 text-center font-bold">{h}</th>
               ))}
             </tr>
@@ -523,14 +571,14 @@ function SF1PrintPreview({ data, schoolInfo, schoolHead, generatedDate, settings
         <div className="bg-slate-100 px-2 py-1 font-bold border-b border-slate-800">List and Code of Indicators under REMARKS column</div>
         <div className="grid grid-cols-2 gap-0">
           <div className="border-r border-slate-800 p-1">
-            <div className="font-bold">Transferred Out - TrnO: Name of School & Effectivity Date</div>
+            <div className="font-bold">Transferred Out - TrnO: Name of School &amp; Effectivity Date</div>
             <div className="font-bold">Transferred In - TrnI: Reason and Effectivity Date</div>
             <div className="font-bold">Dropped - DR: Reason (Enrollment beyond 1st Friday)</div>
           </div>
           <div className="p-1">
             <div className="font-bold">CCT Recipient - CCT: CCT Control/Reference number</div>
             <div className="font-bold">Balik-Aral - BA: Name of school last attended</div>
-            <div className="font-bold">SNED - SNED: Specify Level & Effectivity Data</div>
+            <div className="font-bold">SNED - SNED: Specify Level &amp; Effectivity Data</div>
           </div>
         </div>
       </div>
