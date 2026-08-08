@@ -4,7 +4,9 @@ from .roles import Role
 
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == Role.ADMIN
+        return request.user.is_authenticated and (
+            request.user.role == Role.ADMIN or getattr(request.user, 'is_admin', False)
+        )
 
 
 class IsStaff(permissions.BasePermission):
@@ -24,14 +26,20 @@ class IsParent(permissions.BasePermission):
 
 class IsAdminOrStaff(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role in (Role.ADMIN, Role.STAFF)
+        return request.user.is_authenticated and (
+            request.user.role in (Role.ADMIN, Role.STAFF)
+            or getattr(request.user, 'is_admin', False)
+        )
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user.is_authenticated and request.user.role == Role.ADMIN
+        return request.user.is_authenticated and (
+            request.user.role == Role.ADMIN
+            or getattr(request.user, 'is_admin', False)
+        )
 
 
 class IsGroupOwnerOrAdmin(permissions.BasePermission):

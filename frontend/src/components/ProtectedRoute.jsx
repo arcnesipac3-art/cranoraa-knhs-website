@@ -35,6 +35,10 @@ const ProtectedRoute = ({ children }) => {
   const allowedRoles = routeDef?.roles;
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Staff with is_admin flag can access admin-only routes
+    if (user.role === Role.STAFF && user.is_admin) {
+      return children;
+    }
     return <Navigate to={ROLE_HOME[user.role] || '/dashboard'} replace />;
   }
 

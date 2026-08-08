@@ -120,7 +120,7 @@ def has_role(user, *roles):
 
 
 def is_admin(user):
-    return user.role == Role.ADMIN
+    return user.role == Role.ADMIN or getattr(user, 'is_admin', False)
 
 
 def is_staff(user):
@@ -136,4 +136,4 @@ def is_parent(user):
 
 
 def is_admin_or_staff(user):
-    return user.role in (Role.ADMIN, Role.STAFF)
+    return user.role in (Role.ADMIN, Role.STAFF) or getattr(user, 'is_admin', False)

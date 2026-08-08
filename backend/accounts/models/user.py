@@ -50,6 +50,7 @@ class User(AbstractUser):
     additional_roles = models.TextField(blank=True, default='', help_text="Comma-separated additional staff titles e.g. teacher,guidance_counselor")
     is_verified = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False, help_text="Grants admin privileges regardless of role. Allows staff to access admin panel while keeping their teaching role.")
     last_activity = models.DateTimeField(null=True, blank=True)
 
     must_change_password = models.BooleanField(default=False)
