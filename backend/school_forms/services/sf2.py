@@ -195,8 +195,10 @@ class SF2DailyAttendanceReportService:
             student_name = ''
             if student.first_name or student.last_name:
                 student_name = f"{student.last_name}, {student.first_name}"
-                if student.middle_name:
-                    student_name += f" {student.middle_name[0]}."
+                if profile and profile.middle_name:
+                    student_name += f" {profile.middle_name[0]}."
+            if not student_name:
+                student_name = student.username or f"Student #{student.id}"
 
             lrn = profile.lrn if profile else ''
 
