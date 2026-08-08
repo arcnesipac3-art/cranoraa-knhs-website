@@ -49,6 +49,18 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(classroom_id=classroom_id)
         if date:
             queryset = queryset.filter(date=date)
+        else:
+            month = self.request.query_params.get('month')
+            year = self.request.query_params.get('year')
+            if month and year:
+                from datetime import date as dt_date
+                import calendar
+                y = int(year)
+                m = int(month)
+                last_day = calendar.monthrange(y, m)[1]
+                start = dt_date(y, m, 1)
+                end = dt_date(y, m, last_day)
+                queryset = queryset.filter(date__gte=start, date__lte=end)
         if status:
             queryset = queryset.filter(status=status)
         if academic_year:
