@@ -165,8 +165,8 @@ class SF5PromotionService:
             profile = getattr(student, 'profile', None)
 
             student_name = f"{student.last_name}, {student.first_name}"
-            if student.middle_name:
-                student_name += f" {student.middle_name[0]}."
+            if profile and profile.middle_name:
+                student_name += f" {profile.middle_name[0]}."
 
             lrn = profile.lrn if profile else ''
             sex = profile.sex if profile else ''
