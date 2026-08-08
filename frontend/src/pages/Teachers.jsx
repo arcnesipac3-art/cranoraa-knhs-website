@@ -130,6 +130,7 @@ const Teachers = () => {
     last_name: '',
     email: '',
     sex: '',
+    role: 'staff',
     staff_title: 'teacher'
   });
 
@@ -170,7 +171,7 @@ const Teachers = () => {
       const response = await api.post('/admin/create-user/', { 
         username: newTeacher.email, 
         ...newTeacher, 
-        role: 'staff',
+        role: newTeacher.role,
         staff_title: newTeacher.staff_title,
         profile: {
           title: newTeacher.title,
@@ -185,20 +186,21 @@ const Teachers = () => {
         last_name: '',
         title: '',
         sex: '',
+        role: 'staff',
         staff_title: 'teacher'
       });
       refetch();
 
       Swal.fire({
         icon: 'success',
-        title: 'Staff Account Created',
+        title: newTeacher.role === 'admin' ? 'Admin Account Created' : 'Staff Account Created',
         html: `
           <div class="text-left space-y-2 text-sm">
-            <p><strong>Role:</strong> ${STAFF_TITLES.find(t => t.value === newTeacher.staff_title)?.label || newTeacher.staff_title}</p>
+            <p><strong>Role:</strong> ${newTeacher.role === 'admin' ? 'Admin' : (STAFF_TITLES.find(t => t.value === newTeacher.staff_title)?.label || newTeacher.staff_title)}</p>
             <p><strong>Full Name:</strong> ${newTeacher.first_name} ${newTeacher.last_name}</p>
             <p><strong>Username/Email:</strong> ${response.data.username}</p>
             <p><strong>Temporary Password:</strong> <span class="bg-yellow-100 px-2 py-1 rounded font-mono text-lg border border-yellow-300 select-all">${response.data.temporary_password}</span></p>
-            <p class="text-xs text-slate-500 mt-4 italic">Please provide this password to the staff member. They will be required to change it on their first login.</p>
+            <p class="text-xs text-slate-500 mt-4 italic">Please provide this password to the ${newTeacher.role === 'admin' ? 'admin' : 'staff member'}. They will be required to change it on their first login.</p>
           </div>
         `,
         confirmButtonColor: '#9333ea'
@@ -961,7 +963,7 @@ const Teachers = () => {
           <div className="flex items-center gap-2 flex-shrink-0">
             {user?.role === 'admin' && (
               <>
-                <button onClick={() => { setNewTeacher({ email: '', first_name: '', last_name: '', title: '', sex: '', staff_title: 'teacher' }); setShowAddModal(true); }}
+                <button onClick={() => { setNewTeacher({ email: '', first_name: '', last_name: '', title: '', sex: '', role: 'staff', staff_title: 'teacher' }); setShowAddModal(true); }}
                   className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
                   Add Staff
@@ -1246,16 +1248,25 @@ const Teachers = () => {
       {/* Add Staff Modal */}
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} size="md">
         <ModalHeader onClose={() => setShowAddModal(false)}>
-          <ModalTitle title="Add New Staff" subtitle="Create Staff Account" />
+          <ModalTitle title={newTeacher.role === 'admin' ? 'Add New Admin' : 'Add New Staff'} subtitle={newTeacher.role === 'admin' ? 'Create Admin Account' : 'Create Staff Account'} />
         </ModalHeader>
         <form onSubmit={handleAddTeacher}>
           <ModalBody className="space-y-4">
-            <ModalField label="Staff Role" required>
-              <select required value={newTeacher.staff_title} onChange={(e) => setNewTeacher({ ...newTeacher, staff_title: e.target.value })}
+            <ModalField label="Account Type" required>
+              <select required value={newTeacher.role} onChange={(e) => setNewTeacher({ ...newTeacher, role: e.target.value, staff_title: e.target.value === 'admin' ? '' : newTeacher.staff_title })}
                 className={modalSelectCls}>
-                {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                <option value="staff">Staff / Teacher</option>
+                <option value="admin">Admin</option>
               </select>
             </ModalField>
+            {newTeacher.role === 'staff' && (
+              <ModalField label="Staff Role" required>
+                <select required value={newTeacher.staff_title} onChange={(e) => setNewTeacher({ ...newTeacher, staff_title: e.target.value })}
+                  className={modalSelectCls}>
+                  {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </ModalField>
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <ModalField label="Title" required>
                 <select required value={newTeacher.title} onChange={(e) => setNewTeacher({ ...newTeacher, title: e.target.value })}
