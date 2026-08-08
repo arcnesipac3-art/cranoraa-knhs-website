@@ -89,6 +89,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         timeframe = request.query_params.get('timeframe', 'all')
         academic_year_name = request.query_params.get('academic_year')
 
+        cache_key = f'att_summary:v1:{classroom_id}:{timeframe}:{academic_year_name}'
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
         base_att = Attendance.objects.all()
 
         if academic_year_name:
@@ -181,13 +186,15 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 })
             rankings = sorted(rankings, key=lambda x: (-x['rate'], x['name']))
 
-        return Response({
+        result = {
             'daily_trends': daily_data,
             'pie_data': pie_data,
             'grade_trends': grade_data,
             'section_rankings': rankings,
             'period': timeframe.capitalize()
-        })
+        }
+        cache.set(cache_key, result, timeout=120)
+        return Response(result)
 
     @action(detail=False, methods=['get'])
     def today_schedules(self, request):
@@ -378,6 +385,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         except Exception as audit_err:
             logger.warning(f"Audit log failed on bulk_save: {audit_err}")
 
+        cache.delete(f'att_admin_monitoring:v1:{date_str}')
+        try:
+            cache.delete_pattern('att_summary:v1:*')
+        except AttributeError:
+            pass
         return Response({
             'created': created_count,
             'updated': updated_count,
@@ -708,6 +720,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Unauthorized'}, status=403)
 
         today = datetime.date.today()
+        cache_key = f'att_admin_monitoring:v1:{today.isoformat()}'
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
 
         if today.weekday() in (5, 6):  # Saturday=5, Sunday=6
             return Response({
@@ -847,7 +863,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 'total': g['total'],
             })
 
-        return Response({
+        result = {
             'summary': {
                 'total_classes': total_classes,
                 'completed': completed_count,
@@ -863,7 +879,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             'teacher_stats': list(teacher_stats.values()),
             'daily_trends': daily_trends,
             'grade_rates': grade_rates,
-        })
+        }
+        cache.set(cache_key, result, timeout=60)
+        return Response(result)
 
     @action(detail=False, methods=['post'], url_path='submit')
     def submit_attendance(self, request):
@@ -914,6 +932,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             metadata={'classroom_id': classroom_id, 'schedule_id': schedule_id, 'count': updated},
         )
 
+        cache.delete(f'att_admin_monitoring:v1:{att_date.isoformat()}')
         return Response({'submitted': updated})
 
     @action(detail=False, methods=['post'], url_path='reopen')
@@ -968,6 +987,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             metadata={'classroom_id': classroom_id, 'schedule_id': schedule_id, 'count': updated, 'reason': reason},
         )
 
+        cache.delete(f'att_admin_monitoring:v1:{att_date.isoformat()}')
         return Response({'reopened': updated})
 
     @action(detail=False, methods=['get'], url_path='student-history')

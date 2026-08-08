@@ -2,6 +2,7 @@ import csv
 import logging
 from datetime import date, timedelta
 
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q, Avg, Count, Max, Min
 from django.http import HttpResponse
@@ -317,6 +318,9 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
             description=f'Submitted grades for {submission.classroom.name} - {submission.subject.name}',
             request=request
         )
+        from ..models import SystemSetting
+        sys_ay = SystemSetting.get_settings().academic_year
+        cache.delete(f'grade_admin_monitoring:v1:{sys_ay}')
         return Response(GradeSubmissionSerializer(submission).data)
 
     @action(detail=True, methods=['delete'])
@@ -589,6 +593,11 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
         sys_ay = SystemSetting.get_settings().academic_year
         ay_filter = {'academic_year__name': sys_ay} if sys_ay else {'academic_year__is_active': True}
 
+        cache_key = f'grade_admin_monitoring:v1:{sys_ay}'
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
         active_period = GradingPeriod.objects.filter(
             **ay_filter,
             status__in=['open', 'closing_soon', 'closed', 'locked'],
@@ -710,7 +719,7 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
             for d in daily_subs
         ]
 
-        return Response({
+        result = {
             'total_teachers': len(teacher_ids),
             'submitted_teachers': submitted_count,
             'pending_teachers': pending_count,
@@ -720,7 +729,9 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
             'by_department': by_department,
             'by_grade_level': by_grade_level,
             'daily_submissions': daily_submissions,
-        })
+        }
+        cache.set(cache_key, result, timeout=120)
+        return Response(result)
 
     @action(detail=False, methods=['post'])
     def bulk_approve(self, request):
@@ -761,6 +772,9 @@ class GradeSubmissionViewSet(viewsets.ModelViewSet):
             except GradeSubmission.DoesNotExist:
                 continue
 
+        from ..models import SystemSetting
+        sys_ay = SystemSetting.get_settings().academic_year
+        cache.delete(f'grade_admin_monitoring:v1:{sys_ay}')
         return Response({'approved': approved})
 
     @action(detail=False, methods=['get'])

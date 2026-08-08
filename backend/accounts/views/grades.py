@@ -5,6 +5,7 @@ import re
 import datetime
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q, Avg, Count, Max, Min, Case, When, IntegerField
 from django.http import HttpResponse
@@ -48,6 +49,11 @@ def grade_distribution_stats(request):
     quarter = request.query_params.get('quarter', 'all')
     timeframe = request.query_params.get('timeframe', 'all')
     mode = request.query_params.get('mode', 'student')
+
+    cache_key = f'grade_dist:v1:{academic_year}:{grade_level}:{subject_id}:{quarter}:{timeframe}:{mode}'
+    cached = cache.get(cache_key)
+    if cached:
+        return Response(cached)
 
     # 1. Base filtering
     base_grades = Grade.objects.filter(
@@ -219,7 +225,7 @@ def grade_distribution_stats(request):
                 'count': cs['count']
             })
 
-    return Response({
+    result = {
         'academic_year': academic_year,
         'grade_level': grade_level,
         'subject_id': subject_id,
@@ -233,7 +239,9 @@ def grade_distribution_stats(request):
             'subjects': list(Subject.objects.values('id', 'name', 'code', 'grade_level').order_by('grade_level', 'name')),
             'grade_levels': ["Grade 7", "Grade 8", "Grade 9", "Grade 10", "Grade 11", "Grade 12"]
         }
-    })
+    }
+    cache.set(cache_key, result, timeout=120)
+    return Response(result)
 
 
 @api_view(['POST'])
@@ -677,6 +685,11 @@ class GradeViewSet(viewsets.ModelViewSet):
         subject_id = request.query_params.get('subject')
         quarter = request.query_params.get('quarter')
 
+        cache_key = f'grade_summary:v1:{classroom_id}:{subject_id}:{quarter}'
+        cached = cache.get(cache_key)
+        if cached:
+            return Response(cached)
+
         queryset = Grade.objects.filter(grade_type='final_grade', raw_score__isnull=False)
         if classroom_id:
             queryset = queryset.filter(classroom_id=classroom_id)
@@ -722,12 +735,14 @@ class GradeViewSet(viewsets.ModelViewSet):
                             'student_id': enrollment.student.id
                         })
 
-        return Response({
+        result = {
             'subject_stats': subject_stats,
             'distribution': distribution,
             'missing_grades': missing_grades[:50],
             'total_graded': queryset.count()
-        })
+        }
+        cache.set(cache_key, result, timeout=120)
+        return Response(result)
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -770,6 +785,12 @@ class GradeViewSet(viewsets.ModelViewSet):
                 )
             except Exception as notif_err:
                 logger.warning(f"Notification failed (perform_create): {str(notif_err)}")
+
+        try:
+            cache.delete_pattern('grade_dist:v1:*')
+            cache.delete_pattern('grade_summary:v1:*')
+        except AttributeError:
+            pass
 
     def perform_update(self, serializer):
         user = self.request.user
