@@ -452,15 +452,13 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['delete'])
     def delete_conversation(self, request, pk=None):
-        """Delete all messages in a conversation for this user (or delete the room if group admin)"""
+        """Delete only this user's messages in the conversation, then remove them from the room."""
         room = self.get_object()
-        # Delete all messages in the room
-        ChatMessage.objects.filter(room=room).delete()
-        # Remove user from room (for private chats, this effectively deletes it)
+        deleted_count, _ = ChatMessage.objects.filter(room=room, sender=request.user).delete()
         room.participants.remove(request.user)
         if room.participants.count() == 0:
             room.delete()
-        return Response({'status': 'conversation deleted'})
+        return Response({'status': 'conversation deleted', 'messages_deleted': deleted_count})
 
     @action(detail=False, methods=['post'])
     def create_class_chat(self, request):
@@ -513,16 +511,18 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         }
         roles = target_roles.get(target_audience, ['student', 'parent', 'staff'])
         recipients = User.objects.filter(role__in=roles, is_active=True)
-        count = 0
-        for user in recipients[:500]:  # batch limit
-            Notification.objects.create(
+        notifications = [
+            Notification(
                 recipient=user,
                 notification_type='system',
                 title=f'[{priority.upper()}] {title}',
                 message=message_text,
                 link='/dashboard',
             )
-            count += 1
+            for user in recipients
+        ]
+        Notification.objects.bulk_create(notifications, batch_size=500, ignore_conflicts=True)
+        count = len(notifications)
         # Broadcast via WebSocket
         from channels.layers import get_channel_layer
         from asgiref.sync import async_to_sync
@@ -555,6 +555,19 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
     serializer_class = ChatMessageSerializer
     permission_classes = [IsAuthenticated]
 
+    def _is_blocked(self, sender, room):
+        """Check if sender is blocked by any participant or vice versa (private chats only)."""
+        if room.is_group:
+            return False, ''
+        other_ids = list(room.participants.exclude(id=sender.id).values_list('id', flat=True))
+        if not other_ids:
+            return False, ''
+        if UserBlock.objects.filter(blocker_id__in=other_ids, blocked=sender).exists():
+            return True, 'You are blocked by this user and cannot send messages.'
+        if UserBlock.objects.filter(blocker=sender, blocked_id__in=other_ids).exists():
+            return True, 'You have blocked this user. Unblock them to send messages.'
+        return False, ''
+
     def get_queryset(self):
         user = self.request.user
         base_qs = ChatMessage.objects.select_related(
@@ -575,6 +588,23 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         if not user.chat_rooms.filter(id=room_id).exists():
             return base_qs.none()
         return base_qs.filter(room_id=room_id).order_by('timestamp')
+
+    def perform_create(self, serializer):
+        is_allowed, reason = check_user_moderation(self.request.user)
+        if not is_allowed:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied(reason)
+        room = serializer.validated_data.get('room')
+        if room:
+            blocked, block_reason = self._is_blocked(self.request.user, room)
+            if blocked:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied(block_reason)
+        content = (serializer.validated_data.get('content') or '').strip()
+        if len(content) > 10000:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError('Message content exceeds the 10,000 character limit.')
+        serializer.save(sender=self.request.user)
 
     def perform_destroy(self, instance):
         # Only sender can delete their own message
@@ -623,6 +653,8 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
         content = request.data.get('content', '').strip()
         if not content:
             return Response({'error': 'Content cannot be empty'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(content) > 10000:
+            return Response({'error': 'Message content exceeds the 10,000 character limit.'}, status=status.HTTP_400_BAD_REQUEST)
         message.content = content
         message.is_edited = True
         message.save()
@@ -714,6 +746,10 @@ class ChatMessageViewSet(viewsets.ModelViewSet):
             room = ChatRoom.objects.get(id=room_id, participants=request.user)
         except ChatRoom.DoesNotExist:
             return Response({'error': 'Chat room not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        blocked, block_reason = self._is_blocked(request.user, room)
+        if blocked:
+            return Response({'error': block_reason}, status=status.HTTP_403_FORBIDDEN)
 
         uploaded = request.FILES.get('file')
         if not uploaded:

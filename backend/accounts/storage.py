@@ -171,6 +171,13 @@ BUCKETS: dict[str, BucketConfig] = {
         ),
         env_var='SUPABASE_BUCKET_CHAT',
     ),
+    'chat-avatars': BucketConfig(
+        name='chat-avatars',
+        max_bytes=5 * 1024 * 1024,     # 5 MB
+        allowed_mime=('image/jpeg', 'image/png', 'image/webp', 'image/gif'),
+        allowed_ext=('.jpg', '.jpeg', '.png', '.webp', '.gif'),
+        env_var='SUPABASE_BUCKET_CHAT_AVATARS',
+    ),
     'compliance-documents': BucketConfig(
         name='compliance-documents',
         max_bytes=50 * 1024 * 1024,    # 50 MB

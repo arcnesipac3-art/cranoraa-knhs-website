@@ -208,8 +208,11 @@ const AttendanceDashboard = () => {
       try {
         await api.post('/attendance/', { student: studentId, classroom: selectedClassroom.id, date, status });
         setLastSaved(new Date());
-      } catch {
-        toast.error('Failed to save attendance');
+      } catch (err) {
+        const detail = err.response?.data;
+        const msg = detail ? (typeof detail === 'string' ? detail : Object.entries(detail).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`).join(' | ')) : err.message;
+        console.error('[Attendance] Save failed:', msg, detail);
+        toast.error(`Failed to save attendance: ${msg}`);
         fetchSf2();
       } finally {
         setSavingCells(prev => { const n = new Set(prev); n.delete(cellKey); return n; });

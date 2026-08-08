@@ -85,18 +85,29 @@ class AttendanceSerializer(serializers.ModelSerializer):
                     }
                 )
             else:
-                attendance, created = Attendance.objects.update_or_create(
+                existing = Attendance.objects.filter(
                     student=student,
                     classroom=classroom,
                     date=date,
                     schedule__isnull=True,
-                    defaults={
-                        'schedule': None,
-                        'status': validated_data.get('status', 'present'),
-                        'remarks': validated_data.get('remarks', ''),
-                        'marked_by': validated_data.get('marked_by'),
-                    }
-                )
+                ).first()
+                if existing:
+                    existing.status = validated_data.get('status', 'present')
+                    existing.remarks = validated_data.get('remarks', '')
+                    if validated_data.get('marked_by'):
+                        existing.marked_by = validated_data['marked_by']
+                    existing.save()
+                    attendance = existing
+                else:
+                    attendance = Attendance.objects.create(
+                        student=student,
+                        classroom=classroom,
+                        date=date,
+                        schedule=None,
+                        status=validated_data.get('status', 'present'),
+                        remarks=validated_data.get('remarks', ''),
+                        marked_by=validated_data.get('marked_by'),
+                    )
         return attendance
 
     def update(self, instance, validated_data):
@@ -108,33 +119,52 @@ class AttendanceSerializer(serializers.ModelSerializer):
 
         with transaction.atomic():
             if schedule:
-                attendance, created = Attendance.objects.update_or_create(
+                existing = Attendance.objects.filter(
                     student=student,
                     schedule=schedule,
                     date=date,
-                    defaults={
-                        'classroom': classroom,
-                        'subject': schedule.subject if schedule else None,
-                        'time_slot': schedule.time_slot if schedule else None,
-                        'status': validated_data.get('status', instance.status),
-                        'remarks': validated_data.get('remarks', instance.remarks),
-                        'marked_by': validated_data.get('marked_by', instance.marked_by),
-                    }
-                )
+                ).exclude(id=instance.id).first()
+                if existing:
+                    existing.status = validated_data.get('status', instance.status)
+                    existing.remarks = validated_data.get('remarks', instance.remarks)
+                    existing.classroom = classroom
+                    if validated_data.get('marked_by'):
+                        existing.marked_by = validated_data['marked_by']
+                    existing.save()
+                    instance.delete()
+                    return existing
+                instance.student = student
+                instance.classroom = classroom
+                instance.date = date
+                instance.schedule = schedule
+                instance.subject = schedule.subject
+                instance.time_slot = schedule.time_slot
             else:
-                attendance, created = Attendance.objects.update_or_create(
+                existing = Attendance.objects.filter(
                     student=student,
                     classroom=classroom,
                     date=date,
                     schedule__isnull=True,
-                    defaults={
-                        'schedule': None,
-                        'status': validated_data.get('status', instance.status),
-                        'remarks': validated_data.get('remarks', instance.remarks),
-                        'marked_by': validated_data.get('marked_by', instance.marked_by),
-                    }
-                )
-        return attendance
+                ).exclude(id=instance.id).first()
+                if existing:
+                    existing.status = validated_data.get('status', instance.status)
+                    existing.remarks = validated_data.get('remarks', instance.remarks)
+                    if validated_data.get('marked_by'):
+                        existing.marked_by = validated_data['marked_by']
+                    existing.save()
+                    instance.delete()
+                    return existing
+                instance.student = student
+                instance.classroom = classroom
+                instance.date = date
+                instance.schedule = None
+
+            instance.status = validated_data.get('status', instance.status)
+            instance.remarks = validated_data.get('remarks', instance.remarks)
+            if validated_data.get('marked_by'):
+                instance.marked_by = validated_data['marked_by']
+            instance.save()
+        return instance
 
 
 class AbsenceExcuseSerializer(serializers.ModelSerializer):

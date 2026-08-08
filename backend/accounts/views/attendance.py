@@ -26,7 +26,13 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['student__username', 'student__email']
-    
+
+    def perform_create(self, serializer):
+        serializer.save(marked_by=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(marked_by=self.request.user)
+
     def get_queryset(self):
         user = self.request.user
         queryset = Attendance.objects.all().select_related('student', 'classroom')

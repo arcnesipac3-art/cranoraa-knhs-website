@@ -134,11 +134,13 @@ const ROLE_GROUPS = [
 
 const ADMIN_STAFF_TITLES = ['principal', 'guidance_counselor', 'administrative_officer', 'admin_assistant'];
 
-function PeopleDirectory({ onSelectPerson, currentUserId }) {
+function PeopleDirectory({ onSelectPerson, currentUserId, searchRef }) {
   const [groups, setGroups] = useState({});
   const [loading, setLoading] = useState(true);
   const [peopleSearch, setPeopleSearch] = useState('');
   const [expandedGroups, setExpandedGroups] = useState({ admin: true, staff: true, student: true, parent: true });
+  const internalSearchRef = useRef(null);
+  const ref = searchRef || internalSearchRef;
 
   useEffect(() => {
     let cancelled = false;
@@ -199,6 +201,7 @@ function PeopleDirectory({ onSelectPerson, currentUserId }) {
         <div className="relative">
           <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
+            ref={ref}
             type="text"
             placeholder="Search people..."
             value={peopleSearch}
@@ -280,6 +283,34 @@ function PeopleDirectory({ onSelectPerson, currentUserId }) {
       </div>
     </div>
   );
+}
+
+function formatDateSeparator(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const now = new Date();
+  const today = now.toDateString() === d.toDateString();
+  if (today) return 'Today';
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+  if (yesterday.toDateString() === d.toDateString()) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function DateSeparator({ ts }) {
+  return (
+    <div className="flex items-center gap-3 my-3">
+      <div className="flex-1 h-px bg-slate-200" />
+      <span className="text-[11px] font-medium text-slate-400 whitespace-nowrap">{formatDateSeparator(ts)}</span>
+      <div className="flex-1 h-px bg-slate-200" />
+    </div>
+  );
+}
+
+function shouldShowDateSeparator(messages, index) {
+  if (index === 0) return true;
+  const curr = new Date(messages[index].timestamp);
+  const prev = new Date(messages[index - 1].timestamp);
+  return curr.toDateString() !== prev.toDateString();
 }
 
 const ChatMessage = memo(function ChatMessage({ msg, i, chatMessages, userId, showEmojiPicker, setShowEmojiPicker, onReaction, onEdit, onDelete, onReply }) {
@@ -377,6 +408,8 @@ export default function CommunicationCenter() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
   const [showNewChatDropdown, setShowNewChatDropdown] = useState(false);
+  const [showPeoplePanel, setShowPeoplePanel] = useState(false);
+  const peopleSearchRef = useRef(null);
   const chatSocketRef = useRef(null);
   const chatReconnectTimerRef = useRef(null);
   const chatReconnectAttemptsRef = useRef(0);
@@ -427,7 +460,7 @@ export default function CommunicationCenter() {
         if (data.type === 'message_reaction') { setChatMessages(prev => prev.map(m => m.id === data.message_id ? { ...m, reactions: data.reactions } : m)); return; }
         if (data.type === 'room_update') {
           if (data.event === 'group_deleted') { setChatRooms(prev => prev.filter(r => r.id !== data.room_id)); if (selectedRoom?.id === data.room_id) setSelectedRoom(null); }
-          else if (data.room) { setChatRooms(prev => { const idx = prev.findIndex(r => r.id === data.room.id); if (idx >= 0) { const next = [...prev]; next[idx] = data.room; return next; } return [data.room, ...prev]; }); }
+          else if (data.room) { setChatRooms(prev => { const idx = prev.findIndex(r => r.id === data.room.id); let next; if (idx >= 0) { next = [...prev]; next[idx] = data.room; } else { next = [data.room, ...prev]; } next.sort((a, b) => { const ap = a.is_pinned ? 1 : 0; const bp = b.is_pinned ? 1 : 0; if (ap !== bp) return bp - ap; return new Date(b.updated_at) - new Date(a.updated_at); }); return next; }); }
           return;
         }
         if (data.type === 'forced_logout') { toast.error(data.message || 'Your account has been suspended.'); return; }
@@ -687,7 +720,7 @@ export default function CommunicationCenter() {
                   <div className="fixed inset-0 z-40" onClick={() => setShowNewChatDropdown(false)} />
                   <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1">
                     <button
-                      onClick={() => { setShowNewChatDropdown(false); /* existing PeopleDirectory handles this */ }}
+                      onClick={() => { setShowNewChatDropdown(false); setShowPeoplePanel(true); setTimeout(() => peopleSearchRef.current?.focus(), 100); }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
                     >
                       <MessageCircleIcon size={14} className="text-slate-400" />
@@ -863,7 +896,9 @@ export default function CommunicationCenter() {
                   <div className="flex items-center justify-center h-full"><p className="text-sm text-slate-400">No messages yet. Say hello!</p></div>
                 ) : (
                   chatMessages.map((msg, i) => (
-                    <ChatMessage
+                    <div key={msg.id}>
+                      {shouldShowDateSeparator(chatMessages, i) && <DateSeparator ts={msg.timestamp} />}
+                      <ChatMessage
                       key={msg.id}
                       msg={msg}
                       i={i}
@@ -875,7 +910,8 @@ export default function CommunicationCenter() {
                       onEdit={handleEditChatMessage}
                       onDelete={handleDeleteChatMessage}
                       onReply={setReplyTo}
-                    />
+                      />
+                    </div>
                   ))
                 )}
                 {Object.keys(chatTypingUsers).length > 0 && (
@@ -908,18 +944,29 @@ export default function CommunicationCenter() {
                     <PaperclipIcon size={18} />
                   </button>
                   <div className="flex-1 relative">
-                    <input
+                    <textarea
                       ref={inputRef}
                       data-chat-input
-                      type="text"
                       placeholder="Type a message..."
-                      onKeyDown={handleChatKeyDown}
-                      onChange={handleChatTyping}
-                      className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-12"
+                      rows={1}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage(e.target.value.trim());
+                          e.target.value = '';
+                          e.target.style.height = 'auto';
+                        }
+                      }}
+                      onInput={(e) => {
+                        handleChatTyping();
+                        e.target.style.height = 'auto';
+                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                      }}
+                      className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-12 resize-none max-h-[120px]"
                     />
                   </div>
                   <button
-                    onClick={() => { const v = inputRef.current?.value?.trim(); if (v) { sendMessage(v); inputRef.current.value = ''; } }}
+                    onClick={() => { const v = inputRef.current?.value?.trim(); if (v) { sendMessage(v); inputRef.current.value = ''; inputRef.current.style.height = 'auto'; } }}
                     className="p-2.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors disabled:opacity-50"
                     title="Send message"
                   >
@@ -941,8 +988,16 @@ export default function CommunicationCenter() {
       </div>
 
       {/* Right Panel — People Directory */}
-      <div className="hidden lg:flex w-[300px] min-w-0 border-l border-slate-200 h-full">
-        <PeopleDirectory onSelectPerson={handleSelectPerson} currentUserId={user?.id} />
+      <div className={`
+        ${showPeoplePanel ? 'fixed inset-0 z-50 bg-white lg:relative lg:inset-auto lg:z-auto' : 'hidden lg:flex'}
+        w-full lg:w-[300px] min-w-0 border-l border-slate-200 h-full
+      `}>
+        {showPeoplePanel && (
+          <button onClick={() => setShowPeoplePanel(false)} className="absolute top-3 right-3 p-2 rounded-lg text-slate-400 hover:bg-slate-100 lg:hidden z-10">
+            <XIcon size={18} />
+          </button>
+        )}
+        <PeopleDirectory onSelectPerson={(p) => { handleSelectPerson(p); setShowPeoplePanel(false); }} currentUserId={user?.id} searchRef={peopleSearchRef} />
       </div>
 
       {/* Create Group Modal */}
