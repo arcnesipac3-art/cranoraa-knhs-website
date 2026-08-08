@@ -20,6 +20,9 @@ from accounts.models import (
 logger = logging.getLogger(__name__)
 
 
+_UNSET = object()
+
+
 class SF1SchoolRegisterService:
     """Service for generating SF1 - School Register"""
 
@@ -29,18 +32,18 @@ class SF1SchoolRegisterService:
         self.section = section
         self.adviser = adviser
         self.student_id = student_id
-        self._resolved_academic_year = None
+        self._resolved_academic_year = _UNSET
 
     def _resolve_academic_year(self):
         """Resolve the academic year to use, with fallback to active year."""
-        if self._resolved_academic_year is not None:
+        if self._resolved_academic_year is not _UNSET:
             return self._resolved_academic_year
 
         ay_id = self.academic_year
         if ay_id:
             try:
                 self._resolved_academic_year = AcademicYear.objects.get(pk=ay_id)
-            except (AcademicYear.DoesNotExist, (ValueError, TypeError)):
+            except (AcademicYear.DoesNotExist, ValueError, TypeError):
                 self._resolved_academic_year = AcademicYear.objects.filter(is_active=True).first()
         else:
             self._resolved_academic_year = AcademicYear.objects.filter(is_active=True).first()
@@ -49,14 +52,17 @@ class SF1SchoolRegisterService:
 
     def _ensure_classrooms_linked(self):
         """Auto-assign academic year to classrooms that have NULL academic_year."""
-        ay = self._resolve_academic_year()
-        if not ay:
-            return
-        updated = Classroom.objects.filter(
-            academic_year__isnull=True
-        ).update(academic_year=ay)
-        if updated:
-            logger.info("SF1: Linked %d orphaned classrooms to academic year %s", updated, ay)
+        try:
+            ay = self._resolve_academic_year()
+            if not ay:
+                return
+            updated = Classroom.objects.filter(
+                academic_year__isnull=True
+            ).update(academic_year=ay)
+            if updated:
+                logger.info("SF1: Linked %d orphaned classrooms to academic year %s", updated, ay)
+        except Exception as e:
+            logger.warning("SF1: Failed to link classrooms: %s", e)
 
     def get_queryset(self):
         """Get filtered enrollments with related data, with fallback strategies."""
@@ -244,7 +250,7 @@ class SF1SchoolRegisterService:
             'extension_name': extension_name,
             'name': student_name,
             'sex': sex,
-            'birthdate': birthdate,
+            'birthdate': birthdate.isoformat() if birthdate else None,
             'age': age,
             'mother_tongue': mother_tongue,
             'indigenous_people': indigenous_people,

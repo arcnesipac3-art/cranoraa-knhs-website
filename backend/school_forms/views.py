@@ -52,6 +52,7 @@ class SF1ViewSet(SchoolFormsViewSet):
             )
             return Response(result)
         except Exception as e:
+            logger.exception("SF1 list error: %s", e)
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=['get'], url_path='filters')
