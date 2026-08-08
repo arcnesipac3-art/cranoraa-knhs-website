@@ -3,6 +3,7 @@ SF1 - School Register Service
 Generates class register using enrolled students.
 Data source: StudentClassEnrollment + Profile + User + Classroom + EnrollmentApplication
 """
+import logging
 from collections import defaultdict
 from datetime import date
 from django.db.models import Prefetch, Count
@@ -16,6 +17,8 @@ from accounts.models import (
     SystemSetting,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class SF1SchoolRegisterService:
     """Service for generating SF1 - School Register"""
@@ -26,9 +29,41 @@ class SF1SchoolRegisterService:
         self.section = section
         self.adviser = adviser
         self.student_id = student_id
+        self._resolved_academic_year = None
+
+    def _resolve_academic_year(self):
+        """Resolve the academic year to use, with fallback to active year."""
+        if self._resolved_academic_year is not None:
+            return self._resolved_academic_year
+
+        ay_id = self.academic_year
+        if ay_id:
+            try:
+                self._resolved_academic_year = AcademicYear.objects.get(pk=ay_id)
+            except (AcademicYear.DoesNotExist, (ValueError, TypeError)):
+                self._resolved_academic_year = AcademicYear.objects.filter(is_active=True).first()
+        else:
+            self._resolved_academic_year = AcademicYear.objects.filter(is_active=True).first()
+
+        return self._resolved_academic_year
+
+    def _ensure_classrooms_linked(self):
+        """Auto-assign academic year to classrooms that have NULL academic_year."""
+        ay = self._resolve_academic_year()
+        if not ay:
+            return
+        updated = Classroom.objects.filter(
+            academic_year__isnull=True
+        ).update(academic_year=ay)
+        if updated:
+            logger.info("SF1: Linked %d orphaned classrooms to academic year %s", updated, ay)
 
     def get_queryset(self):
-        """Get filtered enrollments with related data"""
+        """Get filtered enrollments with related data, with fallback strategies."""
+        self._ensure_classrooms_linked()
+
+        ay = self._resolve_academic_year()
+
         qs = StudentClassEnrollment.objects.select_related(
             'student',
             'classroom',
@@ -36,18 +71,49 @@ class SF1SchoolRegisterService:
             'classroom__teacher',
         )
 
-        if self.academic_year:
-            qs = qs.filter(classroom__academic_year=self.academic_year)
-        if self.grade_level:
-            qs = qs.filter(classroom__grade_level=self.grade_level)
-        if self.section:
-            qs = qs.filter(classroom__name__icontains=self.section)
-        if self.adviser:
-            qs = qs.filter(classroom__teacher=self.adviser)
-        if self.student_id:
-            qs = qs.filter(student_id=self.student_id)
+        # Strategy 1: Filter by explicit academic year
+        if ay:
+            qs_filtered = qs.filter(classroom__academic_year=ay)
+        else:
+            qs_filtered = qs
 
-        return qs.order_by('classroom__grade_level', 'classroom__name', 'student__last_name', 'student__first_name')
+        if self.grade_level:
+            qs_filtered = qs_filtered.filter(classroom__grade_level=self.grade_level)
+        if self.section:
+            qs_filtered = qs_filtered.filter(classroom__name__icontains=self.section)
+        if self.adviser:
+            qs_filtered = qs_filtered.filter(classroom__teacher=self.adviser)
+        if self.student_id:
+            qs_filtered = qs_filtered.filter(student_id=self.student_id)
+
+        if qs_filtered.exists():
+            return qs_filtered.order_by('classroom__grade_level', 'classroom__name', 'student__last_name', 'student__first_name')
+
+        # Strategy 2: Try without academic year filter (classrooms may have different years)
+        qsFallback = StudentClassEnrollment.objects.select_related(
+            'student', 'classroom', 'classroom__academic_year', 'classroom__teacher',
+        )
+        if self.grade_level:
+            qsFallback = qsFallback.filter(classroom__grade_level=self.grade_level)
+        if self.section:
+            qsFallback = qsFallback.filter(classroom__name__icontains=self.section)
+        if self.adviser:
+            qsFallback = qsFallback.filter(classroom__teacher=self.adviser)
+        if self.student_id:
+            qsFallback = qsFallback.filter(student_id=self.student_id)
+
+        if qsFallback.exists():
+            logger.info("SF1: Falling back to enrollments without academic_year filter")
+            return qsFallback.order_by('classroom__grade_level', 'classroom__name', 'student__last_name', 'student__first_name')
+
+        # Strategy 3: Return all enrollments (last resort)
+        qsAll = StudentClassEnrollment.objects.select_related(
+            'student', 'classroom', 'classroom__academic_year', 'classroom__teacher',
+        )
+        if self.student_id:
+            qsAll = qsAll.filter(student_id=self.student_id)
+
+        return qsAll.order_by('classroom__grade_level', 'classroom__name', 'student__last_name', 'student__first_name')
 
     def _compute_age(self, birthdate):
         if not birthdate:
@@ -196,7 +262,7 @@ class SF1SchoolRegisterService:
             'contact_number': contact_number,
             'learning_modality': learning_modality,
             'remarks': remarks,
-            'enrollment_status': enrollment.enrollment_status or 'enrolled',
+            'enrollment_status': 'enrolled',
         }
 
     def get_data(self):
@@ -380,11 +446,16 @@ class SF1SchoolRegisterService:
         }
 
     def get_filters_metadata(self):
-        """Get available filter options"""
+        """Get available filter options, scoped to the resolved academic year."""
+        ay = self._resolve_academic_year()
+        classroom_qs = Classroom.objects.all()
+        if ay:
+            classroom_qs = classroom_qs.filter(academic_year=ay)
+
         return {
             'academic_years': list(AcademicYear.objects.all().values('id', 'name')),
-            'grade_levels': list(Classroom.objects.values_list('grade_level', flat=True).distinct().order_by('grade_level')),
-            'sections': list(Classroom.objects.values_list('name', flat=True).distinct().order_by('name')),
+            'grade_levels': list(classroom_qs.values_list('grade_level', flat=True).distinct().order_by('grade_level')),
+            'sections': list(classroom_qs.values_list('name', flat=True).distinct().order_by('name')),
             'advisers': list(User.objects.filter(role='staff').distinct().values('id', 'first_name', 'last_name')),
         }
 
