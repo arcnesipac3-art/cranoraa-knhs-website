@@ -53,14 +53,6 @@ const ClassroomHub = lazy(() => retryImport(() => import('../pages/ClassroomHub'
 const ScheduleManagement = lazy(() => retryImport(() => import('../pages/ScheduleManagement')));
 const Analytics = lazy(() => retryImport(() => import('../pages/Analytics')));
 
-// School Forms
-const SchoolFormsDashboard = lazy(() => retryImport(() => import('../pages/SchoolFormsDashboard')));
-const SF1Page = lazy(() => retryImport(() => import('../pages/SF1SchoolRegister')));
-const SF2Page = lazy(() => retryImport(() => import('../pages/SF2AttendanceReport')));
-const SF5Page = lazy(() => retryImport(() => import('../pages/SF5PromotionReport')));
-const SF9Page = lazy(() => retryImport(() => import('../pages/SF9ReportCard')));
-const SF10Page = lazy(() => retryImport(() => import('../pages/SF10PermanentRecord')));
-
 // Grade Management
 const GradeManagementAdmin = lazy(() => retryImport(() => import('../pages/GradeManagementAdmin')));
 const TeacherGradeDashboard = lazy(() => retryImport(() => import('../pages/TeacherGradeDashboard')));
@@ -134,14 +126,6 @@ export const protectedRoutes = [
   { path: 'analytics',      element: Analytics,     roles: [Role.ADMIN] },
   { path: 'my-classes', element: ClassroomHub, roles: [Role.STAFF, Role.STUDENT] },
   { path: 'my-schedule', element: MySchedule, roles: [Role.STAFF, Role.STUDENT] },
-
-  // School Forms Module
-  { path: 'school-forms', element: SchoolFormsDashboard, roles: [Role.ADMIN, Role.STAFF] },
-  { path: 'school-forms/sf1', element: SF1Page, roles: [Role.ADMIN, Role.STAFF] },
-  { path: 'school-forms/sf2', element: SF2Page, roles: [Role.ADMIN, Role.STAFF] },
-  { path: 'school-forms/sf5', element: SF5Page, roles: [Role.ADMIN, Role.STAFF] },
-  { path: 'school-forms/sf9', element: SF9Page, roles: Role.ALL },
-  { path: 'school-forms/sf10', element: SF10Page, roles: [Role.ADMIN, Role.STAFF] },
 
   // Grade Management Module
   { path: 'grade-management', element: GradeManagementAdmin, roles: [Role.ADMIN, Role.STAFF] },
