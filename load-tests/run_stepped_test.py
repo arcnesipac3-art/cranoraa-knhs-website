@@ -1,9 +1,8 @@
 """
 KNHS PRISM Portal — Automated Stepped Load Test
 ================================================
-Runs Locust headlessly at each user level, waits for the run duration,
-collects stats from the Locust REST API, then prints a research-ready
-table at the end.
+Runs one headless Locust process per load step, collects CSV output,
+then prints a research-ready table at the end.
 
 Usage (PowerShell):
     $env:LOADTEST_ADMIN_USERNAME   = "admin@school.com"
@@ -17,286 +16,248 @@ Usage (PowerShell):
     py load-tests/run_stepped_test.py
 
 Requirements:
-    pip install locust requests
+    pip install locust
 """
 
 import subprocess
 import sys
-import time
 import os
-import requests
-import signal
+import csv
+import time
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
 HOST        = "https://cranoraa-knhs-website-1.onrender.com"
 LOCUSTFILE  = "load-tests/locustfile.py"
-WEB_PORT    = 8090          # Internal Locust API port (not opened to browser)
-SPAWN_RATE  = 2             # Users added per second
-RUN_SECONDS = 120           # How long to hold each load level (2 minutes)
-WARMUP_SECS = 10            # Extra seconds after spawning before reading stats
+SPAWN_RATE  = 2       # users added per second during ramp-up
+RUN_SECONDS = 120     # measurement window per step (2 minutes)
+STEPS       = [1, 10, 25, 50, 100, 150, 200]
+CSV_DIR     = "load-tests/step_results"
 
-STEPS = [1, 10, 25, 50, 100, 150, 200]
+# ── Credential check ──────────────────────────────────────────────────────────
 
-LOCUST_API  = f"http://127.0.0.1:{WEB_PORT}"
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def wait_for_locust_ready(timeout=30):
-    """Poll until the Locust web API responds."""
-    deadline = time.time() + timeout
-    while time.time() < deadline:
-        try:
-            r = requests.get(f"{LOCUST_API}/stats/requests", timeout=2)
-            if r.status_code == 200:
-                return True
-        except Exception:
-            pass
-        time.sleep(1)
-    return False
+REQUIRED_VARS = [
+    "LOADTEST_ADMIN_USERNAME",   "LOADTEST_ADMIN_PASSWORD",
+    "LOADTEST_TEACHER_USERNAME", "LOADTEST_TEACHER_PASSWORD",
+    "LOADTEST_STUDENT_USERNAME", "LOADTEST_STUDENT_PASSWORD",
+]
 
 
-def get_stats():
-    """Fetch aggregated stats from the Locust REST API."""
-    r = requests.get(f"{LOCUST_API}/stats/requests", timeout=5)
-    r.raise_for_status()
-    data = r.json()
-
-    # Find the Aggregated row
-    for entry in data.get("stats", []):
-        if entry.get("name") == "Aggregated":
-            return entry
-
-    # Fall back: compute from all entries
-    stats = data.get("stats", [])
-    if not stats:
-        return None
-
-    total_reqs     = sum(s.get("num_requests", 0) for s in stats)
-    total_fails    = sum(s.get("num_failures", 0) for s in stats)
-    avg_rt         = (sum(s.get("avg_response_time", 0) * s.get("num_requests", 0)
-                         for s in stats) / total_reqs) if total_reqs else 0
-    p95            = max((s.get("response_times", {}).get("95", 0) or 0) for s in stats)
-    current_rps    = sum(s.get("current_rps", 0) for s in stats)
-
-    return {
-        "num_requests":      total_reqs,
-        "num_failures":      total_fails,
-        "avg_response_time": avg_rt,
-        "response_times":    {"95": p95},
-        "current_rps":       current_rps,
-    }
-
-
-def reset_stats():
-    """Reset Locust stats counters via the API."""
-    try:
-        requests.get(f"{LOCUST_API}/stats/reset", timeout=5)
-    except Exception:
-        pass
-
-
-def set_user_count(users):
-    """Ramp to a new user count via the Locust swarm API."""
-    requests.post(
-        f"{LOCUST_API}/swarm",
-        data={"user_count": users, "spawn_rate": SPAWN_RATE},
-        timeout=10,
-    )
-
-
-def stop_swarm():
-    try:
-        requests.get(f"{LOCUST_API}/stop", timeout=5)
-    except Exception:
-        pass
-
-
-def format_ms(ms):
-    if ms is None:
-        return "—"
-    return f"{ms:.0f} ms"
-
-
-def format_rps(rps):
-    if rps is None:
-        return "—"
-    return f"{rps:.1f}"
-
-
-def failure_rate(reqs, fails):
-    if not reqs:
-        return "—"
-    return f"{fails / reqs * 100:.1f}%"
-
-
-# ── Main ──────────────────────────────────────────────────────────────────────
-
-def main():
-    print("=" * 70)
-    print("  KNHS PRISM Portal — Stepped Load Test")
-    print(f"  Host      : {HOST}")
-    print(f"  Steps     : {STEPS}")
-    print(f"  Duration  : {RUN_SECONDS}s per step  |  Spawn rate: {SPAWN_RATE}/s")
-    print("=" * 70)
-
-    # Validate credentials
-    required = [
-        "LOADTEST_ADMIN_USERNAME", "LOADTEST_ADMIN_PASSWORD",
-        "LOADTEST_TEACHER_USERNAME", "LOADTEST_TEACHER_PASSWORD",
-        "LOADTEST_STUDENT_USERNAME", "LOADTEST_STUDENT_PASSWORD",
-    ]
-    missing = [k for k in required if not os.environ.get(k)]
+def check_credentials():
+    missing = [k for k in REQUIRED_VARS if not os.environ.get(k)]
     if missing:
         print("\nERROR: Missing environment variables:")
         for k in missing:
             print(f"  {k}")
-        print("\nSet them before running this script. See the docstring at the top.")
+        print("\nSet them before running. See the docstring at the top of this file.")
         sys.exit(1)
 
-    # Start Locust in headless (worker) mode with its web API enabled
-    locust_cmd = [
+
+# ── Run one Locust step ───────────────────────────────────────────────────────
+
+def run_step(users, step_index):
+    """
+    Run Locust headlessly for `users` concurrent users.
+    Saves CSV output to CSV_DIR/step_<users>.csv.
+    Returns the path to the stats CSV file.
+    """
+    os.makedirs(CSV_DIR, exist_ok=True)
+    csv_prefix = os.path.join(CSV_DIR, f"step_{users:04d}")
+
+    cmd = [
         sys.executable, "-m", "locust",
         "-f", LOCUSTFILE,
         "--host", HOST,
-        "--web-port", str(WEB_PORT),
-        "--headless",           # no browser UI — we drive it via API
-        "--users", "1",         # start with 1, we'll ramp via API
+        "--headless",
+        "--users", str(users),
         "--spawn-rate", str(SPAWN_RATE),
-        "--run-time", f"{(RUN_SECONDS + WARMUP_SECS) * len(STEPS) + 120}s",
+        "--run-time", f"{RUN_SECONDS}s",
+        "--csv", csv_prefix,
+        "--csv-full-history",
+        "--loglevel", "WARNING",     # suppress INFO spam
+        "--exit-code-on-error", "0", # don't fail the script on any failures
     ]
 
-    print(f"\nStarting Locust process...")
-    proc = subprocess.Popen(
-        locust_cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+    print(f"\n{'─' * 60}")
+    print(f"  Step {step_index + 1}/{len(STEPS)}: {users} user(s) × {RUN_SECONDS}s")
+    print(f"{'─' * 60}")
+
+    start = time.time()
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
         text=True,
+        env=os.environ.copy(),
     )
+    elapsed = time.time() - start
 
-    try:
-        print("Waiting for Locust API to become ready...", end="", flush=True)
-        if not wait_for_locust_ready(timeout=40):
-            print(" TIMEOUT")
-            print("\nLocust did not start in time. Output:")
-            if proc.stdout:
-                print(proc.stdout.read())
-            sys.exit(1)
-        print(" OK")
+    # Show any errors locust printed
+    if result.returncode != 0:
+        print(f"  Locust exited with code {result.returncode}")
+    if result.stderr.strip():
+        # Only show lines that look like real errors
+        for line in result.stderr.splitlines():
+            if any(w in line.lower() for w in ["error", "exception", "critical", "failed"]):
+                print(f"  LOCUST: {line}")
 
-        results = []
+    print(f"  Completed in {elapsed:.0f}s")
+    return f"{csv_prefix}_stats.csv"
 
-        for users in STEPS:
-            print(f"\n{'─' * 60}")
-            print(f"  Phase: {users} concurrent user(s)")
-            print(f"{'─' * 60}")
 
-            # Reset counters before ramping
-            reset_stats()
+# ── Parse Locust CSV ──────────────────────────────────────────────────────────
 
-            # Ramp to target users
-            set_user_count(users)
-            spawn_wait = max(4, users // SPAWN_RATE + 2)
-            print(f"  Ramping up... ({spawn_wait}s)")
-            time.sleep(spawn_wait)
+def parse_csv(csv_path, users):
+    """
+    Parse the Locust *_stats.csv file and return the Aggregated row as a dict.
+    Falls back to computing totals if no Aggregated row exists.
+    """
+    if not os.path.exists(csv_path):
+        print(f"  WARNING: CSV not found at {csv_path}")
+        return None
 
-            # Extra warmup before recording
-            print(f"  Stabilising... ({WARMUP_SECS}s)")
-            time.sleep(WARMUP_SECS)
+    rows = []
+    with open(csv_path, newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            rows.append(row)
 
-            # Reset again so we only measure the stable period
-            reset_stats()
+    if not rows:
+        return None
 
-            # Let it run for the measurement window
-            print(f"  Measuring... ({RUN_SECONDS}s) ", end="", flush=True)
-            for i in range(RUN_SECONDS // 10):
-                time.sleep(10)
-                print(".", end="", flush=True)
-            print()
+    # Look for the Aggregated summary row
+    for row in rows:
+        if row.get("Name") == "Aggregated":
+            return _extract(row, users)
 
-            # Collect stats
-            stats = get_stats()
-            if not stats:
-                print("  WARNING: Could not retrieve stats for this step.")
-                results.append({
-                    "users": users,
-                    "requests": "—",
-                    "failures": "—",
-                    "failure_rate": "—",
-                    "avg_ms": "—",
-                    "p95_ms": "—",
-                    "rps": "—",
-                })
-                continue
+    # No aggregated row — sum everything up manually
+    total_req  = sum(int(r.get("Request Count", 0) or 0) for r in rows)
+    total_fail = sum(int(r.get("Failure Count", 0) or 0) for r in rows)
+    avg_rt     = (
+        sum(float(r.get("Average Response Time", 0) or 0)
+            * int(r.get("Request Count", 0) or 0) for r in rows)
+        / total_req if total_req else 0
+    )
+    p95 = max(
+        float(r.get("95%", 0) or r.get("95th Percentile Response Time", 0) or 0)
+        for r in rows
+    )
+    rps = sum(float(r.get("Requests/s", 0) or 0) for r in rows)
 
-            num_req  = stats.get("num_requests", 0)
-            num_fail = stats.get("num_failures", 0)
-            avg_ms   = stats.get("avg_response_time", 0)
-            p95_ms   = (stats.get("response_times") or {}).get("95") or \
-                       stats.get("response_time_percentiles", {}).get("0.95") or 0
-            rps      = stats.get("current_rps", 0) or \
-                       stats.get("total_rps", 0)
+    return {
+        "users":        users,
+        "requests":     total_req,
+        "failures":     total_fail,
+        "failure_pct":  f"{total_fail / total_req * 100:.1f}%" if total_req else "0.0%",
+        "avg_ms":       f"{avg_rt:.0f}",
+        "p95_ms":       f"{p95:.0f}",
+        "rps":          f"{rps:.2f}",
+    }
 
-            results.append({
-                "users":        users,
-                "requests":     num_req,
-                "failures":     num_fail,
-                "failure_rate": failure_rate(num_req, num_fail),
-                "avg_ms":       format_ms(avg_ms),
-                "p95_ms":       format_ms(p95_ms),
-                "rps":          format_rps(rps),
-            })
 
-            print(f"  Requests: {num_req}  |  Failures: {num_fail}  |  "
-                  f"Avg: {format_ms(avg_ms)}  |  p95: {format_ms(p95_ms)}  |  "
-                  f"RPS: {format_rps(rps)}")
+def _extract(row, users):
+    req  = int(row.get("Request Count", 0) or 0)
+    fail = int(row.get("Failure Count", 0) or 0)
+    avg  = float(row.get("Average Response Time", 0) or 0)
 
-        stop_swarm()
+    # Column name varies by Locust version
+    p95 = float(
+        row.get("95%") or
+        row.get("95th Percentile Response Time") or
+        row.get("response_time_percentile_0.95") or
+        0
+    )
+    rps = float(row.get("Requests/s", 0) or 0)
 
-    finally:
-        proc.terminate()
-        try:
-            proc.wait(timeout=10)
-        except Exception:
-            proc.kill()
+    return {
+        "users":       users,
+        "requests":    req,
+        "failures":    fail,
+        "failure_pct": f"{fail / req * 100:.1f}%" if req else "0.0%",
+        "avg_ms":      f"{avg:.0f}",
+        "p95_ms":      f"{p95:.0f}",
+        "rps":         f"{rps:.2f}",
+    }
 
-    # ── Print research table ───────────────────────────────────────────────
-    print("\n\n" + "=" * 70)
-    print("  RESULTS TABLE — Copy this into your thesis")
-    print("=" * 70)
 
-    header  = f"{'Users':>6} | {'Requests':>10} | {'Failures':>9} | " \
-              f"{'Fail %':>7} | {'Avg (ms)':>10} | {'p95 (ms)':>10} | {'RPS':>7}"
-    divider = "-" * len(header)
+# ── Print results table ───────────────────────────────────────────────────────
 
-    print(divider)
-    print(header)
-    print(divider)
+def print_table(results):
+    print("\n\n" + "=" * 76)
+    print("  LOAD TEST RESULTS — KNHS PRISM Portal")
+    print("=" * 76)
+
+    col = "{:>6} | {:>10} | {:>9} | {:>8} | {:>10} | {:>10} | {:>8}"
+    div = "-" * 76
+
+    print(div)
+    print(col.format("Users", "Requests", "Failures", "Fail %",
+                      "Avg (ms)", "p95 (ms)", "RPS"))
+    print(div)
 
     for r in results:
-        print(
-            f"{r['users']:>6} | "
-            f"{str(r['requests']):>10} | "
-            f"{str(r['failures']):>9} | "
-            f"{r['failure_rate']:>7} | "
-            f"{r['avg_ms']:>10} | "
-            f"{r['p95_ms']:>10} | "
-            f"{r['rps']:>7}"
-        )
+        if r is None:
+            continue
+        print(col.format(
+            r["users"],
+            r["requests"],
+            r["failures"],
+            r["failure_pct"],
+            r["avg_ms"],
+            r["p95_ms"],
+            r["rps"],
+        ))
 
-    print(divider)
-    print()
+    print(div)
 
-    # Also save to a CSV file
-    csv_path = "load-tests/results.csv"
-    with open(csv_path, "w") as f:
-        f.write("Users,Requests,Failures,Failure Rate,Avg Response (ms),p95 (ms),RPS\n")
+
+def save_csv(results):
+    out = "load-tests/results.csv"
+    with open(out, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Users", "Requests", "Failures", "Failure Rate",
+                         "Avg Response (ms)", "p95 (ms)", "RPS"])
         for r in results:
-            f.write(f"{r['users']},{r['requests']},{r['failures']},"
-                    f"{r['failure_rate']},{r['avg_ms']},{r['p95_ms']},{r['rps']}\n")
+            if r:
+                writer.writerow([
+                    r["users"], r["requests"], r["failures"],
+                    r["failure_pct"], r["avg_ms"], r["p95_ms"], r["rps"],
+                ])
+    print(f"\n  Results saved to: {out}")
 
-    print(f"Results also saved to: {csv_path}")
-    print("=" * 70)
+
+# ── Entry point ───────────────────────────────────────────────────────────────
+
+def main():
+    print("=" * 76)
+    print("  KNHS PRISM Portal — Stepped Load Test")
+    print(f"  Host     : {HOST}")
+    print(f"  Steps    : {STEPS}")
+    print(f"  Duration : {RUN_SECONDS}s per step  |  Spawn rate: {SPAWN_RATE}/s")
+    total_mins = len(STEPS) * (RUN_SECONDS + 10) // 60
+    print(f"  Est. total time: ~{total_mins} minutes")
+    print("=" * 76)
+
+    check_credentials()
+
+    results = []
+    for i, users in enumerate(STEPS):
+        csv_path = run_step(users, i)
+        result   = parse_csv(csv_path, users)
+
+        if result:
+            print(f"  → Requests: {result['requests']}  "
+                  f"Failures: {result['failures']}  "
+                  f"Avg: {result['avg_ms']}ms  "
+                  f"p95: {result['p95_ms']}ms  "
+                  f"RPS: {result['rps']}")
+        else:
+            print("  → Could not parse results for this step.")
+
+        results.append(result)
+
+    print_table(results)
+    save_csv(results)
+    print("=" * 76)
 
 
 if __name__ == "__main__":
