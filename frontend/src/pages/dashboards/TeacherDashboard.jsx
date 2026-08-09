@@ -63,7 +63,7 @@ const TeacherDashboard = () => {
     return map;
   }, [subjects]);
 
-  const classroomIds = useMemo(() => classrooms.map(c => c.id), [classrooms]);
+  const classroomIds = useMemo(() => (Array.isArray(classrooms) ? classrooms : []).map(c => c.id), [classrooms]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -79,8 +79,8 @@ const TeacherDashboard = () => {
 
     if (cached.stats || cached.classrooms) {
       if (cached.stats) setData(cached.stats);
-      if (cached.classrooms) setClassrooms(cached.classrooms);
-      if (cached.subjects) setSubjects(cached.subjects);
+      if (cached.classrooms) setClassrooms(Array.isArray(cached.classrooms) ? cached.classrooms : cached.classrooms?.results || []);
+      if (cached.subjects) setSubjects(Array.isArray(cached.subjects) ? cached.subjects : []);
       setUsingCache(true);
       setLoading(false);
     }
@@ -122,7 +122,7 @@ const TeacherDashboard = () => {
       }
 
       apiCache.set(ck('/teacher/stats/'), statsRes.data, 60 * 60 * 1000);
-      apiCache.set('/classrooms/', clsRes.data, 60 * 60 * 1000);
+      apiCache.set('/classrooms/', cls, 60 * 60 * 1000);
       apiCache.set(ck(`/classroom-subjects/by_teacher/?teacher_id=${user?.id}`), subjectsRes.data, 60 * 60 * 1000);
       setUsingCache(false);
     } catch {
