@@ -133,17 +133,31 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
             sys_settings.save(update_fields=['academic_year'])
 
     def perform_destroy(self, instance):
-        """Safe delete with cascade handling."""
+        """Safe delete — manually clean up all CASCADE chains before deleting."""
         from django.db import transaction
-        from accounts.models import GradeSubmission, GradeReopeningRequest, ComplianceSubmission, ComplianceFile, ComplianceComment
         try:
             with transaction.atomic():
-                # Manually clean up deep CASCADE chains to prevent failures
-                grading_periods = instance.grading_periods.all()
-                for gp in grading_periods:
-                    GradeSubmission.objects.filter(grading_period=gp).delete()
-                    gp.delete()
-                ComplianceSubmission.objects.filter(academic_year=instance).delete()
+                # 1. GradeReopeningRequest → GradeSubmission → GradingPeriod (deepest first)
+                gp_ids = list(instance.grading_periods.values_list('id', flat=True))
+                if gp_ids:
+                    from accounts.models.grading_management import GradeReopeningRequest, GradeSubmission
+                    GradeReopeningRequest.objects.filter(submission__grading_period_id__in=gp_ids).delete()
+                    GradeSubmission.objects.filter(grading_period_id__in=gp_ids).delete()
+                    instance.grading_periods.all().delete()
+
+                # 2. ComplianceSubmission → ComplianceFile/ComplianceComment/ComplianceAuditLog
+                comp_ids = list(instance.compliance_submissions.values_list('id', flat=True))
+                if comp_ids:
+                    from accounts.models.compliance import ComplianceFile, ComplianceComment, ComplianceAuditLog
+                    ComplianceFile.objects.filter(submission_id__in=comp_ids).delete()
+                    ComplianceComment.objects.filter(submission_id__in=comp_ids).delete()
+                    ComplianceAuditLog.objects.filter(submission_id__in=comp_ids).delete()
+                    instance.compliance_submissions.all().delete()
+
+                # 3. Semesters (direct CASCADE from AcademicYear)
+                instance.semesters.all().delete()
+
+                # 4. Now delete the AcademicYear itself (Classroom FK is SET_NULL, safe)
                 instance.delete()
         except Exception as e:
             logger.error(f"Failed to delete academic year {instance.id}: {e}")
