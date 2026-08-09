@@ -217,9 +217,189 @@ def _to_html(data, form_type):
 def _sf2_to_html(data):
     matrix = data.get('matrix', {})
     summary = data.get('summary', {})
-    html = '<h1>SF2 - Daily Attendance Report</h1>'
-    html += f'<p>Total Students: {summary.get("total_students", 0)} | Present: {summary.get("present", 0)} | Absent: {summary.get("absent", 0)}</p>'
-    return f'<html><head><meta charset="utf-8"></head><body>{html}</body></html>'
+    students = matrix.get('students', [])
+    dates = matrix.get('dates', [])
+    start_date = matrix.get('start_date', '')
+    end_date = matrix.get('end_date', '')
+
+    STATUS_MAP = {'present': 'P', 'absent': 'A', 'late': 'L', 'excused': 'E'}
+    STATUS_STYLE = {
+        'present': 'color:#16a34a;font-weight:bold;',
+        'absent': 'color:#dc2626;font-weight:bold;',
+        'late': 'color:#d97706;font-weight:bold;',
+        'excused': 'color:#2563eb;font-weight:bold;',
+    }
+
+    css = """
+    @page { size: A3 landscape; margin: 0.5cm; }
+    body { font-family: Arial, Helvetica, sans-serif; font-size: 6pt; margin: 0; }
+    h1 { text-align: center; font-size: 12pt; margin: 2px 0; }
+    h2 { text-align: center; font-size: 8pt; font-style: italic; margin: 1px 0; }
+    .header-table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 7pt; }
+    .header-table td { border: 1px solid #000; padding: 2px 4px; }
+    .header-table .label { font-weight: bold; width: 70px; }
+    .att-table { width: 100%; border-collapse: collapse; font-size: 6pt; }
+    .att-table th { border: 1px solid #000; padding: 1px 2px; background: #2D1B4D; color: white; text-align: center; font-size: 5.5pt; vertical-align: middle; }
+    .att-table td { border: 1px solid #000; padding: 1px 2px; text-align: center; vertical-align: middle; }
+    .att-table .name-col { text-align: left; white-space: nowrap; }
+    .male-header { background: #dbeafe; font-weight: bold; font-size: 6pt; }
+    .female-header { background: #fce7f3; font-weight: bold; font-size: 6pt; }
+    .totals-row { background: #f1f5f9; font-weight: bold; }
+    .footer { font-size: 7pt; margin-top: 8px; }
+    .sig-section { margin-top: 15px; font-size: 7pt; width: 100%; }
+    .sig-section td { vertical-align: top; padding: 0 10px; }
+    .sig-line { border-top: 1px solid #000; width: 200px; margin: 25px auto 2px; text-align: center; }
+    """
+
+    # Build header
+    school_name = data.get('school_name', getattr(data, 'school_name', ''))
+    school_id = data.get('school_id', getattr(data, 'school_id', ''))
+    school_year = data.get('school_year', '')
+    grade_level = data.get('grade_level', '')
+    section = data.get('section', '')
+    adviser_name = data.get('adviser_name', '')
+    month_name = data.get('month_name', '')
+    month_year = data.get('year', '')
+    total_learners = data.get('total_learners', summary.get('total_students', 0))
+    overall_pct = data.get('overall_attendance_pct', summary.get('attendance_rate', 0))
+
+    # Fallback to matrix-level info
+    if not school_year:
+        school_year = matrix.get('school_year', '')
+    if not grade_level:
+        grade_level = students[0].get('grade_level', '') if students else ''
+    if not section:
+        section = students[0].get('section', '') if students else ''
+
+    html_parts = [f'''<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>SF2 - Daily Attendance Report</title><style>{css}</style></head><body>
+<h1>SCHOOL FORM 2 (SF2)</h1>
+<h2>Daily Attendance Report of Learners</h2>
+<table class="header-table">
+<tr><td class="label">School</td><td colspan="3">{school_name}</td><td class="label">School ID</td><td>{school_id}</td></tr>
+<tr><td class="label">School Year</td><td>{school_year}</td><td class="label">Grade</td><td>{grade_level}</td><td class="label">Section</td><td>{section}</td></tr>
+<tr><td class="label">Adviser</td><td colspan="2">{adviser_name}</td><td class="label">Month</td><td colspan="2">{month_name} {month_year}</td></tr>
+</table>
+''']
+
+    # Build attendance table
+    # Filter to weekday dates only (Mon-Fri)
+    from datetime import date as dt_date
+    school_day_dates = []
+    for d in dates:
+        if isinstance(d, str):
+            try:
+                d = dt_date.fromisoformat(d)
+            except (ValueError, TypeError):
+                continue
+        if hasattr(d, 'weekday') and d.weekday() < 5:
+            school_day_dates.append(d)
+
+    html_parts.append('<table class="att-table"><thead>')
+    html_parts.append('<tr>')
+    html_parts.append('<th style="width:20px">No.</th>')
+    html_parts.append('<th style="width:25px">LRN</th>')
+    html_parts.append('<th style="width:120px">Name of Learner</th>')
+    html_parts.append('<th style="width:15px">S</th>')
+    for d in school_day_dates:
+        day_num = d.day if hasattr(d, 'day') else ''
+        day_name = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d.weekday()] if hasattr(d, 'weekday') else ''
+        html_parts.append(f'<th style="width:20px"><div style="font-size:4pt;color:#ccc">{day_name}</div>{day_num}</th>')
+    html_parts.append('<th style="width:25px">Prs</th>')
+    html_parts.append('<th style="width:25px">Abs</th>')
+    html_parts.append('<th style="width:25px">Late</th>')
+    html_parts.append('<th style="width:25px">%</th>')
+    html_parts.append('</tr></thead><tbody>')
+
+    # Separate male and female
+    male_students = [s for s in students if (s.get('sex', '') or '').lower() == 'male']
+    female_students = [s for s in students if (s.get('sex', '') or '').lower() == 'female']
+
+    def render_student_rows(student_list, start_idx=0):
+        rows = []
+        for i, s in enumerate(student_list):
+            rows.append('<tr>')
+            rows.append(f'<td>{start_idx + i + 1}</td>')
+            rows.append(f'<td style="font-size:5pt">{s.get("lrn", "")}</td>')
+            rows.append(f'<td class="name-col">{s.get("name", "")}</td>')
+            rows.append(f'<td>{(s.get("sex", "") or "").upper()[:1]}</td>')
+
+            # Build daily lookup
+            daily = {}
+            for att in s.get('daily_attendance', []):
+                att_date = att.get('date')
+                if isinstance(att_date, str):
+                    try:
+                        att_date = dt_date.fromisoformat(att_date)
+                    except (ValueError, TypeError):
+                        continue
+                daily[att_date] = att.get('status')
+
+            p_count = 0
+            a_count = 0
+            l_count = 0
+            for d in school_day_dates:
+                status = daily.get(d)
+                if status:
+                    code = STATUS_MAP.get(status, status[0].upper() if status else '-')
+                    style = STATUS_STYLE.get(status, '')
+                    rows.append(f'<td style="{style}">{code}</td>')
+                    if status == 'present': p_count += 1
+                    elif status == 'absent': a_count += 1
+                    elif status == 'late': l_count += 1
+                else:
+                    rows.append('<td>-</td>')
+
+            total = p_count + a_count + l_count
+            pct = round((p_count + l_count) / total * 100) if total > 0 else 0
+            rows.append(f'<td style="color:#16a34a;font-weight:bold">{p_count}</td>')
+            rows.append(f'<td style="color:#dc2626;font-weight:bold">{a_count}</td>')
+            rows.append(f'<td style="color:#d97706;font-weight:bold">{l_count}</td>')
+            rows.append(f'<td style="font-weight:bold">{pct}%</td>')
+            rows.append('</tr>')
+        return ''.join(rows)
+
+    if male_students:
+        html_parts.append(f'<tr><td colspan="{3 + len(school_day_dates) + 4 + 1}" class="male-header">Male ({len(male_students)})</td></tr>')
+        html_parts.append(render_student_rows(male_students))
+
+    if female_students:
+        html_parts.append(f'<tr><td colspan="{3 + len(school_day_dates) + 4 + 1}" class="female-header">Female ({len(female_students)})</td></tr>')
+        html_parts.append(render_student_rows(female_students, len(male_students)))
+
+    # Totals row
+    html_parts.append('<tr class="totals-row">')
+    html_parts.append(f'<td colspan="4">Grand Total ({total_learners} learners)</td>')
+    for _ in school_day_dates:
+        html_parts.append('<td></td>')
+    html_parts.append(f'<td style="color:#16a34a">{summary.get("present", 0)}</td>')
+    html_parts.append(f'<td style="color:#dc2626">{summary.get("absent", 0)}</td>')
+    html_parts.append(f'<td style="color:#d97706">{summary.get("late", 0)}</td>')
+    html_parts.append(f'<td style="font-weight:bold">{overall_pct}%</td>')
+    html_parts.append('</tr>')
+
+    html_parts.append('</tbody></table>')
+
+    # Signature block
+    html_parts.append(f'''
+<table class="sig-section">
+<tr>
+<td style="width:50%">
+  <p><b>Prepared by:</b></p>
+  <div class="sig-line">{adviser_name}</div>
+  <p style="text-align:center;font-size:6pt">Adviser</p>
+</td>
+<td style="width:50%">
+  <p><b>Noted by:</b></p>
+  <div class="sig-line">{school_name} Head</div>
+  <p style="text-align:center;font-size:6pt">School Head</p>
+</td>
+</tr>
+</table>
+<p class="footer" style="text-align:right;font-style:italic;font-size:6pt">Generated: {datetime.now().strftime('%B %d, %Y %I:%M %p')}</p>
+</body></html>''')
+
+    return ''.join(html_parts)
 
 
 def _sf5_to_html(data):

@@ -7,7 +7,7 @@ import {
   Card, CardHeader, CardBody, CardTitle, Button, Badge, Skeleton, EmptyState,
 } from '../components/ui';
 import {
-  ResponsiveContainer, PieChart, Pie, Cell, Tooltip,
+  ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, Tooltip,
   AreaChart, Area, CartesianGrid, XAxis, YAxis,
   BarChart, Bar,
 } from 'recharts';
@@ -15,6 +15,7 @@ import {
   BarChart3, Users, TrendingUp, Clock, Download,
   ChevronLeft, ChevronRight, Zap, BookOpen, AlertTriangle,
   CheckCircle, XCircle, Eye, FileText, GraduationCap, Award,
+  PieChart as PieChartIcon,
 } from 'lucide-react';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -414,17 +415,17 @@ const AttendancePie = ({ data }) => {
       <SectionHeader title="Status Distribution" subtitle="Overall attendance breakdown" />
       <CardBody className="p-4 h-[280px] sm:h-[320px] flex items-center gap-6">
         {!hasData ? (
-          <EmptyState icon={<PieChart className="w-8 h-8" />} title="No status data" />
+          <EmptyState icon={<PieChartIcon className="w-8 h-8" />} title="No status data" />
         ) : (
           <>
             <div className="w-1/2 h-full relative">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <RechartsPieChart>
                   <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={78} paddingAngle={4} dataKey="value">
                     {data?.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={0} />)}
                   </Pie>
                   <Tooltip content={<PieTooltip />} />
-                </PieChart>
+                </RechartsPieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <p className="text-2xl font-extrabold text-slate-900">{total}</p>
@@ -568,17 +569,17 @@ const GradeDistributionPie = ({ data, total, label }) => {
       <SectionHeader title="Grade Distribution" subtitle={`Performance tier spread — ${label}`} />
       <CardBody className="p-4 h-[300px] sm:h-[340px] flex items-center gap-6">
         {!data?.length ? (
-          <EmptyState icon={<PieChart className="w-8 h-8" />} title="No grade data" />
+          <EmptyState icon={<PieChartIcon className="w-8 h-8" />} title="No grade data" />
         ) : (
           <>
             <div className="w-1/2 h-full relative">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <RechartsPieChart>
                   <Pie data={data} cx="50%" cy="50%" innerRadius={48} outerRadius={75} paddingAngle={4} dataKey="value">
                     {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={0} />)}
                   </Pie>
                   <Tooltip content={<PieTooltip />} />
-                </PieChart>
+                </RechartsPieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <p className="text-2xl font-extrabold text-slate-900">{total}</p>
