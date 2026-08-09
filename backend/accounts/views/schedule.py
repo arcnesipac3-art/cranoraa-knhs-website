@@ -147,10 +147,20 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 
         # Auto-fill academic_year from active year if not provided
         if not serializer.validated_data.get('academic_year'):
-            from portal.models import AcademicYear
-            active_ay = AcademicYear.objects.filter(is_active=True).first()
+            from accounts.models import AcademicYear as AccountsAcademicYear
+            active_ay = AccountsAcademicYear.objects.filter(is_active=True).first()
             if active_ay:
-                serializer.validated_data['academic_year'] = active_ay
+                # Get or create the corresponding portal academic year
+                from portal.models import AcademicYear as PortalAcademicYear
+                portal_ay, _ = PortalAcademicYear.objects.get_or_create(
+                    name=active_ay.name,
+                    defaults={
+                        'start_date': active_ay.start_date,
+                        'end_date': active_ay.end_date,
+                        'is_active': active_ay.is_active,
+                    },
+                )
+                serializer.validated_data['academic_year'] = portal_ay
 
         schedule = serializer.save()
         try:
