@@ -282,6 +282,21 @@ api.interceptors.response.use(
       }
     }
 
+    // Auto-unwrap DRF paginated responses so existing code that does
+    // `setX(res.data)` continues to work.  Detects the { count, next,
+    // previous, results } shape that DRF PageNumberPagination returns.
+    if (
+      response.config.method === 'get' &&
+      response.status === 200 &&
+      response.data &&
+      typeof response.data === 'object' &&
+      'results' in response.data &&
+      'count' in response.data &&
+      'next' in response.data
+    ) {
+      response.data = response.data.results;
+    }
+
     return response;
   },
   (error) => {

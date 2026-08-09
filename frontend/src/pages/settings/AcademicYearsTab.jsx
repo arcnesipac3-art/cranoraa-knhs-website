@@ -20,7 +20,8 @@ const AcademicYearsTab = () => {
   const fetchYears = async () => {
     try {
       const r = await api.get('/admin/academic-years/');
-      setYears([...r.data].sort((a, b) => b.name.localeCompare(a.name)));
+      const list = Array.isArray(r.data) ? r.data : r.data?.results || [];
+      setYears([...list].sort((a, b) => b.name.localeCompare(a.name)));
     } catch { toast.error('Failed to load academic years'); }
     finally { setLoading(false); }
   };
