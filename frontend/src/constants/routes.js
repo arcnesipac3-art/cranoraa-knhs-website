@@ -72,7 +72,6 @@ const AttendanceMonitoring = lazy(() => retryImport(() => import('../pages/Atten
 const StudentAttendance = lazy(() => retryImport(() => import('../pages/StudentAttendance')));
 const ExcuseSlipsAdmin = lazy(() => retryImport(() => import('../pages/ExcuseSlipsAdmin')));
 const AttendanceAuditTrail = lazy(() => retryImport(() => import('../pages/AttendanceAuditTrail')));
-const AttendanceDeadlineAdmin = lazy(() => retryImport(() => import('../pages/AttendanceDeadlineAdmin')));
 
 // Compliance
 const ComplianceHub = lazy(() => retryImport(() => import('../pages/ComplianceHub')));
@@ -156,7 +155,6 @@ export const protectedRoutes = [
   { path: 'student-attendance', element: StudentAttendance, roles: [Role.STUDENT, Role.PARENT] },
   { path: 'excuse-slips', element: ExcuseSlipsAdmin, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'attendance-audit-trail', element: AttendanceAuditTrail, roles: [Role.ADMIN] },
-  { path: 'attendance-deadlines', element: AttendanceDeadlineAdmin, roles: [Role.ADMIN] },
 
   // Compliance
   { path: 'compliance', element: ComplianceHub, roles: [Role.ADMIN] },
