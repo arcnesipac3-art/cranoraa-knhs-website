@@ -1,0 +1,100 @@
+Test Case ID,Module,Priority,Test Type,Objective / Scenario,Preconditions,Test Steps,Test Data / Input,Expected Result,Actual Result,Status,Test Date,Tester,Environment,Notes / Remarks,Defect ID
+AUTH-001,Authentication & Security,P1 - Critical,Functional,"Valid login for all roles (Admin/Faculty/Student/Parent)","User account exists and is active; user is logged out","1. Navigate to login page
+2. Enter valid email and password
+3. Select role
+4. Click Login
+5. Verify redirect","Email: user@knhs.edu.ph
+Password: Test@123
+Role: Admin/Faculty/Student/Parent","User authenticated; redirected to correct role-based dashboard; role-based menu appears",,Not Tested,,,,
+AUTH-002,Authentication & Security,P1 - Critical,Functional,Invalid login credentials are rejected,"User account exists; user is logged out","1. Navigate to login page
+2. Enter valid email with incorrect password
+3. Click Login","Email: user@knhs.edu.ph
+Password: WrongPass123","Login rejected; generic error message shown; no session/token created",,Not Tested,,,,
+AUTH-003,Authentication & Security,P1 - Critical,Security,SQL injection prevention on login fields,Login page is accessible,"1. Navigate to login page
+2. Enter SQL injection payload in email/password fields
+3. Submit","Payload: ' OR '1'='1","Input sanitized/rejected; login denied; no unauthorized access or DB error exposed",,Not Tested,,,,
+AUTH-004,Authentication & Security,P1 - Critical,Functional,"Session management (timeout, logout, token handling)","User is logged in with valid session/token","1. Log in successfully
+2. Remain idle past session timeout OR click Logout
+3. Attempt to access a protected page",Session timeout duration per system config,"Session/token invalidated; user redirected to login; protected pages inaccessible without re-authentication",,Not Tested,,,,
+ADM-001,Student Enrollment,P1 - Critical,Functional,"Enrollment application processing, document verification, account creation","Admin is logged in; application exists with 'Pending' status","1. Navigate to Enrollment Management
+2. Filter applications by status
+3. Select application
+4. Review details and verify documents
+5. Change status to Approved
+6. Assign section
+7. Complete enrollment","Applicant: Pedro Garcia
+Grade Level: 7
+Section: Grade 7 - Rizal
+Parent Email: parent@email.com","Status transitions correctly; documents verified; section assigned; student and parent accounts created and linked; credentials generated; notification sent",,Not Tested,,,,
+TCH-002,Grade Management,P1 - Critical,Functional,Grade entry with auto-computation and DepEd transmutation,"Teacher is logged in; grading period is open; students enrolled in class","1. Navigate to Grade Submission
+2. Select subject and class
+3. Enter Written Work, Performance Task, Quarterly Assessment scores
+4. Verify auto-computation
+5. Save grades","Written Work: 38/40 (40%)
+Performance Task: 36/40 (40%)
+Quarterly Assessment: 18/20 (20%)","Percentage and weighted average computed correctly per configured weights; DepEd transmutation applied; final grade auto-displayed and saved",,Not Tested,,,,
+STU-001,Grade Management,P1 - Critical,Functional,Grade viewing from student perspective,"Student is logged in; grades have been submitted by teacher","1. Log in as student
+2. Navigate to Grades
+3. Select subject/quarter",Student account with published grades,"Correct grades displayed per subject/quarter matching teacher-submitted records; unpublished grades not visible",,Not Tested,,,,
+ADM-005,Grade Management,P1 - Critical,Functional,Grade accuracy validation across roles (teacher entry vs. admin/student view),Grades submitted by teacher for a given student,"1. Log in as Admin
+2. Navigate to student grade record
+3. Compare with teacher-submitted values",Same student/subject/quarter used in TCH-002,"Grade values match exactly across teacher, admin, and student views; no discrepancy or rounding error",,Not Tested,,,,
+TCH-001,Attendance Tracking,P1 - Critical,Functional,Daily attendance marking,"Teacher is logged in; assigned to class; class schedule exists","1. Navigate to My Classes
+2. Select class
+3. Open Attendance tab
+4. Select date
+5. Mark student statuses (Present/Absent/Late/Excused)
+6. Save","Class: Grade 10 - Rizal
+Date: 2025-01-15
+Total Students: 40 (35 Present, 3 Absent, 2 Late)","All students listed correctly; statuses saved accurately; save confirmation shown; record persisted in database",,Not Tested,,,,
+PAR-002,Attendance Tracking,P1 - Critical,Integration,Parent notifications on Absent/Late marking,Attendance marked as Absent/Late for a student with linked parent account,"1. Mark student Absent or Late (per TCH-001)
+2. Save attendance
+3. Check parent account for notification",Same class/date used in TCH-001,"Parent notified (in-app and/or email) for each Absent/Late student within expected time window",,Not Tested,,,,
+FORM-001,School Forms Generation,P2 - High,Functional,Generate SF9 (Report Card),Required student data and complete grades exist,"1. Navigate to School Forms
+2. Select SF9
+3. Apply filters (year, grade, section, student)
+4. Export PDF/Excel
+5. Verify downloaded file","Form Type: SF9
+Academic Year: 2024-2025
+Student: [selected]","File generates within 10 seconds; format matches DepEd SF9 template; all fields and calculations correct; school header/logo present",,Not Tested,,,,
+FORM-002,School Forms Generation,P2 - High,Functional,Generate SF2 (Attendance Report),Required attendance data exists for selected period,"1. Navigate to School Forms
+2. Select SF2
+3. Apply filters (year, grade, section, month)
+4. Export PDF/Excel
+5. Verify downloaded file","Form Type: SF2
+Academic Year: 2024-2025
+Class: [selected]
+Month: [selected]","File generates correctly; format matches DepEd SF2 template; attendance counts match source records",,Not Tested,,,,
+TCH-004,Compliance Document System,P2 - High,Functional,Teacher compliance document submission workflow,"Compliance requirement is configured with a deadline; teacher is logged in","1. Navigate to My Compliance
+2. Find pending requirement
+3. Upload file(s)
+4. Submit for review","Document Type: Weekly Lesson Plan
+Files: up to 5 PDFs, total 25MB","Multiple file upload works; file size/type validated; status changes to 'Pending Review'; admin notified",,Not Tested,,,,
+ADM-003,Compliance Document System,P2 - High,Functional,Admin review process for submitted compliance documents,Teacher has submitted a compliance document (per TCH-004),"1. Log in as Admin
+2. Navigate to Compliance Hub
+3. Open submission
+4. Preview files
+5. Approve or reject with remarks",Submission from TCH-004,"Admin can preview all files; approval/rejection updates status correctly; teacher receives notification with remarks if rejected",,Not Tested,,,,
+ADM-004,Compliance Document System,P2 - High,Functional,Compliance deadline tracking,Compliance requirement configured with a due date,"1. Advance/observe system date relative to deadline
+2. Check compliance status indicators for pending submissions",Deadline: 15th of month,"Status correctly reflects On-Time / Due Soon / Overdue based on current date vs. deadline; overdue items flagged for admin",,Not Tested,,,,
+ADM-006,Academic Year Rollover,P3 - Medium,Functional,Classroom structure copying vs. data preservation on rollover,"Admin is logged in; source year has complete classroom data; target year exists","1. Navigate to Class Management
+2. Click Year Rollover
+3. Select source and target year
+4. Choose items to copy (advisers, subjects)
+5. Execute rollover
+6. Verify results","Source Year: 2024-2025
+Target Year: 2025-2026
+Copy Advisers: Yes
+Copy Subjects: Yes
+Copy Students: No","Classroom structure, adviser and subject-teacher assignments copied to new year; student and grade tables empty for new year; no data corruption; success message shows count",,Not Tested,,,,
+ADM-002,Classroom Management,P3 - Medium,Functional,Class creation and subject/teacher assignment,"Admin is logged in; academic year is set; teachers and subjects exist","1. Navigate to Class Management
+2. Select academic year
+3. Add Class (grade level, section name)
+4. Assign adviser
+5. Save
+6. Assign subjects and teachers
+7. Verify access","Academic Year: 2024-2025
+Grade Level: 10
+Section: Grade 10 - Mabini
+Adviser: Ms. Maria Santos
+Subject: Mathematics / Teacher: Mr. Juan Reyes","Class created successfully; adviser assigned; subject-teacher assignments saved; class appears in dropdowns; assigned teacher can access class",,Not Tested,,,,

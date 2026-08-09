@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Search, Printer, RefreshCw, X, FileText, Download, Loader2,
@@ -6,7 +6,6 @@ import {
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { useActiveAcademicYear } from '../hooks/useActiveAcademicYear';
-import { useSystemSettings } from '../hooks/useSystemSettings';
 import { Skeleton, Button } from '../components/ui';
 import toast from 'react-hot-toast';
 
@@ -120,10 +119,6 @@ function getMatchedSubjects(termGrades) {
   });
 }
 
-function getSubjectGrade(termGrades, subjectName) {
-  return termGrades[subjectName] || null;
-}
-
 export default function MasterSheet() {
   const { user } = useAuth();
   const { academicYear } = useActiveAcademicYear();
@@ -134,9 +129,8 @@ export default function MasterSheet() {
   const [allClassrooms, setAllClassrooms] = useState([]);
   const [selectedClassroom, setSelectedClassroom] = useState(searchParams.get('classroom') || '');
   const [students, setStudents] = useState([]);
-  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useState('all');
   const [teachers, setTeachers] = useState([]);
-  const [sectionSubjects, setSectionSubjects] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [printMode, setPrintMode] = useState(false);
@@ -183,18 +177,8 @@ export default function MasterSheet() {
     }
   }, [isTeacher, classrooms, selectedClassroom]);
 
-  // Filtered section subjects: teachers only see subjects they're assigned to in this section
-  const filteredSectionSubjects = useMemo(() => {
-    if (!isTeacher) return sectionSubjects;
-    const mySubjectIds = new Set(myAssignments.filter(a => a.classroom === parseInt(selectedClassroom)).map(a => a.subject));
-    return sectionSubjects.filter(s => mySubjectIds.has(s.subject));
-  }, [sectionSubjects, isTeacher, myAssignments, selectedClassroom]);
-
   useEffect(() => {
-    if (!selectedClassroom) { setStudents([]); setSelectedStudentId(''); return; }
-    api.get(`/classroom-subjects/by_classroom/?classroom_id=${selectedClassroom}`)
-      .then(r => setSectionSubjects(r.data))
-      .catch(() => setSectionSubjects([]));
+    if (!selectedClassroom) { setStudents([]); setSelectedStudentId('all'); setAllStudentData([]); return; }
     api.get('/enrollments/', { params: { classroom: selectedClassroom, academic_year: academicYear || undefined } })
       .then(r => {
         const list = Array.isArray(r.data) ? r.data : r.data?.results || [];
@@ -422,7 +406,7 @@ export default function MasterSheet() {
     return () => window.removeEventListener('afterprint', h);
   }, []);
 
-  const showContent = isAll ? allStudentData.length > 0 : !!selectedStudentId;
+  const showContent = isAll ? (loading || allStudentData.length > 0) : !!selectedStudentId;
 
   if (printMode) {
     const items = isAll
@@ -474,7 +458,7 @@ export default function MasterSheet() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
           <div className="min-w-[160px]">
             <label className="flex items-center gap-1 text-[9px] font-bold text-gray-500 uppercase mb-0.5">Section <span className="text-red-400">*</span></label>
-            <select value={selectedClassroom} onChange={e => { setSelectedClassroom(e.target.value); setSelectedStudentId(''); }}
+            <select value={selectedClassroom} onChange={e => { setSelectedClassroom(e.target.value); setSelectedStudentId('all'); setAllStudentData([]); }}
               className="w-full rounded-lg border border-gray-300 px-2.5 py-[7px] text-xs bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
               <option value="">Select section...</option>
               {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -490,7 +474,7 @@ export default function MasterSheet() {
             </select>
           </div>
           <div className="flex items-center gap-1.5">
-            <Button variant="ghost" size="sm" onClick={() => { setSelectedClassroom(''); setSelectedStudentId(''); }}>
+            <Button variant="ghost" size="sm" onClick={() => { setSelectedStudentId('all'); setAllStudentData([]); }}>
               <X className="w-3.5 h-3.5" />
             </Button>
             <Button variant="outline" size="sm" onClick={() => {
@@ -518,7 +502,7 @@ export default function MasterSheet() {
         </div>
       ) : isAll ? (
         <div ref={printRef} data-master-sheet className="space-y-6">
-          {allStudentData.map((d, idx) => (
+          {allStudentData.map((d) => (
             <StudentSheet
               key={d.id}
               profile={d.profile}
@@ -526,7 +510,6 @@ export default function MasterSheet() {
               attendance={d.attendance}
               classroom={classroomObj}
               teacher={teacherObj}
-              index={idx}
               myAssignments={myAssignments}
               isTeacher={isTeacher}
             />
@@ -550,7 +533,7 @@ export default function MasterSheet() {
   );
 }
 
-function StudentSheet({ profile, grades, attendance, classroom, teacher, index, myAssignments, isTeacher }) {
+function StudentSheet({ profile, grades, attendance, classroom, teacher, myAssignments, isTeacher }) {
   const filteredGrades = useMemo(() => {
     if (!isTeacher || !myAssignments?.length) return grades;
     const mySubjectIds = new Set(myAssignments.map(a => a.subject));
