@@ -359,7 +359,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def save_message(self, room_id, sender_id, message, parent_id=None):
         import re
-        room = ChatRoom.objects.filter(id=room_id, participants__id=sender_id).first()
+        room = ChatRoom.objects.filter(id=room_id, participants__id=sender_id).prefetch_related('participants').first()
         if not room:
             return None
         sender = User.objects.get(id=sender_id)

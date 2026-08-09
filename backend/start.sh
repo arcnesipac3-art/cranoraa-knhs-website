@@ -11,4 +11,9 @@ echo "Seeding compliance types..."
 python manage.py seed_compliance_types 2>&1 || echo "WARNING: seed failed"
 
 echo "Starting server..."
-exec daphne -b 0.0.0.0 -p $PORT school_portal.asgi:application
+exec gunicorn school_portal.asgi:application \
+  -k uvicorn.workers.UvicornWorker \
+  -w 4 \
+  -b 0.0.0.0:$PORT \
+  --access-logfile - \
+  --error-logfile -

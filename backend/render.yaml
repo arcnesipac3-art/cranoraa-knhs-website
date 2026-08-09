@@ -9,7 +9,7 @@ services:
     name: knhs-backend
     env: python
     buildCommand: ./build.sh
-    startCommand: python manage.py migrate --no-input && daphne -b 0.0.0.0 -p $PORT school_portal.asgi:application
+    startCommand: python manage.py migrate --no-input && gunicorn school_portal.asgi:application -k uvicorn.workers.UvicornWorker -w 4 -b 0.0.0.0:$PORT
     healthCheckPath: /
     envVars:
       - key: DEBUG

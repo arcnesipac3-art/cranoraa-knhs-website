@@ -206,8 +206,14 @@ def _get_bucket_name(bucket_key: str) -> str:
     return getattr(settings, cfg.env_var, None) or cfg.name
 
 
+_supabase_client = None
+_supabase_url = None
+
 def _get_supabase_client():
-    """Return an authenticated Supabase client or raise if not configured."""
+    """Return a cached authenticated Supabase client or raise if not configured."""
+    global _supabase_client, _supabase_url
+    if _supabase_client is not None:
+        return _supabase_client, _supabase_url
     from supabase import create_client
     url = (getattr(settings, 'SUPABASE_URL', '') or '').strip()
     key = (getattr(settings, 'SUPABASE_KEY', '') or '').strip()
@@ -215,7 +221,9 @@ def _get_supabase_client():
         raise RuntimeError("SUPABASE_URL and SUPABASE_KEY must be set in environment variables.")
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
-    return create_client(url, key), url
+    _supabase_client = create_client(url, key)
+    _supabase_url = url
+    return _supabase_client, url
 
 
 # ─── Validation ───────────────────────────────────────────────────────────────
