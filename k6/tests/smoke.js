@@ -2,6 +2,7 @@
  * PRISM Smoke Test
  * Verifies all critical endpoints respond correctly with 1 user.
  */
+import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { config, login, apiGet, apiPost, think } from '../lib/helpers.js';
 
