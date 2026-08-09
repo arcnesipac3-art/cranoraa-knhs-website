@@ -1149,3 +1149,50 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             elif hasattr(recipient, 'username'):
                 notify(recipient, 'system', title, message, link)
         except Exception as e: logger.error(f"Notification error: {e}")
+
+    @action(detail=False, methods=['post'], url_path='backfill-documents')
+    def backfill_documents(self, request):
+        if request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        doc_field_map = {
+            'birth_certificate': 'birth_certificate',
+            'report_card': 'report_card',
+            'form_138': 'form_138',
+            'certificate_of_completion': 'certificate_of_completion',
+            'good_moral_certificate': 'good_moral',
+            'id_picture': 'id_picture',
+            'last_school_attended_cert': 'last_school_attended',
+        }
+
+        applications = EnrollmentApplication.objects.all()
+        created_count = 0
+        apps_fixed = 0
+
+        for app in applications:
+            app_created = 0
+            for field_name, doc_type in doc_field_map.items():
+                url = getattr(app, field_name, None)
+                if url and isinstance(url, str) and len(url) > 5:
+                    exists = EnrollmentDocument.objects.filter(
+                        application=app, document_type=doc_type
+                    ).exists()
+                    if not exists:
+                        file_name = url.split('/')[-1] if '/' in url else 'document'
+                        EnrollmentDocument.objects.create(
+                            application=app,
+                            document_type=doc_type,
+                            file_url=url,
+                            file_name=file_name,
+                            verification_status='submitted',
+                        )
+                        app_created += 1
+            if app_created:
+                created_count += app_created
+                apps_fixed += 1
+
+        return Response({
+            'created': created_count,
+            'applications_fixed': apps_fixed,
+            'total_applications': applications.count(),
+        })

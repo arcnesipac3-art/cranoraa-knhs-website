@@ -48,6 +48,10 @@ function ApplicationsTab({ refetch }) {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assignApp, setAssignApp] = useState(null);
 
+  useEffect(() => {
+    api.post('/enrollment-applications/backfill-documents/').catch(() => {});
+  }, []);
+
   const schoolYears = useMemo(() => {
     const years = new Set(applications.map(a => a.school_year).filter(Boolean));
     return Array.from(years).sort().reverse();
