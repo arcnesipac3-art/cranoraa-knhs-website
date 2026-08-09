@@ -110,7 +110,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
             return str(portal_year.pk)
 
         portal_year = PortalAcademicYear.objects.filter(name=value).first()
-        return str(portal_year.pk) if portal_year else raw_value
+        return str(portal_year.pk) if portal_year else None
 
     def _resolve_portal_semester(self, raw_value, resolved_academic_year):
         if raw_value in (None, ''):
@@ -178,6 +178,11 @@ class ScheduleSerializer(serializers.ModelSerializer):
         teacher = data.get('teacher', getattr(self.instance, 'teacher', None))
         classroom = data.get('classroom', getattr(self.instance, 'classroom', None))
         room = data.get('room', getattr(self.instance, 'room', None))
+
+        if not academic_year:
+            raise serializers.ValidationError(
+                {"academic_year": "Academic year not found. Please select a valid academic year."}
+            )
 
         if not all([time_slot, academic_year, teacher, classroom]):
             return data
