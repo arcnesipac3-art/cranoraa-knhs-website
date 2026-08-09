@@ -51,7 +51,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
 
   // Build doc list: merge EnrollmentDocument records with URL field fallbacks,
   // then pad with "not uploaded" placeholders so admin can see what's missing.
-  const uploadedDocs = (() => {
+  const docs = (() => {
     const docMap = new Map();
     if (app.documents && app.documents.length > 0) {
       for (const doc of app.documents) {
@@ -100,23 +100,6 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
       _isMissing: true,
     }));
   })();
-
-  // Build a set of document_type values already covered by uploadedDocs
-  // Uses docType (backend value) so the match is exact regardless of field name differences.
-  const uploadedDocTypes = new Set(uploadedDocs.map(d => d.document_type));
-
-  const missingPlaceholders = ALL_DOC_TYPES
-    .filter(({ docType }) => !uploadedDocTypes.has(docType))
-    .map(({ field, type }) => ({
-      id: `missing-${field}`,
-      document_type_display: type,
-      file_url: null,
-      verification_status: 'missing',
-      verification_status_display: 'Not Uploaded',
-      _isMissing: true,
-    }));
-
-  const docs = [...uploadedDocs, ...missingPlaceholders];
 
   const docsVerified = docs.every(d => d.verification_status === 'verified') ?? true;
   const docsTotal = docs.length || 0;

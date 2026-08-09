@@ -70,6 +70,9 @@ const GradeInput = lazy(() => retryImport(() => import('../pages/GradeInput')));
 const AttendanceDashboard = lazy(() => retryImport(() => import('../pages/AttendanceDashboard')));
 const AttendanceMonitoring = lazy(() => retryImport(() => import('../pages/AttendanceMonitoring')));
 const StudentAttendance = lazy(() => retryImport(() => import('../pages/StudentAttendance')));
+const ExcuseSlipsAdmin = lazy(() => retryImport(() => import('../pages/ExcuseSlipsAdmin')));
+const AttendanceAuditTrail = lazy(() => retryImport(() => import('../pages/AttendanceAuditTrail')));
+const AttendanceDeadlineAdmin = lazy(() => retryImport(() => import('../pages/AttendanceDeadlineAdmin')));
 
 // Compliance
 const ComplianceHub = lazy(() => retryImport(() => import('../pages/ComplianceHub')));
@@ -151,6 +154,9 @@ export const protectedRoutes = [
   { path: 'attendance-dashboard', element: AttendanceDashboard, roles: [Role.STAFF] },
   { path: 'attendance-monitoring', element: AttendanceMonitoring, roles: [Role.ADMIN] },
   { path: 'student-attendance', element: StudentAttendance, roles: [Role.STUDENT, Role.PARENT] },
+  { path: 'excuse-slips', element: ExcuseSlipsAdmin, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'attendance-audit-trail', element: AttendanceAuditTrail, roles: [Role.ADMIN] },
+  { path: 'attendance-deadlines', element: AttendanceDeadlineAdmin, roles: [Role.ADMIN] },
 
   // Compliance
   { path: 'compliance', element: ComplianceHub, roles: [Role.ADMIN] },

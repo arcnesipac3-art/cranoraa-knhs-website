@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.db import transaction
 
-from ..models import Attendance, AbsenceExcuse, Subject, TimeSlot, Schedule, SchoolCalendar
+from ..models import Attendance, AbsenceExcuse, Subject, TimeSlot, Schedule, SchoolCalendar, AttendanceDeadline, AttendanceAuditLog
 from ._base import full_name
 
 
@@ -196,3 +196,33 @@ class SchoolCalendarSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_by']
 
     def get_created_by_name(self, obj): return full_name(obj.created_by) if obj.created_by else None
+
+
+class AttendanceDeadlineSerializer(serializers.ModelSerializer):
+    classroom_name = serializers.CharField(source='classroom.name', read_only=True)
+    locked_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AttendanceDeadline
+        fields = ['id', 'classroom', 'classroom_name', 'date', 'open_time',
+                  'deadline_minutes', 'lock_minutes', 'is_locked', 'locked_at',
+                  'locked_by', 'locked_by_name', 'created_at', 'updated_at']
+        read_only_fields = ['is_locked', 'locked_at', 'locked_by']
+
+    def get_locked_by_name(self, obj): return full_name(obj.locked_by) if obj.locked_by else None
+
+
+class AttendanceAuditLogSerializer(serializers.ModelSerializer):
+    user_name = serializers.SerializerMethodField()
+    classroom_name = serializers.SerializerMethodField()
+    action_display = serializers.CharField(source='get_action_display', read_only=True)
+
+    class Meta:
+        model = AttendanceAuditLog
+        fields = ['id', 'user', 'user_name', 'action', 'action_display', 'attendance',
+                  'classroom', 'classroom_name', 'date', 'previous_status',
+                  'new_status', 'description', 'metadata', 'created_at']
+        read_only_fields = fields
+
+    def get_user_name(self, obj): return full_name(obj.user) if obj.user else None
+    def get_classroom_name(self, obj): return obj.classroom.name if obj.classroom else None

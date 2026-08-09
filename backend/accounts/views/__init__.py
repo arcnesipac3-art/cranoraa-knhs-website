@@ -45,6 +45,7 @@ from .attendance import (
     AttendanceViewSet,
     AbsenceExcuseViewSet,
     SchoolCalendarViewSet,
+    AttendanceDeadlineViewSet,
 )
 
 from .enrollment import (

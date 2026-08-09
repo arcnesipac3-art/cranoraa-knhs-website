@@ -17,6 +17,7 @@ from ..models import (
 )
 from ..serializers import (
     AttendanceSerializer, AbsenceExcuseSerializer, SchoolCalendarSerializer, full_name,
+    AttendanceDeadlineSerializer, AttendanceAuditLogSerializer,
 )
 from ..utils import log_audit_action
 
@@ -1190,6 +1191,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         classroom_id = request.query_params.get('classroom')
         date_from = request.query_params.get('date_from')
         date_to = request.query_params.get('date_to')
+        action_filter = request.query_params.get('action')
 
         qs = AttendanceAuditLog.objects.select_related('user', 'classroom').all()
 
@@ -1199,13 +1201,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             qs = qs.filter(date__gte=date_from)
         if date_to:
             qs = qs.filter(date__lte=date_to)
+        if action_filter:
+            qs = qs.filter(action=action_filter)
 
-        logs = list(qs[:100].values(
-            'id', 'user__username', 'action', 'date', 'previous_status',
-            'new_status', 'description', 'metadata', 'created_at',
-        ))
-
-        return Response(logs)
+        logs = qs[:200]
+        return Response(AttendanceAuditLogSerializer(logs, many=True).data)
 
 
 class AbsenceExcuseViewSet(viewsets.ModelViewSet):
@@ -1358,3 +1358,91 @@ class SchoolCalendarViewSet(viewsets.ModelViewSet):
                 'type_display': entry.get_type_display(),
             })
         return Response({'is_holiday': False})
+
+
+class AttendanceDeadlineViewSet(viewsets.ModelViewSet):
+    serializer_class = AttendanceDeadlineSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = AttendanceDeadline.objects.select_related('classroom', 'locked_by').all()
+        classroom_id = self.request.query_params.get('classroom')
+        date_from = self.request.query_params.get('date_from')
+        date_to = self.request.query_params.get('date_to')
+        if classroom_id:
+            qs = qs.filter(classroom_id=classroom_id)
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+        if user.role == 'staff':
+            qs = qs.filter(classroom__subject__teacher=user).distinct()
+        return qs
+
+    def perform_create(self, serializer):
+        if self.request.user.role != 'admin':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage deadlines")
+        serializer.save()
+
+    def perform_update(self, serializer):
+        if self.request.user.role != 'admin':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage deadlines")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user.role != 'admin':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Only admins can manage deadlines")
+        instance.delete()
+
+    @action(detail=True, methods=['post'], url_path='lock')
+    def lock(self, request, pk=None):
+        if request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+        deadline = self.get_object()
+        deadline.is_locked = True
+        deadline.locked_at = timezone.now()
+        deadline.locked_by = request.user
+        deadline.save(update_fields=['is_locked', 'locked_at', 'locked_by'])
+        return Response(AttendanceDeadlineSerializer(deadline).data)
+
+    @action(detail=True, methods=['post'], url_path='unlock')
+    def unlock(self, request, pk=None):
+        if request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+        deadline = self.get_object()
+        deadline.is_locked = False
+        deadline.locked_at = None
+        deadline.locked_by = None
+        deadline.save(update_fields=['is_locked', 'locked_at', 'locked_by'])
+        return Response(AttendanceDeadlineSerializer(deadline).data)
+
+    @action(detail=False, methods=['post'], url_path='bulk-create')
+    def bulk_create(self, request):
+        if request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+        classroom_ids = request.data.get('classroom_ids', [])
+        dates = request.data.get('dates', [])
+        open_time = request.data.get('open_time', '07:00')
+        deadline_minutes = request.data.get('deadline_minutes', 30)
+        lock_minutes = request.data.get('lock_minutes', 60)
+
+        created = []
+        for cid in classroom_ids:
+            for date_str in dates:
+                obj, was_created = AttendanceDeadline.objects.get_or_create(
+                    classroom_id=cid,
+                    date=date_str,
+                    defaults={
+                        'open_time': open_time,
+                        'deadline_minutes': deadline_minutes,
+                        'lock_minutes': lock_minutes,
+                    }
+                )
+                if was_created:
+                    created.append(obj.id)
+
+        return Response({'created': len(created), 'ids': created})
