@@ -133,40 +133,37 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
             sys_settings.save(update_fields=['academic_year'])
 
     def perform_destroy(self, instance):
-        """Safe delete — manually clean up all CASCADE chains before deleting."""
+        """Delete academic year with full related-object cleanup."""
         from django.db import transaction
-        try:
-            with transaction.atomic():
-                # 1. GradeReopeningRequest → GradeSubmission → GradingPeriod (deepest first)
-                gp_ids = list(instance.grading_periods.values_list('id', flat=True))
-                if gp_ids:
-                    from accounts.models.grading_management import GradeReopeningRequest, GradeSubmission
-                    GradeReopeningRequest.objects.filter(submission__grading_period_id__in=gp_ids).delete()
-                    GradeSubmission.objects.filter(grading_period_id__in=gp_ids).delete()
-                    instance.grading_periods.all().delete()
+        from accounts.models.schedule import Schedule
+        from accounts.models.grading_management import GradeReopeningRequest, GradeSubmission, GradingPeriod
+        from accounts.models.compliance import ComplianceFile, ComplianceComment, ComplianceAuditLog, ComplianceSubmission
+        from accounts.models.infrastructure import Semester
 
-                # 2. ComplianceSubmission → ComplianceFile/ComplianceComment/ComplianceAuditLog
-                comp_ids = list(instance.compliance_submissions.values_list('id', flat=True))
-                if comp_ids:
-                    from accounts.models.compliance import ComplianceFile, ComplianceComment, ComplianceAuditLog
-                    ComplianceFile.objects.filter(submission_id__in=comp_ids).delete()
-                    ComplianceComment.objects.filter(submission_id__in=comp_ids).delete()
-                    ComplianceAuditLog.objects.filter(submission_id__in=comp_ids).delete()
-                    instance.compliance_submissions.all().delete()
+        with transaction.atomic():
+            # 1. GradeReopeningRequest → GradeSubmission → GradingPeriod
+            gp_ids = list(GradingPeriod.objects.filter(academic_year=instance).values_list('id', flat=True))
+            if gp_ids:
+                GradeReopeningRequest.objects.filter(submission__grading_period_id__in=gp_ids).delete()
+                GradeSubmission.objects.filter(grading_period_id__in=gp_ids).delete()
+            GradingPeriod.objects.filter(academic_year=instance).delete()
 
-                # 3. Semesters (direct CASCADE from AcademicYear)
-                instance.semesters.all().delete()
+            # 2. ComplianceSubmission children → ComplianceSubmission
+            comp_ids = list(ComplianceSubmission.objects.filter(academic_year=instance).values_list('id', flat=True))
+            if comp_ids:
+                ComplianceFile.objects.filter(submission_id__in=comp_ids).delete()
+                ComplianceComment.objects.filter(submission_id__in=comp_ids).delete()
+                ComplianceAuditLog.objects.filter(submission_id__in=comp_ids).delete()
+            ComplianceSubmission.objects.filter(academic_year=instance).delete()
 
-                # 4. Schedules — FK points to portal.AcademicYear, but DB constraint
-                #    references accounts.AcademicYear. Query directly by ID to be safe.
-                from accounts.models.schedule import Schedule
-                Schedule.objects.filter(academic_year_id=instance.id).delete()
+            # 3. Semesters
+            Semester.objects.filter(academic_year=instance).delete()
 
-                # 5. Now delete the AcademicYear itself (Classroom FK is SET_NULL, safe)
-                instance.delete()
-        except Exception as e:
-            logger.error(f"Failed to delete academic year {instance.id}: {e}")
-            raise
+            # 4. Schedules (FK → portal.AcademicYear, not accounts.AcademicYear)
+            Schedule.objects.filter(academic_year_id=instance.id).delete()
+
+            # 5. AcademicYear itself (Classroom FK is SET_NULL)
+            instance.delete()
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):
