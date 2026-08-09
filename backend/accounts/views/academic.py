@@ -2283,10 +2283,6 @@ class ClassroomSubjectViewSet(viewsets.ModelViewSet):
             'classroom', 'subject', 'teacher'
         ).filter(classroom_id=classroom_id)
 
-        user = request.user
-        if user.role == 'staff' and not (hasattr(user, 'is_superuser') and user.is_superuser):
-            queryset = queryset.filter(teacher=user)
-
         # Use lightweight serializer (no students) to avoid N+1 / timeout
         data = [
             {
