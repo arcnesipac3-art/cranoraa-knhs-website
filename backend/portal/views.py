@@ -139,6 +139,7 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
         from accounts.models.grading_management import GradeReopeningRequest, GradeSubmission, GradingPeriod
         from accounts.models.compliance import ComplianceFile, ComplianceComment, ComplianceAuditLog, ComplianceSubmission
         from accounts.models.infrastructure import Semester
+        from accounts.models.attendance import Attendance, AttendanceAuditLog, AbsenceExcuse
 
         with transaction.atomic():
             # 1. GradeReopeningRequest → GradeSubmission → GradingPeriod
@@ -159,10 +160,20 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
             # 3. Semesters
             Semester.objects.filter(academic_year=instance).delete()
 
-            # 4. Schedules (FK → portal.AcademicYear, not accounts.AcademicYear)
+            # 4. Attendance linked to schedules in this academic year
+            #    Must delete BEFORE schedules — Schedule FK is SET_NULL on Attendance,
+            #    but the unique constraint on (student, classroom, date) WHERE schedule IS NULL
+            #    causes IntegrityError if multiple schedule-linked attendances get NULL'd.
+            sched_ids = list(Schedule.objects.filter(academic_year_id=instance.id).values_list('id', flat=True))
+            if sched_ids:
+                AbsenceExcuse.objects.filter(attendance__schedule_id__in=sched_ids).delete()
+                AttendanceAuditLog.objects.filter(attendance__schedule_id__in=sched_ids).delete()
+                Attendance.objects.filter(schedule_id__in=sched_ids).delete()
+
+            # 5. Schedules (FK → portal.AcademicYear, not accounts.AcademicYear)
             Schedule.objects.filter(academic_year_id=instance.id).delete()
 
-            # 5. AcademicYear itself (Classroom FK is SET_NULL)
+            # 6. AcademicYear itself (Classroom FK is SET_NULL)
             instance.delete()
 
     @action(detail=True, methods=['post'])
