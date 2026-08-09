@@ -1459,14 +1459,11 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     if (!tableRef.current) return;
     setExporting(true);
     try {
-      const doc = getPDFPageSetup();
-      const pageWidth = doc.internal.pageSize.getWidth();
-      addPDFHeader(doc, {
-        title: 'School Attendance Log',
-        subtitle: `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`,
-      });
+      const { jsPDF } = await import('jspdf');
+      const doc = new jsPDF(getPDFPageSetup());
+      addPDFHeader(doc, 'School Attendance Log', `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`);
       await captureElementToPDF(tableRef.current, doc, { y: doc.lastAutoTable?.finalY || 45, scale: 2 });
-      addPDFFooter(doc, classroom.school_name || 'KNHS');
+      addPDFFooter(doc, { leftText: classroom.school_name || 'KNHS' });
       const filename = `attendance-${classroom.name || 'section'}-${selectedYear}-${String(selectedMonth).padStart(2, '0')}.pdf`;
       doc.save(filename);
       toast.success('PDF exported successfully');
