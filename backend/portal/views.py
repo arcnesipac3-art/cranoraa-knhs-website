@@ -157,7 +157,10 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
                 # 3. Semesters (direct CASCADE from AcademicYear)
                 instance.semesters.all().delete()
 
-                # 4. Now delete the AcademicYear itself (Classroom FK is SET_NULL, safe)
+                # 4. Schedules (FK references portal.AcademicYear, DB constraint may not cascade)
+                instance.schedules.all().delete()
+
+                # 5. Now delete the AcademicYear itself (Classroom FK is SET_NULL, safe)
                 instance.delete()
         except Exception as e:
             logger.error(f"Failed to delete academic year {instance.id}: {e}")
@@ -189,7 +192,7 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
     def active(self, request):
         year = AcademicYear.objects.filter(is_active=True).first()
         if not year:
-            return Response({'error': 'No active academic year'}, status=404)
+            return Response(None, status=200)
         serializer = self.get_serializer(year)
         return Response(serializer.data)
 
