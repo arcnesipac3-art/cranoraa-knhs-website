@@ -1007,7 +1007,13 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             if not student_id and profile:
                 student_id = profile.linked_students.values_list('id', flat=True).first()
             if not student_id:
-                return Response({'error': 'student parameter required'}, status=400)
+                # Parent has no linked students — return empty data instead of error
+                return Response({
+                    'student_id': None,
+                    'stats': {'total': 0, 'present': 0, 'absent': 0, 'late': 0, 'excused': 0, 'school_activity': 0, 'medical_leave': 0, 'rate': 0},
+                    'records': [],
+                    'grouped_by_date': [],
+                })
         else:
             return Response({'error': 'Unauthorized'}, status=403)
 
@@ -1219,11 +1225,13 @@ class AbsenceExcuseViewSet(viewsets.ModelViewSet):
             return AbsenceExcuse.objects.select_related('student', 'attendance', 'reviewed_by')
         if user.role == 'staff':
             return AbsenceExcuse.objects.select_related('student', 'attendance', 'reviewed_by').filter(
-                attendance__classroom__subject__teacher=user
+                Q(attendance__classroom__subject__teacher=user) | Q(attendance__classroom__teacher=user)
             ).distinct()
         if user.role == 'parent':
             profile = getattr(user, 'profile', None)
             child_ids = profile.linked_students.values_list('id', flat=True) if profile else []
+            if not child_ids:
+                return AbsenceExcuse.objects.none()
             return AbsenceExcuse.objects.select_related('student', 'attendance', 'reviewed_by').filter(
                 student_id__in=child_ids
             )
