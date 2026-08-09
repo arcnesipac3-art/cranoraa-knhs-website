@@ -109,8 +109,18 @@ const Teachers = () => {
     teachers: '/users/?role=staff',
     classrooms: '/classrooms/',
   });
-  const teachers = useMemo(() => Array.isArray(data.teachers) ? data.teachers : [], [data.teachers]);
-  const classrooms = useMemo(() => Array.isArray(data.classrooms) ? data.classrooms : [], [data.classrooms]);
+  const teachers = useMemo(() => {
+    const raw = data.teachers;
+    if (Array.isArray(raw)) return raw;
+    if (raw?.results) return raw.results;
+    return [];
+  }, [data.teachers]);
+  const classrooms = useMemo(() => {
+    const raw = data.classrooms;
+    if (Array.isArray(raw)) return raw;
+    if (raw?.results) return raw.results;
+    return [];
+  }, [data.classrooms]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);

@@ -77,7 +77,8 @@ export function useParallelFetch(endpoints, options = {}) {
       const merged = {};
       results.forEach((result, i) => {
         if (result.status === 'fulfilled') {
-          merged[entries[i][0]] = result.value.data;
+          const d = result.value.data;
+          merged[entries[i][0]] = (d && !Array.isArray(d) && d.results) ? d.results : d;
         } else {
           merged[entries[i][0]] = null;
         }
