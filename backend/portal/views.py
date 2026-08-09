@@ -16,6 +16,9 @@ import datetime
 import logging
 
 logger = logging.getLogger(__name__)
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
@@ -128,6 +131,23 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
             sys_settings = SystemSetting.get_settings()
             sys_settings.academic_year = year.name
             sys_settings.save(update_fields=['academic_year'])
+
+    def perform_destroy(self, instance):
+        """Safe delete with cascade handling."""
+        from django.db import transaction
+        from accounts.models import GradeSubmission, GradeReopeningRequest, ComplianceSubmission, ComplianceFile, ComplianceComment
+        try:
+            with transaction.atomic():
+                # Manually clean up deep CASCADE chains to prevent failures
+                grading_periods = instance.grading_periods.all()
+                for gp in grading_periods:
+                    GradeSubmission.objects.filter(grading_period=gp).delete()
+                    gp.delete()
+                ComplianceSubmission.objects.filter(academic_year=instance).delete()
+                instance.delete()
+        except Exception as e:
+            logger.error(f"Failed to delete academic year {instance.id}: {e}")
+            raise
 
     @action(detail=True, methods=['post'])
     def activate(self, request, pk=None):

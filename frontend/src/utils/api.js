@@ -163,8 +163,11 @@ api.interceptors.response.use(
 
     // Never retry the refresh endpoint itself — avoids infinite loops
     // Never retry /login/ — a 401 there means wrong credentials, not expired token
-    if (original.url?.includes('/token/refresh/') || original.url?.includes('/login/')) {
-      // Only clear session on 401 (invalid/expired refresh token), not on transient errors like 500/timeout
+    // Never retry public endpoints — they don't need auth and 401 means something else
+    const isPublicEndpoint = original.url?.includes('/system/maintenance-status/') ||
+      original.url?.includes('/token/') ||
+      original.url?.includes('/login/');
+    if (isPublicEndpoint) {
       if (original.url?.includes('/token/refresh/') && error.response?.status === 401) {
         clearSession();
       }
