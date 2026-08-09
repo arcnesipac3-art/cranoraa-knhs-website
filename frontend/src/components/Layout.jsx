@@ -665,7 +665,7 @@ const Layout = () => {
     ]
   }), [user?.role, user?.is_adviser]);
 
-  const currentNav = NAV_STRUCTURE[user?.role] || [];
+  const currentNav = NAV_STRUCTURE[(user?.role === 'staff' && user?.is_admin) ? 'admin' : user?.role] || [];
 
   return (
     <Fragment>

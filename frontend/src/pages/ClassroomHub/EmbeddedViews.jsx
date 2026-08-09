@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../utils/api';
 import toast from 'react-hot-toast';
@@ -10,9 +10,10 @@ import Modal, { ModalBody, ModalFooter, ModalBtnPrimary, ModalBtnSecondary } fro
 import {
   ArrowLeft, ArrowRight, Users, Award, Search, BarChart2, Trash2, Edit2, Download, X, Check,
   Calendar, CheckCircle, XCircle, Clock as ClockIcon, ShieldCheck, MessageSquare,
-  Send, Lock, Unlock, ChevronLeft, ChevronRight, Save, BookOpen
+  Send, Lock, Unlock, ChevronLeft, ChevronRight, Save, BookOpen, FileDown
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
+import { captureElementToPDF, getPDFPageSetup, addPDFHeader, addPDFFooter } from '../../utils/exportHelpers';
 import ScheduleAttendanceEntry from './ScheduleAttendanceEntry';
 
 // Grade Management View - Custom inline implementation with edit, delete, export
@@ -1306,6 +1307,8 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const tableRef = useRef(null);
 
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   const dayAbbr = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -1451,6 +1454,29 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
       pct: Math.round(((maleTotals.prs + femaleTotals.prs) / (maleTotals.prs + maleTotals.abs + maleTotals.late + maleTotals.exc + femaleTotals.prs + femaleTotals.abs + femaleTotals.late + femaleTotals.exc)) * 100)
     } : { pct: 0 }),
   }), [maleTotals, femaleTotals]);
+
+  const handleExportPDF = useCallback(async () => {
+    if (!tableRef.current) return;
+    setExporting(true);
+    try {
+      const doc = getPDFPageSetup();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      addPDFHeader(doc, {
+        title: 'School Attendance Log',
+        subtitle: `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`,
+      });
+      await captureElementToPDF(tableRef.current, doc, { y: doc.lastAutoTable?.finalY || 45, scale: 2 });
+      addPDFFooter(doc, classroom.school_name || 'KNHS');
+      const filename = `attendance-${classroom.name || 'section'}-${selectedYear}-${String(selectedMonth).padStart(2, '0')}.pdf`;
+      doc.save(filename);
+      toast.success('PDF exported successfully');
+    } catch (err) {
+      console.error('PDF export error:', err);
+      toast.error('Failed to export PDF');
+    } finally {
+      setExporting(false);
+    }
+  }, [selectedMonth, selectedYear, classroom, monthNames]);
 
   const statusCell = (status) => {
     switch (status) {
@@ -1603,6 +1629,16 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleExportPDF}
+            disabled={exporting || loading || filteredStudents.length === 0}
+            className="no-export"
+          >
+            <FileDown className="w-4 h-4 mr-1" />
+            {exporting ? 'Exporting...' : 'Export PDF'}
+          </Button>
         </div>
       </div>
 
@@ -1632,7 +1668,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
           </CardBody>
         </Card>
       ) : (
-        <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+        <div ref={tableRef} className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
           {/* School info header */}
           <div className="bg-slate-800 text-white px-4 py-3 text-center">
             <p className="text-sm font-bold tracking-wide">{classroom.school_name || 'KNHS'}</p>

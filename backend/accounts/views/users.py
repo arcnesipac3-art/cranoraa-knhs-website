@@ -900,10 +900,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
 
         user = self.get_object()
-        if user.role == 'admin':
-            return Response({'error': 'Cannot modify admin role.'}, status=status.HTTP_400_BAD_REQUEST)
 
         user.is_admin = not user.is_admin
+        if user.is_admin:
+            user.role = 'admin'
+        else:
+            user.role = 'staff'
         user.save()
 
         status_str = 'granted admin privileges' if user.is_admin else 'revoked admin privileges'
@@ -923,6 +925,7 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({
             'status': f'User {status_str} successfully',
             'is_admin': user.is_admin,
+            'role': user.role,
         })
 
     @action(detail=True, methods=['post'])
