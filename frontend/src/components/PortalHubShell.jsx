@@ -9,8 +9,12 @@ const PortalHubShell = ({ title, description, tabs, showHeader = true }) => {
   const tabBarRef = useRef(null);
 
   const visibleTabs = useMemo(() => {
+    const userIsAdmin = user?.role === 'admin' || user?.is_admin === true;
     return tabs.filter((tab) => {
-      if (tab.roles && !tab.roles.includes(user?.role)) return false;
+      if (tab.roles) {
+        const matchesRole = tab.roles.includes(user?.role) || (userIsAdmin && tab.roles.includes('admin'));
+        if (!matchesRole) return false;
+      }
       if (typeof tab.show === 'function' && !tab.show(user)) return false;
       return true;
     });
