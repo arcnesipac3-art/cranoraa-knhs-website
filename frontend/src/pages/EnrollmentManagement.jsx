@@ -244,6 +244,23 @@ const EnrollmentManagement = () => {
     `enrollment_summary_${new Date().toISOString().slice(0,10)}.pdf`
   );
 
+  const handleExportSF1 = async () => {
+    try {
+      const params = {};
+      if (gradeFilter) params.grade_level = gradeFilter;
+      if (schoolYearFilter) params.school_year = schoolYearFilter;
+      const res = await api.post('/sf1/export_pdf/', params, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SF1_${gradeFilter || 'All'}_${new Date().toISOString().slice(0,10)}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'Export Failed', text: err.response?.data?.error || 'Failed to export SF1 PDF.' });
+    }
+  };
+
   const filtered = applications.filter(app => {
     if (filter !== 'all' && app.status !== filter) return false;
     if (gradeFilter && app.grade_level !== gradeFilter) return false;
@@ -381,6 +398,11 @@ const EnrollmentManagement = () => {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
           PDF Report
         </button>
+        <button onClick={handleExportSF1}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition-all shadow-md">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          SF1 PDF
+        </button>
       </div>
 
       <div className="max-w-[1600px] mx-auto px-2 md:px-6 space-y-4 md:space-y-6 pb-6">
@@ -395,6 +417,11 @@ const EnrollmentManagement = () => {
           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
           PDF
+        </button>
+        <button onClick={handleExportSF1}
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          SF1
         </button>
       </div>
 
