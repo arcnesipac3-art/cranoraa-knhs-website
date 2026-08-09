@@ -381,48 +381,46 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
                 'temp_password_display': temp_pw,
             })
 
-            if is_authed:
+            docs = []
+            try:
+                for d in app.documents.all():
+                    try:
+                        docs.append({
+                            'id': d.id,
+                            'document_type': d.document_type,
+                            'document_type_display': d.get_document_type_display(),
+                            'file_url': d.file_url,
+                            'file_name': getattr(d, 'file_name', '') or '',
+                            'verification_status': d.verification_status,
+                            'verification_status_display': d.get_verification_status_display(),
+                        })
+                    except Exception:
+                        continue
+            except Exception:
+                pass
 
-                docs = []
-                try:
-                    for d in app.documents.all():
-                        try:
-                            docs.append({
-                                'id': d.id,
-                                'document_type': d.document_type,
-                                'document_type_display': d.get_document_type_display(),
-                                'file_url': d.file_url,
-                                'file_name': getattr(d, 'file_name', '') or '',
-                                'verification_status': d.verification_status,
-                                'verification_status_display': d.get_verification_status_display(),
-                            })
-                        except Exception:
-                            continue
-                except Exception:
-                    pass
+            history = []
+            try:
+                for h in app.status_history.all():
+                    try:
+                        history.append({
+                            'id': h.id,
+                            'from_status': h.from_status,
+                            'from_status_display': h.get_from_status_display() if h.from_status else None,
+                            'to_status': h.to_status,
+                            'to_status_display': h.get_to_status_display(),
+                            'notes': getattr(h, 'notes', '') or '',
+                            'created_at': h.created_at.isoformat() if h.created_at else None,
+                        })
+                    except Exception:
+                        continue
+            except Exception:
+                pass
 
-                history = []
-                try:
-                    for h in app.status_history.all():
-                        try:
-                            history.append({
-                                'id': h.id,
-                                'from_status': h.from_status,
-                                'from_status_display': h.get_from_status_display() if h.from_status else None,
-                                'to_status': h.to_status,
-                                'to_status_display': h.get_to_status_display(),
-                                'notes': getattr(h, 'notes', '') or '',
-                                'created_at': h.created_at.isoformat() if h.created_at else None,
-                            })
-                        except Exception:
-                            continue
-                except Exception:
-                    pass
-
-                data.update({
-                    'documents': docs,
-                    'status_history': history,
-                })
+            data.update({
+                'documents': docs,
+                'status_history': history,
+            })
 
             return Response(data)
         except Exception as e:

@@ -49,22 +49,56 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
     { field: 'last_school_attended_cert', docType: 'last_school_attended',     type: 'Last School Attended Certificate' },
   ];
 
-  // Build doc list: prefer EnrollmentDocument records, fall back to URL fields,
+  // Build doc list: merge EnrollmentDocument records with URL field fallbacks,
   // then pad with "not uploaded" placeholders so admin can see what's missing.
   const uploadedDocs = (() => {
-    if (app.documents && app.documents.length > 0) return app.documents;
-    // fallback: synthesise from URL fields on the application object
-    return ALL_DOC_TYPES
-      .filter(({ field }) => app[field] && typeof app[field] === 'string' && app[field].length > 5)
-      .map(({ field, docType, type }) => ({
-        id: `url-${field}`,
-        document_type: docType,
-        document_type_display: type,
-        file_url: app[field],
-        verification_status: 'submitted',
-        verification_status_display: 'Submitted',
-        _fromUrlField: true,
-      }));
+    const docMap = new Map();
+    if (app.documents && app.documents.length > 0) {
+      for (const doc of app.documents) {
+        if (doc.file_url) {
+          docMap.set(doc.document_type, {
+            ...doc,
+            document_type_display: doc.document_type_display || ALL_DOC_TYPES.find(d => d.docType === doc.document_type)?.type || doc.document_type,
+            verification_status_display: doc.verification_status_display || doc.verification_status,
+          });
+        }
+      }
+    }
+    for (const { field, docType, type } of ALL_DOC_TYPES) {
+      const url = app[field];
+      if (url && typeof url === 'string' && url.length > 5 && !docMap.has(docType)) {
+        docMap.set(docType, {
+          id: `url-${field}`,
+          document_type: docType,
+          document_type_display: type,
+          file_url: url,
+          verification_status: 'submitted',
+          verification_status_display: 'Submitted',
+          _fromUrlField: true,
+        });
+      }
+    }
+    if (docMap.size > 0) {
+      const missingDocs = ALL_DOC_TYPES
+        .filter(({ docType }) => !docMap.has(docType))
+        .map(({ field, type }) => ({
+          id: `missing-${field}`,
+          document_type_display: type,
+          file_url: null,
+          verification_status: 'missing',
+          verification_status_display: 'Not Uploaded',
+          _isMissing: true,
+        }));
+      return [...docMap.values(), ...missingDocs];
+    }
+    return ALL_DOC_TYPES.map(({ field, type }) => ({
+      id: `missing-${field}`,
+      document_type_display: type,
+      file_url: null,
+      verification_status: 'missing',
+      verification_status_display: 'Not Uploaded',
+      _isMissing: true,
+    }));
   })();
 
   // Build a set of document_type values already covered by uploadedDocs
