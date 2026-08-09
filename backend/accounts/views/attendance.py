@@ -1005,7 +1005,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             profile = getattr(user, 'profile', None)
             student_id = request.query_params.get('student')
             if not student_id and profile:
-                student_id = profile.linked_students.values_list('id', flat=True).first()
+                try:
+                    student_id = profile.linked_students.values_list('id', flat=True).first()
+                except Exception as e:
+                    logger.error("parent linked_students error for user %s: %s", user.id, e)
+                    student_id = None
             if not student_id:
                 # Parent has no linked students — return empty data instead of error
                 return Response({
@@ -1025,8 +1029,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         qs = Attendance.objects.filter(student_id=student_id).select_related('classroom', 'subject', 'schedule', 'time_slot')
 
         if month:
-            year, mon = month.split('-')
-            qs = qs.filter(date__year=int(year), date__month=int(mon))
+            try:
+                year, mon = month.split('-')
+                qs = qs.filter(date__year=int(year), date__month=int(mon))
+            except (ValueError, AttributeError) as e:
+                logger.error("student_history month parse error: %s", e)
         elif date_from:
             qs = qs.filter(date__gte=date_from)
         elif date_to:
