@@ -157,8 +157,10 @@ class AcademicYearViewSet(viewsets.ModelViewSet):
                 # 3. Semesters (direct CASCADE from AcademicYear)
                 instance.semesters.all().delete()
 
-                # 4. Schedules (FK references portal.AcademicYear, DB constraint may not cascade)
-                instance.schedules.all().delete()
+                # 4. Schedules — FK points to portal.AcademicYear, but DB constraint
+                #    references accounts.AcademicYear. Query directly by ID to be safe.
+                from accounts.models.schedule import Schedule
+                Schedule.objects.filter(academic_year_id=instance.id).delete()
 
                 # 5. Now delete the AcademicYear itself (Classroom FK is SET_NULL, safe)
                 instance.delete()
