@@ -67,11 +67,11 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external }) => {
 const SectionLabel = ({ label, collapsed, onToggle }) => (
   <button
     onClick={onToggle}
-    className="mt-5 mb-2 px-3 first:mt-0 flex items-center justify-between w-full group/section cursor-pointer select-none"
+    className="mt-5 mb-2 px-3 first:mt-0 flex items-center justify-between w-full group/section cursor-pointer select-none rounded-lg hover:bg-white/5 transition-colors duration-150"
   >
-    <p className="text-[10px] font-extrabold text-purple-400/60 uppercase tracking-widest">{label}</p>
+    <p className="text-[10px] font-extrabold text-purple-400/60 uppercase tracking-widest group-hover/section:text-purple-300/80 transition-colors duration-150">{label}</p>
     <svg
-      className={`w-3 h-3 text-purple-400/40 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? '' : 'rotate-90'}`}
+      className={`w-3 h-3 text-purple-400/40 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/section:text-purple-300/60 ${collapsed ? '' : 'rotate-90'}`}
       fill="none" stroke="currentColor" viewBox="0 0 24 24"
     >
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -776,7 +776,13 @@ const Layout = () => {
                       style={{ gridTemplateRows: actuallyCollapsed ? '0fr' : '1fr' }}
                     >
                       <div className="min-h-0 overflow-hidden">
-                        <div className="space-y-0.5 pb-1">
+                        <div
+                          className="space-y-0.5 pb-1 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                          style={{
+                            opacity: actuallyCollapsed ? 0 : 1,
+                            transform: actuallyCollapsed ? 'translateY(-4px)' : 'translateY(0)',
+                          }}
+                        >
                           {section.items.map((item, i) => (
                             <NavItem
                               key={i}
