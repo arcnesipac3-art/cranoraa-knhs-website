@@ -15,7 +15,7 @@ import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { getNotifConfig, formatNotifTime } from '../utils/notificationConfig';
 
 
-const NavItem = ({ to, label, isActive, icon, onClick, href, external }) => {
+const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode, isPinned, onTogglePin }) => {
   if (external && href) {
     return (
       <a
@@ -23,20 +23,25 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external }) => {
         target="_blank"
         rel="noopener noreferrer"
         onClick={onClick}
-        className="flex items-center px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 text-xs group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold"
+        className={`flex items-center ${iconMode ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'} rounded-lg transition-all duration-150 mb-0.5 text-xs group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold relative`}
+        title={iconMode ? label : undefined}
       >
         <svg
-          className="w-4 h-4 mr-2.5 flex-shrink-0 transition-transform duration-150 text-purple-400/70"
+          className={`${iconMode ? '' : 'w-4 h-4 mr-2.5'} w-4 h-4 flex-shrink-0 transition-transform duration-150 text-purple-400/70`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
         </svg>
-        <span className="truncate">{label}</span>
-        <svg className="w-3 h-3 ml-1.5 text-purple-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-        </svg>
+        {!iconMode && (
+          <>
+            <span className="truncate">{label}</span>
+            <svg className="w-3 h-3 ml-1.5 text-purple-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </>
+        )}
       </a>
     );
   }
@@ -45,21 +50,33 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external }) => {
       to={to}
       onClick={onClick}
       aria-current={isActive(to) ? 'page' : undefined}
-      className={`flex items-center px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 text-xs group ${
+      title={iconMode ? label : undefined}
+      className={`flex items-center ${iconMode ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'} rounded-lg transition-all duration-150 mb-0.5 text-xs group relative ${
         isActive(to)
           ? 'bg-gradient-to-r from-violet-500/90 to-purple-500/90 text-white font-bold shadow-lg shadow-purple-900/30 ring-1 ring-white/10'
           : 'text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold'
       }`}
     >
       <svg
-        className={`w-4 h-4 mr-2.5 flex-shrink-0 transition-transform duration-150 ${isActive(to) ? 'text-white' : 'text-purple-400/70'}`}
+        className={`${iconMode ? '' : 'w-4 h-4 mr-2.5'} w-4 h-4 flex-shrink-0 transition-transform duration-150 ${isActive(to) ? 'text-white' : 'text-purple-400/70'}`}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
       >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
       </svg>
-      <span className="truncate">{label}</span>
+      {!iconMode && <span className="truncate">{label}</span>}
+      {!iconMode && onTogglePin && (
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(to); }}
+          className={`ml-auto flex-shrink-0 p-0.5 rounded transition-all duration-150 ${isPinned ? 'text-amber-400 opacity-100' : 'text-purple-400/30 opacity-0 group-hover:opacity-100 hover:text-amber-400'}`}
+          title={isPinned ? 'Unpin' : 'Pin to Quick Access'}
+        >
+          <svg className="w-3 h-3" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+        </button>
+      )}
     </Link>
   );
 };
@@ -275,6 +292,52 @@ const Layout = () => {
       return next;
     });
   };
+
+  // Icon-only sidebar mode (collapsed to icons)
+  const [iconMode, setIconMode] = useState(() => {
+    try { return localStorage.getItem('sidebar_icon_mode') === 'true'; } catch { return false; }
+  });
+  const toggleIconMode = () => {
+    setIconMode(prev => {
+      const next = !prev;
+      try { localStorage.setItem('sidebar_icon_mode', String(next)); } catch {}
+      return next;
+    });
+  };
+
+  // Pinned favorites — persisted per role
+  const [pinnedItems, setPinnedItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sidebar_pinned');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const togglePinned = (path) => {
+    setPinnedItems(prev => {
+      const next = prev.includes(path) ? prev.filter(p => p !== path) : [...prev, path];
+      try { localStorage.setItem('sidebar_pinned', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
+
+  // Recent pages — tracked from navigation
+  const [recentPages, setRecentPages] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sidebar_recent');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  useEffect(() => {
+    if (!location.pathname || location.pathname === '/') return;
+    setRecentPages(prev => {
+      const next = [location.pathname, ...prev.filter(p => p !== location.pathname)].slice(0, 5);
+      try { localStorage.setItem('sidebar_recent', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  }, [location.pathname]);
+
+  // Sidebar search filter
+  const [sidebarSearch, setSidebarSearch] = useState('');
   const notifDropdownRef = useRef(null);
   const notifBtnRef = useRef(null);
   const userMenuRef = useRef(null);
@@ -691,6 +754,20 @@ const Layout = () => {
 
   const currentNav = NAV_STRUCTURE[(user?.role === 'staff' && user?.is_admin) ? 'admin' : user?.role] || [];
 
+  // Flatten all nav items for search/pin lookups
+  const allNavItems = useMemo(() => currentNav.flatMap(s => s.items), [currentNav]);
+  const findItemByPath = (path) => allNavItems.find(i => i.to === path);
+
+  // Filter nav by search
+  const filteredNav = useMemo(() => {
+    if (!sidebarSearch.trim()) return currentNav;
+    const q = sidebarSearch.toLowerCase();
+    return currentNav.map(s => ({
+      ...s,
+      items: s.items.filter(i => i.label.toLowerCase().includes(q)),
+    })).filter(s => s.items.length > 0);
+  }, [currentNav, sidebarSearch]);
+
   return (
     <Fragment>
       {/* Skip to main content link - WCAG 2.1 AA compliance */}
@@ -716,31 +793,35 @@ const Layout = () => {
         )}
 
         {/* ── Sidebar ── */}
-        <aside aria-label="Portal sidebar" data-tour="portal-sidebar" className={`fixed inset-y-0 left-0 z-[120] flex h-screen w-64 transform flex-col overflow-hidden border-r border-purple-800/30 bg-gradient-to-b from-[#1a0a2e] via-[#1e1145] to-[#150d2e] shadow-2xl transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside aria-label="Portal sidebar" data-tour="portal-sidebar" className={`fixed inset-y-0 left-0 z-[120] flex h-screen ${iconMode ? 'w-[68px]' : 'w-64'} transform flex-col overflow-hidden border-r border-purple-800/30 bg-gradient-to-b from-[#1a0a2e] via-[#1e1145] to-[#150d2e] shadow-2xl transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
           {/* School Header */}
-          <div className="flex items-center gap-3 px-4 py-4 border-b border-white/5 bg-black/20">
-            <div className="h-12 w-12 rounded-xl bg-white p-1.5 flex items-center justify-center border border-purple-400/20 shadow-lg shadow-purple-900/50 shrink-0">
+          <div className={`flex items-center ${iconMode ? 'justify-center px-2 py-4' : 'gap-3 px-4 py-4'} border-b border-white/5 bg-black/20`}>
+            <div className="h-10 w-10 rounded-xl bg-white p-1.5 flex items-center justify-center border border-purple-400/20 shadow-lg shadow-purple-900/50 shrink-0">
               <img src="/icons/school-logo-source.png" alt="KNHS Logo" className="h-full w-full object-contain" loading="lazy" />
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-extrabold tracking-tight leading-none text-white uppercase">Kiwalan NHS</span>
-              <span className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider mt-0.5">Digital Campus</span>
-            </div>
+            {!iconMode && (
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-extrabold tracking-tight leading-none text-white uppercase">Kiwalan NHS</span>
+                <span className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider mt-0.5">Digital Campus</span>
+              </div>
+            )}
           </div>
 
           {/* Academic Year Info */}
-          <div className="flex-shrink-0 px-4 py-3 bg-black/20 border-b border-white/5">
-            <div className="flex items-center justify-between text-[10px] font-bold text-purple-300/80 uppercase tracking-wider">
-              <span>{academicYear ? `SY ${academicYear}` : 'No Year Set'}</span>
-              <span className="text-purple-200/60">{sysSettings?.current_term || 'Term'}</span>
+          {!iconMode && (
+            <div className="flex-shrink-0 px-4 py-3 bg-black/20 border-b border-white/5">
+              <div className="flex items-center justify-between text-[10px] font-bold text-purple-300/80 uppercase tracking-wider">
+                <span>{academicYear ? `SY ${academicYear}` : 'No Year Set'}</span>
+                <span className="text-purple-200/60">{sysSettings?.current_term || 'Term'}</span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Profile Summary */}
-          <div className="flex-shrink-0 px-4 py-3 border-b border-white/5">
+          <div className={`flex-shrink-0 ${iconMode ? 'px-2 py-3' : 'px-4 py-3'} border-b border-white/5`}>
             <div data-tour="sidebar-profile" onClick={() => navigate('/settings')}
-              className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-purple-400/20 transition-all cursor-pointer group">
+              className={`flex ${iconMode ? 'justify-center' : 'items-center gap-3'} p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-purple-400/20 transition-all cursor-pointer group`}>
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-lg shadow-purple-900/40 group-hover:scale-105 transition-transform uppercase overflow-hidden border-2 border-purple-400/30 shrink-0">
                 {user?.profile_picture ? (
                   <img src={user.profile_picture} alt="Avatar" className="w-full h-full object-cover" loading="lazy" />
@@ -748,39 +829,121 @@ const Layout = () => {
                   <span className="text-xs">{user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}</span>
                 )}
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold truncate text-white">{user?.first_name} {user?.last_name}</span>
-                <span className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider">{user?.role}</span>
-              </div>
+              {!iconMode && (
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold truncate text-white">{user?.first_name} {user?.last_name}</span>
+                  <span className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider">{user?.role}</span>
+                </div>
+              )}
             </div>
           </div>
 
+          {/* Sidebar Search */}
+          {!iconMode && (
+            <div className="flex-shrink-0 px-4 py-2">
+              <div className="relative">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-purple-400/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={sidebarSearch}
+                  onChange={(e) => setSidebarSearch(e.target.value)}
+                  className="w-full h-8 pl-8 pr-3 bg-white/5 border border-white/10 rounded-lg text-[11px] text-purple-200 placeholder-purple-400/30 focus:outline-none focus:border-purple-400/30 focus:bg-white/10 transition-all"
+                />
+              </div>
+            </div>
+          )}
+
           {/* Nav Container */}
           <nav className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-thumb-purple-800/50 scrollbar-track-transparent">
+            {/* Quick Access (Pinned) */}
+            {!iconMode && pinnedItems.length > 0 && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mt-1 mb-2 px-3">
+                  <p className="text-[10px] font-extrabold text-amber-400/60 uppercase tracking-widest">Quick Access</p>
+                </div>
+                <div className="space-y-0.5">
+                  {pinnedItems.map(path => {
+                    const item = findItemByPath(path);
+                    if (!item) return null;
+                    return (
+                      <NavItem
+                        key={path}
+                        to={item.to}
+                        label={item.label}
+                        isActive={isActive}
+                        icon={item.icon}
+                        onClick={() => setSidebarOpen(false)}
+                        iconMode={iconMode}
+                        isPinned={true}
+                        onTogglePin={togglePinned}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Pages */}
+            {!iconMode && recentPages.length > 0 && !sidebarSearch && (
+              <div className="mb-4">
+                <div className="flex items-center justify-between mt-1 mb-2 px-3">
+                  <p className="text-[10px] font-extrabold text-purple-400/40 uppercase tracking-widest">Recent</p>
+                </div>
+                <div className="space-y-0.5">
+                  {recentPages.slice(0, 3).map(path => {
+                    const item = findItemByPath(path);
+                    if (!item) return null;
+                    return (
+                      <NavItem
+                        key={path}
+                        to={item.to}
+                        label={item.label}
+                        isActive={isActive}
+                        icon={item.icon}
+                        onClick={() => setSidebarOpen(false)}
+                        iconMode={iconMode}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Divider between recent/pinned and main nav */}
+            {!iconMode && (pinnedItems.length > 0 || recentPages.length > 0) && !sidebarSearch && (
+              <div className="border-t border-white/5 my-2" />
+            )}
+
+            {/* Main Navigation */}
             {(() => {
               const roleKey = (user?.role === 'staff' && user?.is_admin) ? 'admin' : user?.role;
-              return currentNav.map((section, idx) => {
+              return (sidebarSearch ? filteredNav : currentNav).map((section, idx) => {
                 const hasActiveChild = section.items.some(item => isActive(item.to));
-                const isCollapsed = collapsedSections[`${roleKey}_${idx}`] ?? false;
+                const isCollapsed = collapsedSections[`${roleKey}_${idx}`] ?? true;
                 const forceExpanded = hasActiveChild && isCollapsed;
                 const actuallyCollapsed = forceExpanded ? false : isCollapsed;
                 return (
                   <div key={idx} className="mb-2 last:mb-0">
-                    <SectionLabel
-                      label={section.header}
-                      collapsed={actuallyCollapsed}
-                      onToggle={() => toggleSection(roleKey, idx)}
-                    />
+                    {!iconMode && (
+                      <SectionLabel
+                        label={section.header}
+                        collapsed={actuallyCollapsed}
+                        onToggle={() => toggleSection(roleKey, idx)}
+                      />
+                    )}
                     <div
                       className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
-                      style={{ gridTemplateRows: actuallyCollapsed ? '0fr' : '1fr' }}
+                      style={{ gridTemplateRows: actuallyCollapsed && !iconMode ? '0fr' : '1fr' }}
                     >
                       <div className="min-h-0 overflow-hidden">
                         <div
                           className="space-y-0.5 pb-1 transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
                           style={{
-                            opacity: actuallyCollapsed ? 0 : 1,
-                            transform: actuallyCollapsed ? 'translateY(-4px)' : 'translateY(0)',
+                            opacity: actuallyCollapsed && !iconMode ? 0 : 1,
+                            transform: actuallyCollapsed && !iconMode ? 'translateY(-4px)' : 'translateY(0)',
                           }}
                         >
                           {section.items.map((item, i) => (
@@ -793,6 +956,9 @@ const Layout = () => {
                               href={item.href}
                               external={item.external}
                               onClick={() => setSidebarOpen(false)}
+                              iconMode={iconMode}
+                              isPinned={pinnedItems.includes(item.to)}
+                              onTogglePin={togglePinned}
                             />
                           ))}
                         </div>
@@ -804,8 +970,22 @@ const Layout = () => {
             })()}
           </nav>
 
-          {/* PWA Install Button */}
-          <PwaInstallButton />
+          {/* Bottom controls */}
+          <div className={`flex-shrink-0 border-t border-white/5 ${iconMode ? 'px-2 py-3 flex flex-col items-center gap-2' : 'px-4 py-3 flex items-center justify-between'}`}>
+            <button
+              onClick={toggleIconMode}
+              className="rounded-lg p-2 text-purple-400/50 hover:bg-white/5 hover:text-purple-200 transition-all"
+              title={iconMode ? 'Expand sidebar' : 'Collapse to icons'}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {iconMode
+                  ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 9l4 4m0 0l-4 4m4-4H3" />
+                  : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-4-4m0 0l4-4m-4 4h12" />
+                }
+              </svg>
+            </button>
+            {!iconMode && <PwaInstallButton />}
+          </div>
         </aside>
 
         {/* ── Main Content ── */}
