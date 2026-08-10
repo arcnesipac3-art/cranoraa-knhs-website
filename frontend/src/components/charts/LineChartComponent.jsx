@@ -164,7 +164,7 @@ export const LineChartComponent = ({
             } : undefined}
           />
           
-          <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }} />
+          <Tooltip content={CustomTooltip} cursor={{ stroke: '#cbd5e1', strokeWidth: 1 }} />
           
           {showLegend && (
             <Legend

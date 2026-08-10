@@ -396,7 +396,7 @@ const AttendanceTrends = ({ data }) => (
             <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false}
               tickFormatter={str => { if (!str) return ''; const d = new Date(str); return isNaN(d) ? str : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }} />
             <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }} />
+            <Tooltip content={ChartTooltip} cursor={{ stroke: '#e2e8f0', strokeWidth: 1 }} />
             <Area type="monotone" dataKey="present" stroke="#10b981" strokeWidth={2} fill="url(#gPresent)" name="Present" />
             <Area type="monotone" dataKey="late" stroke="#f59e0b" strokeWidth={2} fill="url(#gLate)" name="Late" />
             <Area type="monotone" dataKey="excused" stroke="#6366f1" strokeWidth={2} fill="url(#gExcused)" name="Excused" />
@@ -424,7 +424,7 @@ const AttendancePie = ({ data }) => {
                   <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={78} paddingAngle={4} dataKey="value">
                     {data?.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={0} />)}
                   </Pie>
-                  <Tooltip content={<PieTooltip />} />
+                  <Tooltip content={PieTooltip} />
                 </RechartsPieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -468,7 +468,7 @@ const AttendanceByLevel = ({ data }) => (
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="level" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
             <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <Tooltip content={<ChartTooltip unit="%" />} />
+            <Tooltip content={(props) => <ChartTooltip {...props} unit="%" />} />
             <Bar dataKey="rate" radius={[4, 4, 0, 0]} barSize={36}>
               {data.map((entry, i) => <Cell key={i} fill={gradeColor(entry.rate)} />)}
             </Bar>
@@ -527,7 +527,7 @@ const SubjectPerformance = ({ data }) => (
             <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false}
               interval={0} angle={-45} textAnchor="end" height={50} />
             <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <Tooltip content={<ChartTooltip unit="%" />} />
+            <Tooltip content={(props) => <ChartTooltip {...props} unit="%" />} />
             <Bar dataKey="avg_grade" radius={[4, 4, 0, 0]} barSize={28}>
               {data.map((entry, i) => <Cell key={i} fill={gradeColor(entry.avg_grade)} />)}
             </Bar>
@@ -553,7 +553,7 @@ const UserTraffic = ({ data }) => (
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
             <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-            <Tooltip content={<ChartTooltip />} />
+            <Tooltip content={ChartTooltip} />
             <Area type="stepAfter" dataKey="users" stroke="#10b981" strokeWidth={2} fill="url(#gUsers)" />
           </AreaChart>
         </ResponsiveContainer>
@@ -578,7 +578,7 @@ const GradeDistributionPie = ({ data, total, label }) => {
                   <Pie data={data} cx="50%" cy="50%" innerRadius={48} outerRadius={75} paddingAngle={4} dataKey="value">
                     {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} strokeWidth={0} />)}
                   </Pie>
-                  <Tooltip content={<PieTooltip />} />
+                  <Tooltip content={PieTooltip} />
                 </RechartsPieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
@@ -620,7 +620,7 @@ const GradeLevelComparison = ({ data, filterLevel }) => (
           <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false}
             angle={-20} textAnchor="end" padding={{ left: 10, right: 10 }} />
           <YAxis domain={[70, 100]} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-          <Tooltip content={<ChartTooltip unit="%" />} />
+          <Tooltip content={(props) => <ChartTooltip {...props} unit="%" />} />
           <Bar dataKey="average" radius={[4, 4, 0, 0]} barSize={data.length === 1 ? 60 : 32}>
             {data.map((entry, i) => <Cell key={i} fill={gradeColor(entry.average)} />)}
           </Bar>
@@ -642,7 +642,7 @@ const GradeRankings = ({ data, filterSubject, meta, timeframe }) => (
           <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
           <XAxis type="number" domain={[0, 100]} hide />
           <YAxis type="category" dataKey="code" width={80} tick={{ fontSize: 11, fill: '#475569' }} axisLine={false} tickLine={false} />
-          <Tooltip content={<ChartTooltip unit="%" />} />
+          <Tooltip content={(props) => <ChartTooltip {...props} unit="%" />} />
           <Bar dataKey="average" radius={[0, 4, 4, 0]} barSize={18}>
             {data.map((_, i) => <Cell key={i} fill={BAR_COLOR} opacity={1 - i * 0.06} />)}
           </Bar>

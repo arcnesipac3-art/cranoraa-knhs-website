@@ -240,7 +240,7 @@ export const BarChartComponent = ({
             </>
           )}
           
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(226, 232, 240, 0.3)' }} />
+          <Tooltip content={CustomTooltip} cursor={{ fill: 'rgba(226, 232, 240, 0.3)' }} />
           
           {showLegend && (
             <Legend

@@ -124,7 +124,7 @@ const AnalyticsSnapshot = memo(({ classroomIds = [] }) => {
                   </defs>
                   <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} domain={[60, 100]} />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={CustomTooltip} />
                   <Area type="monotone" dataKey="attendance" stroke="#7c3aed" fill="url(#attGrad)" strokeWidth={2} dot={false} name="Attendance" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -151,7 +151,7 @@ const AnalyticsSnapshot = memo(({ classroomIds = [] }) => {
                 <BarChart data={gradeData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip content={<CustomTooltip />} />
+                  <Tooltip content={CustomTooltip} />
                   <Bar dataKey="count" fill="#8b5cf6" radius={[3, 3, 0, 0]} name="Students" />
                 </BarChart>
               </ResponsiveContainer>
