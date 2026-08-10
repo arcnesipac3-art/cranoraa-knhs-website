@@ -1209,7 +1209,7 @@ const Teachers = () => {
                               Manage Roles
                             </button>
 
-                            {teacher.role === 'staff' && (
+                            {(teacher.role === 'staff' || (teacher.is_admin && teacher.staff_title)) && (
                               <button onClick={() => { setActiveMenu(null); handleToggleAdmin(teacher); }}
                                 className={`w-full flex items-center gap-2 px-3 py-2 text-xs hover:bg-slate-50 text-left ${teacher.is_admin ? 'text-amber-600' : 'text-violet-600'}`}>
                                 {teacher.is_admin ? (

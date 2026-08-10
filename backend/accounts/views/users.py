@@ -173,14 +173,20 @@ class UserViewSet(viewsets.ModelViewSet):
                 return queryset.filter(role='admin', is_active=True)
 
             if role == 'staff':
-                return queryset.filter(role='staff', is_active=True)
+                return queryset.filter(
+                    Q(role='staff', is_active=True) |
+                    Q(role='admin', is_admin=True, staff_title__gt='', is_active=True)
+                )
 
             if role == 'parent':
                 return queryset.filter(role='parent', is_active=True)
 
             # For students/parents viewing teachers (directory), return all active staff
             if role is None and user.role in ['student', 'parent']:
-                return queryset.filter(role='staff', is_active=True)
+                return queryset.filter(
+                    Q(role='staff', is_active=True) |
+                    Q(role='admin', is_admin=True, staff_title__gt='', is_active=True)
+                )
 
             if user.role == 'student':
                 return queryset.filter(id=user.id)
@@ -474,7 +480,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only admins can change roles'}, status=403)
 
         user = self.get_object()
-        if user.role != 'staff':
+        if user.role != 'staff' and not (user.is_admin and user.staff_title):
             return Response({'error': 'Can only set roles on staff accounts'}, status=400)
 
         staff_title = request.data.get('staff_title')
@@ -902,11 +908,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_object()
 
         user.is_admin = not user.is_admin
-        if user.is_admin:
-            user.role = 'admin'
-        else:
-            user.role = 'staff'
-        user.save()
+        user.save(update_fields=['is_admin'])
 
         status_str = 'granted admin privileges' if user.is_admin else 'revoked admin privileges'
         try:
