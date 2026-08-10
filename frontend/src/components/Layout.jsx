@@ -320,22 +320,6 @@ const Layout = () => {
     });
   };
 
-  // Recent pages — tracked from navigation
-  const [recentPages, setRecentPages] = useState(() => {
-    try {
-      const saved = localStorage.getItem('sidebar_recent');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
-  useEffect(() => {
-    if (!location.pathname || location.pathname === '/') return;
-    setRecentPages(prev => {
-      const next = [location.pathname, ...prev.filter(p => p !== location.pathname)].slice(0, 5);
-      try { localStorage.setItem('sidebar_recent', JSON.stringify(next)); } catch {}
-      return next;
-    });
-  }, [location.pathname]);
-
   // Sidebar search filter
   const [sidebarSearch, setSidebarSearch] = useState('');
   const notifDropdownRef = useRef(null);
@@ -886,34 +870,8 @@ const Layout = () => {
               </div>
             )}
 
-            {/* Recent Pages */}
-            {!iconMode && recentPages.length > 0 && !sidebarSearch && (
-              <div className="mb-4">
-                <div className="flex items-center justify-between mt-1 mb-2 px-3">
-                  <p className="text-[10px] font-extrabold text-purple-400/40 uppercase tracking-widest">Recent</p>
-                </div>
-                <div className="space-y-0.5">
-                  {recentPages.slice(0, 3).map(path => {
-                    const item = findItemByPath(path);
-                    if (!item) return null;
-                    return (
-                      <NavItem
-                        key={path}
-                        to={item.to}
-                        label={item.label}
-                        isActive={isActive}
-                        icon={item.icon}
-                        onClick={() => setSidebarOpen(false)}
-                        iconMode={iconMode}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Divider between recent/pinned and main nav */}
-            {!iconMode && (pinnedItems.length > 0 || recentPages.length > 0) && !sidebarSearch && (
+            {/* Divider between pinned and main nav */}
+            {!iconMode && pinnedItems.length > 0 && !sidebarSearch && (
               <div className="border-t border-white/5 my-2" />
             )}
 
