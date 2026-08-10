@@ -71,7 +71,7 @@ const SectionLabel = ({ label, collapsed, onToggle }) => (
   >
     <p className="text-[10px] font-extrabold text-purple-400/60 uppercase tracking-widest">{label}</p>
     <svg
-      className={`w-3 h-3 text-purple-400/40 transition-transform duration-200 ${collapsed ? '' : 'rotate-90'}`}
+      className={`w-3 h-3 text-purple-400/40 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${collapsed ? '' : 'rotate-90'}`}
       fill="none" stroke="currentColor" viewBox="0 0 24 24"
     >
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -765,32 +765,32 @@ const Layout = () => {
                 const forceExpanded = hasActiveChild && isCollapsed;
                 const actuallyCollapsed = forceExpanded ? false : isCollapsed;
                 return (
-                  <div key={idx} className="mb-4 last:mb-0">
+                  <div key={idx} className="mb-2 last:mb-0">
                     <SectionLabel
                       label={section.header}
                       collapsed={actuallyCollapsed}
                       onToggle={() => toggleSection(roleKey, idx)}
                     />
                     <div
-                      className="space-y-0.5 overflow-hidden transition-all duration-200 ease-in-out"
-                      style={{
-                        maxHeight: actuallyCollapsed ? '0px' : `${section.items.length * 42 + 8}px`,
-                        opacity: actuallyCollapsed ? 0 : 1,
-                        marginTop: actuallyCollapsed ? '0px' : undefined,
-                      }}
+                      className="grid transition-[grid-template-rows] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                      style={{ gridTemplateRows: actuallyCollapsed ? '0fr' : '1fr' }}
                     >
-                      {section.items.map((item, i) => (
-                        <NavItem
-                          key={i}
-                          to={item.to}
-                          label={item.label}
-                          isActive={isActive}
-                          icon={item.icon}
-                          href={item.href}
-                          external={item.external}
-                          onClick={() => setSidebarOpen(false)}
-                        />
-                      ))}
+                      <div className="min-h-0 overflow-hidden">
+                        <div className="space-y-0.5 pb-1">
+                          {section.items.map((item, i) => (
+                            <NavItem
+                              key={i}
+                              to={item.to}
+                              label={item.label}
+                              isActive={isActive}
+                              icon={item.icon}
+                              href={item.href}
+                              external={item.external}
+                              onClick={() => setSidebarOpen(false)}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );
