@@ -23,7 +23,7 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
         target="_blank"
         rel="noopener noreferrer"
         onClick={onClick}
-        className={`flex items-center ${iconMode ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'} rounded-lg transition-all duration-150 mb-0.5 text-xs group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold relative`}
+        className={`flex items-center ${iconMode ? 'justify-center px-0 py-2' : 'px-3 py-2'} rounded-lg transition-all duration-150 mb-px text-xs group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold relative`}
         title={iconMode ? label : undefined}
       >
         <svg
@@ -51,7 +51,7 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
       onClick={onClick}
       aria-current={isActive(to) ? 'page' : undefined}
       title={iconMode ? label : undefined}
-      className={`flex items-center ${iconMode ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'} rounded-lg transition-all duration-150 mb-0.5 text-xs group relative ${
+      className={`flex items-center ${iconMode ? 'justify-center px-0 py-2' : 'px-3 py-2'} rounded-lg transition-all duration-150 mb-px text-xs group relative ${
         isActive(to)
           ? 'bg-gradient-to-r from-violet-500/90 to-purple-500/90 text-white font-bold shadow-lg shadow-purple-900/30 ring-1 ring-white/10'
           : 'text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold'
@@ -84,7 +84,7 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
 const SectionLabel = ({ label, collapsed, onToggle }) => (
   <button
     onClick={onToggle}
-    className="mt-5 mb-2 px-3 first:mt-0 flex items-center justify-between w-full group/section cursor-pointer select-none rounded-lg hover:bg-white/5 transition-colors duration-150"
+    className="mt-3 mb-1 px-3 first:mt-0 flex items-center justify-between w-full group/section cursor-pointer select-none rounded-lg hover:bg-white/5 transition-colors duration-150"
   >
     <p className="text-[10px] font-extrabold text-purple-400/60 uppercase tracking-widest group-hover/section:text-purple-300/80 transition-colors duration-150">{label}</p>
     <svg
@@ -738,7 +738,7 @@ const Layout = () => {
         <aside aria-label="Portal sidebar" data-tour="portal-sidebar" className={`fixed inset-y-0 left-0 z-[120] flex h-screen ${iconMode ? 'w-[68px]' : 'w-64'} transform flex-col overflow-hidden border-r border-purple-800/30 bg-gradient-to-b from-[#1a0a2e] via-[#1e1145] to-[#150d2e] shadow-2xl transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
           {/* School Header */}
-          <div className={`flex items-center ${iconMode ? 'justify-center px-2 py-4' : 'gap-3 px-4 py-4'} border-b border-white/5 bg-black/20`}>
+          <div className={`flex items-center ${iconMode ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'} border-b border-white/5 bg-black/20`}>
             <div className="h-10 w-10 rounded-xl bg-white p-1.5 flex items-center justify-center border border-purple-400/20 shadow-lg shadow-purple-900/50 shrink-0">
               <img src="/icons/school-logo-source.png" alt="KNHS Logo" className="h-full w-full object-contain" loading="lazy" />
             </div>
@@ -752,7 +752,7 @@ const Layout = () => {
 
           {/* Academic Year Info */}
           {!iconMode && (
-            <div className="flex-shrink-0 px-4 py-3 bg-black/20 border-b border-white/5">
+            <div className="flex-shrink-0 px-3 py-2 bg-black/20 border-b border-white/5">
               <div className="flex items-center justify-between text-[10px] font-bold text-purple-300/80 uppercase tracking-wider">
                 <span>{academicYear ? `SY ${academicYear}` : 'No Year Set'}</span>
                 <span className="text-purple-200/60">{sysSettings?.current_term || 'Term'}</span>
@@ -761,7 +761,7 @@ const Layout = () => {
           )}
 
           {/* Profile Summary */}
-          <div className={`flex-shrink-0 ${iconMode ? 'px-2 py-3' : 'px-4 py-3'} border-b border-white/5`}>
+          <div className={`flex-shrink-0 ${iconMode ? 'px-2 py-2' : 'px-3 py-2'} border-b border-white/5`}>
             <div data-tour="sidebar-profile" onClick={() => navigate('/settings')}
               className={`flex ${iconMode ? 'justify-center' : 'items-center gap-3'} p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-purple-400/20 transition-all cursor-pointer group`}>
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-lg shadow-purple-900/40 group-hover:scale-105 transition-transform uppercase overflow-hidden border-2 border-purple-400/30 shrink-0">
@@ -782,7 +782,7 @@ const Layout = () => {
 
           {/* Sidebar Search */}
           {!iconMode && (
-            <div className="flex-shrink-0 px-4 py-2">
+            <div className="flex-shrink-0 px-3 py-1.5">
               <div className="relative">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-purple-400/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -799,11 +799,11 @@ const Layout = () => {
           )}
 
           {/* Nav Container */}
-          <nav className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-thumb-purple-800/50 scrollbar-track-transparent">
+          <nav className="flex-1 overflow-y-auto px-3 py-3 scrollbar-thin scrollbar-thumb-purple-800/50 scrollbar-track-transparent">
             {/* Quick Access (Pinned) */}
             {!iconMode && pinnedItems.length > 0 && (
-              <div className="mb-4">
-                <div className="flex items-center justify-between mt-1 mb-2 px-3">
+              <div className="mb-2">
+                <div className="flex items-center justify-between mt-0.5 mb-1 px-3">
                   <p className="text-[10px] font-extrabold text-amber-400/60 uppercase tracking-widest">Quick Access</p>
                 </div>
                 <div className="space-y-0.5">
@@ -830,7 +830,7 @@ const Layout = () => {
 
             {/* Divider between pinned and main nav */}
             {!iconMode && pinnedItems.length > 0 && !sidebarSearch && (
-              <div className="border-t border-white/5 my-2" />
+              <div className="border-t border-white/5 my-1" />
             )}
 
             {/* Main Navigation */}
@@ -842,7 +842,7 @@ const Layout = () => {
                 const forceExpanded = hasActiveChild && isCollapsed;
                 const actuallyCollapsed = forceExpanded ? false : isCollapsed;
                 return (
-                  <div key={idx} className="mb-2 last:mb-0">
+                  <div key={idx} className="mb-1 last:mb-0">
                     {!iconMode && (
                       <SectionLabel
                         label={section.header}
@@ -887,7 +887,7 @@ const Layout = () => {
           </nav>
 
           {/* Bottom controls */}
-          <div className="flex-shrink-0 border-t border-white/5 px-2 py-3 flex justify-center">
+          <div className="flex-shrink-0 border-t border-white/5 px-2 py-2 flex justify-center">
             <button
               onClick={toggleIconMode}
               className="rounded-lg p-2 text-purple-400/50 hover:bg-white/5 hover:text-purple-200 transition-all"
