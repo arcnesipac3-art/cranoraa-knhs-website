@@ -23,11 +23,11 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
         target="_blank"
         rel="noopener noreferrer"
         onClick={onClick}
-        className={`flex items-center ${iconMode ? 'justify-center px-0 py-2' : 'px-3 py-2'} rounded-lg transition-all duration-150 mb-px text-xs group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold relative`}
+        className={`flex items-center ${iconMode ? 'justify-center px-0 py-1.5' : 'px-2.5 py-1.5'} rounded-md transition-all duration-150 mb-[1px] text-[11px] group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold relative`}
         title={iconMode ? label : undefined}
       >
         <svg
-          className={`${iconMode ? '' : 'w-4 h-4 mr-2.5'} w-4 h-4 flex-shrink-0 transition-transform duration-150 text-purple-400/70`}
+          className={`${iconMode ? '' : 'w-3.5 h-3.5 mr-2'} w-3.5 h-3.5 flex-shrink-0 transition-transform duration-150 text-purple-400/70`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -37,7 +37,7 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
         {!iconMode && (
           <>
             <span className="truncate">{label}</span>
-            <svg className="w-3 h-3 ml-1.5 text-purple-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-2.5 h-2.5 ml-1 text-purple-400/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
           </>
@@ -51,14 +51,14 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
       onClick={onClick}
       aria-current={isActive(to) ? 'page' : undefined}
       title={iconMode ? label : undefined}
-      className={`flex items-center ${iconMode ? 'justify-center px-0 py-2' : 'px-3 py-2'} rounded-lg transition-all duration-150 mb-px text-xs group relative ${
+      className={`flex items-center ${iconMode ? 'justify-center px-0 py-1.5' : 'px-2.5 py-1.5'} rounded-md transition-all duration-150 mb-[1px] text-[11px] group relative ${
         isActive(to)
           ? 'bg-gradient-to-r from-violet-500/90 to-purple-500/90 text-white font-bold shadow-lg shadow-purple-900/30 ring-1 ring-white/10'
           : 'text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold'
       }`}
     >
       <svg
-        className={`${iconMode ? '' : 'w-4 h-4 mr-2.5'} w-4 h-4 flex-shrink-0 transition-transform duration-150 ${isActive(to) ? 'text-white' : 'text-purple-400/70'}`}
+        className={`${iconMode ? '' : 'w-3.5 h-3.5 mr-2'} w-3.5 h-3.5 flex-shrink-0 transition-transform duration-150 ${isActive(to) ? 'text-white' : 'text-purple-400/70'}`}
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -69,10 +69,10 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
       {!iconMode && onTogglePin && (
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(to); }}
-          className={`ml-auto flex-shrink-0 p-0.5 rounded transition-all duration-150 ${isPinned ? 'text-amber-400 opacity-100' : 'text-purple-400/30 opacity-0 group-hover:opacity-100 hover:text-amber-400'}`}
+          className={`ml-auto flex-shrink-0 p-px rounded transition-all duration-150 ${isPinned ? 'text-amber-400 opacity-100' : 'text-purple-400/30 opacity-0 group-hover:opacity-100 hover:text-amber-400'}`}
           title={isPinned ? 'Unpin' : 'Pin to Quick Access'}
         >
-          <svg className="w-3 h-3" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-2.5 h-2.5" fill={isPinned ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
           </svg>
         </button>
@@ -84,7 +84,7 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
 const SectionLabel = ({ label, collapsed, onToggle }) => (
   <button
     onClick={onToggle}
-    className="mt-3 mb-1 px-3 first:mt-0 flex items-center justify-between w-full group/section cursor-pointer select-none rounded-lg hover:bg-white/5 transition-colors duration-150"
+    className="mt-2 mb-0.5 px-2.5 first:mt-0 flex items-center justify-between w-full group/section cursor-pointer select-none rounded-md hover:bg-white/5 transition-colors duration-150"
   >
     <p className="text-[10px] font-extrabold text-purple-400/60 uppercase tracking-widest group-hover/section:text-purple-300/80 transition-colors duration-150">{label}</p>
     <svg
@@ -782,7 +782,7 @@ const Layout = () => {
 
           {/* Sidebar Search */}
           {!iconMode && (
-            <div className="flex-shrink-0 px-3 py-1.5">
+            <div className="flex-shrink-0 px-2.5 py-1">
               <div className="relative">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-purple-400/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -802,11 +802,11 @@ const Layout = () => {
           <nav className="flex-1 overflow-y-auto px-3 py-3 scrollbar-thin scrollbar-thumb-purple-800/50 scrollbar-track-transparent">
             {/* Quick Access (Pinned) */}
             {!iconMode && pinnedItems.length > 0 && (
-              <div className="mb-2">
-                <div className="flex items-center justify-between mt-0.5 mb-1 px-3">
-                  <p className="text-[10px] font-extrabold text-amber-400/60 uppercase tracking-widest">Quick Access</p>
+              <div className="mb-1">
+                <div className="flex items-center justify-between mb-0.5 px-2.5">
+                  <p className="text-[9px] font-extrabold text-amber-400/60 uppercase tracking-widest">Quick Access</p>
                 </div>
-                <div className="space-y-0.5">
+                <div className="space-y-px">
                   {pinnedItems.map(path => {
                     const item = findItemByPath(path);
                     if (!item) return null;
@@ -830,7 +830,7 @@ const Layout = () => {
 
             {/* Divider between pinned and main nav */}
             {!iconMode && pinnedItems.length > 0 && !sidebarSearch && (
-              <div className="border-t border-white/5 my-1" />
+              <div className="border-t border-white/5 my-0.5" />
             )}
 
             {/* Main Navigation */}
@@ -842,7 +842,7 @@ const Layout = () => {
                 const forceExpanded = hasActiveChild && isCollapsed;
                 const actuallyCollapsed = forceExpanded ? false : isCollapsed;
                 return (
-                  <div key={idx} className="mb-1 last:mb-0">
+                  <div key={idx} className="mb-px last:mb-0">
                     {!iconMode && (
                       <SectionLabel
                         label={section.header}
