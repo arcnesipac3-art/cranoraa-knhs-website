@@ -28,9 +28,9 @@ let staffTokens = [];
 let studentTokens = [];
 
 function setupTokens() {
-  adminToken = login(config.admin.email, config.admin.pass);
-  staffTokens.push(login(config.staff.email, config.staff.pass));
-  studentTokens.push(login(config.student.email, config.student.pass));
+  adminToken = login(config.admin.email, config.admin.pass, config.admin.role);
+  staffTokens.push(login(config.staff.email, config.staff.pass, config.staff.role));
+  studentTokens.push(login(config.student.email, config.student.pass, config.student.role));
 }
 
 // ── Scenario: Admin browsing ──────────────────────────────────────────────────

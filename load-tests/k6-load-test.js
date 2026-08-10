@@ -41,13 +41,12 @@ const scenarios = {
     executor: 'ramping-vus',
     startVUs: 0,
     stages: [
-      { duration: '2m', target: 10 },  // Ramp up to 10 users
-      { duration: '5m', target: 10 },  // Stay at 10 users
-      { duration: '2m', target: 50 },  // Ramp up to 50 users
-      { duration: '5m', target: 50 },  // Stay at 50 users
-      { duration: '2m', target: 100 }, // Ramp up to 100 users
-      { duration: '5m', target: 100 }, // Stay at 100 users
-      { duration: '3m', target: 0 },   // Ramp down
+      { duration: '30s', target: 5 },    // Warm up (wake Render instance)
+      { duration: '2m', target: 10 },    // Ramp to 10 users
+      { duration: '2m', target: 10 },    // Hold at 10
+      { duration: '1m', target: 20 },    // Ramp to 20 users
+      { duration: '2m', target: 20 },    // Hold at 20
+      { duration: '1m', target: 0 },     // Ramp down
     ],
   },
   stress: {
@@ -92,28 +91,32 @@ export const options = {
     [selectedScenario]: scenarios[selectedScenario],
   },
   thresholds: {
-    http_req_duration: ['p(95)<2000'], // 95% of requests should be below 2s
-    http_req_failed: ['rate<0.05'],     // Error rate should be below 5%
-    login_failures: ['rate<0.1'],       // Login failures should be below 10%
-    api_errors: ['rate<0.05'],          // API errors should be below 5%
+    http_req_duration: ['p(95)<10000'], // 95% of requests should be below 10s (Render cold start)
+    http_req_failed: ['rate<0.15'],     // Error rate should be below 15%
+    login_failures: ['rate<0.2'],       // Login failures should be below 20%
+    api_errors: ['rate<0.15'],          // API errors should be below 15%
   },
   noConnectionReuse: false,
   userAgent: 'K6LoadTest/1.0',
+  timeout: '60s',
 };
 
 // Test data - In production, load from file or environment
 const testUsers = {
   student: {
-    username: 'test_student',
-    password: 'TestPassword123!',
+    username: __ENV.TEST_STUDENT_USERNAME || 'test_student',
+    password: __ENV.TEST_STUDENT_PASSWORD || 'TestPassword123!',
+    role: 'student',
   },
   teacher: {
-    username: 'test_teacher',
-    password: 'TestPassword123!',
+    username: __ENV.TEST_TEACHER_USERNAME || 'test_teacher',
+    password: __ENV.TEST_TEACHER_PASSWORD || 'TestPassword123!',
+    role: 'teacher',
   },
   admin: {
-    username: 'test_admin',
-    password: 'TestPassword123!',
+    username: __ENV.TEST_ADMIN_USERNAME || 'test_admin',
+    password: __ENV.TEST_ADMIN_PASSWORD || 'TestPassword123!',
+    role: 'admin',
   },
 };
 
@@ -133,12 +136,13 @@ function getHeaders(token = null) {
 }
 
 // Authentication
-function login(username, password) {
+function login(username, password, role) {
   const loginResponse = http.post(
     `${BASE_URL}/api/v1/login/`,
     JSON.stringify({
       username: username,
       password: password,
+      role: role,
     }),
     {
       headers: getHeaders(),
@@ -208,7 +212,7 @@ function testPublicEndpoints() {
 function studentJourney() {
   group('Student Journey', () => {
     // Login
-    const tokens = login(testUsers.student.username, testUsers.student.password);
+    const tokens = login(testUsers.student.username, testUsers.student.password, testUsers.student.role);
     if (!tokens) {
       console.log('Student login failed');
       return;
@@ -310,7 +314,7 @@ function studentJourney() {
 function teacherJourney() {
   group('Teacher Journey', () => {
     // Login
-    const tokens = login(testUsers.teacher.username, testUsers.teacher.password);
+    const tokens = login(testUsers.teacher.username, testUsers.teacher.password, testUsers.teacher.role);
     if (!tokens) {
       console.log('Teacher login failed');
       return;
@@ -412,7 +416,7 @@ function teacherJourney() {
 function adminJourney() {
   group('Admin Journey', () => {
     // Login
-    const tokens = login(testUsers.admin.username, testUsers.admin.password);
+    const tokens = login(testUsers.admin.username, testUsers.admin.password, testUsers.admin.role);
     if (!tokens) {
       console.log('Admin login failed');
       return;

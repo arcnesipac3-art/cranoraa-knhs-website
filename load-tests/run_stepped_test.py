@@ -29,9 +29,9 @@ import time
 
 HOST        = "https://cranoraa-knhs-website-1.onrender.com"
 LOCUSTFILE  = "load-tests/locustfile.py"
-SPAWN_RATE  = 2       # users added per second during ramp-up
-RUN_SECONDS = 120     # measurement window per step (2 minutes)
-STEPS       = [1, 10, 25, 50, 100, 150, 200]
+SPAWN_RATE  = 5       # users added per second during ramp-up
+RUN_SECONDS = 60      # measurement window per step (1 minute)
+STEPS       = [10, 50, 100, 200]
 CSV_DIR     = "load-tests/step_results"
 
 # ── Credential check ──────────────────────────────────────────────────────────

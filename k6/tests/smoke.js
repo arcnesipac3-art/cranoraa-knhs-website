@@ -19,7 +19,7 @@ export const options = {
 
 export default function () {
   // ── 1. Login (Admin) ──────────────────────────────────────────────────────
-  const admin = login(config.admin.email, config.admin.pass);
+  const admin = login(config.admin.email, config.admin.pass, config.admin.role);
   if (!admin) return;
 
   // ── 2. Dashboard ──────────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ export default function () {
   think(0.5, 1);
 
   // ── 12. Attendance history (as staff) ─────────────────────────────────────
-  const staff = login(config.staff.email, config.staff.pass);
+  const staff = login(config.staff.email, config.staff.pass, config.staff.role);
   if (staff) {
     apiGet('/attendance/student-history/?month=2026-08', staff.headers, { name: 'staff attendance' });
     think(0.5, 1);
@@ -77,7 +77,7 @@ export default function () {
   }
 
   // ── 14. Student portal ────────────────────────────────────────────────────
-  const student = login(config.student.email, config.student.pass);
+  const student = login(config.student.email, config.student.pass, config.student.role);
   if (student) {
     apiGet('/student/dashboard/stats/', student.headers, { name: 'student dashboard' });
     think(0.5, 1);

@@ -40,6 +40,7 @@ export const options = {
 const testUser = {
   username: 'test_teacher',
   password: 'TestPassword123!',
+  role: 'teacher',
 };
 
 function login() {
@@ -48,6 +49,7 @@ function login() {
     JSON.stringify({
       username: testUser.username,
       password: testUser.password,
+      role: testUser.role,
     }),
     {
       headers: {

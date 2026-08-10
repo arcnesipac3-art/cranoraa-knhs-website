@@ -124,11 +124,11 @@ export default function () {
   // Pick a token based on category
   let token;
   if (['admin', 'users', 'academics', 'compliance', 'records', 'school_forms'].includes(category)) {
-    token = login(config.admin.email, config.admin.pass);
+    token = login(config.admin.email, config.admin.pass, config.admin.role);
   } else if (['teacher_portal', 'grading', 'attendance'].includes(category)) {
-    token = login(config.staff.email, config.staff.pass);
+    token = login(config.staff.email, config.staff.pass, config.staff.role);
   } else {
-    token = login(config.student.email, config.student.pass);
+    token = login(config.student.email, config.student.pass, config.student.role);
   }
 
   if (!token) return;

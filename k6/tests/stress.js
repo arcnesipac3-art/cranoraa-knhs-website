@@ -28,9 +28,9 @@ export const options = {
 const sessions = { admin: null, staff: [], student: [] };
 
 function initSessions() {
-  sessions.admin = login(config.admin.email, config.admin.pass);
-  sessions.staff.push(login(config.staff.email, config.staff.pass));
-  sessions.student.push(login(config.student.email, config.student.pass));
+  sessions.admin = login(config.admin.email, config.admin.pass, config.admin.role);
+  sessions.staff.push(login(config.staff.email, config.staff.pass, config.staff.role));
+  sessions.student.push(login(config.student.email, config.student.pass, config.student.role));
 }
 
 // ── Heavy admin operations ────────────────────────────────────────────────────

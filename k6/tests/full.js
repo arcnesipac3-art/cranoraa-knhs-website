@@ -43,9 +43,9 @@ export const options = {
 let admin, staff, student;
 
 function initSessions() {
-  admin = login(config.admin.email, config.admin.pass);
-  staff = login(config.staff.email, config.staff.pass);
-  student = login(config.student.email, config.student.pass);
+  admin = login(config.admin.email, config.admin.pass, config.admin.role);
+  staff = login(config.staff.email, config.staff.pass, config.staff.role);
+  student = login(config.student.email, config.student.pass, config.student.role);
 }
 
 // ── Smoke scenario ────────────────────────────────────────────────────────────
@@ -53,7 +53,7 @@ export function smokeRun() {
   if (!admin) initSessions();
 
   // Login
-  const s = login(config.admin.email, config.admin.pass);
+  const s = login(config.admin.email, config.admin.pass, config.admin.role);
   check(s, { 'smoke: login ok': (r) => !!r });
   think(0.5, 1);
 

@@ -64,10 +64,19 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external }) => {
   );
 };
 
-const SectionLabel = ({ label }) => (
-  <div className="mt-5 mb-2 px-3 first:mt-0">
+const SectionLabel = ({ label, collapsed, onToggle }) => (
+  <button
+    onClick={onToggle}
+    className="mt-5 mb-2 px-3 first:mt-0 flex items-center justify-between w-full group/section cursor-pointer select-none"
+  >
     <p className="text-[10px] font-extrabold text-purple-400/60 uppercase tracking-widest">{label}</p>
-  </div>
+    <svg
+      className={`w-3 h-3 text-purple-400/40 transition-transform duration-200 ${collapsed ? '' : 'rotate-90'}`}
+      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+    </svg>
+  </button>
 );
 
 // ── Mute toggle button ────────────────────────────────────────────────────────
@@ -249,6 +258,23 @@ const Layout = () => {
   const [sysSettings, setSysSettings] = useState(null);
   const [notifDropdownPos, setNotifDropdownPos] = useState({ top: 0, right: 0 });
   const [userMenuPos, setUserMenuPos] = useState({ top: 0, right: 0 });
+
+  // Collapsible sidebar sections — persisted per role in localStorage
+  const [collapsedSections, setCollapsedSections] = useState(() => {
+    try {
+      const saved = localStorage.getItem('sidebar_collapsed');
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
+  });
+  const toggleSection = (role, idx) => {
+    setCollapsedSections(prev => {
+      const next = { ...prev };
+      const key = `${role}_${idx}`;
+      next[key] = !next[key];
+      try { localStorage.setItem('sidebar_collapsed', JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
   const notifDropdownRef = useRef(null);
   const notifBtnRef = useRef(null);
   const userMenuRef = useRef(null);
@@ -731,25 +757,45 @@ const Layout = () => {
 
           {/* Nav Container */}
           <nav className="flex-1 overflow-y-auto px-4 py-4 scrollbar-thin scrollbar-thumb-purple-800/50 scrollbar-track-transparent">
-            {currentNav.map((section, idx) => (
-              <div key={idx} className="mb-4 last:mb-0">
-                <SectionLabel label={section.header} />
-                <div className="space-y-0.5">
-                  {section.items.map((item, i) => (
-                    <NavItem 
-                      key={i} 
-                      to={item.to} 
-                      label={item.label} 
-                      isActive={isActive} 
-                      icon={item.icon}
-                      href={item.href}
-                      external={item.external}
-                      onClick={() => setSidebarOpen(false)}
+            {(() => {
+              const roleKey = (user?.role === 'staff' && user?.is_admin) ? 'admin' : user?.role;
+              return currentNav.map((section, idx) => {
+                const hasActiveChild = section.items.some(item => isActive(item.to));
+                const isCollapsed = collapsedSections[`${roleKey}_${idx}`] ?? false;
+                const forceExpanded = hasActiveChild && isCollapsed;
+                const actuallyCollapsed = forceExpanded ? false : isCollapsed;
+                return (
+                  <div key={idx} className="mb-4 last:mb-0">
+                    <SectionLabel
+                      label={section.header}
+                      collapsed={actuallyCollapsed}
+                      onToggle={() => toggleSection(roleKey, idx)}
                     />
-                  ))}
-                </div>
-              </div>
-            ))}
+                    <div
+                      className="space-y-0.5 overflow-hidden transition-all duration-200 ease-in-out"
+                      style={{
+                        maxHeight: actuallyCollapsed ? '0px' : `${section.items.length * 42 + 8}px`,
+                        opacity: actuallyCollapsed ? 0 : 1,
+                        marginTop: actuallyCollapsed ? '0px' : undefined,
+                      }}
+                    >
+                      {section.items.map((item, i) => (
+                        <NavItem
+                          key={i}
+                          to={item.to}
+                          label={item.label}
+                          isActive={isActive}
+                          icon={item.icon}
+                          href={item.href}
+                          external={item.external}
+                          onClick={() => setSidebarOpen(false)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </nav>
 
           {/* PWA Install Button */}

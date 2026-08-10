@@ -103,6 +103,7 @@ const Login = () => {
     }
     catch { return 'student'; }
   });
+  const [step, setStep] = useState('role');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -122,11 +123,10 @@ const Login = () => {
   }, [user, navigate]);
 
   useEffect(() => {
-    setIdentifier('');
-    setPassword('');
-    setFieldErrors({});
-    identifierRef.current?.focus();
-  }, [loginType]);
+    if (step === 'credentials') {
+      identifierRef.current?.focus();
+    }
+  }, [step]);
 
   useEffect(() => {
     try { localStorage.setItem(LAST_ROLE_KEY, loginType); } catch {}
@@ -158,6 +158,21 @@ const Login = () => {
   }, [identifier, password, role.identifierLabel]);
 
   const lockoutRemaining = lockoutUntil ? Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000)) : 0;
+
+  const handleRoleSelect = useCallback((key) => {
+    setLoginType(key);
+    setStep('credentials');
+    setIdentifier('');
+    setPassword('');
+    setFieldErrors({});
+  }, []);
+
+  const handleBackToRoles = useCallback(() => {
+    setStep('role');
+    setIdentifier('');
+    setPassword('');
+    setFieldErrors({});
+  }, []);
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
@@ -230,7 +245,6 @@ const Login = () => {
       {/* Left Panel — Branding */}
       <div className="hidden lg:flex lg:w-[48%] bg-slate-900 relative overflow-hidden">
         <div className="relative z-10 flex flex-col justify-between w-full p-12">
-          {/* School Identity */}
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center">
                <img src="/icons/school-logo-source.png" alt="KNHS" className="w-10 h-10 object-contain" loading="lazy" />
@@ -241,7 +255,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Role-Specific Content */}
           <div className="flex-1 flex flex-col justify-center max-w-lg">
             <div className="mb-4">
               <span className="text-slate-400 text-xs font-semibold uppercase tracking-widest">{role.panelTitle}</span>
@@ -255,8 +268,6 @@ const Login = () => {
             <p className="text-slate-400 text-sm leading-relaxed mb-10">
               {role.panelDesc}
             </p>
-
-            {/* Feature List */}
             <div className="space-y-3">
               {role.panelFeatures.map((f, i) => (
                 <div key={i} className="flex items-center gap-4 p-3 bg-white/5 border border-white/5">
@@ -271,7 +282,6 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Footer */}
           <div className="flex items-center justify-between pt-8 border-t border-white/10">
             <div className="flex items-center gap-3">
               <img
@@ -326,205 +336,239 @@ const Login = () => {
             Back to Home
           </button>
 
-          {/* Header */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">Sign In</h2>
-            <p className="text-gray-500 text-sm">Access your {role.subtitle.toLowerCase()}</p>
-          </div>
-
-          {/* Role Tabs */}
-          <div
-            className="grid grid-cols-4 bg-gray-100 rounded-xl p-1 mb-6"
-            role="tablist"
-            aria-label="Select your role"
-          >
-            {Object.entries(ROLES).map(([key, r]) => (
-              <button
-                key={key}
-                role="tab"
-                aria-selected={loginType === key}
-                aria-controls={`login-form-${key}`}
-                id={`tab-${key}`}
-                tabIndex={loginType === key ? 0 : -1}
-                onClick={() => setLoginType(key)}
-                onKeyDown={(e) => {
-                  const keys = Object.keys(ROLES);
-                  const idx = keys.indexOf(key);
-                  if (e.key === 'ArrowRight') { e.preventDefault(); setLoginType(keys[(idx + 1) % keys.length]); }
-                  if (e.key === 'ArrowLeft') { e.preventDefault(); setLoginType(keys[(idx - 1 + keys.length) % keys.length]); }
-                }}
-                className="flex flex-col items-center justify-center py-2.5 px-1 text-xs font-semibold rounded-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-1"
-              >
-                <span className="w-8 h-8 flex items-center justify-center mb-1 rounded-md transition-colors" aria-hidden="true">
-                  {r.icon}
-                </span>
-                <span className={`transition-colors ${loginType === key ? 'text-slate-900' : 'text-gray-500'}`}>
-                  {r.label}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {/* Form */}
-          <form
-            id={`login-form-${loginType}`}
-            role="tabpanel"
-            aria-labelledby={`tab-${loginType}`}
-            onSubmit={handleSubmit}
-            className="space-y-4"
-            noValidate
-          >
-            {/* Identifier */}
-            <div>
-              <label
-                htmlFor={`identifier-${loginType}`}
-                className="block text-sm font-semibold text-gray-700 mb-2"
-              >
-                {role.identifierLabel}
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </span>
-                <input
-                  ref={identifierRef}
-                  id={`identifier-${loginType}`}
-                  type={role.identifierType}
-                  value={identifier}
-                  onChange={e => setIdentifier(e.target.value)}
-                  placeholder={role.identifierPlaceholder}
-                  autoComplete="username"
-                  aria-invalid={!!fieldErrors.identifier}
-                  aria-describedby={fieldErrors.identifier ? `identifier-error-${loginType}` : undefined}
-                  className={`w-full bg-gray-50 border rounded-lg py-3 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
-                    fieldErrors.identifier
-                      ? 'border-red-300 bg-red-50 focus:ring-red-500/20 focus:border-red-400'
-                      : 'border-gray-200 focus:ring-slate-900/20 focus:border-slate-900'
-                  }`}
-                />
-              </div>
-              {fieldErrors.identifier && (
-                <p id={`identifier-error-${loginType}`} className="mt-2 text-sm text-red-600" role="alert">
-                  {fieldErrors.identifier}
-                </p>
+          {/* Step Indicator */}
+          <div className="flex items-center gap-2 mb-6">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+              step === 'role' ? 'bg-slate-900 text-white' : 'bg-green-500 text-white'
+            }`}>
+              {step === 'role' ? '1' : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
               )}
             </div>
+            <div className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${step === 'credentials' ? 'bg-slate-900' : 'bg-gray-200'}`} />
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+              step === 'credentials' ? 'bg-slate-900 text-white' : 'bg-gray-200 text-gray-400'
+            }`}>2</div>
+          </div>
 
-            {/* Password */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label
-                  htmlFor={`password-${loginType}`}
-                  className="text-sm font-semibold text-gray-700"
-                >
-                  Password
-                </label>
-                <button
-                  type="button"
-                  onClick={handleForgotClick}
-                  className="text-sm text-purple-700 hover:text-purple-900 font-medium transition-colors"
-                >
-                  Forgot password?
-                </button>
+          {/* ═══════ STEP 1: Role Selection ═══════ */}
+          {step === 'role' && (
+            <>
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome</h2>
+                <p className="text-gray-500 text-sm">Select your role to continue</p>
               </div>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </span>
-                <input
-                  id={`password-${loginType}`}
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
-                  aria-invalid={!!fieldErrors.password}
-                  aria-describedby={fieldErrors.password ? `password-error-${loginType}` : undefined}
-                  className={`w-full bg-gray-50 border rounded-lg py-3 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
-                    fieldErrors.password
-                      ? 'border-red-300 bg-red-50 focus:ring-red-500/20 focus:border-red-400'
-                      : 'border-gray-200 focus:ring-slate-900/20 focus:border-slate-900'
-                  }`}
-                />
+
+              <div className="grid grid-cols-2 gap-3">
+                {Object.entries(ROLES).map(([key, r]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleRoleSelect(key)}
+                    className="group flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-gray-100 hover:border-slate-900 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+                  >
+                    <div className="w-12 h-12 bg-gray-100 group-hover:bg-slate-900 rounded-xl flex items-center justify-center transition-colors duration-200">
+                      <span className="text-gray-500 group-hover:text-white transition-colors duration-200">{r.icon}</span>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-semibold text-gray-900">{r.label}</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">{r.subtitle}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* ═══════ STEP 2: Credentials ═══════ */}
+          {step === 'credentials' && (
+            <>
+              {/* Back to role selection */}
+              <button
+                onClick={handleBackToRoles}
+                className="inline-flex items-center gap-1.5 text-gray-400 hover:text-slate-900 text-xs font-medium mb-4 transition-colors group"
+              >
+                <svg className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Change role
+              </button>
+
+              {/* Selected role badge */}
+              <div className="flex items-center gap-2.5 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <span className="text-white">{role.icon}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">{role.label}</p>
+                  <p className="text-[11px] text-gray-400">{role.subtitle}</p>
+                </div>
+              </div>
+
+              <div className="mb-5">
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">Sign In</h2>
+                <p className="text-gray-500 text-sm">Enter your {role.identifierLabel.toLowerCase()} and password</p>
+              </div>
+
+              {/* Form */}
+              <form
+                id={`login-form-${loginType}`}
+                onSubmit={handleSubmit}
+                className="space-y-4"
+                noValidate
+              >
+                {/* Identifier */}
+                <div>
+                  <label
+                    htmlFor={`identifier-${loginType}`}
+                    className="block text-sm font-semibold text-gray-700 mb-2"
+                  >
+                    {role.identifierLabel}
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </span>
+                    <input
+                      ref={identifierRef}
+                      id={`identifier-${loginType}`}
+                      type={role.identifierType}
+                      value={identifier}
+                      onChange={e => setIdentifier(e.target.value)}
+                      placeholder={role.identifierPlaceholder}
+                      autoComplete="username"
+                      aria-invalid={!!fieldErrors.identifier}
+                      aria-describedby={fieldErrors.identifier ? `identifier-error-${loginType}` : undefined}
+                      className={`w-full bg-gray-50 border rounded-lg py-3 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                        fieldErrors.identifier
+                          ? 'border-red-300 bg-red-50 focus:ring-red-500/20 focus:border-red-400'
+                          : 'border-gray-200 focus:ring-slate-900/20 focus:border-slate-900'
+                      }`}
+                    />
+                  </div>
+                  {fieldErrors.identifier && (
+                    <p id={`identifier-error-${loginType}`} className="mt-2 text-sm text-red-600" role="alert">
+                      {fieldErrors.identifier}
+                    </p>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label
+                      htmlFor={`password-${loginType}`}
+                      className="text-sm font-semibold text-gray-700"
+                    >
+                      Password
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleForgotClick}
+                      className="text-sm text-purple-700 hover:text-purple-900 font-medium transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </span>
+                    <input
+                      id={`password-${loginType}`}
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      aria-invalid={!!fieldErrors.password}
+                      aria-describedby={fieldErrors.password ? `password-error-${loginType}` : undefined}
+                      className={`w-full bg-gray-50 border rounded-lg py-3 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                        fieldErrors.password
+                          ? 'border-red-300 bg-red-50 focus:ring-red-500/20 focus:border-red-400'
+                          : 'border-gray-200 focus:ring-slate-900/20 focus:border-slate-900'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 014.13-4.13m4.13-4.13A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.127 2.127m-4.13-4.13A3 3 0 1112 12c.164 0 .324-.013.48-.039" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  {fieldErrors.password && (
+                    <p id={`password-error-${loginType}`} className="mt-2 text-sm text-red-600" role="alert">
+                      {fieldErrors.password}
+                    </p>
+                  )}
+                </div>
+
+                {/* Lockout Warning */}
+                {lockoutUntil && Date.now() < lockoutUntil && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center gap-3" role="alert">
+                    <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <p className="text-sm text-amber-700">
+                      Account temporarily locked. Try again in {lockoutRemaining}s.
+                    </p>
+                  </div>
+                )}
+
+                {/* Submit */}
                 <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  type="submit"
+                  disabled={loading || (lockoutUntil && Date.now() < lockoutUntil)}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
                 >
-                  {showPassword ? (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a10.05 10.05 0 014.13-4.13m4.13-4.13A10.05 10.05 0 0112 5c4.478 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.127 2.127m-4.13-4.13A3 3 0 1112 12c.164 0 .324-.013.48-.039" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
-                    </svg>
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Signing in...
+                    </>
                   ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+                    <>
+                      Sign In
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                    </>
                   )}
                 </button>
-              </div>
-              {fieldErrors.password && (
-                <p id={`password-error-${loginType}`} className="mt-2 text-sm text-red-600" role="alert">
-                  {fieldErrors.password}
-                </p>
-              )}
-            </div>
+              </form>
 
-            {/* Lockout Warning */}
-            {lockoutUntil && Date.now() < lockoutUntil && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex items-center gap-3" role="alert">
-                <svg className="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
-                <p className="text-sm text-amber-700">
-                  Account temporarily locked. Try again in {lockoutRemaining}s.
-                </p>
-              </div>
-            )}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={loading || (lockoutUntil && Date.now() < lockoutUntil)}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3 rounded-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
-            >
-              {loading ? (
-                <>
-                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  Sign In
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Portal Features — Mobile */}
-          <div className="mt-8 pt-6 border-t border-gray-100 lg:hidden">
-            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Portal Features</p>
-            <div className="grid grid-cols-2 gap-2">
-              {role.panelFeatures.map((f, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full flex-shrink-0" aria-hidden="true" />
-                  <span className="text-xs text-gray-600">{f.label}</span>
+              {/* Portal Features — Mobile */}
+              <div className="mt-8 pt-6 border-t border-gray-100 lg:hidden">
+                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Portal Features</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {role.panelFeatures.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-slate-400 rounded-full flex-shrink-0" aria-hidden="true" />
+                      <span className="text-xs text-gray-600">{f.label}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

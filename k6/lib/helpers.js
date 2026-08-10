@@ -13,19 +13,19 @@ const BASE_URL = __ENV.BASE_URL || 'https://kiwalannhs.vercel.app';
 
 export const config = {
   baseUrl: BASE_URL,
-  admin: { email: __ENV.ADMIN_EMAIL || '', pass: __ENV.ADMIN_PASS || '' },
-  staff: { email: __ENV.STAFF_EMAIL || '', pass: __ENV.STAFF_PASS || '' },
-  student: { email: __ENV.STUDENT_EMAIL || '', pass: __ENV.STUDENT_PASS || '' },
+  admin: { email: __ENV.ADMIN_EMAIL || 'test_admin', pass: __ENV.ADMIN_PASS || 'TestPassword123!', role: 'admin' },
+  staff: { email: __ENV.STAFF_EMAIL || 'test_teacher', pass: __ENV.STAFF_PASS || 'TestPassword123!', role: 'teacher' },
+  student: { email: __ENV.STUDENT_EMAIL || 'test_student', pass: __ENV.STUDENT_PASS || 'TestPassword123!', role: 'student' },
 };
 
 // ── Shared headers ────────────────────────────────────────────────────────────
 const JSON_HEADER = { 'Content-Type': 'application/json' };
 
 // ── Auth helper ───────────────────────────────────────────────────────────────
-export function login(email, password) {
+export function login(email, password, role) {
   const res = http.post(
     `${config.baseUrl}/api/v1/login/`,
-    JSON.stringify({ email, password }),
+    JSON.stringify({ username: email, password, role }),
     { headers: JSON_HEADER, tags: { name: 'login' } }
   );
 
