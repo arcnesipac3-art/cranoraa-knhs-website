@@ -582,6 +582,9 @@ const EnrollmentManagement = () => {
                             </>
                           )}
                           <button onClick={() => { promptRequestDocs(app.id); setActiveMenu(null); }} className="w-full text-left px-3 py-2 text-[10px] font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2">Request Docs</button>
+                          {app.status === 'approved' && (
+                            <button onClick={() => { setEnrollApp(app); setShowEnrollModal(true); setActiveMenu(null); }} className="w-full text-left px-3 py-2 text-[10px] font-bold text-violet-600 hover:bg-violet-50 flex items-center gap-2">Enroll Student</button>
+                          )}
                           {(app.status === 'pending' || app.status === 'under_review') && (
                             <button onClick={() => { assignSection(app.id, app.grade_level); setActiveMenu(null); }} className="w-full text-left px-3 py-2 text-[10px] font-bold text-violet-600 hover:bg-violet-50 flex items-center gap-2">Set Section</button>
                           )}

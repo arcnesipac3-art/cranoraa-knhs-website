@@ -510,9 +510,12 @@ function ApplicationsTab({ refetch }) {
                                  )}
                                </>
                              )}
-                             {app.status === 'enrolled' && (
-                               <Button onClick={() => { promptWithdraw(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2">Unenroll</Button>
-                             )}
+                              {app.status === 'enrolled' && (
+                                <Button onClick={() => { promptWithdraw(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2">Unenroll</Button>
+                              )}
+                              {app.status === 'approved' && (
+                                <Button onClick={() => { setEnrollApp(app); setShowEnrollModal(true); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-violet-600 hover:bg-violet-50 flex items-center gap-2">Enroll Student</Button>
+                              )}
                             <Button onClick={() => { promptRequestDocs(app.id); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-amber-600 hover:bg-amber-50 flex items-center gap-2">Request Docs</Button>
                             {(app.status === 'pending' || app.status === 'under_review') && (
                               <Button onClick={() => { assignSection(app.id, app.grade_level); setActiveMenu(null); }} variant="ghost" size="sm" className="w-full text-left px-3 py-2 text-[10px] font-bold text-violet-600 hover:bg-violet-50 flex items-center gap-2">Set Section</Button>
