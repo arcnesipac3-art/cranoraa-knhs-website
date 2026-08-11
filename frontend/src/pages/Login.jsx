@@ -187,10 +187,13 @@ const Login = () => {
     try {
       const userData = await loginRequest(identifier, password, loginType);
       if (userData.role && userData.role !== loginType) {
-        setLoading(false);
-        clearSession();
-        Swal.fire({ icon: 'error', title: 'Wrong Portal', text: `This account is registered as a ${userData.role}. Please use the correct portal.`, confirmButtonColor: '#581c87' });
-        return;
+        const isDualRole = userData.role === 'staff' && userData.is_admin && loginType === 'admin';
+        if (!isDualRole) {
+          setLoading(false);
+          clearSession();
+          Swal.fire({ icon: 'error', title: 'Wrong Portal', text: `This account is registered as a ${userData.role}. Please use the correct portal.`, confirmButtonColor: '#581c87' });
+          return;
+        }
       }
       if (userData?.must_change_password) {
         signIn(userData); setLoading(false);
