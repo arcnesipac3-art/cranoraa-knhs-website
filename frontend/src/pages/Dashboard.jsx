@@ -10,8 +10,14 @@ import StudentDashboard from './dashboards/StudentDashboard';
  */
 const Dashboard = () => {
   const { user } = useAuth();
-  
-  if (user?.role === 'admin')   return <AdminRedirect />;
+
+  const portalMode = (() => {
+    try { return localStorage.getItem('portal_mode') || 'admin'; } catch { return 'admin'; }
+  })();
+
+  const isDualRole = user?.role === 'staff' && user?.is_admin;
+
+  if (user?.role === 'admin' || (isDualRole && portalMode === 'admin')) return <AdminRedirect />;
   if (user?.role === 'staff') return <TeacherDashboard />;
   if (user?.role === 'parent')  return <ParentRedirect />;
   return <StudentDashboard />;

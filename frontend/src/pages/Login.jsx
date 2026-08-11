@@ -202,7 +202,18 @@ const Login = () => {
       signIn(userData);
       await refreshUser();
       setLoading(false);
-      const dest = userData.role === 'admin' ? '/system-admin' : userData.role === 'parent' ? '/parent-dashboard' : '/dashboard';
+      const isDualRole = userData.role === 'staff' && userData.is_admin;
+      const portalMode = (() => {
+        try { return localStorage.getItem('portal_mode') || 'admin'; } catch { return 'admin'; }
+      })();
+      let dest;
+      if (userData.role === 'admin' || (isDualRole && portalMode === 'admin')) {
+        dest = '/system-admin';
+      } else if (userData.role === 'parent') {
+        dest = '/parent-dashboard';
+      } else {
+        dest = '/dashboard';
+      }
       navigate(dest, { replace: true });
     } catch (err) {
       setLoading(false);

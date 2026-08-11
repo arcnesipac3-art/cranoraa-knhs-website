@@ -35,9 +35,12 @@ const ProtectedRoute = ({ children }) => {
   const allowedRoles = routeDef?.roles;
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Staff with is_admin flag can access admin-only routes
+    // Staff with is_admin flag can access admin-only routes (unless in teacher portal mode)
     if (user.role === Role.STAFF && user.is_admin) {
-      return children;
+      const portalMode = (() => {
+        try { return localStorage.getItem('portal_mode') || 'admin'; } catch { return 'admin'; }
+      })();
+      if (portalMode === 'admin') return children;
     }
     return <Navigate to={ROLE_HOME[user.role] || '/dashboard'} replace />;
   }
