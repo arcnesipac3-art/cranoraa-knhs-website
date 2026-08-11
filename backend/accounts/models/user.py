@@ -54,6 +54,8 @@ class User(AbstractUser):
     last_activity = models.DateTimeField(null=True, blank=True)
 
     must_change_password = models.BooleanField(default=False)
+    consent_accepted = models.BooleanField(default=False, help_text="User accepted privacy policy and terms of conditions")
+    consent_accepted_at = models.DateTimeField(null=True, blank=True)
     account_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', db_index=True)
 
     USERNAME_FIELD = 'username'

@@ -110,6 +110,7 @@ def login_view(request):
 def force_password_change_view(request):
     user = request.user
     new_password = request.data.get('password')
+    consent = request.data.get('consent', False)
 
     if not new_password:
         return Response({'error': 'Password is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -123,6 +124,10 @@ def force_password_change_view(request):
 
     user.set_password(new_password)
     user.must_change_password = False
+    if consent:
+        from django.utils import timezone
+        user.consent_accepted = True
+        user.consent_accepted_at = timezone.now()
     user.save()
 
     try:
