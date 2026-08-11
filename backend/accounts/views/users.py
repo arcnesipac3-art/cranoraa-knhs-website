@@ -175,7 +175,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if role == 'staff':
                 return queryset.filter(
                     Q(role='staff', is_active=True) |
-                    Q(role='admin', is_admin=True, staff_title__gt='', is_active=True)
+                    Q(role='admin', is_active=True)
                 )
 
             if role == 'parent':
@@ -185,7 +185,7 @@ class UserViewSet(viewsets.ModelViewSet):
             if role is None and user.role in ['student', 'parent']:
                 return queryset.filter(
                     Q(role='staff', is_active=True) |
-                    Q(role='admin', is_admin=True, staff_title__gt='', is_active=True)
+                    Q(role='admin', is_active=True)
                 )
 
             if user.role == 'student':
@@ -908,7 +908,13 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_object()
 
         user.is_admin = not user.is_admin
-        user.save(update_fields=['is_admin'])
+        update_fields = ['is_admin']
+
+        if not user.is_admin and user.role == 'admin':
+            user.role = 'staff'
+            update_fields.append('role')
+
+        user.save(update_fields=update_fields)
 
         status_str = 'granted admin privileges' if user.is_admin else 'revoked admin privileges'
         try:
