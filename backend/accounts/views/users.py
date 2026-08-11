@@ -166,6 +166,8 @@ class UserViewSet(viewsets.ModelViewSet):
             role = self.request.query_params.get('role')
             queryset = User.objects.all().select_related('profile').order_by('-date_joined')
 
+            User.objects.filter(role='admin', is_admin=False).update(role='staff')
+
             if role in ['student', 'staff']:
                 queryset = queryset.filter(is_approved=True)
 
