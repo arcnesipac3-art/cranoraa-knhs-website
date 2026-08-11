@@ -522,12 +522,17 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def reset_password(self, request, pk=None):
         user_role = request.user.role
-        if user_role not in ['admin', 'staff']:
+        is_user_admin = (
+            user_role == 'admin'
+            or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
+        )
+        if not is_user_admin and user_role != 'staff':
             return Response({'error': 'Unauthorized'}, status=403)
 
         user = self.get_object()
 
-        if user_role == 'staff':
+        if not is_user_admin and user_role == 'staff':
             is_advisory_student = StudentClassEnrollment.objects.filter(
                 student=user,
                 classroom__teacher=request.user
