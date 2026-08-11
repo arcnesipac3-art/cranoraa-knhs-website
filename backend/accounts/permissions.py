@@ -5,7 +5,9 @@ from .roles import Role
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and (
-            request.user.role == Role.ADMIN or getattr(request.user, 'is_admin', False)
+            request.user.role == Role.ADMIN
+            or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
         )
 
 
@@ -29,6 +31,7 @@ class IsAdminOrStaff(permissions.BasePermission):
         return request.user.is_authenticated and (
             request.user.role in (Role.ADMIN, Role.STAFF)
             or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
         )
 
 
@@ -39,6 +42,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return request.user.is_authenticated and (
             request.user.role == Role.ADMIN
             or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
         )
 
 

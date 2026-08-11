@@ -846,7 +846,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def suspend(self, request, pk=None):
         if not request.user.is_authenticated or not (
-            request.user.role == 'admin' or getattr(request.user, 'is_admin', False)
+            request.user.role == 'admin'
+            or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
         ):
             return Response({'error': 'Unauthorized'}, status=403)
 
@@ -878,7 +880,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def toggle_active(self, request, pk=None):
         if not request.user.is_authenticated or not (
-            request.user.role == 'admin' or getattr(request.user, 'is_admin', False)
+            request.user.role == 'admin'
+            or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
         ):
             return Response({'error': 'Unauthorized'}, status=403)
 
@@ -903,7 +907,9 @@ class UserViewSet(viewsets.ModelViewSet):
     def toggle_admin(self, request, pk=None):
         """Toggle admin privileges on a user. Admin-only."""
         if not request.user.is_authenticated or not (
-            request.user.role == 'admin' or getattr(request.user, 'is_admin', False)
+            request.user.role == 'admin'
+            or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
         ):
             return Response({'error': 'Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -941,7 +947,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
         if not request.user.is_authenticated or not (
-            request.user.role == 'admin' or getattr(request.user, 'is_admin', False)
+            request.user.role == 'admin'
+            or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
         ):
             return Response({'error': 'Unauthorized. Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -978,7 +986,9 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
         if not request.user.is_authenticated or not (
-            request.user.role == 'admin' or getattr(request.user, 'is_admin', False)
+            request.user.role == 'admin'
+            or getattr(request.user, 'is_admin', False)
+            or getattr(request.user, 'is_superuser', False)
         ):
             return Response({'error': 'Unauthorized. Admin access required.'}, status=status.HTTP_403_FORBIDDEN)
 
