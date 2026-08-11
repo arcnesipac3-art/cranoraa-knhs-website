@@ -206,7 +206,7 @@ const AttendanceDashboard = () => {
     if (saveTimers.current[cellKey]) clearTimeout(saveTimers.current[cellKey]);
     saveTimers.current[cellKey] = setTimeout(async () => {
       try {
-        await api.post('/attendance/', { student: studentId, classroom: selectedClassroom.id, date, status });
+        await api.post('/attendance/', { student: studentId, classroom: selectedClassroom.id, date, status, schedule_id: null });
         setLastSaved(new Date());
       } catch (err) {
         const detail = err.response?.data;
