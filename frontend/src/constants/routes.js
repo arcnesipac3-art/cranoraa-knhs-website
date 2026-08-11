@@ -74,6 +74,7 @@ const ForcePasswordChange = lazy(() => retryImport(() => import('../pages/ForceP
 const QuizTake = lazy(() => retryImport(() => import('../pages/QuizTake')));
 const StudentQuizzes = lazy(() => retryImport(() => import('../pages/StudentQuizzes')));
 const LessonPlans = lazy(() => retryImport(() => import('../pages/LessonPlans')));
+const HelpCenter = lazy(() => retryImport(() => import('../pages/HelpCenter')));
 
 // ── Route definitions ────────────────────────────────────────────────────────
 
@@ -154,4 +155,5 @@ export const protectedRoutes = [
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },
   { path: 'password-reset', element: PasswordReset, roles: [Role.PARENT] },
   { path: 'force-password-change', element: ForcePasswordChange, roles: Role.ALL },
+  { path: 'help', element: HelpCenter, roles: Role.ALL },
 ];
