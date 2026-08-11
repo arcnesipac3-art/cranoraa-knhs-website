@@ -166,7 +166,14 @@ class UserViewSet(viewsets.ModelViewSet):
             role = self.request.query_params.get('role')
             queryset = User.objects.all().select_related('profile').order_by('-date_joined')
 
-            User.objects.filter(role='admin', is_admin=False).exclude(id=user.id).update(role='staff')
+            is_user_admin = (
+                user.role == 'admin'
+                or getattr(user, 'is_admin', False)
+                or getattr(user, 'is_superuser', False)
+            )
+
+            if not is_user_admin:
+                User.objects.filter(role='admin', is_admin=False).exclude(id=user.id).update(role='staff')
 
             if role in ['student', 'staff']:
                 queryset = queryset.filter(is_approved=True)
@@ -189,6 +196,10 @@ class UserViewSet(viewsets.ModelViewSet):
                     Q(role='staff', is_active=True) |
                     Q(role='admin', is_active=True)
                 )
+
+            # Admin users see everything
+            if is_user_admin:
+                return queryset
 
             if user.role == 'student':
                 return queryset.filter(id=user.id)
