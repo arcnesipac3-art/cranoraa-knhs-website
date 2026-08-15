@@ -100,7 +100,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
     }));
   })();
 
-  const docsVerified = docs.every(d => d.verification_status === 'verified') ?? true;
+  const docsVerified = docs.some(d => d.verification_status === 'verified');
   const docsTotal = docs.length || 0;
   const docsUploadedCount = docs.filter(d => d.file_url && !d._isMissing).length || 0;
   const docsVerifiedCount = docs.filter(d => d.verification_status === 'verified').length || 0;
