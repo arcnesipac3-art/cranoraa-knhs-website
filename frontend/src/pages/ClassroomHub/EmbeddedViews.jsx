@@ -1500,7 +1500,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
       });
 
       // Totals row
-      const totalsData = [ ['', '', 'TOTAL', '', ...weekdayDates.map(() => ''), maleTotals.prs + femaleTotals.prs, maleTotals.abs + femaleTotals.abs, maleTotals.late + femaleTotals.late, maleTotals.exc + femaleTotals.exc, `${grandTotalPct}%`] ];
+      const totalsData = [ ['', '', 'TOTAL', '', ...weekdayDates.map(() => ''), maleTotals.prs + femaleTotals.prs, maleTotals.abs + femaleTotals.abs, maleTotals.late + femaleTotals.late, maleTotals.exc + femaleTotals.exc, `${grandTotals.pct}%`] ];
 
       doc.autoTable({
         startY,
@@ -1535,7 +1535,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     } finally {
       setExporting(false);
     }
-  }, [selectedMonth, selectedYear, classroom, monthNames, filteredStudents, weekdayDates, attendanceMap, maleTotals, femaleTotals, grandTotalPct]);
+  }, [selectedMonth, selectedYear, classroom, monthNames, filteredStudents, weekdayDates, attendanceMap, maleTotals, femaleTotals, grandTotals]);
 
   const statusCell = (status) => {
     switch (status) {
