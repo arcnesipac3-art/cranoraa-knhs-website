@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getInitials } from '../data/facultyData';
 import { api } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useAcademicYear } from '../context/AcademicYearContext';
 
 const BADGE_COLORS = {
   'School Principal I': 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -196,6 +197,7 @@ function FacultyModal({ isOpen, onClose, onSave, editingMember }) {
 
 const Faculty = () => {
   const { user } = useAuth();
+  const { academicYear } = useAcademicYear();
   const isAdmin = user?.role === 'admin';
   const [search, setSearch] = useState('');
   const [members, setMembers] = useState([]);
@@ -256,7 +258,7 @@ const Faculty = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
-              <p className="text-[10px] font-semibold text-violet-400 tracking-widest mb-1">Kiwalan National High School · SY 2025–2026</p>
+              <p className="text-[10px] font-semibold text-violet-400 tracking-widest mb-1">Kiwalan National High School · SY {academicYear || '2025–2026'}</p>
               <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">Faculty & Staff</h1>
             </div>
             <div className="flex gap-3 flex-wrap items-center">
