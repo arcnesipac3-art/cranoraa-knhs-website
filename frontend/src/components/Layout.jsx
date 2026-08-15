@@ -264,7 +264,7 @@ const Layout = () => {
   };
 
   // Portal mode for dual-role users (admin vs teacher)
-  const isDualRole = user?.role === 'staff' && user?.is_admin;
+  const isDualRole = user?.role === 'staff' && (user?.is_admin || user?.is_superuser);
   const [portalMode, setPortalMode] = useState(() => {
     try {
       const saved = localStorage.getItem('portal_mode');
