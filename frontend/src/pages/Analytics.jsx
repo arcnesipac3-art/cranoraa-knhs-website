@@ -804,7 +804,7 @@ const Analytics = () => {
           size="sm"
           onClick={() => handleExport({ system: systemRef, grades: gradesRef, attendance: attendanceRef }[activeTab], activeTab)}
           disabled={exporting}
-          icon={exporting ? undefined : Download}
+          icon={exporting ? undefined : <Download />}
         >
           {exporting ? (
             <span className="flex items-center gap-2">
