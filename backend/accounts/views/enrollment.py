@@ -587,7 +587,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         application = self.get_object()
-        if application.submitted_by != request.user and request.user.role != 'admin':
+        if getattr(request.user, 'email', '') != application.email and request.user.role != 'admin':
             return Response({'error': 'You can only cancel your own application'}, status=403)
         if application.status not in ('pending', 'under_review', 'pending_requirements'):
             return Response({'error': f'Cannot cancel: status is {application.status}'}, status=400)
@@ -616,7 +616,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         enrollment_num = request.data.get('enrollment_number', '')
         is_owner = (
             (hasattr(request.user, 'is_authenticated') and request.user.is_authenticated
-             and application.submitted_by == request.user)
+             and getattr(request.user, 'email', '') == application.email)
             or (enrollment_num and application.enrollment_number and
                 application.enrollment_number.lower() == enrollment_num.lower())
         )
