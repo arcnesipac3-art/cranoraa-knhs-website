@@ -80,7 +80,6 @@ export const MEDIA_ROOT = deriveMediaRoot(API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
   timeout: 30000,
   // Send the httpOnly refresh-token cookie on same-origin requests to /api/token/
   withCredentials: true,
