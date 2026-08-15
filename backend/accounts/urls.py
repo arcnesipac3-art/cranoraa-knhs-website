@@ -33,6 +33,7 @@ from .views import (
     check_overdue_submissions, sync_teacher_submissions,
     trigger_compliance_reminders,
     bulk_assign_classroom_subject, legacy_submissions, compliance_audit_trail,
+    FacultyMemberViewSet,
 )
 app_name = 'accounts'
 
@@ -83,6 +84,7 @@ router.register(r'v1/grade-submissions', GradeSubmissionViewSet, basename='grade
 router.register(r'v1/grade-reopening-requests', GradeReopeningRequestViewSet, basename='grade-reopening-request')
 router.register(r'v1/compliance/types', ComplianceTypeViewSet, basename='compliance-type')
 router.register(r'v1/compliance/submissions', ComplianceSubmissionViewSet, basename='compliance-submission')
+router.register(r'v1/faculty-members', FacultyMemberViewSet, basename='faculty-member')
 
 # NOTE: school_portal/urls.py mounts these under 'api/', so paths here should NOT include 'api/'.
 # Final URL = api/ + path below  e.g. api/v1/login/

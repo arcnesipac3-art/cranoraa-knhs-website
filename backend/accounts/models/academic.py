@@ -170,3 +170,25 @@ class StudentClassEnrollment(models.Model):
         if avg >= passing:
             return "Fairly Satisfactory"
         return "Did Not Meet Expectations"
+
+
+class FacultyMember(models.Model):
+    CATEGORY_CHOICES = [
+        ('administration', 'Administration'),
+        ('faculty', 'Faculty'),
+    ]
+
+    name = models.CharField(max_length=200)
+    position = models.CharField(max_length=200)
+    photo = models.URLField(max_length=500, blank=True, null=True, help_text="Supabase Storage URL for photo")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='faculty')
+    display_order = models.PositiveIntegerField(default=0, help_text="Lower numbers appear first")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['category', 'display_order', 'name']
+
+    def __str__(self):
+        return f"{self.name} ({self.get_category_display()})"

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, filters, parsers
+from rest_framework import viewsets, status, filters, parsers, permissions
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -17,7 +17,14 @@ from ..models import (
     User, Profile, Classroom, StudentClassEnrollment, Announcement, AnnouncementAttachment,
     AnnouncementComment, Attendance, LearningMaterial, Subject, ClassroomSubject, ScratchCard,
     Fee, Notification, EnrollmentApplication, SystemSetting, Schedule, FCMToken,
-    AbsenceExcuse, EnrollmentWaitlist, EnrollmentStatusHistory,
+    AbsenceExcuse, EnrollmentWaitlist, EnrollmentStatusHistory, FacultyMember,
+)
+from ..serializers import (
+    UserSerializer, ClassroomSerializer, StudentClassEnrollmentSerializer,
+    AnnouncementSerializer, AnnouncementCommentSerializer, AttendanceSerializer,
+    LearningMaterialSerializer, SubjectSerializer, ClassroomSubjectSerializer,
+    ScratchCardSerializer, FeeSerializer, EnrollmentWaitlistSerializer,
+    AbsenceExcuseSerializer, full_name, FacultyMemberSerializer,
 )
 from ..permissions import IsAdmin
 from ..throttles import CsvImportRateThrottle
@@ -2436,3 +2443,59 @@ class FeeViewSet(viewsets.ModelViewSet):
             )
         except Exception as audit_err:
             logger.warning(f"Audit log failed on fee delete: {audit_err}")
+
+
+class FacultyMemberViewSet(viewsets.ModelViewSet):
+    queryset = FacultyMember.objects.all()
+    serializer_class = FacultyMemberSerializer
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated(), IsAdmin()]
+
+    def perform_create(self, serializer):
+        serializer.save()
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='create',
+                model_name='FacultyMember',
+                object_id=serializer.instance.id,
+                object_repr=str(serializer.instance),
+                description=f'Created faculty member: {serializer.instance.name}',
+                request=self.request
+            )
+        except Exception:
+            pass
+
+    def perform_update(self, serializer):
+        serializer.save()
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='update',
+                model_name='FacultyMember',
+                object_id=serializer.instance.id,
+                object_repr=str(serializer.instance),
+                description=f'Updated faculty member: {serializer.instance.name}',
+                request=self.request
+            )
+        except Exception:
+            pass
+
+    def perform_destroy(self, instance):
+        name = str(instance)
+        instance.delete()
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='delete',
+                model_name='FacultyMember',
+                object_id=0,
+                object_repr=name,
+                description=f'Deleted faculty member: {name}',
+                request=self.request
+            )
+        except Exception:
+            pass

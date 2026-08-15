@@ -6,7 +6,7 @@ from .user import (
 from .academic import (
     ClassroomSerializer, StudentClassEnrollmentSerializer,
     SubjectSerializer, ClassroomSubjectSerializer,
-    SystemSettingSerializer,
+    SystemSettingSerializer, FacultyMemberSerializer,
 )
 from .announcements import (
     AnnouncementAttachmentSerializer, AnnouncementCommentSerializer,

@@ -1,6 +1,7 @@
 from .user import User, OTP, Profile, OnboardingStatus, DashboardPreferences
 from .academic import (
     Classroom, Subject, ClassroomSubject, SystemSetting, StudentClassEnrollment,
+    FacultyMember,
 )
 from .chat import (
     ChatRoom, ChatMessage, MessageReaction, ChatMember, Mention,
