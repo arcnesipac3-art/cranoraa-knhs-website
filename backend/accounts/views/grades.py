@@ -88,7 +88,8 @@ def grade_distribution_stats(request):
 
     if not base_grades.exists():
         subjects_in_year = Subject.objects.filter(
-            classroom_subjects__classroom__academic_year__name=academic_year
+            Q(classroom_subjects__classroom__academic_year__name=academic_year) |
+            Q(classroom_subjects__classroom__student_enrollments__classroom__academic_year__name=academic_year)
         ).distinct().values('id', 'name', 'code')
 
         return Response({
@@ -356,7 +357,11 @@ class GradeViewSet(viewsets.ModelViewSet):
         if quarter:
             queryset = queryset.filter(quarter=quarter)
         if academic_year:
-            queryset = queryset.filter(academic_year=academic_year)
+            queryset = queryset.filter(
+                Q(academic_year=academic_year) |
+                Q(classroom__academic_year__name=academic_year) |
+                Q(student__enrollments__classroom__academic_year__name=academic_year)
+            )
         if student_id:
             queryset = queryset.filter(student_id=student_id)
 
@@ -924,7 +929,11 @@ class GradeViewSet(viewsets.ModelViewSet):
         if quarter:
             queryset = queryset.filter(quarter=quarter)
         if academic_year:
-            queryset = queryset.filter(academic_year=academic_year)
+            queryset = queryset.filter(
+                Q(academic_year=academic_year) |
+                Q(classroom__academic_year__name=academic_year) |
+                Q(student__enrollments__classroom__academic_year__name=academic_year)
+            )
         if grade_type:
             queryset = queryset.filter(grade_type=grade_type)
 

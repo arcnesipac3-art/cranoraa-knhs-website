@@ -245,7 +245,10 @@ def build_admin_dashboard_stats(user, academic_year_name=None):
         att_qs = _safe_value(
             'attendance academic year filter',
             Attendance.objects.none(),
-            lambda: att_qs.filter(classroom__academic_year__name=academic_year_name),
+            lambda: att_qs.filter(
+                Q(classroom__academic_year__name=academic_year_name) |
+                Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year_name)
+            ).distinct(),
         )
 
     today_attendance = att_qs.filter(date=today)

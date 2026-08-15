@@ -74,7 +74,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(status=status)
         if academic_year:
             queryset = queryset.filter(
-                classroom__academic_year__name=academic_year
+                Q(classroom__academic_year__name=academic_year) |
+                Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year)
             )
         return queryset
 
@@ -99,8 +100,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         if academic_year_name:
             base_att = base_att.filter(
-                classroom__academic_year__name=academic_year_name
-            )
+                Q(classroom__academic_year__name=academic_year_name) |
+                Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year_name)
+            ).distinct()
 
         if timeframe == 'today':
             base_att = base_att.filter(date=today)

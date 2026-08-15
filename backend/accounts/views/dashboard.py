@@ -236,7 +236,10 @@ def admin_attendance_analytics(request):
     from django.db.models.functions import TruncDate
     att_qs = Attendance.objects.all()
     if academic_year_name:
-        att_qs = att_qs.filter(classroom__academic_year__name=academic_year_name)
+        att_qs = att_qs.filter(
+            Q(classroom__academic_year__name=academic_year_name) |
+            Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year_name)
+        ).distinct()
     now = timezone.localtime(timezone.now())
     today = now.date()
     last_30_days = today - datetime.timedelta(days=30)

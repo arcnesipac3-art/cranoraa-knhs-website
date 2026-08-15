@@ -20,7 +20,11 @@ def get_attendance_chart_data(timeframe='all', classroom_id=None, academic_year_
     base_att = Attendance.objects.all()
 
     if academic_year_name:
-        base_att = base_att.filter(classroom__academic_year__name=academic_year_name)
+        from django.db.models import Q
+        base_att = base_att.filter(
+            Q(classroom__academic_year__name=academic_year_name) |
+            Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year_name)
+        ).distinct()
 
     if timeframe == 'today':
         base_att = base_att.filter(date=today)
