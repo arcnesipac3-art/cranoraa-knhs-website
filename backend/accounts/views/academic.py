@@ -2464,7 +2464,7 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
     def _sync_from_users(self):
-        users = User.objects.filter(role__in=['staff', 'admin'], is_active=True)
+        users = User.objects.filter(role__in=['staff', 'admin'], is_active=True).select_related('profile')
         for user in users:
             full_name = f"{user.first_name} {user.last_name}".strip() or user.username
             if FacultyMember.objects.filter(name=full_name).exists():
@@ -2479,9 +2479,16 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
             }
             position = position_map.get(staff_title, staff_title.title() if staff_title else 'Teacher')
             category = 'administration' if user.role == 'admin' else 'faculty'
+            
+            # Get profile picture from user's profile if it exists
+            photo_url = None
+            if hasattr(user, 'profile') and user.profile.profile_picture:
+                photo_url = user.profile.profile_picture
+            
             FacultyMember.objects.create(
                 name=full_name,
                 position=position,
+                photo=photo_url,
                 category=category,
                 display_order=1 if user.role == 'admin' else 99,
                 is_active=True,
@@ -2489,14 +2496,15 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsAdmin])
     def sync_from_users(self, request):
-        """Auto-create FacultyMember records from existing User staff/admin accounts."""
-        users = User.objects.filter(role__in=['staff', 'admin'], is_active=True)
+        """Sync FacultyMember records from User accounts - creates new and updates existing with photos."""
+        users = User.objects.filter(role__in=['staff', 'admin'], is_active=True).select_related('profile')
         created = 0
+        updated = 0
+        
         for user in users:
             full_name = f"{user.first_name} {user.last_name}".strip() or user.username
-            if FacultyMember.objects.filter(name=full_name).exists():
-                continue
             staff_title = getattr(user, 'staff_title', '') or ''
+            
             position_map = {
                 'principal': 'School Principal I',
                 'guidance': 'School Guidance Designate',
@@ -2506,15 +2514,34 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
             }
             position = position_map.get(staff_title, staff_title.title() if staff_title else 'Teacher')
             category = 'administration' if user.role == 'admin' else 'faculty'
-            FacultyMember.objects.create(
+            
+            # Get profile picture from user's profile if it exists
+            photo_url = None
+            if hasattr(user, 'profile') and user.profile.profile_picture:
+                photo_url = user.profile.profile_picture
+            
+            # Update or create
+            faculty_member, was_created = FacultyMember.objects.update_or_create(
                 name=full_name,
-                position=position,
-                category=category,
-                display_order=1 if user.role == 'admin' else 99,
-                is_active=True,
+                defaults={
+                    'position': position,
+                    'photo': photo_url,
+                    'category': category,
+                    'display_order': 1 if user.role == 'admin' else 99,
+                    'is_active': True,
+                }
             )
-            created += 1
-        return Response({'message': f'Synced. {created} faculty members created.', 'created': created})
+            
+            if was_created:
+                created += 1
+            else:
+                updated += 1
+        
+        return Response({
+            'message': f'Sync complete. Created: {created}, Updated: {updated}',
+            'created': created,
+            'updated': updated
+        })
 
     def perform_create(self, serializer):
         serializer.save()
