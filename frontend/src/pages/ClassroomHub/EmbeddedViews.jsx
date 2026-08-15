@@ -1471,11 +1471,11 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     setExporting(true);
     try {
       const { jsPDF } = await import('jspdf');
-      await import('jspdf-autotable');
+      const { default: autoTable } = await import('jspdf-autotable');
       const doc = new jsPDF(getPDFPageSetup('landscape'));
       addPDFHeader(doc, 'School Attendance Log', `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`);
 
-      const startY = doc.lastAutoTable?.finalY || 45;
+      const startY = 45;
 
       // Build header row
       const head = [['#', 'LRN', 'Name of Learner', 'Sex', ...weekdayDates.map(wd => `${wd.dayAbbr}\n${wd.dayNum}`), 'Prs', 'Abs', 'Late', 'Exc', '%']];
@@ -1502,7 +1502,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
       // Totals row
       const totalsData = [ ['', '', 'TOTAL', '', ...weekdayDates.map(() => ''), maleTotals.prs + femaleTotals.prs, maleTotals.abs + femaleTotals.abs, maleTotals.late + femaleTotals.late, maleTotals.exc + femaleTotals.exc, `${grandTotals.pct}%`] ];
 
-      doc.autoTable({
+      autoTable(doc, {
         startY,
         head,
         body: [...body, ...totalsData],
