@@ -108,7 +108,8 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         if self.action in ('start_review', 'reject', 'enroll_student', 'assign_section',
                            'verify_document', 'reject_document', 'request_requirements',
                            'destroy', 'update', 'partial_update', 'bulk_action',
-                           'approve_application', 'update_classroom_capacity', 'delete_application'):
+                           'approve_application', 'update_classroom_capacity', 'delete_application',
+                           'admin_upload_doc'):
             return [IsAdminOrStaff()]
         if self.action in ('list', 'retrieve', 'analytics', 'export_csv',
                            'export_form_pdf', 'export_summary_pdf'):
@@ -676,6 +677,42 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             'status': 'Documents submitted',
             'uploaded': list(uploaded.keys()),
             'errors': errors,
+        })
+
+    @action(detail=True, methods=['post'], url_path='admin-upload-doc')
+    def admin_upload_doc(self, request, pk=None):
+        """Admin/teacher uploads a single document for a student's enrollment application."""
+        if not request.user.is_authenticated or getattr(request.user, 'role', None) not in ('admin', 'staff'):
+            return Response({'error': 'Admin access required'}, status=403)
+        application = self.get_object()
+        doc_type = request.data.get('document_type', '').strip()
+        if not doc_type:
+            return Response({'error': 'document_type is required'}, status=400)
+        if 'file' not in request.FILES:
+            return Response({'error': 'No file provided'}, status=400)
+        f = request.FILES['file']
+        url, err = upload_file(f, bucket_key='enrollment-docs', folder=f"applications/{doc_type}")
+        if err:
+            return Response({'error': err}, status=400)
+        if not url.startswith(('http://', 'https://')):
+            url = 'https://' + url
+        doc, created = EnrollmentDocument.objects.update_or_create(
+            application=application, document_type=doc_type,
+            defaults={'file_url': url, 'file_name': f.name, 'verification_status': 'submitted'})
+        # Also update the URL field on the application model
+        field_map = {
+            'birth_certificate': 'birth_certificate', 'report_card': 'report_card',
+            'form_138': 'form_138', 'certificate_of_completion': 'certificate_of_completion',
+            'good_moral': 'good_moral_certificate', 'id_picture': 'id_picture',
+            'last_school_attended': 'last_school_attended_cert',
+        }
+        if doc_type in field_map:
+            EnrollmentApplication.objects.filter(pk=application.pk).update(**{field_map[doc_type]: url})
+        return Response({
+            'status': 'Document uploaded',
+            'document_type': doc_type,
+            'file_url': url,
+            'created': created,
         })
 
     @action(detail=True, methods=['post'])
