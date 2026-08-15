@@ -16,10 +16,10 @@ echo "Running migrations..."
 python manage.py migrate --no-input 2>&1
 MIGRATE_EXIT=$?
 if [ $MIGRATE_EXIT -ne 0 ]; then
-    echo "WARNING: migrate failed with exit code $MIGRATE_EXIT"
-else
-    echo "Migrations applied successfully"
+    echo "ERROR: migrate failed with exit code $MIGRATE_EXIT"
+    exit 1
 fi
+echo "Migrations applied successfully"
 
 # Only seed if accounts_user table exists
 if python manage.py shell -c "from django.db import connection; cursor = connection.cursor(); cursor.execute(\"SELECT 1 FROM accounts_user LIMIT 1\"); print('ok')" 2>/dev/null; then
