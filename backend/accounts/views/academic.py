@@ -2484,10 +2484,11 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
             if hasattr(user, 'profile') and user.profile.profile_picture:
                 photo_url = user.profile.profile_picture
             
-            # Always update or create to keep in sync
+            # Use user foreign key to prevent duplicates
             FacultyMember.objects.update_or_create(
-                name=full_name,
+                user=user,
                 defaults={
+                    'name': full_name,
                     'position': position,
                     'photo': photo_url,
                     'category': category,
@@ -2522,10 +2523,11 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
             if hasattr(user, 'profile') and user.profile.profile_picture:
                 photo_url = user.profile.profile_picture
             
-            # Update or create
+            # Update or create using user foreign key to prevent duplicates
             faculty_member, was_created = FacultyMember.objects.update_or_create(
-                name=full_name,
+                user=user,
                 defaults={
+                    'name': full_name,
                     'position': position,
                     'photo': photo_url,
                     'category': category,

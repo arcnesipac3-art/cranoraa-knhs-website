@@ -178,6 +178,7 @@ class FacultyMember(models.Model):
         ('faculty', 'Faculty'),
     ]
 
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='faculty_member', null=True, blank=True, help_text="Link to User account")
     name = models.CharField(max_length=200)
     position = models.CharField(max_length=200)
     photo = models.URLField(max_length=500, blank=True, null=True, help_text="Supabase Storage URL for photo")
