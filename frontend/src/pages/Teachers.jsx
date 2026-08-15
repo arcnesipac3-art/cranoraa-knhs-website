@@ -245,10 +245,15 @@ const Teachers = () => {
         first_name: editingTeacher.first_name,
         last_name: editingTeacher.last_name,
         email: editingTeacher.email,
+        staff_title: editingTeacher.staff_title,
         profile: {
           title: editingTeacher.profile?.title,
+          middle_name: editingTeacher.profile?.middle_name,
+          sex: editingTeacher.profile?.sex,
+          employee_id: editingTeacher.profile?.employee_id,
           phone_number: editingTeacher.profile?.phone_number,
-          sex: editingTeacher.profile?.sex
+          address: editingTeacher.profile?.address,
+          date_of_birth: editingTeacher.profile?.date_of_birth || undefined,
         }
       });
       setShowEditModal(false);
@@ -1398,9 +1403,15 @@ const Teachers = () => {
         </ModalHeader>
         <form onSubmit={handleEditTeacher}>
           <ModalBody className="space-y-4">
+            <ModalField label="Staff Role">
+              <select value={editingTeacher.staff_title || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, staff_title: e.target.value })}
+                className={modalSelectCls}>
+                {STAFF_TITLES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+            </ModalField>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <ModalField label="Title" required>
-                <select required value={editingTeacher.profile?.title || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, title: e.target.value } })}
+              <ModalField label="Title">
+                <select value={editingTeacher.profile?.title || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, title: e.target.value } })}
                   className={modalSelectCls}>
                   <option value="">Title</option>
                   {TITLES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -1415,13 +1426,13 @@ const Teachers = () => {
                   className={modalInputCls} placeholder="Last name" />
               </ModalField>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ModalField label="Email Address" required>
-                <input type="email" required value={editingTeacher.email} onChange={(e) => setEditingTeacher({ ...editingTeacher, email: e.target.value })}
-                  className={modalInputCls} placeholder="teacher@email.com" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <ModalField label="Middle Name">
+                <input type="text" value={editingTeacher.profile?.middle_name || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, middle_name: e.target.value } })}
+                  className={modalInputCls} placeholder="Middle name" />
               </ModalField>
-              <ModalField label="Sex" required>
-                <select required value={editingTeacher.profile?.sex || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, sex: e.target.value } })}
+              <ModalField label="Sex">
+                <select value={editingTeacher.profile?.sex || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, sex: e.target.value } })}
                   className={modalSelectCls}>
                   <option value="">Select Sex</option>
                   <option value="male">Male</option>
@@ -1429,6 +1440,30 @@ const Teachers = () => {
                 </select>
               </ModalField>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ModalField label="Email Address" required>
+                <input type="email" required value={editingTeacher.email} onChange={(e) => setEditingTeacher({ ...editingTeacher, email: e.target.value })}
+                  className={modalInputCls} placeholder="teacher@email.com" />
+              </ModalField>
+              <ModalField label="Employee ID">
+                <input type="text" value={editingTeacher.profile?.employee_id || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, employee_id: e.target.value } })}
+                  className={modalInputCls} placeholder="Employee ID" />
+              </ModalField>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ModalField label="Phone Number">
+                <input type="tel" value={editingTeacher.profile?.phone_number || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, phone_number: e.target.value } })}
+                  className={modalInputCls} placeholder="09XX-XXX-XXXX" />
+              </ModalField>
+              <ModalField label="Date of Birth">
+                <input type="date" value={editingTeacher.profile?.date_of_birth || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, date_of_birth: e.target.value } })}
+                  className={modalInputCls} />
+              </ModalField>
+            </div>
+            <ModalField label="Address">
+              <input type="text" value={editingTeacher.profile?.address || ''} onChange={(e) => setEditingTeacher({ ...editingTeacher, profile: { ...editingTeacher.profile, address: e.target.value } })}
+                className={modalInputCls} placeholder="Complete address" />
+            </ModalField>
           </ModalBody>
           <ModalFooter>
             <ModalBtnSecondary onClick={() => setShowEditModal(false)}>Cancel</ModalBtnSecondary>
