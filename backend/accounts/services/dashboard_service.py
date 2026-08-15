@@ -275,8 +275,9 @@ def build_admin_dashboard_stats(user, academic_year_name=None):
             Grade.objects.none(),
             lambda: grades.filter(
                 Q(academic_year=academic_year_name) |
-                Q(classroom__academic_year__name=academic_year_name)
-            ),
+                Q(classroom__academic_year__name=academic_year_name) |
+                Q(student__enrollments__classroom__academic_year__name=academic_year_name)
+            ).distinct(),
         )
 
     total_grades = _safe_value('grade count', 0, grades.count)

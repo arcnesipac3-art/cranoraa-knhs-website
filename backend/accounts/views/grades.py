@@ -56,13 +56,15 @@ def grade_distribution_stats(request):
         return Response(cached)
 
     # 1. Base filtering
+    # Match by: grade's own academic_year field, OR classroom's FK, OR student enrollment in the year
     base_grades = Grade.objects.filter(
         grade_type='final_grade',
         raw_score__isnull=False
     ).filter(
         Q(academic_year=academic_year) |
-        Q(classroom__academic_year__name=academic_year)
-    )
+        Q(classroom__academic_year__name=academic_year) |
+        Q(student__enrollments__classroom__academic_year__name=academic_year)
+    ).distinct()
 
     # Filter by Timeframe (submission date)
     if timeframe == 'today':

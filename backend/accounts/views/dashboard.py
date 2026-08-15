@@ -283,8 +283,9 @@ def admin_grade_analytics(request):
     if academic_year_name:
         grades = grades.filter(
             Q(academic_year=academic_year_name) |
-            Q(classroom__academic_year__name=academic_year_name)
-        )
+            Q(classroom__academic_year__name=academic_year_name) |
+            Q(student__enrollments__classroom__academic_year__name=academic_year_name)
+        ).distinct()
     total = grades.count()
     avg = grades.aggregate(avg=Avg('raw_score'))['avg']
     average = round(float(avg), 2) if avg else None
