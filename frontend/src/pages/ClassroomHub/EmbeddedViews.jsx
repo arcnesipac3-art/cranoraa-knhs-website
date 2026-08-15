@@ -1472,7 +1472,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     setExporting(true);
     try {
       const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF(getPDFPageSetup());
+      const doc = new jsPDF(getPDFPageSetup('landscape'));
       addPDFHeader(doc, 'School Attendance Log', `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`);
       await captureElementToPDF(tableRef.current, doc, { y: doc.lastAutoTable?.finalY || 45, scale: 2 });
       addPDFFooter(doc, { leftText: classroom.school_name || 'KNHS' });
