@@ -209,6 +209,37 @@ def _get_bucket_name(bucket_key: str) -> str:
 _supabase_client = None
 _supabase_url = None
 
+_firebase_app = None
+_firebase_bucket = None
+
+
+def _get_firebase_bucket():
+    """Return a cached Firebase Storage bucket or None if not configured."""
+    global _firebase_app, _firebase_bucket
+    if _firebase_bucket is not None:
+        return _firebase_bucket
+    try:
+        import firebase_admin
+        from firebase_admin import credentials, storage as fb_storage
+        sa_json = (getattr(settings, 'FIREBASE_SERVICE_ACCOUNT_JSON', '') or '').strip()
+        bucket_name = (getattr(settings, 'FIREBASE_STORAGE_BUCKET', '') or '').strip()
+        if not sa_json or not bucket_name:
+            return None
+        if firebase_admin._apps:
+            _firebase_app = firebase_admin.get_app()
+        else:
+            import json
+            cred_dict = json.loads(sa_json)
+            cred = credentials.Certificate(cred_dict)
+            _firebase_app = firebase_admin.initialize_app(cred, {'storageBucket': bucket_name})
+        _firebase_bucket = fb_storage.bucket()
+        logger.info(f"Firebase Storage initialized: {bucket_name}")
+        return _firebase_bucket
+    except Exception as e:
+        logger.warning(f"Firebase Storage not available: {e}")
+        return None
+
+
 def _get_supabase_client():
     """Return a cached authenticated Supabase client or raise if not configured."""
     global _supabase_client, _supabase_url
@@ -311,7 +342,7 @@ def _check_magic_bytes(header: bytes, ext: str, content_type: str) -> None:
 
 def upload_file(file, bucket_key: str, folder: str = '') -> tuple[Optional[str], Optional[str]]:
     """
-    Validate and upload a file to the specified Supabase bucket.
+    Validate and upload a file to Firebase Storage (preferred) or Supabase.
 
     Args:
         file:       Django UploadedFile object
@@ -327,6 +358,32 @@ def upload_file(file, bucket_key: str, folder: str = '') -> tuple[Optional[str],
     except StorageValidationError as e:
         return None, str(e)
 
+    # Try Firebase first
+    fb_bucket = _get_firebase_bucket()
+    if fb_bucket is not None:
+        try:
+            ext = os.path.splitext(getattr(file, 'name', '') or '')[1].lower() or '.bin'
+            token = secrets.token_hex(12)
+            path = f"{folder}/{token}{ext}" if folder else f"{token}{ext}"
+            bucket_name = _get_bucket_name(bucket_key)
+            blob_path = f"{bucket_name}/{path}"
+
+            file.seek(0)
+            content = file.read()
+            content_type = getattr(file, 'content_type', None) or 'application/octet-stream'
+
+            blob = fb_bucket.blob(blob_path)
+            blob.upload_from_string(content, content_type=content_type)
+            blob.make_public()
+
+            public_url = blob.public_url
+            logger.info(f"Uploaded to Firebase {bucket_key}/{path} ({len(content)} bytes)")
+            return public_url, None
+        except Exception as e:
+            logger.error(f"Firebase upload failed [{bucket_key}]: {e}", exc_info=True)
+            # Fall through to Supabase
+
+    # Fallback to Supabase
     try:
         client, base_url = _get_supabase_client()
         bucket_name = _get_bucket_name(bucket_key)
@@ -371,11 +428,36 @@ def upload_file(file, bucket_key: str, folder: str = '') -> tuple[Optional[str],
 
 def download_file(public_url: str, bucket_key: str):
     """
-    Download a file from Supabase Storage given its public URL.
+    Download a file from Firebase Storage or Supabase given its public URL.
     Returns (content_bytes, content_type) on success, (None, error_msg) on failure.
     """
     if not public_url:
         return None, 'No URL provided'
+
+    # Firebase URL: https://firebasestorage.googleapis.com/v0/b/{bucket}/o/{path}?alt=media
+    if 'firebasestorage.googleapis.com' in public_url:
+        try:
+            from urllib.parse import unquote
+            # Extract path from Firebase URL
+            if '/o/' in public_url:
+                encoded_path = public_url.split('/o/')[1].split('?')[0]
+                blob_path = unquote(encoded_path)
+            else:
+                return None, 'Cannot parse Firebase URL'
+
+            fb_bucket = _get_firebase_bucket()
+            if fb_bucket is None:
+                return None, 'Firebase Storage not configured'
+
+            blob = fb_bucket.blob(blob_path)
+            content = blob.download_as_bytes()
+            content_type = mimetypes.guess_type(public_url)[0] or 'application/octet-stream'
+            return content, content_type
+        except Exception as e:
+            logger.error(f"Firebase download failed: {e}", exc_info=True)
+            return None, str(e)
+
+    # Supabase URL fallback
     try:
         client, base_url = _get_supabase_client()
         bucket_name = _get_bucket_name(bucket_key)
@@ -404,11 +486,35 @@ def download_file(public_url: str, bucket_key: str):
 
 def delete_file(public_url: str, bucket_key: str) -> bool:
     """
-    Delete a file from Supabase Storage given its public URL.
+    Delete a file from Firebase Storage or Supabase given its public URL.
     Returns True on success, False on failure (logs the error).
     """
     if not public_url:
         return False
+
+    # Firebase URL
+    if 'firebasestorage.googleapis.com' in public_url:
+        try:
+            from urllib.parse import unquote
+            if '/o/' in public_url:
+                encoded_path = public_url.split('/o/')[1].split('?')[0]
+                blob_path = unquote(encoded_path)
+            else:
+                return False
+
+            fb_bucket = _get_firebase_bucket()
+            if fb_bucket is None:
+                return False
+
+            blob = fb_bucket.blob(blob_path)
+            blob.delete()
+            logger.info(f"Deleted from Firebase: {blob_path}")
+            return True
+        except Exception as e:
+            logger.error(f"Firebase delete failed: {e}", exc_info=True)
+            return False
+
+    # Supabase fallback
     try:
         client, base_url = _get_supabase_client()
         bucket_name = _get_bucket_name(bucket_key)

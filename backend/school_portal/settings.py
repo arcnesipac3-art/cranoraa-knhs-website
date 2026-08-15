@@ -403,6 +403,11 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     import logging as _logging
     _logging.getLogger(__name__).warning("SUPABASE_URL or SUPABASE_KEY not set — file uploads will fail.")
 
+# ─── Firebase Storage Configuration ───────────────────────────────────────────
+FIREBASE_PROJECT_ID = os.environ.get('FIREBASE_PROJECT_ID', '')
+FIREBASE_STORAGE_BUCKET = os.environ.get('FIREBASE_STORAGE_BUCKET', f'{FIREBASE_PROJECT_ID}.appspot.com') if FIREBASE_PROJECT_ID else ''
+FIREBASE_SERVICE_ACCOUNT_JSON = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON', '')
+
 # Email sending has been removed from this portal.
 RESEND_API_KEY = None
 RESEND_FROM_EMAIL = ''

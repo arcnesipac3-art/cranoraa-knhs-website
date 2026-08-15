@@ -45,3 +45,9 @@ services:
         sync: false
       - key: MAILJET_SENDER_EMAIL
         value: noreply@kiwalan-nhs.edu.ph
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_STORAGE_BUCKET
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false

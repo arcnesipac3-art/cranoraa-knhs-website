@@ -16,6 +16,7 @@ uvicorn[standard]==0.34.2
 pillow==12.2.0
 supabase==2.15.2
 google-auth==2.29.0
+firebase-admin==6.6.0
 requests==2.32.3
 sentry-sdk>=1.40.0
 python-json-logger>=2.0.0
