@@ -103,15 +103,13 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
     ordering = ['-submitted_at']
 
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action in ('create', 'track', 'submit_documents'):
             return [AllowAny()]
         if self.action in ('start_review', 'reject', 'enroll_student', 'assign_section',
                            'verify_document', 'reject_document', 'request_requirements',
                            'destroy', 'update', 'partial_update', 'bulk_action',
                            'approve_application', 'update_classroom_capacity', 'delete_application'):
             return [IsAdminOrStaff()]
-        if self.action == 'track':
-            return [AllowAny()]
         if self.action in ('list', 'retrieve', 'analytics', 'export_csv',
                            'export_form_pdf', 'export_summary_pdf'):
             return [IsAuthenticated()]
@@ -152,6 +150,9 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        # submit_documents is called from the public tracking page — return all apps
+        if self.action == 'submit_documents':
+            return EnrollmentApplication.objects.all()
         if not user.is_authenticated:
             return EnrollmentApplication.objects.none()
         if user.role in ('admin', 'staff') or user.is_staff:
@@ -619,7 +620,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             or (enrollment_num and application.enrollment_number and
                 application.enrollment_number.lower() == enrollment_num.lower())
         )
-        if not is_owner and request.user.role != 'admin':
+        if not is_owner and getattr(request.user, 'role', None) != 'admin':
             return Response({'error': 'Not authorized'}, status=403)
         if application.status != 'pending_requirements':
             return Response({'error': f'Cannot submit documents: status is {application.status}'}, status=400)
