@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
@@ -30,6 +30,9 @@ const EnrollmentTracking = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [docFiles, setDocFiles] = useState({});
+  const fileRefs = useRef({});
 
   useEffect(() => {
     const n = searchParams.get('number');
@@ -79,6 +82,35 @@ const EnrollmentTracking = () => {
     } catch (err) {
       toast.error(err.response?.data?.error || 'Failed to cancel');
     }
+  };
+
+  const DOC_FIELDS = [
+    { key: 'birth_certificate', label: 'PSA Birth Certificate' },
+    { key: 'report_card', label: 'Report Card' },
+    { key: 'form_138', label: 'Form 138 / Grade 6 Certificate' },
+    { key: 'certificate_of_completion', label: 'Certificate of Completion' },
+    { key: 'good_moral_certificate', label: 'Good Moral Certificate' },
+    { key: 'id_picture', label: 'ID Picture' },
+    { key: 'last_school_attended_cert', label: 'Last School Attended Certificate' },
+  ];
+
+  const handleSubmitDocs = async () => {
+    const hasFiles = Object.values(docFiles).some(f => f);
+    if (!hasFiles) { toast.error('Select at least one document to upload.'); return; }
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('enrollment_number', data.enrollment_number);
+      Object.entries(docFiles).forEach(([key, file]) => {
+        if (file) formData.append(key, file);
+      });
+      const res = await api.post(`/enrollment-applications/${data.id}/submit-documents/`, formData);
+      toast.success(`${res.data.uploaded.length} document(s) submitted successfully!`);
+      setDocFiles({});
+      handleTrack(null, number);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to submit documents');
+    } finally { setUploading(false); }
   };
 
   const isStepCompleted = (stepIdx, stepKey) => {
@@ -290,6 +322,29 @@ const EnrollmentTracking = () => {
                     ))}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Upload Additional Documents */}
+            {isPendingReqs && (
+              <div className="bg-white border border-t-0 border-gray-300 p-4 sm:p-5">
+                <p className="text-[10px] sm:text-[11px] font-black text-orange-700 uppercase tracking-widest border-b border-orange-200 pb-2 mb-3">Upload Additional Documents</p>
+                <div className="space-y-2">
+                  {DOC_FIELDS.map(({ key, label }) => (
+                    <div key={key} className="flex items-center gap-2">
+                      <label className="flex-1 text-xs text-gray-700 font-medium truncate">{label}</label>
+                      <label className="cursor-pointer px-3 py-1.5 bg-orange-50 border border-orange-300 text-orange-700 text-[10px] font-bold rounded hover:bg-orange-100 transition-colors flex-shrink-0">
+                        {docFiles[key] ? docFiles[key].name.slice(0, 15) + '...' : 'Choose File'}
+                        <input ref={el => fileRefs.current[key] = el} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden"
+                          onChange={e => setDocFiles(prev => ({ ...prev, [key]: e.target.files[0] || null }))} />
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={handleSubmitDocs} disabled={uploading || !Object.values(docFiles).some(f => f)}
+                  className="mt-3 w-full py-2.5 bg-orange-600 text-white text-xs font-black uppercase tracking-widest hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-sm transition-colors">
+                  {uploading ? 'Uploading...' : 'Submit Documents'}
+                </button>
               </div>
             )}
 
