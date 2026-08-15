@@ -350,6 +350,21 @@ const Faculty = () => {
                 <button onClick={() => setSearch('')} className="mt-3 text-sm font-bold text-violet-700 hover:underline">Clear search</button>
               </div>
             )}
+
+            {!search && members.length === 0 && !loading && (
+              <div className="py-16 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-violet-100 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                </div>
+                <p className="text-slate-500 font-semibold">No faculty members found</p>
+                <p className="text-slate-400 text-sm mt-1">Faculty directory will appear here once populated.</p>
+                {isAdmin && (
+                  <button onClick={fetchMembers} className="mt-4 px-4 py-2 bg-violet-600 text-white text-sm font-semibold rounded-lg hover:bg-violet-700">
+                    Sync from Accounts
+                  </button>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>

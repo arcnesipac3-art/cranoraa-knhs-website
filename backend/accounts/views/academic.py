@@ -2457,7 +2457,10 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         # Auto-populate from User accounts if table is empty
         if FacultyMember.objects.count() == 0:
-            self._sync_from_users()
+            try:
+                self._sync_from_users()
+            except Exception as e:
+                logger.warning(f'FacultyMember auto-sync failed: {e}')
         return super().list(request, *args, **kwargs)
 
     def _sync_from_users(self):
