@@ -29,6 +29,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['student__username', 'student__email']
+    pagination_class = None  # No pagination — frontend needs full monthly data
 
     def perform_create(self, serializer):
         serializer.save(marked_by=self.request.user)

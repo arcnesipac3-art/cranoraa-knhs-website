@@ -1386,12 +1386,24 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     fetchMonth();
   }, [classroom.id, selectedMonth, selectedYear]);
 
-  // Build lookup map: dateStr -> studentId -> record
+  // Build lookup map: dateStr -> studentId -> aggregated record
+  // Students may have multiple attendance records per day (one per subject/schedule).
+  // We aggregate by taking the "worst" status: absent > late > excused > present.
   const attendanceMap = useMemo(() => {
+    const STATUS_RANK = { absent: 0, late: 1, excused: 2, present: 3, school_activity: 3, medical_leave: 2 };
     const map = {};
     records.forEach(rec => {
       if (!map[rec.date]) map[rec.date] = {};
-      map[rec.date][rec.student] = rec;
+      const existing = map[rec.date][rec.student];
+      if (!existing) {
+        map[rec.date][rec.student] = { ...rec };
+      } else {
+        const rank = STATUS_RANK[rec.status] ?? 4;
+        const existRank = STATUS_RANK[existing.status] ?? 4;
+        if (rank < existRank) {
+          map[rec.date][rec.student] = { ...rec };
+        }
+      }
     });
     return map;
   }, [records]);
