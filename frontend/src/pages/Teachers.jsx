@@ -138,10 +138,15 @@ const Teachers = () => {
     title: '',
     first_name: '',
     last_name: '',
+    middle_name: '',
     email: '',
     sex: '',
     role: 'staff',
-    staff_title: 'teacher'
+    staff_title: 'teacher',
+    employee_id: '',
+    phone_number: '',
+    address: '',
+    date_of_birth: '',
   });
 
   useScrollLock(showAddModal || showEditModal || showImportModal || viewingTeacher);
@@ -185,7 +190,12 @@ const Teachers = () => {
         staff_title: newTeacher.staff_title,
         profile: {
           title: newTeacher.title,
-          sex: newTeacher.sex
+          sex: newTeacher.sex,
+          middle_name: newTeacher.middle_name,
+          employee_id: newTeacher.employee_id,
+          phone_number: newTeacher.phone_number,
+          address: newTeacher.address,
+          date_of_birth: newTeacher.date_of_birth || undefined,
         }
       });
       
@@ -194,10 +204,15 @@ const Teachers = () => {
         email: '',
         first_name: '',
         last_name: '',
+        middle_name: '',
         title: '',
         sex: '',
         role: 'staff',
-        staff_title: 'teacher'
+        staff_title: 'teacher',
+        employee_id: '',
+        phone_number: '',
+        address: '',
+        date_of_birth: '',
       });
       refetch();
 
@@ -1294,10 +1309,10 @@ const Teachers = () => {
                   className={modalInputCls} placeholder="Last name" />
               </ModalField>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ModalField label="Email Address" required>
-                <input type="email" required value={newTeacher.email} onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
-                  className={modalInputCls} placeholder="teacher@email.com" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <ModalField label="Middle Name" hint="Optional">
+                <input type="text" value={newTeacher.middle_name} onChange={(e) => setNewTeacher({ ...newTeacher, middle_name: e.target.value })}
+                  className={modalInputCls} placeholder="Middle name" />
               </ModalField>
               <ModalField label="Sex" required>
                 <select required value={newTeacher.sex} onChange={(e) => setNewTeacher({ ...newTeacher, sex: e.target.value })}
@@ -1308,6 +1323,30 @@ const Teachers = () => {
                 </select>
               </ModalField>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ModalField label="Email Address" required>
+                <input type="email" required value={newTeacher.email} onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
+                  className={modalInputCls} placeholder="teacher@email.com" />
+              </ModalField>
+              <ModalField label="Employee ID" hint="Optional">
+                <input type="text" value={newTeacher.employee_id} onChange={(e) => setNewTeacher({ ...newTeacher, employee_id: e.target.value })}
+                  className={modalInputCls} placeholder="Employee ID" />
+              </ModalField>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ModalField label="Phone Number" hint="Optional">
+                <input type="tel" value={newTeacher.phone_number} onChange={(e) => setNewTeacher({ ...newTeacher, phone_number: e.target.value })}
+                  className={modalInputCls} placeholder="09XX-XXX-XXXX" />
+              </ModalField>
+              <ModalField label="Date of Birth" hint="Optional">
+                <input type="date" value={newTeacher.date_of_birth} onChange={(e) => setNewTeacher({ ...newTeacher, date_of_birth: e.target.value })}
+                  className={modalInputCls} />
+              </ModalField>
+            </div>
+            <ModalField label="Address" hint="Optional">
+              <input type="text" value={newTeacher.address} onChange={(e) => setNewTeacher({ ...newTeacher, address: e.target.value })}
+                className={modalInputCls} placeholder="Complete address" />
+            </ModalField>
           </ModalBody>
           <ModalFooter>
             <ModalBtnSecondary onClick={() => setShowAddModal(false)}>Cancel</ModalBtnSecondary>
