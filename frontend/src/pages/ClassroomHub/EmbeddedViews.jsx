@@ -1473,9 +1473,9 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
       const { jsPDF } = await import('jspdf');
       const { default: autoTable } = await import('jspdf-autotable');
       const doc = new jsPDF(getPDFPageSetup('landscape'));
-      addPDFHeader(doc, 'School Attendance Log', `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`);
+      const headerY = addPDFHeader(doc, 'School Attendance Log', `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`);
 
-      const startY = 45;
+      const startY = headerY + 2;
 
       // Build header row
       const head = [['#', 'LRN', 'Name of Learner', 'Sex', ...weekdayDates.map(wd => `${wd.dayAbbr}\n${wd.dayNum}`), 'Prs', 'Abs', 'Late', 'Exc', '%']];
