@@ -135,9 +135,9 @@ function FacultyModal({ isOpen, onClose, onSave, editingMember }) {
     setSaving(true);
     try {
       if (editingMember) {
-        await api.put(`/api/accounts/v1/faculty-members/${editingMember.id}/`, form);
+        await api.put(`/accounts/v1/faculty-members/${editingMember.id}/`, form);
       } else {
-        await api.post('/api/accounts/v1/faculty-members/', form);
+        await api.post('/accounts/v1/faculty-members/', form);
       }
       onSave();
       onClose();
@@ -207,13 +207,13 @@ const Faculty = () => {
 
   const fetchMembers = useCallback(async () => {
     try {
-      const { data } = await api.get('/api/accounts/v1/faculty-members/');
+      const { data } = await api.get('/accounts/v1/faculty-members/');
       let results = data.results || data;
       // Auto-sync from User accounts if empty
       if (results.length === 0) {
         try {
-          await api.post('/api/accounts/v1/faculty-members/sync_from_users/');
-          const resync = await api.get('/api/accounts/v1/faculty-members/');
+          await api.post('/accounts/v1/faculty-members/sync_from_users/');
+          const resync = await api.get('/accounts/v1/faculty-members/');
           results = resync.data.results || resync.data;
         } catch { /* admin-only, ignore for public */ }
       }
@@ -251,7 +251,7 @@ const Faculty = () => {
   const handleDelete = async (member) => {
     if (!window.confirm(`Delete ${member.name}?`)) return;
     try {
-      await api.delete(`/api/accounts/v1/faculty-members/${member.id}/`);
+      await api.delete(`/accounts/v1/faculty-members/${member.id}/`);
       setMembers(prev => prev.filter(m => m.id !== member.id));
     } catch (err) {
       console.error('Failed to delete:', err);
