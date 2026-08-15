@@ -88,8 +88,7 @@ def grade_distribution_stats(request):
 
     if not base_grades.exists():
         subjects_in_year = Subject.objects.filter(
-            Q(classroom_subjects__classroom__academic_year__name=academic_year) |
-            Q(classroom_subjects__classroom__student_enrollments__classroom__academic_year__name=academic_year)
+            classroom_subjects__classroom__academic_year__name=academic_year
         ).distinct().values('id', 'name', 'code')
 
         return Response({
