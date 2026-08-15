@@ -102,6 +102,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
 
   const docsVerified = docs.every(d => d.verification_status === 'verified') ?? true;
   const docsTotal = docs.length || 0;
+  const docsUploadedCount = docs.filter(d => d.file_url && !d._isMissing).length || 0;
   const docsVerifiedCount = docs.filter(d => d.verification_status === 'verified').length || 0;
 
   return (
@@ -170,7 +171,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
                 <span className={cn(
                   'ml-1 px-1.5 py-0.5 text-[8px] font-black rounded-full',
                   docsVerified === docsTotal ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                )}>{docsVerifiedCount}/{docsTotal}</span>
+                )}>{docsUploadedCount}/{docsTotal}</span>
               )}
             </button>
           ))}
