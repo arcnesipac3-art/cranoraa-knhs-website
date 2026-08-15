@@ -1049,7 +1049,17 @@ const Layout = () => {
 
                     {/* List */}
                     <div className="max-h-[40vh] sm:max-h-[400px] overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
-                      {notifications.length === 0 ? (
+                      {notifications.length === 0 && unreadCount > 0 ? (
+                        <div className="flex flex-col items-center justify-center py-6 sm:py-12 text-slate-300">
+                          <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-violet-50 flex items-center justify-center mb-2 sm:mb-4">
+                            <svg className="w-5 h-5 sm:w-8 sm:h-8 text-violet-300 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </div>
+                          <p className="text-xs sm:text-sm font-bold text-slate-400">Loading notifications...</p>
+                          <p className="text-[10px] sm:text-xs text-slate-300 mt-0.5">{unreadCount} unread</p>
+                        </div>
+                      ) : notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-6 sm:py-12 text-slate-300">
                           <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-violet-50 flex items-center justify-center mb-2 sm:mb-4">
                             <svg className="w-5 h-5 sm:w-8 sm:h-8 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

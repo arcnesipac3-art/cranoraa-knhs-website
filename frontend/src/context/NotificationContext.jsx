@@ -94,11 +94,12 @@ export const NotificationProvider = ({ children }) => {
               clearTimeout(reconnectTimerRef.current);
               reconnectTimerRef.current = null;
             }
-            if (wasOfflineRef.current) {
-              wasOfflineRef.current = false;
-              lastFetchedRef.current = 0;
-              poll();
-            }
+            // Always sync the notifications list on connect/reconnect so the
+            // dropdown list matches the unread_count badge.  poll() is
+            // throttled (10 s) so this won't spam the server.
+            lastFetchedRef.current = 0;
+            wasOfflineRef.current = false;
+            poll();
           }
           return;
         }
