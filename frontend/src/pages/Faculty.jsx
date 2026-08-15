@@ -116,6 +116,20 @@ function groupByPosition(list) {
 
 const EMPTY_FORM = { name: '', position: '', category: 'faculty', photo: '', display_order: 0 };
 
+const CATEGORIES = [
+  { value: 'administration', label: 'Administration' },
+  { value: 'faculty', label: 'Faculty' },
+  { value: 'master-teacher', label: 'Master Teacher' },
+  { value: 'special-science', label: 'Special Science' },
+  { value: 'teacher-vi', label: 'Teacher VI' },
+  { value: 'teacher-v', label: 'Teacher V' },
+  { value: 'teacher-iv', label: 'Teacher IV' },
+  { value: 'teacher-iii', label: 'Teacher III' },
+  { value: 'teacher-ii', label: 'Teacher II' },
+  { value: 'teacher-i', label: 'Teacher I' },
+  { value: 'als-teacher', label: 'ALS Teacher' },
+];
+
 function FacultyModal({ isOpen, onClose, onSave, editingMember }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -127,8 +141,6 @@ function FacultyModal({ isOpen, onClose, onSave, editingMember }) {
       setForm(EMPTY_FORM);
     }
   }, [editingMember, isOpen]);
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -171,19 +183,22 @@ function FacultyModal({ isOpen, onClose, onSave, editingMember }) {
             <label className="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
             <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent">
-              <option value="administration">Administration</option>
-              <option value="faculty">Faculty</option>
-            </select>
+                <option value="" disabled>{editingMember ? 'Select category' : 'Choose category'}</option>
+                {CATEGORIES.map(cat => (
+                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                ))}
+              </select>
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Photo URL (optional)</label>
             <input type="url" value={form.photo} onChange={(e) => setForm({ ...form, photo: e.target.value })}
-              placeholder="https://..." className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
+              placeholder="https://kiwalannhs.vercel.app/faculty/name.jpg" className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">Display Order</label>
             <input type="number" value={form.display_order} onChange={(e) => setForm({ ...form, display_order: parseInt(e.target.value) || 0 })}
               className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-violet-500 focus:border-transparent" />
+            <p className="text-xs text-slate-500 mt-1">Lower numbers appear first in the faculty list</p>
           </div>
           <div className="flex gap-3 pt-2">
             <button type="button" onClick={onClose} className="flex-1 px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
@@ -192,10 +207,10 @@ function FacultyModal({ isOpen, onClose, onSave, editingMember }) {
         </form>
       </div>
     </div>
-  );
+);
 }
 
-const Faculty = () => {
+  const Faculty = () => {
   const { user } = useAuth();
   const { academicYear } = useAcademicYear();
   const isAdmin = user?.role === 'admin';
