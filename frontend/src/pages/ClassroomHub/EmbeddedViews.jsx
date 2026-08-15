@@ -1484,7 +1484,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
       const body = filteredStudents.map((s, i) => {
         let prs = 0, abs = 0, late = 0, exc = 0;
         const dateCells = weekdayDates.map(wd => {
-          const rec = attendanceMap[wd.dateStr]?.[s.student_id];
+          const rec = attendanceMap[wd.dateStr]?.[s.student];
           if (!rec) return '';
           switch (rec.status) {
             case 'present': prs++; return 'P';
@@ -1496,7 +1496,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
         });
         const total = prs + abs + late + exc;
         const pct = total > 0 ? Math.round((prs / total) * 100) : 0;
-        return [i + 1, s.lrn || '', `${s.last_name || ''}, ${s.first_name || ''} ${s.middle_name || ''}`.trim(), s.sex || '', ...dateCells, prs, abs, late, exc, `${pct}%`];
+        return [i + 1, s.student_lrn || '', s.student_name || '', s.student_sex || '', ...dateCells, prs, abs, late, exc, `${pct}%`];
       });
 
       // Totals row
