@@ -63,30 +63,30 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
   const hasFile = !!file;
 
   return (
-    <div className={`border-2 transition-all rounded-sm ${
+    <div className={`border-2 transition-all duration-200 rounded-xl ${
       sizeError ? 'border-red-300 bg-red-50' :
-      dragOver ? 'border-violet-400 bg-slate-50' :
-      hasFile ? 'border-green-400 bg-green-50/50' : 'border-gray-300 bg-white hover:border-gray-400'
+      dragOver ? 'border-violet-400 bg-violet-50' :
+      hasFile ? 'border-emerald-400 bg-emerald-50/50' : 'border-gray-200 bg-white hover:border-gray-300'
     }`}>
       <div className="p-4">
         {/* Header row */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-800">
-              {label} {required && <span className="text-red-600">*</span>}
+            <p className="text-sm font-semibold text-gray-800">
+              {label} {required && <span className="text-red-500">*</span>}
             </p>
-            {note && <p className="text-[10px] text-gray-500 mt-0.5 italic">{note}</p>}
+            {note && <p className="text-[11px] text-gray-500 mt-0.5 italic">{note}</p>}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {hasFile && (
               <button type="button" onClick={handleRemove}
-                className="text-red-500 hover:text-red-700 p-1 transition-colors" title="Remove file">
+                className="text-red-400 hover:text-red-600 p-1 transition-colors" title="Remove file">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             )}
-            <label className="cursor-pointer px-3 py-1.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-200 transition-colors rounded-sm">
+            <label className="cursor-pointer px-3 py-1.5 bg-gray-100 border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-200 transition-all duration-200 rounded-lg">
               {hasFile ? 'Change' : 'Browse'}
               <input ref={inputRef} type="file" accept={accept || '.pdf,.jpg,.jpeg,.png'} className="hidden"
                 onChange={e => { if (e.target.files[0]) handleFile(e.target.files[0]); }} />
@@ -98,14 +98,14 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
         {hasFile && preview && (
           <div className="mt-3 relative group">
             <img src={preview} alt={file.name}
-              className="w-full max-h-48 object-contain rounded border border-gray-200 bg-white" />
+              className="w-full max-h-48 object-contain rounded-lg border border-gray-200 bg-white" />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded pointer-events-none" />
           </div>
         )}
 
         {/* PDF indicator */}
         {hasFile && !preview && isPdfFile(file) && (
-          <div className="mt-3 flex items-center gap-2.5 px-3 py-2.5 bg-red-50 border border-red-200 rounded">
+          <div className="mt-3 flex items-center gap-2.5 px-3 py-2.5 bg-red-50 border border-red-200 rounded-xl">
             <svg className="w-8 h-8 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
@@ -141,7 +141,7 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-[9px] text-gray-400 mt-0.5 text-right">{Math.round(uploadProgress)}%</p>
+            <p className="text-[10px] text-gray-400 mt-0.5 text-right">{Math.round(uploadProgress)}%</p>
           </div>
         )}
 
@@ -158,7 +158,7 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
         {/* Drop zone (no file yet) */}
         {!hasFile && (
           <div
-            className="mt-3 text-center py-3 border border-dashed border-gray-300 rounded-sm transition-colors"
+            className="mt-3 text-center py-3 border border-dashed border-gray-300 rounded-xl transition-colors"
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
