@@ -33,6 +33,9 @@ function normalizeApiBaseUrl(apiUrl) {
     const url = new URL(value);
     let pathname = url.pathname.replace(/\/+$/, '');
 
+    // Remove any trailing /v1 or /api/v1 patterns to avoid duplication
+    pathname = pathname.replace(/\/api\/v\d+$/, '').replace(/\/v\d+$/, '');
+
     // Ensure it ends with /api (but not /api/api)
     if (!pathname.endsWith('/api')) {
       pathname = `${pathname}/api`;
@@ -45,7 +48,9 @@ function normalizeApiBaseUrl(apiUrl) {
     url.pathname = pathname;
     return url.toString().replace(/\/+$/, '');
   } catch {
-    let result = value.endsWith('/api') ? value : `${value}/api`;
+    // Remove any trailing /v1 or /api/v1 patterns to avoid duplication
+    let result = value.replace(/\/api\/v\d+$/, '').replace(/\/v\d+$/, '');
+    result = result.endsWith('/api') ? result : `${result}/api`;
     return result.endsWith('/v1') ? result : `${result}/v1`;
   }
 }
