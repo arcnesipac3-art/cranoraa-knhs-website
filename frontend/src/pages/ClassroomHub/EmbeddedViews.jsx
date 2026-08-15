@@ -13,7 +13,7 @@ import {
   Send, Lock, Unlock, ChevronLeft, ChevronRight, Save, BookOpen, FileDown
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
-import { captureElementToPDF, getPDFPageSetup, addPDFHeader, addPDFFooter } from '../../utils/exportHelpers';
+import { getPDFPageSetup, addPDFHeader, addPDFFooter } from '../../utils/exportHelpers';
 import ScheduleAttendanceEntry from './ScheduleAttendanceEntry';
 
 // Grade Management View - Custom inline implementation with edit, delete, export
@@ -1468,13 +1468,63 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
   }), [maleTotals, femaleTotals]);
 
   const handleExportPDF = useCallback(async () => {
-    if (!tableRef.current) return;
     setExporting(true);
     try {
       const { jsPDF } = await import('jspdf');
+      await import('jspdf-autotable');
       const doc = new jsPDF(getPDFPageSetup('landscape'));
       addPDFHeader(doc, 'School Attendance Log', `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`);
-      await captureElementToPDF(tableRef.current, doc, { y: doc.lastAutoTable?.finalY || 45, scale: 2 });
+
+      const startY = doc.lastAutoTable?.finalY || 45;
+
+      // Build header row
+      const head = [['#', 'LRN', 'Name of Learner', 'Sex', ...weekdayDates.map(wd => `${wd.dayAbbr}\n${wd.dayNum}`), 'Prs', 'Abs', 'Late', 'Exc', '%']];
+
+      // Build body rows
+      const body = filteredStudents.map((s, i) => {
+        let prs = 0, abs = 0, late = 0, exc = 0;
+        const dateCells = weekdayDates.map(wd => {
+          const rec = attendanceMap[wd.dateStr]?.[s.student_id];
+          if (!rec) return '';
+          switch (rec.status) {
+            case 'present': prs++; return 'P';
+            case 'absent': abs++; return 'A';
+            case 'late': late++; return 'L';
+            case 'excused': exc++; return 'E';
+            default: return '';
+          }
+        });
+        const total = prs + abs + late + exc;
+        const pct = total > 0 ? Math.round((prs / total) * 100) : 0;
+        return [i + 1, s.lrn || '', `${s.last_name || ''}, ${s.first_name || ''} ${s.middle_name || ''}`.trim(), s.sex || '', ...dateCells, prs, abs, late, exc, `${pct}%`];
+      });
+
+      // Totals row
+      const totalsData = [ ['', '', 'TOTAL', '', ...weekdayDates.map(() => ''), maleTotals.prs + femaleTotals.prs, maleTotals.abs + femaleTotals.abs, maleTotals.late + femaleTotals.late, maleTotals.exc + femaleTotals.exc, `${grandTotalPct}%`] ];
+
+      doc.autoTable({
+        startY,
+        head,
+        body: [...body, ...totalsData],
+        styles: { fontSize: 7, cellPadding: 1.5, overflow: 'linebreak', halign: 'center', valign: 'middle' },
+        columnStyles: {
+          0: { cellWidth: 8 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 45, halign: 'left' },
+          3: { cellWidth: 8 },
+        },
+        headStyles: { fillColor: [41, 37, 36], fontSize: 6 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        tableWidth: 'auto',
+        margin: { left: 14, right: 14 },
+        didParseCell: (data) => {
+          if (data.section === 'body' && data.row.index === body.length) {
+            data.cell.styles.fontStyle = 'bold';
+            data.cell.styles.fillColor = [241, 245, 249];
+          }
+        },
+      });
+
       addPDFFooter(doc, { leftText: classroom.school_name || 'KNHS' });
       const filename = `attendance-${classroom.name || 'section'}-${selectedYear}-${String(selectedMonth).padStart(2, '0')}.pdf`;
       doc.save(filename);
@@ -1485,7 +1535,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     } finally {
       setExporting(false);
     }
-  }, [selectedMonth, selectedYear, classroom, monthNames]);
+  }, [selectedMonth, selectedYear, classroom, monthNames, filteredStudents, weekdayDates, attendanceMap, maleTotals, femaleTotals, grandTotalPct]);
 
   const statusCell = (status) => {
     switch (status) {
