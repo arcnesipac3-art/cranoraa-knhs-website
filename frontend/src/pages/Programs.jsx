@@ -80,8 +80,8 @@ const Programs = () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-              <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-4">Academic Excellence</p>
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5">
+              <p className="text-xs font-semibold text-violet-200 tracking-widest mb-4">Academic Excellence</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-5">
                 {content.programs_title?.content || 'Our Programs'}
               </h1>
               <p className="text-violet-100 leading-relaxed text-lg">
@@ -96,14 +96,14 @@ const Programs = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {programList.map((program, i) => (
-              <div key={i} className="group bg-white rounded-2xl border-2 border-violet-200 overflow-hidden hover:shadow-xl hover:border-violet-400 transition-all duration-300 flex flex-col">
+              <div key={i} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-violet-300 transition-all duration-300 flex flex-col">
                 {/* Image */}
                 <div className="relative h-56 overflow-hidden">
                    <img src={program.image} alt={program.title} className="w-full h-full object-cover" loading="lazy" />
                   <div className="absolute inset-0 bg-gradient-to-t from-violet-950/70 via-violet-900/30 to-transparent" />
                   {/* Number badge */}
                   <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/20 border border-white/40 backdrop-blur-sm flex items-center justify-center">
-                    <span className="text-sm font-black text-white">0{i + 1}</span>
+                    <span className="text-sm font-bold text-white">0{i + 1}</span>
                   </div>
                   {/* Icon */}
                   <div className="absolute bottom-4 left-4 flex items-center gap-3">
@@ -112,14 +112,14 @@ const Programs = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={program.icon} />
                       </svg>
                     </div>
-                    <h3 className="text-lg font-black text-white drop-shadow-lg">{program.title}</h3>
+                    <h3 className="text-lg font-bold text-white drop-shadow-lg">{program.title}</h3>
                   </div>
                 </div>
                 {/* Content */}
                 <div className="p-3 sm:p-6 flex-1 flex flex-col">
                   <p className="text-sm text-gray-600 leading-relaxed flex-1">{program.content}</p>
                   <div className="mt-5 pt-4 border-t border-violet-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-violet-800 uppercase">DepEd Curriculum</span>
+                    <span className="text-xs font-semibold text-violet-800">DepEd Curriculum</span>
                     <button
                       onClick={() => handleViewDetails(program)}
                       className="inline-flex items-center gap-1.5 text-sm font-bold text-violet-900 hover:text-slate-900 transition-colors"
@@ -146,8 +146,8 @@ const Programs = () => {
             </div>
             <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
               <div>
-                <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-3">Start Your Journey</p>
-                <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight uppercase">Ready to Enroll?</h2>
+                <p className="text-xs font-semibold text-violet-200 tracking-widest mb-3">Start Your Journey</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 leading-tight">Ready to Enroll?</h2>
                 <p className="text-violet-100 leading-relaxed mb-6">Our comprehensive curriculum is designed to challenge and inspire students at every level.</p>
                 <div className="flex flex-wrap gap-2">
                   {['Science & Tech', 'Liberal Arts', 'Engineering', 'Vocational'].map(tag => (
@@ -156,7 +156,7 @@ const Programs = () => {
                 </div>
               </div>
               <div className="lg:text-right">
-                <Link to="/enroll" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-violet-900 font-black text-sm hover:bg-violet-50 transition-colors shadow-2xl uppercase">
+                <Link to="/enroll" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-violet-900 font-bold text-sm hover:bg-violet-50 transition-colors shadow-2xl">
                   Apply for Admission
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4 4H3" /></svg>
                 </Link>

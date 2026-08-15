@@ -56,7 +56,7 @@ function PersonCard({ person }) {
       hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 group">
       <PhotoArea name={person.name} photo={person.photo} />
       <div className="px-3 py-3 text-center">
-        <h3 className="text-[11px] font-black text-slate-900 leading-tight uppercase tracking-wide line-clamp-2">
+        <h3 className="text-[11px] font-bold text-slate-900 leading-tight tracking-wide line-clamp-2">
           {person.name}
         </h3>
         <span className={`mt-1.5 inline-block px-2 py-0.5 rounded-full text-[9px] font-bold border ${badgeColor(person.position)}`}>
@@ -74,7 +74,7 @@ function AdminCard({ person }) {
       hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150">
       <PhotoArea name={person.name} photo={person.photo} />
       <div className="px-3 py-3 text-center border-t-2 border-violet-100">
-        <h3 className="text-xs font-black text-slate-900 leading-tight uppercase tracking-wide line-clamp-2">
+        <h3 className="text-xs font-bold text-slate-900 leading-tight tracking-wide line-clamp-2">
           {person.name}
         </h3>
         <span className={`mt-1.5 inline-block px-2.5 py-0.5 rounded-full text-[9px] font-bold border ${badgeColor(person.position)}`}>
@@ -166,10 +166,10 @@ const Faculty = () => {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
-              <p className="text-[10px] font-bold text-violet-400 uppercase tracking-widest mb-1">
+              <p className="text-[10px] font-semibold text-violet-400 tracking-widest mb-1">
                 Kiwalan National High School · SY 2025–2026
               </p>
-              <h1 className="text-3xl md:text-4xl font-black text-white uppercase leading-tight">
+              <h1 className="text-3xl md:text-4xl font-bold text-white leading-tight">
                 Faculty & Staff
               </h1>
             </div>
@@ -177,8 +177,8 @@ const Faculty = () => {
             <div className="flex gap-3 flex-wrap">
               {STATS.map((s) => (
                 <div key={s.label} className="bg-white/10 border border-white/15 rounded-xl px-4 py-2 text-center min-w-[80px]">
-                  <div className="text-xl font-black text-white">{s.value}</div>
-                  <div className="text-[9px] font-bold text-violet-300 uppercase tracking-wider">{s.label}</div>
+                  <div className="text-xl font-bold text-white">{s.value}</div>
+                  <div className="text-[9px] font-medium text-violet-300 tracking-wider">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -221,8 +221,8 @@ const Faculty = () => {
           <section>
             <div className="flex items-center gap-3 mb-5">
               <div>
-                <p className="text-[10px] font-bold text-violet-600 uppercase tracking-widest">Leadership</p>
-                <h2 className="text-lg font-black text-slate-900 uppercase">School Administration</h2>
+                <p className="text-[10px] font-semibold text-violet-600 tracking-widest">Leadership</p>
+                <h2 className="text-lg font-bold text-slate-900">School Administration</h2>
               </div>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
@@ -240,8 +240,8 @@ const Faculty = () => {
           <section>
             <div className="flex items-center gap-3 mb-5">
               <div>
-                <p className="text-[10px] font-bold text-violet-600 uppercase tracking-widest">Our Educators</p>
-                <h2 className="text-lg font-black text-slate-900 uppercase">Teaching Staff</h2>
+                <p className="text-[10px] font-semibold text-violet-600 tracking-widest">Our Educators</p>
+                <h2 className="text-lg font-bold text-slate-900">Teaching Staff</h2>
               </div>
               <div className="flex-1 h-px bg-slate-200" />
             </div>
@@ -289,14 +289,14 @@ const Faculty = () => {
       {/* ── CTA footer ── */}
       <section className="mt-6 py-10 bg-violet-950 text-white">
         <div className="max-w-2xl mx-auto px-4 text-center">
-          <h2 className="text-xl font-black uppercase mb-2">Join Our Team</h2>
+          <h2 className="text-xl font-bold mb-2">Join Our Team</h2>
           <p className="text-violet-300 mb-5 text-sm">
             Looking for passionate educators to join the Kiwalan NHS family.
           </p>
           <a
             href="/contact"
-            className="inline-flex items-center gap-2 bg-white text-violet-950 font-black uppercase
-              tracking-wider text-xs px-5 py-2.5 rounded-lg hover:bg-violet-100 transition-colors"
+            className="inline-flex items-center gap-2 bg-white text-violet-950 font-bold
+              text-xs px-5 py-2.5 rounded-lg hover:bg-violet-100 transition-colors"
           >
             Get in Touch
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

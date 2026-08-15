@@ -55,8 +55,8 @@ const Portals = () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-              <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-4">Online Access</p>
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5 uppercase">
+              <p className="text-xs font-semibold text-violet-200 tracking-widest mb-4">Online Access</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-5">
                 Portals & Systems
               </h1>
               <p className="text-violet-100 leading-relaxed text-lg">
@@ -84,7 +84,7 @@ const Portals = () => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black mb-2 uppercase">{portal.name}</h3>
+                      <h3 className="text-2xl font-bold mb-2">{portal.name}</h3>
                       <p className="text-white/90 leading-relaxed mb-4">{portal.desc}</p>
                       <div className="inline-flex items-center gap-2 text-sm font-bold">
                         Access Portal
@@ -110,7 +110,7 @@ const Portals = () => {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-2xl font-black mb-2 uppercase">{portal.name}</h3>
+                      <h3 className="text-2xl font-bold mb-2">{portal.name}</h3>
                       <p className="text-white/90 leading-relaxed mb-4">{portal.desc}</p>
                       <div className="inline-flex items-center gap-2 text-sm font-bold">
                         Visit Website
@@ -130,11 +130,11 @@ const Portals = () => {
       {/* Support */}
       <section className="py-16 bg-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-black text-slate-900 mb-4 uppercase">Need Help?</h2>
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">Need Help?</h2>
           <p className="text-gray-700 mb-6">
             For portal access issues or technical support, please contact the school ICT office during office hours.
           </p>
-          <Link to="/contact" className="inline-flex items-center gap-2 px-8 py-4 bg-violet-900 text-white rounded-xl font-black hover:bg-violet-950 transition-colors uppercase">
+          <Link to="/contact" className="inline-flex items-center gap-2 px-8 py-4 bg-violet-900 text-white rounded-xl font-bold hover:bg-violet-950 transition-colors">
             Contact ICT Support
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
