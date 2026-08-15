@@ -386,7 +386,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--base-url",
-            default="https://cranoraa-eng-cranoraa-knhs-website.vercel.app",
+            default="https://kiwalannhs.vercel.app",
             help="Base URL of the Vercel frontend (default: Vercel production URL).",
         )
         parser.add_argument(
