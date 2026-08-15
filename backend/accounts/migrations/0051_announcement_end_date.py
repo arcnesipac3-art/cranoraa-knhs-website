@@ -7,7 +7,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('accounts', '0050_rename_expiration_date_announcement_event_date'),
-        ('accounts', '0050_add_user_consent_fields'),
     ]
 
     operations = [
