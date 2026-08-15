@@ -2455,21 +2455,20 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
         return [permissions.IsAuthenticated(), IsAdmin()]
 
     def list(self, request, *args, **kwargs):
-        # Auto-populate from User accounts if table is empty
-        if FacultyMember.objects.count() == 0:
-            try:
-                self._sync_from_users()
-            except Exception as e:
-                logger.warning(f'FacultyMember auto-sync failed: {e}')
+        # Always sync from User accounts to keep faculty page up-to-date
+        try:
+            self._sync_from_users()
+        except Exception as e:
+            logger.warning(f'FacultyMember auto-sync failed: {e}')
         return super().list(request, *args, **kwargs)
 
     def _sync_from_users(self):
+        """Sync all staff/admin users to FacultyMember table"""
         users = User.objects.filter(role__in=['staff', 'admin'], is_active=True).select_related('profile')
         for user in users:
             full_name = f"{user.first_name} {user.last_name}".strip() or user.username
-            if FacultyMember.objects.filter(name=full_name).exists():
-                continue
             staff_title = getattr(user, 'staff_title', '') or ''
+            
             position_map = {
                 'principal': 'School Principal I',
                 'guidance': 'School Guidance Designate',
@@ -2485,13 +2484,16 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
             if hasattr(user, 'profile') and user.profile.profile_picture:
                 photo_url = user.profile.profile_picture
             
-            FacultyMember.objects.create(
+            # Always update or create to keep in sync
+            FacultyMember.objects.update_or_create(
                 name=full_name,
-                position=position,
-                photo=photo_url,
-                category=category,
-                display_order=1 if user.role == 'admin' else 99,
-                is_active=True,
+                defaults={
+                    'position': position,
+                    'photo': photo_url,
+                    'category': category,
+                    'display_order': 1 if user.role == 'admin' else 99,
+                    'is_active': True,
+                }
             )
 
     @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsAdmin])

@@ -209,14 +209,6 @@ const Faculty = () => {
     try {
       const { data } = await api.get('/faculty-members/');
       let results = data.results || data;
-      // Auto-sync from User accounts if empty
-      if (results.length === 0) {
-        try {
-          await api.post('/faculty-members/sync_from_users/');
-          const resync = await api.get('/faculty-members/');
-          results = resync.data.results || resync.data;
-        } catch { /* admin-only, ignore for public */ }
-      }
       setMembers(results);
     } catch (err) {
       console.error('Failed to fetch faculty:', err);
