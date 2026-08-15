@@ -628,6 +628,9 @@ class UserViewSet(viewsets.ModelViewSet):
             if role == 'parent':
                 return queryset.filter(role='parent', is_active=True)
 
+            if role == 'student':
+                return queryset.filter(role='student', is_active=True)
+
             if user.role == 'student':
                 return queryset.filter(id=user.id)
 
