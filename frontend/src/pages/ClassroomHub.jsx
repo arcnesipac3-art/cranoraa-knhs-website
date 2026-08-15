@@ -42,6 +42,7 @@ const ClassroomHub = () => {
   const [announcementFiles, setAnnouncementFiles] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(false);
   const [students, setStudents] = useState([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const [classroomSubjects, setClassroomSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('stream'); // stream, materials, people, grades
@@ -164,6 +165,7 @@ const ClassroomHub = () => {
     newParams.set('classroom', classroom.id.toString());
     setSearchParams(newParams);
     setLoading(true);
+    setLoadingStudents(true);
     
     try {
       // Fetch classroom details
@@ -185,6 +187,7 @@ const ClassroomHub = () => {
       toast.error('Failed to load classroom details');
     } finally {
       setLoading(false);
+      setLoadingStudents(false);
     }
   };
 
@@ -567,7 +570,7 @@ const ClassroomHub = () => {
               classroom={selectedClass}
               students={students}
               isTeacher={isTeacher}
-              loading={loading}
+              loading={loadingStudents}
               peopleSearch={peopleSearch}
               setPeopleSearch={setPeopleSearch}
               onStudentClick={setSelectedStudent}
@@ -1438,28 +1441,30 @@ const PeopleTab = ({ classroom, students, isTeacher, loading, peopleSearch, setP
         </div>
       </CardHeader>
       <CardBody className="p-3">
-        {students.length > 3 && (
-          <div className="relative mb-3">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-            <input
-              type="text"
-              value={peopleSearch}
-              onChange={(e) => setPeopleSearch(e.target.value)}
-              placeholder="Search students..."
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 text-xs"
-            />
-          </div>
-        )}
-          {loading ? (
-            <Skeleton.ListItem />
-          ) : sortedStudents.length === 0 ? (
+        {loading ? (
+            <div className="space-y-1">
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton.ListItem key={i} />)}
+            </div>
+        ) : sortedStudents.length === 0 ? (
             <EmptyState
               title="No Students"
               description="No students are enrolled in this class"
               icon={<Users className="w-6 h-6" />}
             />
-          ) : (
+        ) : (
             <div className="space-y-3">
+              {students.length > 3 && (
+                <div className="relative mb-3">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={peopleSearch}
+                    onChange={(e) => setPeopleSearch(e.target.value)}
+                    placeholder="Search students..."
+                    className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500 text-xs"
+                  />
+                </div>
+              )}
               {maleStudents.length > 0 && (
                 <div>
                   <h4 className="text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-1 px-1">Male ({maleStudents.length})</h4>
