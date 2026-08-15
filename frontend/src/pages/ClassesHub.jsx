@@ -142,6 +142,7 @@ export default function ClassesHub() {
   const [sectionSubjects, setSectionSubjects] = useState({});
   const [sectionSchedules, setSectionSchedules] = useState({});
   const [expandedSchedule, setExpandedSchedule] = useState(null);
+  const [subjectsLoading, setSubjectsLoading] = useState(true);
 
   const activeYear = academicYears.find(y => y.is_active) || academicYears[0];
   useEffect(() => {
@@ -156,6 +157,7 @@ export default function ClassesHub() {
   useEffect(() => {
     if (!classes.length) return;
     const load = async () => {
+      setSubjectsLoading(true);
       const results = {};
       await Promise.all(classes.map(async (cls) => {
         try {
@@ -164,6 +166,7 @@ export default function ClassesHub() {
         } catch { results[cls.id] = []; }
       }));
       setSectionSubjects(results);
+      setSubjectsLoading(false);
     };
     load();
   }, [classes]);
@@ -395,17 +398,28 @@ export default function ClassesHub() {
                             </Button>
                           </div>
                         </div>
-                        {subs.length > 0 && (
+                        {subjectsLoading ? (
+                          <div className="mt-3 ml-14 flex items-center gap-2">
+                            <div className="w-4 h-4 border-2 border-violet-300 border-t-violet-600 rounded-full animate-spin" />
+                            <span className="text-xs text-slate-400 font-medium">Loading subjects...</span>
+                          </div>
+                        ) : subs.length > 0 ? (
                           <div className="mt-3 ml-14 flex flex-wrap gap-1.5">
                             {subs.map(s => (
                               <span key={s.id} className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-violet-50 text-violet-700 border border-violet-200">
                                 <span className="font-mono">{s.subject_code}</span>
-                                <span className="text-violet-300">�</span>
+                                <span className="text-violet-300">·</span>
                                 <span>{s.teacher_name}</span>
                               </span>
                             ))}
                             <button onClick={() => navigate('/subjects?tab=assignments')} className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
                               + Manage
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="mt-3 ml-14">
+                            <button onClick={() => navigate('/subjects?tab=assignments')} className="text-xs font-semibold text-slate-400 hover:text-violet-600 transition-colors">
+                              + Assign subjects
                             </button>
                           </div>
                         )}
