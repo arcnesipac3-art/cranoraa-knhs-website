@@ -143,6 +143,7 @@ export default function ClassesHub() {
   const [sectionSchedules, setSectionSchedules] = useState({});
   const [expandedSchedule, setExpandedSchedule] = useState(null);
   const [subjectsLoading, setSubjectsLoading] = useState(true);
+  const [schedulesLoading, setSchedulesLoading] = useState(true);
 
   const activeYear = academicYears.find(y => y.is_active) || academicYears[0];
   useEffect(() => {
@@ -174,6 +175,7 @@ export default function ClassesHub() {
   useEffect(() => {
     if (!classes.length || !selectedYearId) return;
     const load = async () => {
+      setSchedulesLoading(true);
       const results = {};
       await Promise.all(classes.map(async (cls) => {
         try {
@@ -182,6 +184,7 @@ export default function ClassesHub() {
         } catch { results[cls.id] = []; }
       }));
       setSectionSchedules(results);
+      setSchedulesLoading(false);
     };
     load();
   }, [classes, selectedYearId]);
@@ -378,7 +381,9 @@ export default function ClassesHub() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            {(sectionSchedules[cls.id] || []).length > 0 && (
+                            {schedulesLoading ? (
+                              <Skeleton className="h-8 w-20 rounded-lg" />
+                            ) : (sectionSchedules[cls.id] || []).length > 0 && (
                               <Button
                                 variant={expandedSchedule === cls.id ? 'primary' : 'secondary'}
                                 size="sm"
@@ -399,9 +404,10 @@ export default function ClassesHub() {
                           </div>
                         </div>
                         {subjectsLoading ? (
-                          <div className="mt-3 ml-14 flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-violet-300 border-t-violet-600 rounded-full animate-spin" />
-                            <span className="text-xs text-slate-400 font-medium">Loading subjects...</span>
+                          <div className="mt-3 ml-14 flex flex-wrap gap-1.5">
+                            {Array.from({ length: 3 }).map((_, i) => (
+                              <Skeleton key={i} className="h-5 w-24 rounded-full" />
+                            ))}
                           </div>
                         ) : subs.length > 0 ? (
                           <div className="mt-3 ml-14 flex flex-wrap gap-1.5">
@@ -423,14 +429,11 @@ export default function ClassesHub() {
                             </button>
                           </div>
                         )}
-                        {subs.length === 0 && (
+                        {schedulesLoading ? (
                           <div className="mt-3 ml-14">
-                            <button onClick={() => navigate('/subjects?tab=assignments')} className="text-xs font-semibold text-slate-400 hover:text-violet-600 transition-colors">
-                              + Assign subjects
-                            </button>
+                            <Skeleton className="h-4 w-32 rounded" />
                           </div>
-                        )}
-                        {(sectionSchedules[cls.id] || []).length > 0 && (
+                        ) : (sectionSchedules[cls.id] || []).length > 0 && (
                           <div className="mt-3 ml-14">
                             <button
                               onClick={() => setExpandedSchedule(expandedSchedule === cls.id ? null : cls.id)}
@@ -441,9 +444,22 @@ export default function ClassesHub() {
                             </button>
                           </div>
                         )}
-                        {expandedSchedule === cls.id && (sectionSchedules[cls.id] || []).length > 0 && (
+                        {expandedSchedule === cls.id && (
                           <div className="mt-3 ml-14 overflow-x-auto">
-                            <ScheduleGrid schedules={sectionSchedules[cls.id]} />
+                            {schedulesLoading ? (
+                              <div className="border border-slate-200 rounded-lg bg-white p-4 space-y-3">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                  <div key={i} className="flex gap-3">
+                                    <Skeleton className="h-4 w-16 rounded" />
+                                    {Array.from({ length: 6 }).map((_, j) => (
+                                      <Skeleton key={j} className="h-10 flex-1 rounded" />
+                                    ))}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (sectionSchedules[cls.id] || []).length > 0 && (
+                              <ScheduleGrid schedules={sectionSchedules[cls.id]} />
+                            )}
                           </div>
                         )}
                       </div>
