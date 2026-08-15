@@ -669,6 +669,19 @@ class GradeViewSet(viewsets.ModelViewSet):
                     )
                     created_count += 1
 
+        try:
+            cache.delete_pattern('grade_dist:v1:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+        try:
+            cache.delete_pattern('grade_summary:v1:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+        try:
+            cache.delete_pattern('admin_dashboard:v3:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+
         return Response({
             'created': created_count,
             'updated': updated_count,
@@ -788,8 +801,15 @@ class GradeViewSet(viewsets.ModelViewSet):
 
         try:
             cache.delete_pattern('grade_dist:v1:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+        try:
             cache.delete_pattern('grade_summary:v1:*')
-        except AttributeError:
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+        try:
+            cache.delete_pattern('admin_dashboard:v3:*')
+        except (AttributeError, ValueError, NotImplementedError):
             pass
 
     def perform_update(self, serializer):
@@ -831,6 +851,19 @@ class GradeViewSet(viewsets.ModelViewSet):
             except Exception as notif_err:
                 logger.warning(f"Notification failed (perform_update): {str(notif_err)}")
 
+        try:
+            cache.delete_pattern('grade_dist:v1:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+        try:
+            cache.delete_pattern('grade_summary:v1:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+        try:
+            cache.delete_pattern('admin_dashboard:v3:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+
     def perform_destroy(self, instance):
         user = self.request.user
         try:
@@ -847,6 +880,19 @@ class GradeViewSet(viewsets.ModelViewSet):
             logger.warning(f"Audit logging failed (perform_destroy): {str(audit_err)}")
 
         instance.delete()
+
+        try:
+            cache.delete_pattern('grade_dist:v1:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+        try:
+            cache.delete_pattern('grade_summary:v1:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
+        try:
+            cache.delete_pattern('admin_dashboard:v3:*')
+        except (AttributeError, ValueError, NotImplementedError):
+            pass
 
     @action(detail=False, methods=['get'])
     def my_grades(self, request):
@@ -938,6 +984,18 @@ class GradeViewSet(viewsets.ModelViewSet):
             )
 
             serializer = self.get_serializer(final_grade)
+            try:
+                cache.delete_pattern('grade_dist:v1:*')
+            except (AttributeError, ValueError, NotImplementedError):
+                pass
+            try:
+                cache.delete_pattern('grade_summary:v1:*')
+            except (AttributeError, ValueError, NotImplementedError):
+                pass
+            try:
+                cache.delete_pattern('admin_dashboard:v3:*')
+            except (AttributeError, ValueError, NotImplementedError):
+                pass
             return Response(serializer.data)
 
         # Normal subject: weighted WW/PT/QA calculation
@@ -994,6 +1052,18 @@ class GradeViewSet(viewsets.ModelViewSet):
             )
 
             serializer = self.get_serializer(final_grade)
+            try:
+                cache.delete_pattern('grade_dist:v1:*')
+            except (AttributeError, ValueError, NotImplementedError):
+                pass
+            try:
+                cache.delete_pattern('grade_summary:v1:*')
+            except (AttributeError, ValueError, NotImplementedError):
+                pass
+            try:
+                cache.delete_pattern('admin_dashboard:v3:*')
+            except (AttributeError, ValueError, NotImplementedError):
+                pass
             return Response(serializer.data)
 
         return Response({'error': 'Could not calculate final grade'}, status=status.HTTP_400_BAD_REQUEST)
