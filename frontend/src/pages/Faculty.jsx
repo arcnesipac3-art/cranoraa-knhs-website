@@ -208,7 +208,15 @@ const Faculty = () => {
   const fetchMembers = useCallback(async () => {
     try {
       const { data } = await api.get('/api/accounts/v1/faculty-members/');
-      const results = data.results || data;
+      let results = data.results || data;
+      // Auto-sync from User accounts if empty
+      if (results.length === 0) {
+        try {
+          await api.post('/api/accounts/v1/faculty-members/sync_from_users/');
+          const resync = await api.get('/api/accounts/v1/faculty-members/');
+          results = resync.data.results || resync.data;
+        } catch { /* admin-only, ignore for public */ }
+      }
       setMembers(results);
     } catch (err) {
       console.error('Failed to fetch faculty:', err);

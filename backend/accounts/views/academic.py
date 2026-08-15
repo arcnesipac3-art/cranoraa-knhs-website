@@ -2454,6 +2454,35 @@ class FacultyMemberViewSet(viewsets.ModelViewSet):
             return [permissions.AllowAny()]
         return [permissions.IsAuthenticated(), IsAdmin()]
 
+    @action(detail=False, methods=['post'], permission_classes=[permissions.IsAuthenticated, IsAdmin])
+    def sync_from_users(self, request):
+        """Auto-create FacultyMember records from existing User staff/admin accounts."""
+        users = User.objects.filter(role__in=['staff', 'admin'], is_active=True)
+        created = 0
+        for user in users:
+            full_name = f"{user.first_name} {user.last_name}".strip() or user.username
+            if FacultyMember.objects.filter(name=full_name).exists():
+                continue
+            staff_title = getattr(user, 'staff_title', '') or ''
+            position_map = {
+                'principal': 'School Principal I',
+                'guidance': 'School Guidance Designate',
+                'admin_officer': 'Administrative Officer I',
+                'admin_assistant': 'Administrative Assistant III',
+                'master_teacher': 'Master Teacher I',
+            }
+            position = position_map.get(staff_title, staff_title.title() if staff_title else 'Teacher')
+            category = 'administration' if user.role == 'admin' else 'faculty'
+            FacultyMember.objects.create(
+                name=full_name,
+                position=position,
+                category=category,
+                display_order=1 if user.role == 'admin' else 99,
+                is_active=True,
+            )
+            created += 1
+        return Response({'message': f'Synced. {created} faculty members created.', 'created': created})
+
     def perform_create(self, serializer):
         serializer.save()
         try:
