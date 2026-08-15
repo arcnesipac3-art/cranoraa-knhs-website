@@ -698,7 +698,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
             url = 'https://' + url
         doc, created = EnrollmentDocument.objects.update_or_create(
             application=application, document_type=doc_type,
-            defaults={'file_url': url, 'file_name': f.name, 'verification_status': 'submitted'})
+            defaults={'file_url': url, 'file_name': f.name, 'verification_status': 'verified'})
         # Also update the URL field on the application model
         field_map = {
             'birth_certificate': 'birth_certificate', 'report_card': 'report_card',
