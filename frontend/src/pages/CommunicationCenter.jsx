@@ -408,7 +408,7 @@ const ChatMessage = memo(function ChatMessage({ msg, i, chatMessages, userId, sh
             </>}
           </div>
           {emojiOpen && (
-            <div className={`absolute ${isOwn ? 'right-0' : 'left-0'} -top-12 bg-white border border-slate-200 rounded-xl shadow-lg px-2 py-1 flex items-center gap-1 z-20`}>
+            <div className={`absolute ${isOwn ? 'right-0' : 'left-0'} -top-12 bg-white border border-slate-200 rounded-xl shadow-lg px-2 py-1 flex items-center gap-1 z-20 max-w-[calc(100vw-2rem)] flex-wrap justify-center`}>
               {EMOJI_LIST.map(emoji => (<button key={emoji} onClick={() => onReaction(msg.id, emoji)} className="w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded text-lg transition-transform hover:scale-110">{emoji}</button>))}
             </div>
           )}
