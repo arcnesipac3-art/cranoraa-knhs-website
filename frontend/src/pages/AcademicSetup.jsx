@@ -1165,7 +1165,7 @@ const AcademicSetup = () => {
       </div>
 
       {/* ── Step progress bar ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3 md:p-4 shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl p-3 md:p-4 shadow-sm">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {STEPS.map((step, idx) => {
             const status = getStepStatus(idx);
@@ -1173,7 +1173,7 @@ const AcademicSetup = () => {
               <button key={step.id} type="button"
                 onClick={() => idx <= currentStep && setCurrentStep(idx)}
                 disabled={idx > currentStep}
-                className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 shrink-0 ${
+                className={`flex items-center gap-1 px-2 py-1.5 sm:gap-1.5 sm:px-2.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all duration-200 shrink-0 ${
                   status === 'current'   ? 'bg-violet-600 text-white shadow-md ring-2 ring-violet-200' :
                   status === 'completed' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 cursor-pointer border border-emerald-200' :
                                           'bg-slate-50 text-slate-400 cursor-not-allowed'

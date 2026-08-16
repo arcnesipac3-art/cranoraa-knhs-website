@@ -624,14 +624,14 @@ const ClassroomDetailModal = ({
 
       <ModalBody>
         {/* Subject Tabs */}
-        <div className="mb-4 flex gap-2 flex-wrap">
+        <div className="mb-4 flex gap-1.5 sm:gap-2 flex-wrap">
           {subjects.map((subject) => (
             <button
               key={subject.id}
               onClick={() =>
                 setSelectedSubject(selectedSubject?.id === subject.id ? null : subject)
               }
-              className={`px-4 py-2 rounded-md text-xs font-extrabold uppercase tracking-wide transition-all ${
+              className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md text-[10px] sm:text-xs font-extrabold uppercase tracking-wide transition-all ${
                 selectedSubject?.id === subject.id
                   ? 'bg-violet-600 text-white shadow-md'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
