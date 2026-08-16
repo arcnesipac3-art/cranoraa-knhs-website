@@ -565,17 +565,17 @@ export default function GradingPeriodManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Grading Period Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Control when teachers can submit grades for each term</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Grading Period Management</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">Control when teachers can submit grades for each term</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" onClick={handleBulkUpdate}>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button variant="outline" size="sm" onClick={handleBulkUpdate} className="text-xs sm:text-sm">
             Refresh Status
           </Button>
-          <Button onClick={() => { setEditingPeriod(null); setShowCreate(true); }} className="bg-brand-600 hover:bg-brand-700 text-white">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <Button onClick={() => { setEditingPeriod(null); setShowCreate(true); }} className="bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Create Period
@@ -584,38 +584,29 @@ export default function GradingPeriodManagement() {
       </div>
 
       {/* Workflow explanation */}
-      <div className="bg-slate-50 border border-slate-200 rounded-xl px-5 py-4">
+      <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 sm:px-5 py-3 sm:py-4">
         <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Admin Workflow</p>
-        <div className="flex items-center gap-2 flex-wrap text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
             { label: '1. Create Period', color: 'bg-blue-100 text-blue-800', hint: 'Sets dates & deadline' },
-            { arrow: true },
             { label: '2. Open for Teachers', color: 'bg-green-100 text-green-800', hint: 'Teachers can submit' },
-            { arrow: true },
             { label: '3. Close Submissions', color: 'bg-amber-100 text-amber-800', hint: 'No new submissions' },
-            { arrow: true },
             { label: '4. Lock & Finalize', color: 'bg-purple-100 text-purple-800', hint: 'Grades are permanent' },
-          ].map((step, i) =>
-            step.arrow ? (
-              <svg key={i} className="w-4 h-4 text-slate-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            ) : (
-              <div key={i} className="flex flex-col items-center">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${step.color}`}>{step.label}</span>
-                <span className="text-[10px] text-slate-400 mt-0.5">{step.hint}</span>
-              </div>
-            )
-          )}
+          ].map((step, i) => (
+            <div key={i} className="flex flex-col items-center text-center">
+              <span className={`px-2 sm:px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold ${step.color}`}>{step.label}</span>
+              <span className="text-[10px] text-slate-400 mt-0.5">{step.hint}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-2 min-w-0">
         {['all', 'scheduled', 'open', 'closing_soon', 'closed', 'locked'].map((status) => (
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
               filterStatus === status
                 ? 'bg-brand-600 text-white'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -623,7 +614,7 @@ export default function GradingPeriodManagement() {
           >
             {status === 'all' ? 'All' : status.replace('_', ' ')}
             {status !== 'all' && statusCounts[status] && (
-              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs bg-white/20">
+              <span className="ml-1 sm:ml-1.5 px-1 sm:px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs bg-white/20">
                 {statusCounts[status]}
               </span>
             )}
