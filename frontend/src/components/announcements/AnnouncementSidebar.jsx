@@ -70,9 +70,16 @@ const AnnouncementSidebar = ({ announcements = [] }) => {
         </div>
         <div className="divide-y divide-slate-50">
           {loadingEvents ? (
-            <div className="px-4 py-6 text-center">
-              <div className="w-5 h-5 border-2 border-violet-300 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-xs text-slate-400 mt-2">Loading events...</p>
+            <div className="px-4 py-3 space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-start gap-3 animate-pulse" style={{ animationDelay: `${i * 100}ms` }}>
+                  <div className="w-10 h-10 rounded-lg bg-slate-200 shrink-0" />
+                  <div className="flex-1 space-y-2 py-1">
+                    <div className="h-3.5 w-3/4 bg-slate-200 rounded" />
+                    <div className="h-3 w-16 bg-slate-100 rounded" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : calendarEvents.length > 0 ? (
             calendarEvents.map((event, idx) => {
