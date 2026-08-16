@@ -455,6 +455,7 @@ export default function CommunicationCenter() {
   const [showPinned, setShowPinned] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [chatUploading, setChatUploading] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(null);
   const [wsConnected, setWsConnected] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
@@ -708,6 +709,7 @@ export default function CommunicationCenter() {
     const file = e.target.files?.[0];
     if (!file || !selectedRoom) return;
     setChatUploading(true);
+    setUploadingFile({ name: file.name, type: file.type, size: file.size });
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -719,6 +721,7 @@ export default function CommunicationCenter() {
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     } catch { toast.error('Upload failed'); }
     setChatUploading(false);
+    setUploadingFile(null);
     if (chatFileInputRef.current) chatFileInputRef.current.value = '';
   }, [selectedRoom, replyTo]);
 
@@ -1196,6 +1199,28 @@ export default function CommunicationCenter() {
                       )}
                     </div>
                   ))
+                )}
+                {uploadingFile && (
+                  <div className="flex justify-end mb-2 chat-msg-enter">
+                    <div className="max-w-[70%] min-w-0 flex flex-col items-end">
+                      <div className="px-3 py-2 rounded-2xl rounded-br-md bg-violet-600 text-white">
+                        {uploadingFile.type?.startsWith('image/') ? (
+                          <div className="w-[200px] h-[140px] bg-violet-500/30 rounded-xl flex items-center justify-center">
+                            <LoaderIcon size={24} className="text-white animate-spin" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <LoaderIcon size={16} className="text-violet-200 animate-spin flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate max-w-[160px]">{uploadingFile.name}</p>
+                              <p className="text-[10px] text-violet-200">{formatFileSize(uploadingFile.size)}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-slate-400 mt-0.5 mr-1">Sending...</span>
+                    </div>
+                  </div>
                 )}
                 {Object.keys(chatTypingUsers).length > 0 && (
                   <div className="flex items-center gap-2 px-1">
