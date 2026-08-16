@@ -29,7 +29,6 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
     search_fields = ['student__username', 'student__email']
-    pagination_class = None  # No pagination — frontend needs full monthly data
 
     def perform_create(self, serializer):
         serializer.save(marked_by=self.request.user)
@@ -75,8 +74,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(status=status)
         if academic_year:
             queryset = queryset.filter(
-                Q(classroom__academic_year__name=academic_year) |
-                Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year)
+                classroom__academic_year__name=academic_year
             )
         return queryset
 
@@ -101,9 +99,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         if academic_year_name:
             base_att = base_att.filter(
-                Q(classroom__academic_year__name=academic_year_name) |
-                Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year_name)
-            ).distinct()
+                classroom__academic_year__name=academic_year_name
+            )
 
         if timeframe == 'today':
             base_att = base_att.filter(date=today)

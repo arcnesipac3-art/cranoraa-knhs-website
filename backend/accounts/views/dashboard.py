@@ -99,16 +99,15 @@ def teacher_dashboard_stats(request):
             .annotate(cnt=Count('id'))
             .values_list('classroom_id', 'cnt')
         )
-        grade_counts = {
-            (row[0], row[1]): row[2]
-            for row in Grade.objects.filter(
+        grade_counts = dict(
+            Grade.objects.filter(
                 subject_id__in=teacher_classroom_subjects.values_list('subject_id', flat=True),
                 classroom_id__in=classroom_ids,
             )
             .values('subject_id', 'classroom_id')
             .annotate(cnt=Count('student', distinct=True))
             .values_list('subject_id', 'classroom_id', 'cnt')
-        }
+        )
         pending_grades = 0
         for cs in teacher_classroom_subjects:
             students_in_class = enrollment_counts.get(cs.classroom_id, 0)
@@ -237,10 +236,7 @@ def admin_attendance_analytics(request):
     from django.db.models.functions import TruncDate
     att_qs = Attendance.objects.all()
     if academic_year_name:
-        att_qs = att_qs.filter(
-            Q(classroom__academic_year__name=academic_year_name) |
-            Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year_name)
-        ).distinct()
+        att_qs = att_qs.filter(classroom__academic_year__name=academic_year_name)
     now = timezone.localtime(timezone.now())
     today = now.date()
     last_30_days = today - datetime.timedelta(days=30)
@@ -287,9 +283,8 @@ def admin_grade_analytics(request):
     if academic_year_name:
         grades = grades.filter(
             Q(academic_year=academic_year_name) |
-            Q(classroom__academic_year__name=academic_year_name) |
-            Q(student__enrollments__classroom__academic_year__name=academic_year_name)
-        ).distinct()
+            Q(classroom__academic_year__name=academic_year_name)
+        )
     total = grades.count()
     avg = grades.aggregate(avg=Avg('raw_score'))['avg']
     average = round(float(avg), 2) if avg else None

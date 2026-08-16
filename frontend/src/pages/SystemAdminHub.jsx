@@ -271,14 +271,14 @@ function DashboardOverview() {
                 System Administrator
               </span>
             </div>
-            <div className="flex items-center gap-2.5 mt-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2.5 mt-4">
               <button onClick={() => navigate('/announcements')}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-all shadow-sm">
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-all shadow-sm w-full sm:w-auto">
                 <Megaphone className="w-3.5 h-3.5" />
                 Create Announcement
               </button>
               <button onClick={() => navigate('/people')}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white text-slate-700 text-xs font-bold border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all">
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-white text-slate-700 text-xs font-bold border border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all w-full sm:w-auto">
                 <Users className="w-3.5 h-3.5" />
                 Manage Users
               </button>
@@ -304,7 +304,7 @@ function DashboardOverview() {
               'border-l-violet-500 bg-violet-50'
             }`}>
               <CardBody className="p-4">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                   <div className="flex items-start gap-3 flex-1">
                     <div className={`w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0 ${
                       alert.type === 'warning' ? 'bg-amber-100 text-amber-700' :
@@ -325,7 +325,7 @@ function DashboardOverview() {
                     </div>
                   </div>
                   {alert.action && (
-                    <Button variant="secondary" size="sm" onClick={alert.action} className="flex-shrink-0">
+                    <Button variant="secondary" size="sm" onClick={alert.action} className="self-start sm:self-auto w-full sm:w-auto">
                       {alert.actionLabel}
                     </Button>
                   )}
@@ -393,24 +393,24 @@ function DashboardOverview() {
               </div>
             </CardHeader>
             <CardBody>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-5 rounded-md bg-violet-50 border border-violet-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                <div className="p-4 md:p-5 rounded-md bg-violet-50 border border-violet-200">
                   <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Average Grade</p>
-                  <p className="text-4xl font-extrabold text-violet-700">
+                  <p className="text-3xl md:text-4xl font-extrabold text-violet-700">
                     {stats?.average_grade != null ? stats.average_grade.toFixed(1) : '—'}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">Across all subjects</p>
                 </div>
-                <div className="p-5 rounded-md bg-emerald-50 border border-emerald-200">
+                <div className="p-4 md:p-5 rounded-md bg-emerald-50 border border-emerald-200">
                   <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Attendance Rate</p>
-                  <p className="text-4xl font-extrabold text-emerald-700">
+                  <p className="text-3xl md:text-4xl font-extrabold text-emerald-700">
                     {stats?.today_rate != null ? `${stats.today_rate}%` : '—'}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">Today's school-wide rate</p>
                 </div>
-                <div className="p-5 rounded-md bg-sky-50 border border-sky-200">
+                <div className="p-4 md:p-5 rounded-md bg-sky-50 border border-sky-200">
                   <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Passing Rate</p>
-                  <p className="text-4xl font-extrabold text-sky-700">
+                  <p className="text-3xl md:text-4xl font-extrabold text-sky-700">
                     {stats?.all_subjects?.total_count > 0
                       ? `${100 - (stats?.all_subjects?.below_75_pct ?? 0)}%` : '—'}
                   </p>
@@ -534,9 +534,9 @@ function DashboardOverview() {
       </div>
 
       {/* ── SYSTEM STATUS BAR ── */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4">
+      <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="flex items-center gap-6 flex-wrap">
+          <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-xs font-bold text-slate-600">Database: Connected</span>

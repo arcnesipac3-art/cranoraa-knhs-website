@@ -121,28 +121,28 @@ const Subjects = () => {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="page-bottom-safe max-w-[1800px] mx-auto bg-slate-50 px-4 py-4 md:px-6 md:py-6 space-y-5 md:space-y-6"
+      className="page-bottom-safe max-w-[1800px] mx-auto bg-slate-50 px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 space-y-4 md:space-y-6"
     >
       {/* ══════════════════════════════════════════════════════════════ */}
       {/* PAGE HEADER */}
       {/* ══════════════════════════════════════════════════════════════ */}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 uppercase tracking-wide mb-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-violet-700 uppercase tracking-wide mb-1.5 sm:mb-2">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
             <span>Curriculum Management</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
             Subjects
           </h1>
-          <p className="text-xs text-slate-600 mt-1 font-semibold">
+          <p className="text-[10px] sm:text-xs text-slate-600 mt-0.5 sm:mt-1 font-semibold">
             {(subjects?.length ?? 0)} subjects in the curriculum
           </p>
         </div>
-        <Button variant="primary" onClick={openCreate}>
+        <Button variant="primary" onClick={openCreate} className="w-full sm:w-auto self-stretch sm:self-auto justify-center text-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
@@ -189,7 +189,7 @@ const Subjects = () => {
         <Skeleton.CardGrid />
       ) : filtered.length === 0 ? (
         <Card>
-          <CardBody className="p-12">
+          <CardBody className="p-6 sm:p-12">
             <EmptyState
               icon={
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,24 +211,62 @@ const Subjects = () => {
             }).map(([level, items]) => (
               <Card key={level} className="border-l-4 border-l-violet-500">
                 <CardHeader divider className="bg-slate-50">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-md bg-violet-100 flex items-center justify-center font-extrabold text-sm text-violet-700 border border-violet-200">
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-violet-100 flex items-center justify-center font-extrabold text-xs sm:text-sm text-violet-700 border border-violet-200 flex-shrink-0">
                       {parseInt(level.replace(/\D/g, '')) || level.charAt(0)}
                     </div>
                     <div>
-                      <CardTitle className="text-base">{level}</CardTitle>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">{items.length} Subjects</p>
+                      <CardTitle className="text-sm sm:text-base">{level}</CardTitle>
+                      <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wide">{items.length} Subjects</p>
                     </div>
                   </div>
                 </CardHeader>
                 <CardBody className="p-0">
-                  <div className="overflow-x-auto">
+                  <div className="md:hidden divide-y divide-slate-100">
+                    {items.map(s => (
+                      <div key={s.id} className="p-3.5 space-y-2.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge variant="blue" className="font-mono text-[10px]">
+                                {s.code}
+                              </Badge>
+                            </div>
+                            <p className="font-bold text-sm text-slate-900 leading-tight break-words">{s.name}</p>
+                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                              {s.description || <span className="italic text-slate-400">No description</span>}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => openEdit(s)}
+                            className="flex-1 text-xs"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDelete(s)}
+                            className="flex-1 text-xs"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
                           <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider w-32">Code</th>
                           <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Subject Name</th>
-                          <th className="hidden md:table-cell px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Description</th>
+                          <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Description</th>
                           <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider text-center w-28">Actions</th>
                         </tr>
                       </thead>
@@ -243,7 +281,7 @@ const Subjects = () => {
                             <td className="px-4 py-3">
                               <span className="text-sm font-bold text-slate-900">{s.name}</span>
                             </td>
-                            <td className="hidden md:table-cell px-4 py-3 text-sm text-slate-600 max-w-xs">
+                            <td className="px-4 py-3 text-sm text-slate-600 max-w-xs">
                               <span className="line-clamp-1">
                                 {s.description || <span className="italic text-slate-400">No description</span>}
                               </span>
@@ -296,7 +334,7 @@ const Subjects = () => {
         <form onSubmit={handleSubmit}>
           <ModalBody>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <ModalField label="Subject Code" required>
                   <input
                     type="text"

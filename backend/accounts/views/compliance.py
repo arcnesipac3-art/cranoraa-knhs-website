@@ -82,16 +82,16 @@ class ComplianceTypeViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         instance = serializer.save()
         
-        # Only update subject assignments if explicitly provided in the request
-        if 'assigned_subjects' in self.request.data:
-            assigned_subjects = self.request.data.get('assigned_subjects', [])
-            
-            # Clear existing assignments
-            ComplianceTypeSubjectAssignment.objects.filter(
-                compliance_type=instance
-            ).delete()
-            
-            # Create new assignments
+        # Update subject assignments
+        assigned_subjects = self.request.data.get('assigned_subjects', [])
+        
+        # Clear existing assignments
+        ComplianceTypeSubjectAssignment.objects.filter(
+            compliance_type=instance
+        ).delete()
+        
+        # Create new assignments
+        if assigned_subjects:
             for subject_id in assigned_subjects:
                 ComplianceTypeSubjectAssignment.objects.create(
                     compliance_type=instance,

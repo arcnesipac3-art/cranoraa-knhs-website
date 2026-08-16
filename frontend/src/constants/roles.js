@@ -41,7 +41,7 @@ export function hasRole(user, ...roles) {
  * Check if user is admin (role=admin OR is_admin flag on staff).
  */
 export function isAdmin(user) {
-  return user?.role === Role.ADMIN || user?.is_admin === true || user?.is_superuser === true;
+  return user?.role === Role.ADMIN || user?.is_admin === true;
 }
 
 /**
@@ -69,7 +69,7 @@ export function isParent(user) {
  * Check if user is admin or staff.
  */
 export function isAdminOrStaff(user) {
-  return user?.role === Role.ADMIN || user?.role === Role.STAFF || user?.is_admin === true || user?.is_superuser === true;
+  return user?.role === Role.ADMIN || user?.role === Role.STAFF || user?.is_admin === true;
 }
 
 /**

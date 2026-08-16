@@ -6,9 +6,7 @@ const AcademicYearContext = createContext(null);
 
 export function AcademicYearProvider({ children }) {
   const { user, ready } = useAuth();
-  const [academicYear, setAcademicYear] = useState(() => {
-    try { return localStorage.getItem('knhs_academic_year') || null; } catch { return null; }
-  });
+  const [academicYear, setAcademicYear] = useState(null);
   const [academicYears, setAcademicYears] = useState([]);
   const [loading, setLoading] = useState(true);
 

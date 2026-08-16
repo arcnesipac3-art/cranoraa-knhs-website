@@ -245,10 +245,7 @@ def build_admin_dashboard_stats(user, academic_year_name=None):
         att_qs = _safe_value(
             'attendance academic year filter',
             Attendance.objects.none(),
-            lambda: att_qs.filter(
-                Q(classroom__academic_year__name=academic_year_name) |
-                Q(classroom__academic_year__isnull=True, student__enrollments__classroom__academic_year__name=academic_year_name)
-            ).distinct(),
+            lambda: att_qs.filter(classroom__academic_year__name=academic_year_name),
         )
 
     today_attendance = att_qs.filter(date=today)
@@ -278,9 +275,8 @@ def build_admin_dashboard_stats(user, academic_year_name=None):
             Grade.objects.none(),
             lambda: grades.filter(
                 Q(academic_year=academic_year_name) |
-                Q(classroom__academic_year__name=academic_year_name) |
-                Q(student__enrollments__classroom__academic_year__name=academic_year_name)
-            ).distinct(),
+                Q(classroom__academic_year__name=academic_year_name)
+            ),
         )
 
     total_grades = _safe_value('grade count', 0, grades.count)

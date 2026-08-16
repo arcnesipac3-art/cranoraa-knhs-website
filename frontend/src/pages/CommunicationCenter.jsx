@@ -31,7 +31,7 @@ const BookOpenIcon = (p) => <svg width={p.size||14} height={p.size||14} viewBox=
 const BuildingIcon = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01M8 14h.01M16 14h.01M12 14h.01"/></svg>;
 const MessageCircleIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>;
 
-const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '😡', '🎉', '🔥'];
+const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '😡', '🎉', '🔥', '👏', '🙏', '💯', '✨', '🤔', '😍', '🥳', '😎'];
 
 const AVATAR_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500', 'bg-rose-500', 'bg-indigo-500'];
 
@@ -455,7 +455,6 @@ export default function CommunicationCenter() {
   const [showPinned, setShowPinned] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [chatUploading, setChatUploading] = useState(false);
-  const [uploadingFile, setUploadingFile] = useState(null);
   const [wsConnected, setWsConnected] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
@@ -709,7 +708,6 @@ export default function CommunicationCenter() {
     const file = e.target.files?.[0];
     if (!file || !selectedRoom) return;
     setChatUploading(true);
-    setUploadingFile({ name: file.name, type: file.type, size: file.size });
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -721,7 +719,6 @@ export default function CommunicationCenter() {
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     } catch { toast.error('Upload failed'); }
     setChatUploading(false);
-    setUploadingFile(null);
     if (chatFileInputRef.current) chatFileInputRef.current.value = '';
   }, [selectedRoom, replyTo]);
 
@@ -910,13 +907,13 @@ export default function CommunicationCenter() {
   };
 
   return (
-    <div className="h-[calc(100dvh-160px)] lg:h-[calc(100vh-100px)] min-h-0 flex bg-slate-100 overflow-hidden" style={{ height: 'calc(var(--vh, 1vh) * 100 - 160px)' }}>
+    <div className="h-[calc(100dvh-120px)] sm:h-[calc(100dvh-160px)] lg:h-[calc(100vh-100px)] min-h-0 flex bg-slate-100 overflow-hidden" style={{ height: 'calc(var(--vh, 1vh) * 100 - 120px)' }}>
       {/* Left Panel — Chat Rooms */}
       <div className={`
         w-full lg:w-[340px] min-w-0 bg-white lg:border-r border-slate-200 flex flex-col h-full
         ${mobileView === 'list' ? 'flex' : 'hidden lg:flex'}
       `}>
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+        <div className="flex items-center justify-between px-2 py-2 sm:px-4 sm:py-3 border-b border-slate-100">
           <div className="relative flex-1 mr-2">
             <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
@@ -946,7 +943,7 @@ export default function CommunicationCenter() {
               {showNewChatDropdown && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowNewChatDropdown(false)} />
-                  <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1">
+                  <div className="absolute right-0 top-full mt-1 w-44 sm:w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1">
                     <button
                       onClick={() => { setShowNewChatDropdown(false); setShowPeoplePanel(true); setTimeout(() => peopleSearchRef.current?.focus(), 100); }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
@@ -997,15 +994,15 @@ export default function CommunicationCenter() {
                 <button
                   key={room.id}
                   onClick={() => handleSelectRoom(room)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors relative ${
+                  className={`w-full flex items-center gap-2 sm:gap-3 px-3 py-2.5 sm:px-4 sm:py-3 text-left transition-colors relative ${
                     isActive ? 'bg-violet-50 border-r-2 border-violet-600' : 'hover:bg-slate-50 border-r-2 border-transparent'
                   }`}
                 >
                   <div className="relative flex-shrink-0">
                     {avatar ? (
-                      <img src={avatar} alt="" className="w-11 h-11 rounded-full object-cover" loading="lazy" />
+                      <img src={avatar} alt="" className="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover" loading="lazy" />
                     ) : room.is_group ? (
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center ${isSystem ? 'bg-emerald-100' : 'bg-violet-100'}`}>
+                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center ${isSystem ? 'bg-emerald-100' : 'bg-violet-100'}`}>
                         {isSystem && SystemIcon ? (
                           <SystemIcon size={18} className="text-emerald-600" />
                         ) : (
@@ -1013,7 +1010,7 @@ export default function CommunicationCenter() {
                         )}
                       </div>
                     ) : (
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-sm ${getAvatarColor(displayName)}`}>
+                      <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-white font-bold text-sm ${getAvatarColor(displayName)}`}>
                         {getInitials(displayName)}
                       </div>
                     )}
@@ -1031,11 +1028,6 @@ export default function CommunicationCenter() {
                           <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-bold uppercase flex-shrink-0">
                             <LockIcon size={8} />
                             {getSystemGroupLabel(room.source_type)}
-                          </span>
-                        )}
-                        {room.streak > 1 && !isSystem && (
-                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-bold flex-shrink-0" title={`${room.streak}-day streak!`}>
-                            🔥 {room.streak}
                           </span>
                         )}
                       </div>
@@ -1068,18 +1060,18 @@ export default function CommunicationCenter() {
       `}>
         {selectedRoom ? (
             <>
-                <div className="flex items-center justify-between px-3 sm:px-5 py-3 bg-white border-b border-slate-200 min-h-[57px]">
+                <div className="flex items-center justify-between px-2 py-2 sm:px-3 sm:py-3 md:px-5 bg-white border-b border-slate-200 min-h-[48px] sm:min-h-[57px]">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   <button onClick={() => { setSelectedRoom(null); setMobileView('list'); }}
                     className="p-1.5 -ml-1 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors lg:hidden flex-shrink-0">
                     <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
                   </button>
                   {getRoomAvatar(selectedRoom, userId) ? (
-                    <img src={getRoomAvatar(selectedRoom, userId)} alt="" className="w-9 h-9 rounded-full object-cover" loading="lazy" />
+                    <img src={getRoomAvatar(selectedRoom, userId)} alt="" className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover" loading="lazy" />
                   ) : selectedRoom.is_group ? (
-                    <div className="w-9 h-9 rounded-full bg-violet-100 flex items-center justify-center"><UsersIcon size={18} className="text-violet-600" /></div>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-violet-100 flex items-center justify-center"><UsersIcon size={16} className="text-violet-600" /></div>
                   ) : (
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-xs ${getAvatarColor(getRoomDisplayName(selectedRoom, userId))}`}>
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-white font-bold text-xs ${getAvatarColor(getRoomDisplayName(selectedRoom, userId))}`}>
                       {getInitials(getRoomDisplayName(selectedRoom, userId))}
                     </div>
                   )}
@@ -1090,15 +1082,10 @@ export default function CommunicationCenter() {
                       {!wsConnected ? 'Connecting...' :
                         selectedRoom.is_group ? `${selectedRoom.member_count || (selectedRoom.participants_details || []).length} members` :
                           (selectedRoom.participants_details || []).find(p => p.id !== userId) && onlineUsers.has(selectedRoom.participants_details.find(p => p.id !== userId)?.id) ? 'Online' : 'Offline'}
-                      {selectedRoom.streak > 1 && (
-                        <span className="inline-flex items-center gap-0.5 ml-1 text-orange-500 font-bold">
-                          🔥 {selectedRoom.streak}d
-                        </span>
-                      )}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
                   <button onClick={() => setShowInChatSearch(prev => !prev)} className={`p-2 rounded-lg transition-colors ${showInChatSearch ? 'bg-violet-100 text-violet-600' : 'text-slate-400 hover:bg-slate-100'}`} title="Search in conversation (Ctrl+F)">
                     <SearchIcon size={16} />
                   </button>
@@ -1117,7 +1104,7 @@ export default function CommunicationCenter() {
                       <MoreIcon size={18} />
                     </button>
                     {showRoomMenu === selectedRoom.id && (
-                      <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1">
+                      <div className="absolute right-0 top-full mt-1 w-44 sm:w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1">
                         <button onClick={() => handlePinRoom(selectedRoom.id)} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
                           <PinIcon size={14} />{selectedRoom.is_pinned ? 'Unpin chat' : 'Pin chat'}
                         </button>
@@ -1135,7 +1122,7 @@ export default function CommunicationCenter() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-1" onClick={() => { setShowRoomMenu(null); setLongPressMsg(null); }}
+              <div className="flex-1 overflow-y-auto px-2 py-2 sm:px-4 sm:py-3 space-y-1" onClick={() => { setShowRoomMenu(null); setLongPressMsg(null); }}
                 ref={messagesContainerRef}
                 onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
               >
@@ -1150,7 +1137,7 @@ export default function CommunicationCenter() {
                   </div>
                 )}
                 {showInChatSearch && (
-                  <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl px-3 py-2 mb-2 flex items-center gap-2 shadow-sm">
+                  <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl px-2 py-1.5 sm:px-3 sm:py-2 mb-2 flex items-center gap-2 shadow-sm">
                     <SearchIcon size={14} className="text-slate-400" />
                     <input autoFocus type="text" placeholder="Search in conversation..." value={inChatSearchQuery} onChange={e => setInChatSearchQuery(e.target.value)}
                       className="flex-1 text-xs bg-transparent focus:outline-none placeholder-slate-400" />
@@ -1200,30 +1187,8 @@ export default function CommunicationCenter() {
                     </div>
                   ))
                 )}
-                {uploadingFile && (
-                  <div className="flex justify-end mb-2 chat-msg-enter">
-                    <div className="max-w-[70%] min-w-0 flex flex-col items-end">
-                      <div className="px-3 py-2 rounded-2xl rounded-br-md bg-violet-600 text-white">
-                        {uploadingFile.type?.startsWith('image/') ? (
-                          <div className="w-[200px] h-[140px] bg-violet-500/30 rounded-xl flex items-center justify-center">
-                            <LoaderIcon size={24} className="text-white animate-spin" />
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <LoaderIcon size={16} className="text-violet-200 animate-spin flex-shrink-0" />
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium truncate max-w-[160px]">{uploadingFile.name}</p>
-                              <p className="text-[10px] text-violet-200">{formatFileSize(uploadingFile.size)}</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-slate-400 mt-0.5 mr-1">Sending...</span>
-                    </div>
-                  </div>
-                )}
                 {Object.keys(chatTypingUsers).length > 0 && (
-                  <div className="flex items-center gap-2 px-1">
+                  <div className="flex items-center gap-2 px-1 py-1">
                     <div className="flex gap-0.5">
                       <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                       <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -1236,7 +1201,7 @@ export default function CommunicationCenter() {
               </div>
 
               {replyTo && (
-                <div className="flex items-center gap-2 px-4 py-2 bg-violet-50 border-t border-violet-200">
+                <div className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 bg-violet-50 border-t border-violet-200">
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] font-semibold text-violet-600">Replying to {replyTo.sender_name}</p>
                     <p className="text-xs text-slate-600 truncate">{typeof replyTo.content === 'string' ? replyTo.content : ''}</p>
@@ -1245,21 +1210,21 @@ export default function CommunicationCenter() {
                 </div>
               )}
 
-              <div className="px-4 py-3 border-t border-slate-200 bg-white relative">
+              <div className="px-2 py-2 sm:px-4 sm:py-3 border-t border-slate-200 bg-white relative">
                 {chatUploading && (
                   <div className="flex items-center gap-2 px-4 py-2 mb-2 bg-violet-50 border border-violet-200 rounded-xl text-violet-700">
                     <LoaderIcon size={14} className="text-violet-600" />
                     <span className="text-xs font-semibold">Uploading file...</span>
                   </div>
                 )}
-                <div className="flex items-end gap-2">
+                <div className="flex items-end gap-1 sm:gap-2">
                   <input type="file" ref={chatFileInputRef} onChange={handleChatUpload} className="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" />
-                  <button onClick={() => chatFileInputRef.current?.click()} disabled={chatUploading} className="p-2.5 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-50" title="Attach file">
+                  <button onClick={() => chatFileInputRef.current?.click()} disabled={chatUploading} className="p-2 sm:p-2.5 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors disabled:opacity-50 flex-shrink-0" title="Attach file">
                     {chatUploading ? <LoaderIcon size={18} className="text-violet-500" /> : <PaperclipIcon size={18} />}
                   </button>
                   <div className="flex-1 relative">
                     {mentionQuery !== null && filteredMentionUsers.length > 0 && (
-                      <div className="absolute bottom-full left-0 mb-1 w-64 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 max-h-48 overflow-y-auto">
+                      <div className="absolute bottom-full left-0 mb-1 w-56 sm:w-64 bg-white border border-slate-200 rounded-xl shadow-lg z-30 py-1 max-h-48 overflow-y-auto">
                         {filteredMentionUsers.map((u, idx) => (
                           <button key={u.id} onClick={() => {
                             const el = inputRef.current; if (!el) return;
@@ -1282,13 +1247,13 @@ export default function CommunicationCenter() {
                       onInput={handleChatInput}
                       onPaste={handlePaste}
                       disabled={chatUploading}
-                      className="w-full px-4 py-2.5 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-12 resize-none max-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-3 py-2 sm:px-4 sm:py-2.5 text-sm bg-slate-100 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent pr-10 sm:pr-12 resize-none max-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
                   <button
                     onClick={() => { const v = inputRef.current?.value?.trim(); if (v) { sendMessage(v); inputRef.current.value = ''; inputRef.current.style.height = 'auto'; } }}
                     disabled={chatUploading}
-                    className="p-2.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-2 sm:p-2.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                     title="Send message"
                   >
                     <SendIcon size={18} />
@@ -1342,7 +1307,7 @@ export default function CommunicationCenter() {
       {/* Scroll to Bottom FAB */}
       {showScrollBtn && selectedRoom && (
         <button onClick={() => scrollToBottom(true)}
-          className="fixed bottom-28 right-8 w-10 h-10 bg-violet-600 text-white rounded-full shadow-lg hover:bg-violet-700 transition-all z-40 flex items-center justify-center animate-bounce-in lg:flex hidden"
+          className="fixed bottom-28 right-4 sm:right-8 w-10 h-10 bg-violet-600 text-white rounded-full shadow-lg hover:bg-violet-700 transition-all z-40 flex items-center justify-center animate-bounce-in lg:flex hidden"
           title="Scroll to bottom"
         >
           <ChevronDownIcon size={20} />
@@ -1363,7 +1328,7 @@ export default function CommunicationCenter() {
       {longPressMsg && (
         <>
           <div className="fixed inset-0 z-[90]" onClick={() => setLongPressMsg(null)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[91] bg-white border-t border-slate-200 rounded-t-2xl shadow-2xl p-2 lg:hidden animate-slide-up">
+          <div className="fixed bottom-0 left-0 right-0 z-[91] bg-white border-t border-slate-200 rounded-t-2xl shadow-2xl p-2 lg:hidden animate-slide-up max-w-lg mx-auto">
             <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3" />
             {longPressMsg.parent_message_details && (
               <div className="px-3 py-2 mb-1 rounded-lg bg-slate-50 border-l-2 border-slate-300">

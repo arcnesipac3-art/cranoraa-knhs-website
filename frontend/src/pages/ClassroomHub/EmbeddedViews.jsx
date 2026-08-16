@@ -13,7 +13,7 @@ import {
   Send, Lock, Unlock, ChevronLeft, ChevronRight, Save, BookOpen, FileDown
 } from 'lucide-react';
 import { exportSF10PDF } from '../../utils/sf10PdfExport';
-import { getPDFPageSetup, addPDFHeader, addPDFFooter } from '../../utils/exportHelpers';
+import { captureElementToPDF, getPDFPageSetup, addPDFHeader, addPDFFooter } from '../../utils/exportHelpers';
 import ScheduleAttendanceEntry from './ScheduleAttendanceEntry';
 
 // Grade Management View - Custom inline implementation with edit, delete, export
@@ -1386,24 +1386,12 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     fetchMonth();
   }, [classroom.id, selectedMonth, selectedYear]);
 
-  // Build lookup map: dateStr -> studentId -> aggregated record
-  // Students may have multiple attendance records per day (one per subject/schedule).
-  // We aggregate by taking the "worst" status: absent > late > excused > present.
+  // Build lookup map: dateStr -> studentId -> record
   const attendanceMap = useMemo(() => {
-    const STATUS_RANK = { absent: 0, late: 1, excused: 2, present: 3, school_activity: 3, medical_leave: 2 };
     const map = {};
     records.forEach(rec => {
       if (!map[rec.date]) map[rec.date] = {};
-      const existing = map[rec.date][rec.student];
-      if (!existing) {
-        map[rec.date][rec.student] = { ...rec };
-      } else {
-        const rank = STATUS_RANK[rec.status] ?? 4;
-        const existRank = STATUS_RANK[existing.status] ?? 4;
-        if (rank < existRank) {
-          map[rec.date][rec.student] = { ...rec };
-        }
-      }
+      map[rec.date][rec.student] = rec;
     });
     return map;
   }, [records]);
@@ -1468,63 +1456,13 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
   }), [maleTotals, femaleTotals]);
 
   const handleExportPDF = useCallback(async () => {
+    if (!tableRef.current) return;
     setExporting(true);
     try {
       const { jsPDF } = await import('jspdf');
-      const { default: autoTable } = await import('jspdf-autotable');
-      const doc = new jsPDF(getPDFPageSetup('landscape'));
-      const headerY = addPDFHeader(doc, 'School Attendance Log', `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`);
-
-      const startY = headerY + 2;
-
-      // Build header row
-      const head = [['#', 'LRN', 'Name of Learner', 'Sex', ...weekdayDates.map(wd => `${wd.dayAbbr}\n${wd.dayNum}`), 'Prs', 'Abs', 'Late', 'Exc', '%']];
-
-      // Build body rows
-      const body = filteredStudents.map((s, i) => {
-        let prs = 0, abs = 0, late = 0, exc = 0;
-        const dateCells = weekdayDates.map(wd => {
-          const rec = attendanceMap[wd.dateStr]?.[s.student];
-          if (!rec) return '';
-          switch (rec.status) {
-            case 'present': prs++; return 'P';
-            case 'absent': abs++; return 'A';
-            case 'late': late++; return 'L';
-            case 'excused': exc++; return 'E';
-            default: return '';
-          }
-        });
-        const total = prs + abs + late + exc;
-        const pct = total > 0 ? Math.round((prs / total) * 100) : 0;
-        return [i + 1, s.student_lrn || '', s.student_name || '', s.student_sex || '', ...dateCells, prs, abs, late, exc, `${pct}%`];
-      });
-
-      // Totals row
-      const totalsData = [ ['', '', 'TOTAL', '', ...weekdayDates.map(() => ''), maleTotals.prs + femaleTotals.prs, maleTotals.abs + femaleTotals.abs, maleTotals.late + femaleTotals.late, maleTotals.exc + femaleTotals.exc, `${grandTotals.pct}%`] ];
-
-      autoTable(doc, {
-        startY,
-        head,
-        body: [...body, ...totalsData],
-        styles: { fontSize: 7, cellPadding: 1.5, overflow: 'linebreak', halign: 'center', valign: 'middle' },
-        columnStyles: {
-          0: { cellWidth: 8 },
-          1: { cellWidth: 20 },
-          2: { cellWidth: 45, halign: 'left' },
-          3: { cellWidth: 8 },
-        },
-        headStyles: { fillColor: [41, 37, 36], fontSize: 6 },
-        alternateRowStyles: { fillColor: [248, 250, 252] },
-        tableWidth: 'auto',
-        margin: { left: 14, right: 14 },
-        didParseCell: (data) => {
-          if (data.section === 'body' && data.row.index === body.length) {
-            data.cell.styles.fontStyle = 'bold';
-            data.cell.styles.fillColor = [241, 245, 249];
-          }
-        },
-      });
-
+      const doc = new jsPDF(getPDFPageSetup());
+      addPDFHeader(doc, 'School Attendance Log', `${monthNames[selectedMonth - 1]} ${selectedYear} — ${classroom.name || classroom.section || 'Section'}`);
+      await captureElementToPDF(tableRef.current, doc, { y: doc.lastAutoTable?.finalY || 45, scale: 2 });
       addPDFFooter(doc, { leftText: classroom.school_name || 'KNHS' });
       const filename = `attendance-${classroom.name || 'section'}-${selectedYear}-${String(selectedMonth).padStart(2, '0')}.pdf`;
       doc.save(filename);
@@ -1535,7 +1473,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
     } finally {
       setExporting(false);
     }
-  }, [selectedMonth, selectedYear, classroom, monthNames, filteredStudents, weekdayDates, attendanceMap, maleTotals, femaleTotals, grandTotals]);
+  }, [selectedMonth, selectedYear, classroom, monthNames]);
 
   const statusCell = (status) => {
     switch (status) {

@@ -435,28 +435,28 @@ export default function MasterSheet() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="space-y-4 px-3 sm:px-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold text-gray-900">Master Sheet</h2>
           <p className="text-sm text-gray-500">DepEd-style master sheet per student</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={handlePrint} disabled={!showContent}>
-            <Printer className="w-4 h-4 mr-1.5" /> Print
+            <Printer className="w-4 h-4 sm:mr-1.5" /> <span className="hidden sm:inline">Print</span>
           </Button>
           <Button variant="outline" size="sm" onClick={handleExportPDF} disabled={!showContent || exporting === 'pdf'}>
-            {exporting === 'pdf' ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <FileText className="w-4 h-4 mr-1.5" />} PDF
+            {exporting === 'pdf' ? <Loader2 className="w-4 h-4 sm:mr-1.5 animate-spin" /> : <FileText className="w-4 h-4 sm:mr-1.5" />} <span className="hidden sm:inline">PDF</span>
           </Button>
           <Button variant="outline" size="sm" onClick={handleExportExcel} disabled={!showContent || exporting === 'excel'}>
-            {exporting === 'excel' ? <Loader2 className="w-4 h-4 mr-1.5 animate-spin" /> : <Download className="w-4 h-4 mr-1.5" />} Excel
+            {exporting === 'excel' ? <Loader2 className="w-4 h-4 sm:mr-1.5 animate-spin" /> : <Download className="w-4 h-4 sm:mr-1.5" />} <span className="hidden sm:inline">Excel</span>
           </Button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
+      <div className="bg-white rounded-xl border border-gray-200 px-3 sm:px-4 py-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
-          <div className="min-w-[160px]">
+          <div className="w-full sm:min-w-[160px]">
             <label className="flex items-center gap-1 text-[9px] font-bold text-gray-500 uppercase mb-0.5">Section <span className="text-red-400">*</span></label>
             <select value={selectedClassroom} onChange={e => { setSelectedClassroom(e.target.value); setSelectedStudentId('all'); setAllStudentData([]); }}
               className="w-full rounded-lg border border-gray-300 px-2.5 py-[7px] text-xs bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
@@ -464,7 +464,7 @@ export default function MasterSheet() {
               {classrooms.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <div className="min-w-[200px]">
+          <div className="w-full sm:min-w-[200px]">
             <label className="flex items-center gap-1 text-[9px] font-bold text-gray-500 uppercase mb-0.5">Student <span className="text-red-400">*</span></label>
             <select value={selectedStudentId} onChange={e => setSelectedStudentId(e.target.value)} disabled={!selectedClassroom}
               className="w-full rounded-lg border border-gray-300 px-2.5 py-[7px] text-xs bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-gray-50 disabled:text-gray-400">
@@ -496,7 +496,7 @@ export default function MasterSheet() {
           <Skeleton className="h-64 rounded-lg" />
         </div>
       ) : !showContent ? (
-        <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-gray-200 text-center gap-3">
+        <div className="flex flex-col items-center justify-center py-10 sm:py-16 bg-white rounded-xl border border-gray-200 text-center gap-3 px-4">
           <Search className="w-10 h-10 text-gray-300" />
           <p className="text-sm text-gray-500">Select a section and student to view the master sheet</p>
         </div>
@@ -550,7 +550,7 @@ function StudentSheet({ profile, grades, attendance, classroom, teacher, myAssig
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-      <div className="px-5 py-3 border-b border-gray-200 bg-gray-50">
+      <div className="px-3 sm:px-5 py-3 border-b border-gray-200 bg-gray-50">
         <div className="text-center mb-2">
           <p className="text-[10px] text-gray-500">Republic of the Philippines</p>
           <p className="text-[11px] font-bold text-gray-700">Department of Education</p>
@@ -569,12 +569,14 @@ function StudentSheet({ profile, grades, attendance, classroom, teacher, myAssig
         </div>
       </div>
 
-      <div className="flex">
-        <div className="w-52 flex-shrink-0 border-r border-gray-200">
+      <div className="flex flex-col md:flex-row">
+        <div className="md:w-52 flex-shrink-0 md:border-r border-b md:border-b-0 border-gray-200">
           <AttendanceSidebar months={attData.months} total={attData.total} />
         </div>
-        <div className="flex-1 overflow-x-auto">
-          <GradesTable matchedSubjects={matchedSubjects} termGrades={termGrades} termAverages={termAverages} />
+        <div className="flex-1 overflow-x-auto min-w-0">
+          <div className="min-w-[480px]">
+            <GradesTable matchedSubjects={matchedSubjects} termGrades={termGrades} termAverages={termAverages} />
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import AcademicYear, Classroom, StudentClassEnrollment, Subject, ClassroomSubject, SystemSetting, FacultyMember
+from ..models import AcademicYear, Classroom, StudentClassEnrollment, Subject, ClassroomSubject, SystemSetting
 from ._base import full_name
 from .user import SimplifiedStudentSerializer
 
@@ -173,19 +173,3 @@ class ClassroomSubjectSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return super().create(validated_data)
-
-
-class FacultyMemberSerializer(serializers.ModelSerializer):
-    photo = serializers.SerializerMethodField()
-
-    class Meta:
-        model = FacultyMember
-        fields = ['id', 'name', 'position', 'photo', 'category', 'display_order', 'is_active', 'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']
-
-    def get_photo(self, obj):
-        if obj.photo:
-            return obj.photo
-        if obj.user and hasattr(obj.user, 'profile') and obj.user.profile:
-            return obj.user.profile.profile_picture
-        return None

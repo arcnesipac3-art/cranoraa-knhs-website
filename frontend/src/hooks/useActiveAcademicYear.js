@@ -6,9 +6,7 @@ export function useActiveAcademicYear() {
   const ctx = useContext(AcademicYearContext);
 
   // Fallback for pages not yet wrapped in AcademicYearProvider
-  const [academicYear, setAcademicYear] = useState(() => {
-    try { return localStorage.getItem('knhs_academic_year') || null; } catch { return null; }
-  });
+  const [academicYear, setAcademicYear] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

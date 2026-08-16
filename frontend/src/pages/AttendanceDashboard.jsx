@@ -447,7 +447,7 @@ const AttendanceDashboard = () => {
   const isFilterReady = filters.academic_year && filters.grade_level && filters.section;
 
   return (
-    <div className="space-y-4 px-4 md:px-6 py-6">
+    <div className="space-y-3 sm:space-y-4 px-3 sm:px-4 md:px-6 py-4 sm:py-6">
       {/* Print-only header */}
       <div className="hidden print:block text-center mb-4">
         <p className="text-[10px] text-slate-600">Republic of the Philippines</p>
@@ -460,56 +460,56 @@ const AttendanceDashboard = () => {
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 no-print">
-        <div>
-          <h1 className="text-xl font-black text-slate-900">SF2 — Daily Attendance Report</h1>
-          <p className="text-xs text-slate-500 mt-0.5">{monthName} {filters.year} | {filters.grade_level} {filters.section}</p>
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-xl font-black text-slate-900">SF2 — Daily Attendance Report</h1>
+          <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">{monthName} {filters.year} | {filters.grade_level} {filters.section}</p>
         </div>
-        <div className="flex items-center gap-2">
-          {lastSaved && <span className="text-[10px] text-green-600 font-semibold">Saved {lastSaved.toLocaleTimeString()}</span>}
-          <button onClick={handlePrint} className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors" title="Print"><Printer className="w-4 h-4" /></button>
-          <button onClick={handleExportPDF} disabled={exporting === 'pdf'} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors disabled:opacity-50">
-            {exporting === 'pdf' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />} PDF
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+          {lastSaved && <span className="text-[10px] text-green-600 font-semibold hidden sm:inline">Saved {lastSaved.toLocaleTimeString()}</span>}
+          <button onClick={handlePrint} className="p-1.5 sm:p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition-colors" title="Print"><Printer className="w-4 h-4" /></button>
+          <button onClick={handleExportPDF} disabled={exporting === 'pdf'} className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors disabled:opacity-50" title="Export PDF">
+            {exporting === 'pdf' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />} <span className="hidden sm:inline">PDF</span>
           </button>
-          <button onClick={handleExportExcel} disabled={exporting === 'excel'} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors disabled:opacity-50">
-            {exporting === 'excel' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} Excel
+          <button onClick={handleExportExcel} disabled={exporting === 'excel'} className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors disabled:opacity-50" title="Export Excel">
+            {exporting === 'excel' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />} <span className="hidden sm:inline">Excel</span>
           </button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3 p-4 bg-white border border-slate-200 rounded-xl no-print">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end gap-2 sm:gap-3 p-3 sm:p-4 bg-white border border-slate-200 rounded-xl no-print">
+        <div className="w-full sm:w-auto">
           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Academic Year</label>
           <select value={filters.academic_year} onChange={e => setFilters(f => ({ ...f, academic_year: e.target.value, grade_level: '', section: '' }))}
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
+            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">Select Year</option>
             {academicYears.map(y => <option key={y.id} value={String(y.id)}>{y.name}</option>)}
           </select>
         </div>
-        <div>
+        <div className="w-full sm:w-auto">
           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Month</label>
           <select value={filters.month} onChange={e => setFilters(f => ({ ...f, month: parseInt(e.target.value) }))}
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
+            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
             {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
         </div>
-        <div>
+        <div className="w-full sm:w-auto">
           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Grade Level</label>
           <select value={filters.grade_level} onChange={e => setFilters(f => ({ ...f, grade_level: e.target.value, section: '' }))}
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
+            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">All</option>
             {gradeLevels.map(gl => <option key={gl} value={gl}>{gl}</option>)}
           </select>
         </div>
-        <div>
+        <div className="w-full sm:w-auto">
           <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Section</label>
           <select value={filters.section} onChange={e => setFilters(f => ({ ...f, section: e.target.value }))}
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
+            className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">Select Section</option>
             {sections.map(s => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
-        <div className="flex items-center gap-1 ml-auto">
+        <div className="flex items-center gap-1 sm:ml-auto justify-center sm:justify-end pt-1 sm:pt-0">
           <span className="text-[10px] text-slate-400">
             {schoolDays.length} school day{schoolDays.length !== 1 ? 's' : ''} | {students.length} learner{students.length !== 1 ? 's' : ''}
           </span>
@@ -520,7 +520,7 @@ const AttendanceDashboard = () => {
       {!loading && classrooms.length > 0 && (
         <div className="no-print">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xs font-black text-slate-500 uppercase tracking-wider">Your Classes — View Attendance History</h2>
+            <h2 className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider">Your Classes — View Attendance History</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {classrooms.map(cls => (
@@ -573,7 +573,7 @@ const AttendanceDashboard = () => {
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center gap-3 text-[10px] text-slate-500 no-print">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-3 text-[9px] sm:text-[10px] text-slate-500 no-print">
             <span className="font-bold">Legend:</span>
             {Object.entries(STATUS_DISPLAY).filter(([k]) => ['present', 'absent', 'late', 'excused'].includes(k)).map(([k, v]) => (
               <span key={k} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded ${STATUS_COLORS[k]}`}>

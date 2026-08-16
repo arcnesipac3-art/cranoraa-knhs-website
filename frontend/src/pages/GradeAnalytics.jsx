@@ -164,23 +164,23 @@ export default function GradeAnalytics() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-6"
+      className="space-y-4 sm:space-y-6 p-4 sm:p-6"
     >
       {/* Header & Filters */}
-      <motion.div variants={item} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <motion.div variants={item} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             Grade Analytics
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Performance insights for your classes
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
           <Select
             value={filters.classroom}
             onChange={(e) => updateFilter('classroom', e.target.value)}
-            className="w-48"
+            className="w-full sm:w-48"
           >
             <option value="">Select Classroom</option>
             {classrooms.map((c) => (
@@ -192,7 +192,7 @@ export default function GradeAnalytics() {
           <Select
             value={filters.subject}
             onChange={(e) => updateFilter('subject', e.target.value)}
-            className="w-44"
+            className="w-full sm:w-44"
           >
             <option value="">All Subjects</option>
             {subjects.map((s) => (
@@ -204,7 +204,7 @@ export default function GradeAnalytics() {
           <Select
             value={filters.quarter}
             onChange={(e) => updateFilter('quarter', e.target.value)}
-            className="w-40"
+            className="w-full sm:w-40"
           >
             {QUARTER_OPTIONS.map((q) => (
               <option key={q.value} value={q.value}>
@@ -216,7 +216,7 @@ export default function GradeAnalytics() {
       </motion.div>
 
       {/* Overview Cards */}
-      <motion.div variants={item} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <motion.div variants={item} className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {loading ? (
           <>
             {[...Array(4)].map((_, i) => (
@@ -259,7 +259,7 @@ export default function GradeAnalytics() {
       </motion.div>
 
       {/* Charts Row: Subject Performance + Grade Distribution */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Subject Performance Bar Chart */}
         <motion.div variants={item}>
           <Card>
@@ -268,13 +268,13 @@ export default function GradeAnalytics() {
             </CardHeader>
             <CardBody>
               {loading ? (
-                <Skeleton className="h-72 w-full" />
+                <Skeleton className="h-56 sm:h-72 w-full" />
               ) : subjectPerformance.length === 0 ? (
                 <p className="py-12 text-center text-sm text-gray-400">
                   No subject data available
                 </p>
               ) : (
-                <ResponsiveContainer width="100%" height={320}>
+                <ResponsiveContainer width="100%" height={280} sm={320}>
                   <BarChart
                     data={subjectPerformance}
                     layout="vertical"
@@ -322,13 +322,13 @@ export default function GradeAnalytics() {
             </CardHeader>
             <CardBody>
               {loading ? (
-                <Skeleton className="h-72 w-full" />
+                <Skeleton className="h-56 sm:h-72 w-full" />
               ) : gradeDistribution.length === 0 ? (
                 <p className="py-12 text-center text-sm text-gray-400">
                   No distribution data available
                 </p>
               ) : (
-                <ResponsiveContainer width="100%" height={320}>
+                <ResponsiveContainer width="100%" height={280} sm={320}>
                   <PieChart>
                     <Pie
                       data={gradeDistribution}
@@ -367,15 +367,15 @@ export default function GradeAnalytics() {
           <CardHeader>
             <CardTitle>Class Performance by Quarter</CardTitle>
           </CardHeader>
-          <CardBody>
-            {loading ? (
-              <Skeleton className="h-72 w-full" />
-            ) : quarterlyTrend.length === 0 ? (
+<CardBody>
+              {loading ? (
+                <Skeleton className="h-56 sm:h-72 w-full" />
+              ) : quarterlyTrend.length === 0 ? (
               <p className="py-12 text-center text-sm text-gray-400">
                 No quarterly data available
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height={320}>
+              <ResponsiveContainer width="100%" height={280} sm={320}>
                 <LineChart
                   data={quarterlyTrend}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
@@ -504,7 +504,7 @@ export default function GradeAnalytics() {
       </motion.div>
 
       {/* Top & Bottom Performers */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Top Performers */}
         <motion.div variants={item}>
           <Card>
@@ -602,17 +602,17 @@ export default function GradeAnalytics() {
 function StatCard({ icon, label, value, accent, highlight }) {
   return (
     <Card className={highlight ? 'ring-2 ring-red-300 dark:ring-red-700' : ''}>
-      <CardBody className="flex items-center gap-4 p-6">
+      <CardBody className="flex items-center gap-3 sm:gap-4 p-4 sm:p-6">
         <div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl ${accent}`}
+          className={`flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl ${accent}`}
         >
           {icon}
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+          <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
             {label}
           </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
             {value}
           </p>
         </div>

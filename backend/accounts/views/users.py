@@ -14,7 +14,7 @@ import datetime
 from django.db import transaction
 
 from ..serializers import UserSerializer
-from ..models import User, Profile, Classroom, StudentClassEnrollment, EnrollmentApplication, FacultyMember
+from ..models import User, Profile, Classroom, StudentClassEnrollment, EnrollmentApplication
 from ..permissions import IsAdmin, IsAdminOrStaff
 from ..throttles import CsvImportRateThrottle
 from ..utils import log_audit_action, generate_temp_password
@@ -126,32 +126,6 @@ def admin_create_user_view(request):
                 except Exception as e:
                     logger.error(f"Failed to link manual user creation to enrollment app: {e}")
 
-            # Auto-create FacultyMember for staff/admin users
-            if role in ('staff', 'admin'):
-                try:
-                    staff_title = request.data.get('staff_title', '')
-                    position_map = {
-                        'principal': 'School Principal I',
-                        'guidance': 'School Guidance Designate',
-                        'admin_officer': 'Administrative Officer I',
-                        'admin_assistant': 'Administrative Assistant III',
-                        'master_teacher': 'Master Teacher I',
-                        'teacher': f'Teacher',
-                    }
-                    position = position_map.get(staff_title, staff_title.title() if staff_title else 'Teacher')
-                    display_order = 99 if role == 'staff' else 1
-                    category = 'faculty' if role == 'staff' else 'administration'
-
-                    FacultyMember.objects.create(
-                        name=f"{first_name} {last_name}".strip() or username,
-                        position=position,
-                        category=category,
-                        display_order=display_order,
-                        is_active=True,
-                    )
-                except Exception as e:
-                    logger.warning(f"Failed to auto-create FacultyMember for {username}: {e}")
-
             if advisory_classroom:
                 StudentClassEnrollment.objects.get_or_create(
                     student=user,
@@ -215,9 +189,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
             if role == 'parent':
                 return queryset.filter(role='parent', is_active=True)
-
-            if role == 'student':
-                return queryset.filter(role='student', is_active=True)
 
             # For students/parents viewing teachers (directory), return all active staff
             if role is None and user.role in ['student', 'parent']:

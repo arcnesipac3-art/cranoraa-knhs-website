@@ -358,29 +358,29 @@ const ClassManagement = () => {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
-      className="page-bottom-safe max-w-[1800px] mx-auto bg-slate-50 px-4 py-4 md:px-6 md:py-6 space-y-5 md:space-y-6"
+      className="page-bottom-safe max-w-[1800px] mx-auto bg-slate-50 px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-6 space-y-4 sm:space-y-5 md:space-y-6"
     >
       {/* PAGE HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="w-full">
           <div className="flex items-center gap-2 text-xs font-bold text-violet-700 uppercase tracking-wide mb-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             <span>Academic Management</span>
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Class Management</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">Class Management</h1>
           <p className="text-xs text-slate-600 mt-1 font-semibold">
             {classes.length} classroom{classes.length !== 1 ? 's' : ''} in{' '}
             <span className="font-bold text-violet-700">{selectedYearName || '…'}</span>
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
+          <div className="relative w-full">
             <select
               value={selectedYearId}
               onChange={e => { setSelectedYearId(e.target.value); setSearch(''); setFilterLevel(''); }}
-              className="w-full sm:w-auto pl-4 pr-10 py-2.5 border border-slate-300 bg-white rounded-md text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all appearance-none cursor-pointer min-w-0 sm:min-w-[160px]"
+              className="w-full pl-4 pr-10 py-2.5 border border-slate-300 bg-white rounded-md text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all appearance-none cursor-pointer min-w-0"
             >
               {academicYears.length === 0 && <option value="">No years set up</option>}
               {academicYears.map(y => (
@@ -391,7 +391,7 @@ const ClassManagement = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
             </svg>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             {isAdmin && (
               <Button variant="secondary" onClick={openRollover} disabled={!selectedYearId || academicYears.length < 2} className="flex-1 sm:flex-none">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -414,8 +414,8 @@ const ClassManagement = () => {
       {/* FILTERS */}
       <Card>
         <CardBody className="p-3 sm:p-4">
-          <div className="flex flex-col gap-3">
-            <div className="relative">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1 min-w-0">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -427,11 +427,11 @@ const ClassManagement = () => {
                 className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="w-full sm:w-auto">
               <select
                 value={filterLevel}
                 onChange={e => setFilterLevel(e.target.value)}
-                className="flex-1 px-3 py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all"
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all"
               >
                 <option value="">All Levels</option>
                 {GRADE_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}

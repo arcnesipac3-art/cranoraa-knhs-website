@@ -187,7 +187,7 @@ const Login = () => {
     try {
       const userData = await loginRequest(identifier, password, loginType);
       if (userData.role && userData.role !== loginType) {
-        const isDualRole = userData.role === 'staff' && (userData.is_admin || userData.is_superuser) && loginType === 'admin';
+        const isDualRole = userData.role === 'staff' && userData.is_admin && loginType === 'admin';
         if (!isDualRole) {
           setLoading(false);
           clearSession();
@@ -205,7 +205,7 @@ const Login = () => {
       signIn(userData);
       await refreshUser();
       setLoading(false);
-      const isDualRole = userData.role === 'staff' && (userData.is_admin || userData.is_superuser);
+      const isDualRole = userData.role === 'staff' && userData.is_admin;
       const portalMode = (() => {
         try { return localStorage.getItem('portal_mode') || 'admin'; } catch { return 'admin'; }
       })();

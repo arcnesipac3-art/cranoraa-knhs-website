@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { cn } from '../../styles/designSystem';
+import { API_BASE_URL } from '../../utils/api';
 import { StatusBadge } from './StatusBadge';
 import { EnrollmentProgressTracker } from './EnrollmentProgressTracker';
 
@@ -100,9 +101,8 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
     }));
   })();
 
-  const docsVerified = docs.some(d => d.verification_status === 'verified');
+  const docsVerified = docs.every(d => d.verification_status === 'verified') ?? true;
   const docsTotal = docs.length || 0;
-  const docsUploadedCount = docs.filter(d => d.file_url && !d._isMissing).length || 0;
   const docsVerifiedCount = docs.filter(d => d.verification_status === 'verified').length || 0;
 
   return (
@@ -171,7 +171,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
                 <span className={cn(
                   'ml-1 px-1.5 py-0.5 text-[8px] font-black rounded-full',
                   docsVerified === docsTotal ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                )}>{docsUploadedCount}/{docsTotal}</span>
+                )}>{docsVerifiedCount}/{docsTotal}</span>
               )}
             </button>
           ))}
@@ -268,22 +268,22 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
                         </div>
                       </div>
                       <div className="flex items-center gap-1 flex-shrink-0">
-                        {doc.file_url ? (
-                          <>
-                            <a href={doc.file_url} target="_blank" rel="noreferrer"
-                              className="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="View document">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            </a>
-                            <a href={doc.file_url} download={doc.file_name || 'document'} target="_blank" rel="noreferrer"
-                              className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Download document">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                              </svg>
-                            </a>
-                          </>
+                        {doc.file_url && doc.id && !String(doc.id).startsWith('url-') && !String(doc.id).startsWith('missing-') ? (
+                          <a href={`${API_BASE_URL}/enrollment-applications/${app.id}/documents/${doc.id}/view/`} target="_blank" rel="noreferrer"
+                            className="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="View document">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </a>
+                        ) : doc.file_url ? (
+                          <a href={doc.file_url} target="_blank" rel="noreferrer"
+                            className="p-2 text-slate-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors" title="View document">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </a>
                         ) : null}
                         {!doc._isMissing && doc.verification_status !== 'verified' && onVerifyDoc && (
                           <button onClick={() => onVerifyDoc(app.id, doc.id, 'verified')}

@@ -108,14 +108,14 @@ const ImageCropModal = ({ isOpen, onClose, onCrop, imageSrc }) => {
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-[90vw] max-w-md overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-200">
-          <h3 className="text-base font-black text-slate-900">Edit Profile Picture</h3>
-          <p className="text-xs text-slate-500 mt-0.5">Drag to reposition, use slider to zoom</p>
+      <div className="relative bg-white rounded-2xl shadow-2xl w-[92vw] max-w-md overflow-hidden">
+        <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-200">
+          <h3 className="text-sm sm:text-base font-black text-slate-900">Edit Profile Picture</h3>
+          <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Drag to reposition, use slider to zoom</p>
         </div>
 
         <div className="p-3 sm:p-6">
-          <div ref={containerRef} className="relative mx-auto w-40 h-40 sm:w-48 sm:h-48 rounded-full overflow-hidden bg-slate-100 border-4 border-white shadow-lg cursor-grab active:cursor-grabbing select-none"
+          <div ref={containerRef} className="relative mx-auto w-36 h-36 sm:w-40 sm:h-40 md:w-48 md:h-48 rounded-full overflow-hidden bg-slate-100 border-4 border-white shadow-lg cursor-grab active:cursor-grabbing select-none"
             onMouseDown={handleMouseDown}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -152,11 +152,11 @@ const ImageCropModal = ({ isOpen, onClose, onCrop, imageSrc }) => {
           </div>
         </div>
 
-        <div className="flex gap-3 px-5 py-4 border-t border-slate-200 bg-slate-50">
-          <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-slate-700 hover:bg-white transition-colors">
+        <div className="flex gap-2 sm:gap-3 px-4 py-3 sm:px-5 sm:py-4 border-t border-slate-200 bg-slate-50">
+          <button onClick={onClose} className="flex-1 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-bold text-slate-700 hover:bg-white transition-colors">
             Cancel
           </button>
-          <button onClick={handleCrop} className="flex-1 px-4 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-bold hover:bg-violet-700 transition-colors shadow-sm">
+          <button onClick={handleCrop} className="flex-1 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-violet-600 text-white text-xs sm:text-sm font-bold hover:bg-violet-700 transition-colors shadow-sm">
             Crop & Upload
           </button>
         </div>
@@ -222,11 +222,11 @@ const RolesPermissionsTab = () => {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-slate-200">
-                <th className="text-left py-2 px-3 font-extrabold text-slate-700">Feature</th>
-                <th className="text-center py-2 px-3 font-extrabold text-rose-700">Admin</th>
-                <th className="text-center py-2 px-3 font-extrabold text-blue-700">Staff</th>
-                <th className="text-center py-2 px-3 font-extrabold text-emerald-700">Student</th>
-                <th className="text-center py-2 px-3 font-extrabold text-amber-700">Parent</th>
+                <th className="text-left py-2 px-2 sm:px-3 font-extrabold text-slate-700">Feature</th>
+                <th className="text-center py-2 px-2 sm:px-3 font-extrabold text-rose-700">Admin</th>
+                <th className="text-center py-2 px-2 sm:px-3 font-extrabold text-blue-700">Staff</th>
+                <th className="text-center py-2 px-2 sm:px-3 font-extrabold text-emerald-700">Student</th>
+                <th className="text-center py-2 px-2 sm:px-3 font-extrabold text-amber-700">Parent</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -242,9 +242,9 @@ const RolesPermissionsTab = () => {
                 { feature: 'Audit Logs', admin: true, staff: false, student: false, parent: false },
               ].map(row => (
                 <tr key={row.feature} className="hover:bg-slate-50">
-                  <td className="py-2 px-3 font-bold text-slate-700">{row.feature}</td>
+                  <td className="py-2 px-2 sm:px-3 font-bold text-slate-700">{row.feature}</td>
                   {['admin', 'staff', 'student', 'parent'].map(role => (
-                    <td key={role} className="py-2 px-3 text-center">
+                    <td key={role} className="py-2 px-2 sm:px-3 text-center">
                       {row[role] ? (
                         <svg className="w-4 h-4 text-emerald-500 mx-auto" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -266,7 +266,7 @@ const RolesPermissionsTab = () => {
       <SectionCard title="User List" subtitle="All registered users and their roles" icon="users">
         <div className="mb-4">
           <select value={filter} onChange={e => setFilter(e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
+            className="w-full px-3 py-2 sm:px-3 sm:py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
             <option value="">All Roles</option>
             <option value="admin">Administrators</option>
             <option value="staff">Staff</option>
@@ -369,7 +369,7 @@ const CommunicationSettingsTab = () => {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={saving} loading={saving} variant="primary">
-          Save Communication Settings
+          Save <span className="hidden sm:inline">Communication </span>Settings
         </Button>
       </div>
     </form>
@@ -422,10 +422,10 @@ const BackupManagementTab = () => {
     <div className="space-y-6">
       <SectionCard title="Database Backups" subtitle="Create and manage database backups" icon="database">
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-500">{backups.length} backup(s) on record</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-slate-500 truncate">{backups.length} backup(s) on record</p>
             <Button onClick={createBackup} disabled={creating} loading={creating} variant="primary" size="sm">
-              Create Backup
+              <span className="hidden sm:inline">Create </span>Backup
             </Button>
           </div>
           {backups.length === 0 ? (
@@ -499,7 +499,7 @@ const AuditLogsTab = () => {
       <SectionCard title="System Audit Logs" subtitle="Track all system activity and changes" icon="clock">
         <div className="space-y-4">
           <select value={filter} onChange={e => setFilter(e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
+            className="w-full px-3 py-2 sm:px-3 sm:py-2.5 border border-slate-300 rounded-md bg-white text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
             <option value="">All Actions</option>
             <option value="create">Create</option>
             <option value="update">Update</option>
@@ -610,7 +610,7 @@ const SchoolInfoTab = () => {
             </button>
             <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} aria-label="Upload school logo" />
           </div>
-          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <Field label="School / Site Name">
               <Input value={form.site_name} onChange={e => setForm(p => ({...p, site_name: e.target.value}))} placeholder="KNHS School Portal" />
             </Field>
@@ -625,7 +625,7 @@ const SchoolInfoTab = () => {
         <Field label="School Address">
           <textarea value={form.school_address} onChange={e => setForm(p => ({...p, school_address: e.target.value}))}
             rows={2} placeholder="Complete school address"
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all resize-none" />
+            className="w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all resize-none" />
         </Field>
       </SectionCard>
 
@@ -650,7 +650,7 @@ const SchoolInfoTab = () => {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={saving} loading={saving} variant="primary">
-          Save School Info
+          Save <span className="hidden sm:inline">School </span>Info
         </Button>
       </div>
     </form>
@@ -705,10 +705,10 @@ const PortalSettingsTab = () => {
 
       <SectionCard title="Academic Context" subtitle="Controls global defaults for grading and analytics" icon="school">
         <div className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <Field label="Academic Level" hint="Determines grading period structure">
               <select value={settings.academic_level} onChange={e => setSettings(p => ({...p, academic_level: e.target.value, current_term: '1'}))}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
+                className="w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
                 <option value="jhs">Junior High School (Grades 7-10)</option>
                 <option value="shs">Senior High School (Grades 11-12)</option>
                 <option value="both">Both (JHS + SHS)</option>
@@ -716,7 +716,7 @@ const PortalSettingsTab = () => {
             </Field>
             <Field label="Current Term" hint="Used as default when entering grades">
               <select value={settings.current_term} onChange={e => setSettings(p => ({...p, current_term: e.target.value}))}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
+                className="w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all">
                 {settings.academic_level === 'shs' ? (
                   <>
                     <option value="1">1st Semester</option>
@@ -740,7 +740,7 @@ const PortalSettingsTab = () => {
           </div>
 
           {/* Grading Period Preview */}
-          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Grading Period Structure</p>
             <div className="flex flex-wrap gap-2">
               {(settings.academic_level === 'shs'
@@ -795,7 +795,7 @@ const PortalSettingsTab = () => {
             <Field label="Maintenance Message">
               <textarea value={settings.maintenance_message} onChange={e => setSettings(p => ({...p, maintenance_message: e.target.value}))}
                 rows={3} placeholder="The portal is currently undergoing maintenance…"
-                className="w-full px-4 py-2.5 bg-white border border-rose-200 rounded-lg text-sm font-medium text-rose-900 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400 transition-all resize-none" />
+                className="w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-white border border-rose-200 rounded-lg text-sm font-medium text-rose-900 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-400 transition-all resize-none" />
             </Field>
           )}
         </div>
@@ -803,7 +803,7 @@ const PortalSettingsTab = () => {
 
       <div className="flex justify-end">
         <Button type="submit" disabled={saving} loading={saving} variant="primary">
-          Save Portal Settings
+          Save <span className="hidden sm:inline">Portal </span>Settings
         </Button>
       </div>
     </form>
@@ -910,9 +910,9 @@ const ProfileTab = () => {
     <div className="space-y-6">
       {/* Profile Header */}
       <SectionCard title="My Profile" subtitle="View and update your personal information" icon="user">
-        <div className="flex items-center gap-5 mb-6">
+        <div className="flex items-center gap-3 sm:gap-5 mb-4 sm:mb-6">
           <div className="relative">
-            <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-black overflow-hidden shadow-lg">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xl sm:text-2xl font-black overflow-hidden shadow-lg">
               {profilePic
                 ? <img src={profilePic} alt="Profile" className="w-full h-full object-cover" loading="lazy" />
                 : <span>{initials}</span>
@@ -943,8 +943,8 @@ const ProfileTab = () => {
             <input ref={picRef} type="file" className="hidden" accept="image/*" onChange={handlePicUpload} />
           </div>
           <div>
-            <p className="text-base font-black text-slate-900">{fullName}</p>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{user?.role} · {profile?.email}</p>
+            <p className="text-sm sm:text-base font-black text-slate-900 truncate">{fullName}</p>
+            <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest truncate">{user?.role} · {profile?.email}</p>
           </div>
         </div>
       </SectionCard>
@@ -953,12 +953,12 @@ const ProfileTab = () => {
         <form onSubmit={save} className="space-y-6">
           {/* Name */}
           <SectionCard title="Name Details" subtitle="Your full legal name" icon="user">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {user?.role === 'staff' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-600 mb-1.5">Title</label>
                   <select value={form.title} onChange={e => set('title')(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all">
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all">
                     <option value="">Select</option>
                     <option value="Mr.">Mr.</option>
                     <option value="Ms.">Ms.</option>
@@ -982,11 +982,11 @@ const ProfileTab = () => {
 
           {/* Personal */}
           <SectionCard title="Personal Information" subtitle="Demographics and personal details" icon="info">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <div>
                 <label className="block text-xs font-bold text-slate-600 mb-1.5">Sex</label>
                 <select value={form.sex} onChange={e => set('sex')(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all">
+                  className="w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all">
                   <option value="">Select</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
@@ -1007,7 +1007,7 @@ const ProfileTab = () => {
 
           {/* Family */}
           <SectionCard title="Family Details" subtitle="Parent or guardian information" icon="users">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <Field label="Father's Name">
                 <Input value={form.father_name} onChange={e => set('father_name')(e.target.value)} />
               </Field>
@@ -1019,7 +1019,7 @@ const ProfileTab = () => {
 
           {/* Academic */}
           <SectionCard title="Academic Record" subtitle="School enrollment information" icon="book">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <Field label="LRN (Learner Reference Number)">
                 <Input value={form.registration_number} onChange={e => set('registration_number')(e.target.value)} />
               </Field>
@@ -1031,7 +1031,7 @@ const ProfileTab = () => {
 
           {/* Contact */}
           <SectionCard title="Contact Information" subtitle="How to reach you" icon="mail">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <Field label="Email Address" hint="Used for notifications and password reset">
                 <Input type="email" value={form.email} onChange={e => set('email')(e.target.value)} placeholder="your@email.com" />
               </Field>
@@ -1042,20 +1042,20 @@ const ProfileTab = () => {
                 <Field label="Address">
                   <textarea value={form.address} onChange={e => set('address')(e.target.value)}
                     rows={2} placeholder="Your home address"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all resize-none" />
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all resize-none" />
                 </Field>
               </div>
               <div className="md:col-span-2">
                 <Field label="Emergency Contact" hint="Name, relationship, phone number">
                   <textarea value={form.contact_information} onChange={e => set('contact_information')(e.target.value)}
                     rows={2} placeholder="Name, relationship, phone number…"
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all resize-none" />
+                    className="w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 focus:bg-white transition-all resize-none" />
                 </Field>
               </div>
             </div>
           </SectionCard>
 
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-2 sm:gap-3 pt-2">
             <Button type="submit" disabled={saving} loading={saving} variant="primary" className="flex-1">
               {saving ? 'Saving…' : 'Save Changes'}
             </Button>
@@ -1068,7 +1068,7 @@ const ProfileTab = () => {
         <>
           {/* View mode */}
           <SectionCard title="Name Details" subtitle="Your full legal name" icon="user">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               {user?.role === 'staff' && <Field label="Title">{profile?.profile?.title || '—'}</Field>}
               <Field label="First Name">{profile?.first_name || '—'}</Field>
               <Field label="Middle Name">{profile?.profile?.middle_name || '—'}</Field>
@@ -1077,7 +1077,7 @@ const ProfileTab = () => {
           </SectionCard>
 
           <SectionCard title="Personal Information" subtitle="Demographics and personal details" icon="info">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <Field label="Sex">{profile?.profile?.sex ? profile.profile.sex.charAt(0).toUpperCase() + profile.profile.sex.slice(1) : '—'}</Field>
               <Field label="Date of Birth">{profile?.profile?.date_of_birth
                 ? new Date(profile.profile.date_of_birth + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
@@ -1088,14 +1088,14 @@ const ProfileTab = () => {
           </SectionCard>
 
           <SectionCard title="Family Details" subtitle="Parent or guardian information" icon="users">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <Field label="Father's Name">{profile?.profile?.father_name || '—'}</Field>
               <Field label="Mother's Name">{profile?.profile?.mother_name || '—'}</Field>
             </div>
           </SectionCard>
 
           <SectionCard title="Contact Information" subtitle="How to reach you" icon="mail">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
               <Field label="Email Address">{profile?.email || '—'}</Field>
               <Field label="Phone Number">{profile?.profile?.phone_number || '—'}</Field>
               <div className="md:col-span-2">
@@ -1109,7 +1109,7 @@ const ProfileTab = () => {
 
           {(profile?.profile?.registration_number || profile?.profile?.grade_level) && (
             <SectionCard title="Academic Record" subtitle="School enrollment information" icon="book">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <Field label="LRN">{profile?.profile?.registration_number || '—'}</Field>
                 <Field label="Grade Level">{profile?.profile?.grade_level || '—'}</Field>
               </div>
@@ -1118,10 +1118,10 @@ const ProfileTab = () => {
 
           <div className="flex justify-end pt-2">
             <Button type="button" variant="primary" onClick={() => setEditing(true)}>
-              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 mr-1 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              Edit Profile
+              <span className="hidden sm:inline">Edit </span>Profile
             </Button>
           </div>
         </>
@@ -1180,7 +1180,7 @@ const SecurityTab = () => {
   return (
     <form onSubmit={save} className="space-y-6">
       <SectionCard title="Change Password" subtitle="Keep your account secure with a strong password" icon="lock">
-        <div className="p-4 bg-amber-50 border border-amber-100 rounded-lg mb-5 flex gap-3">
+        <div className="p-3 sm:p-4 bg-amber-50 border border-amber-100 rounded-lg mb-4 sm:mb-5 flex gap-2 sm:gap-3">
           <svg className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
           <p className="text-xs font-bold text-amber-800">Use at least 8 characters with a mix of uppercase, numbers, and symbols for a strong password.</p>
         </div>
@@ -1213,7 +1213,7 @@ const SecurityTab = () => {
       </SectionCard>
       <div className="flex justify-end">
         <Button type="submit" disabled={saving || (form.confirmPassword && form.newPassword !== form.confirmPassword)} loading={saving} variant="primary">
-          Update Password
+          Update <span className="hidden sm:inline">Password</span><span className="sm:hidden">PW</span>
         </Button>
       </div>
     </form>
@@ -1223,38 +1223,38 @@ const SecurityTab = () => {
 // ── Settings Dashboard ──────────────────────────────────────────────────────
 
 const SettingsDashboard = ({ activeYear, totalUsers }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-    <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">School Profile</p>
+  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+    <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">School Profile</p>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
-        <span className="text-xs font-bold text-emerald-700">Complete</span>
+        <span className="text-[11px] sm:text-xs font-bold text-emerald-700">Complete</span>
       </div>
     </div>
-    <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Year</p>
-      <p className="text-sm font-extrabold text-violet-900">{activeYear || '—'}</p>
+    <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Year</p>
+      <p className="text-xs sm:text-sm font-extrabold text-violet-900 truncate">{activeYear || '—'}</p>
     </div>
-    <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Users</p>
-      <p className="text-sm font-extrabold text-slate-900">{totalUsers ?? '—'}</p>
+    <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Users</p>
+      <p className="text-xs sm:text-sm font-extrabold text-slate-900">{totalUsers ?? '—'}</p>
     </div>
-    <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">System Health</p>
+    <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">System Health</p>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
-        <span className="text-xs font-bold text-emerald-700">Online</span>
+        <span className="text-[11px] sm:text-xs font-bold text-emerald-700">Online</span>
       </div>
     </div>
-    <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Last Backup</p>
-      <p className="text-sm font-extrabold text-slate-900">—</p>
+    <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Last Backup</p>
+      <p className="text-xs sm:text-sm font-extrabold text-slate-900">—</p>
     </div>
-    <div className="bg-white border border-slate-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Database</p>
+    <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Database</p>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
-        <span className="text-xs font-bold text-emerald-700">Connected</span>
+        <span className="text-[11px] sm:text-xs font-bold text-emerald-700">Connected</span>
       </div>
     </div>
   </div>
@@ -1288,7 +1288,7 @@ const SystemStatusPanel = () => {
   }, []);
 
   if (loading) return (
-    <div className="bg-white border border-slate-200 rounded-lg p-5 space-y-3">
+    <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-5 space-y-3">
       <Skeleton className="h-4 w-24" />
       <Skeleton className="h-8 w-full" />
       <Skeleton className="h-8 w-full" />
@@ -1307,9 +1307,9 @@ const SystemStatusPanel = () => {
   ];
 
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-5">
-      <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-4">System Status</h3>
-      <div className="space-y-3">
+    <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-5">
+      <h3 className="text-[10px] sm:text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3 sm:mb-4">System Status</h3>
+      <div className="space-y-2 sm:space-y-3">
         {items.map(item => (
           <div key={item.label} className="flex items-center justify-between">
             <span className="text-[11px] font-bold text-slate-500">{item.label}</span>
@@ -1424,18 +1424,18 @@ const Settings = () => {
   return (
     <div className="page-bottom-safe max-w-[1800px] mx-auto min-h-0 bg-slate-50 px-3 py-4 md:px-6 md:py-6 animate-fade-in">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-        <div>
-          <div className="flex items-center gap-2 text-[11px] font-bold text-violet-700 uppercase tracking-wide mb-1.5">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-bold text-violet-700 uppercase tracking-wide mb-1 sm:mb-1.5">
+            <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
-            <span>{isAdmin ? 'System Configuration' : 'Account Settings'}</span>
+            <span className="truncate">{isAdmin ? 'System Configuration' : 'Account Settings'}</span>
           </div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight truncate">
             Settings & Configuration
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 hidden sm:block">
             {isAdmin ? 'Manage school configuration, academic years, and portal settings' : 'Manage your profile and account security'}
           </p>
         </div>
@@ -1453,8 +1453,8 @@ const Settings = () => {
       {isAdmin && <div className="mb-5"><SettingsDashboard activeYear={activeYear} totalUsers={totalUsers} /></div>}
 
       {/* Search */}
-      <div className="relative mb-5">
-        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+      <div className="relative mb-4 sm:mb-5">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -1463,11 +1463,11 @@ const Settings = () => {
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           aria-label="Search settings"
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all"
+          className="w-full pl-9 pr-3 py-2 sm:pl-10 sm:pr-4 sm:py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 transition-all"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 md:gap-6 items-start">
         {/* Sidebar Navigation */}
         <nav className="lg:col-span-3" aria-label="Settings navigation">
           {/* Mobile: hamburger + horizontal scroll */}
@@ -1481,13 +1481,34 @@ const Settings = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={mobileNavOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
               </svg>
             </button>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {userNav.flatMap(s => s.items).find(i => i.id === activeTab)?.label || activeTab}
-            </span>
+            <div className="overflow-x-auto flex-nowrap min-w-0 flex-1">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                {userNav.flatMap(s => s.items).find(i => i.id === activeTab)?.label || activeTab}
+              </span>
+            </div>
+          </div>
+          {/* Mobile: horizontal scrollable tabs */}
+          <div className="flex overflow-x-auto flex-nowrap gap-1.5 lg:hidden mb-3 -mx-1 px-1 pb-1 scrollbar-none">
+            {userNav.flatMap(s => s.items).map(item => {
+              const active = activeTab === item.id;
+              return (
+                <button key={item.id} onClick={() => { setActiveTab(item.id); setMobileNavOpen(false); }}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold transition-all whitespace-nowrap ${
+                    active
+                      ? 'bg-violet-600 text-white shadow-sm'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                  }`}
+                  role="tab"
+                  aria-selected={active}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
           {mobileNavOpen && <div className="fixed inset-0 bg-black/30 z-40 lg:hidden" onClick={() => setMobileNavOpen(false)} />}
           <div className={`${mobileNavOpen ? 'fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-2xl' : 'hidden'} lg:block lg:static lg:shadow-none overflow-y-auto`}>
-            <div className={`${mobileNavOpen ? 'p-4' : ''} lg:p-0`}>
+            <div className={`${mobileNavOpen ? 'p-3 sm:p-4' : ''} lg:p-0`}>
               {/* Mobile close */}
               {mobileNavOpen && (
                 <div className="flex items-center justify-between mb-4 lg:hidden">

@@ -48,8 +48,8 @@ const Contact = () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-              <p className="text-xs font-semibold text-violet-200 tracking-widest mb-4">Contact Information</p>
-              <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-5">
+              <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-4">Contact Information</p>
+              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5">
                 {content.contact_title?.content || 'Get in Touch'}
               </h1>
               <p className="text-violet-100 leading-relaxed text-lg">
@@ -67,24 +67,24 @@ const Contact = () => {
             {/* Info cards */}
             <div className="lg:col-span-2 space-y-4">
               {infoItems.map((item, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6 flex items-start gap-4 hover:shadow-lg hover:border-violet-300 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-violet-100 border border-slate-200 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-900 transition-colors">
+                <div key={i} className="bg-white rounded-2xl border-2 border-violet-200 p-6 flex items-start gap-4 hover:shadow-lg hover:border-violet-400 transition-all group">
+                  <div className="w-12 h-12 rounded-xl bg-violet-100 border-2 border-violet-200 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-900 transition-colors">
                     <svg className="w-6 h-6 text-violet-800 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-violet-800 tracking-widest mb-1">{item.label}</p>
-                    <p className="text-sm font-medium text-gray-800">{item.value}</p>
+                    <p className="text-xs font-bold text-violet-800 uppercase tracking-widest mb-1">{item.label}</p>
+                    <p className="text-sm font-bold text-gray-800">{item.value}</p>
                   </div>
                 </div>
               ))}
 
               {/* Quick CTA */}
-              <div className="bg-violet-900 rounded-2xl p-6 text-white border border-violet-900">
-                <p className="text-base font-bold mb-1">Ready to Enroll?</p>
+              <div className="bg-violet-900 rounded-2xl p-6 text-white border-2 border-violet-900">
+                <p className="text-base font-black mb-1 uppercase">Ready to Enroll?</p>
                 <p className="text-sm text-violet-100 mb-4">Applications are open for SY 2026–2027.</p>
-                <a href="/enroll" className="inline-flex items-center gap-1.5 text-sm font-bold bg-white text-violet-900 px-5 py-2.5 rounded-lg hover:bg-violet-50 transition-colors">
+                <a href="/enroll" className="inline-flex items-center gap-1.5 text-sm font-black bg-white text-violet-900 px-5 py-2.5 rounded-lg hover:bg-violet-50 transition-colors uppercase">
                   Apply Now
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4 4H3" /></svg>
                 </a>
@@ -93,7 +93,7 @@ const Contact = () => {
 
             {/* Map */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden h-full min-h-[480px] relative shadow-sm">
+              <div className="bg-white rounded-2xl border-2 border-violet-200 overflow-hidden h-full min-h-[480px] relative shadow-sm">
                 {content.contact_map_url?.content ? (
                   <iframe
                     src={content.contact_map_url.content}
@@ -118,15 +118,15 @@ const Contact = () => {
                 )}
 
                 {/* Floating label */}
-                <div className="absolute bottom-4 left-4 right-4 bg-violet-950/95 backdrop-blur-sm rounded-xl p-4 hidden sm:flex items-center justify-between gap-4 border border-violet-800">
+                <div className="absolute bottom-4 left-4 right-4 bg-violet-950/95 backdrop-blur-sm rounded-xl p-4 hidden sm:flex items-center justify-between gap-4 border-2 border-violet-800">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-violet-900 text-sm font-bold flex-shrink-0">KN</div>
+                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-violet-900 text-sm font-black flex-shrink-0">KN</div>
                     <div>
-                      <p className="text-white text-sm font-bold leading-none">Kiwalan National High School</p>
+                      <p className="text-white text-sm font-black leading-none">Kiwalan National High School</p>
                       <p className="text-violet-200 text-xs mt-0.5">Main Campus · Kiwalan, Philippines</p>
                     </div>
                   </div>
-                  <button className="px-4 py-2 bg-white text-violet-900 rounded-lg text-xs font-bold hover:bg-violet-50 transition-colors flex-shrink-0">
+                  <button className="px-4 py-2 bg-white text-violet-900 rounded-lg text-xs font-black hover:bg-violet-50 transition-colors flex-shrink-0 uppercase">
                     Directions
                   </button>
                 </div>

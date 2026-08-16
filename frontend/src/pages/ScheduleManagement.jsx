@@ -843,7 +843,7 @@ export default function ScheduleManagement() {
       ) : (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           {/* Section header with filter controls */}
-          <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/80 flex flex-wrap items-center justify-between gap-3">
+          <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <div>
                 <p className="text-sm font-bold text-slate-900">{classrooms.find(c => String(c.id) === filterClassroom)?.name}</p>
@@ -854,22 +854,24 @@ export default function ScheduleManagement() {
                 Change
               </button>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <select value={filterDay} onChange={e => setFilterDay(e.target.value)}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/40">
+                className="px-2 sm:px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/40">
                 <option value="">All Days</option>
                 {DAYS.map(d => <option key={d} value={d}>{DAY_FULL[d]}</option>)}
               </select>
               <button type="button" onClick={() => openCreate()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-colors">
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-colors">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
-                Add Class
+                <span className="hidden sm:inline">Add Class</span>
+                <span className="sm:hidden">Add</span>
               </button>
               {filtered.length > 0 && (
                 <button type="button" onClick={clearAllSchedules} disabled={saving}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 hover:border-rose-300 disabled:opacity-50 transition-colors">
+                  className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 text-xs font-bold hover:bg-rose-100 hover:border-rose-300 disabled:opacity-50 transition-colors">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  Clear All
+                  <span className="hidden sm:inline">Clear All</span>
+                  <span className="sm:hidden">Clear</span>
                 </button>
               )}
             </div>
@@ -881,7 +883,7 @@ export default function ScheduleManagement() {
               <div className="flex gap-1.5 min-w-max">
                 {DAYS.map(d => (
                   <button key={d} type="button" onClick={() => setMobileSelectedDay(d)}
-                    className={`px-4 py-2 rounded-t-lg text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap ${
+                    className={`px-3 sm:px-4 py-2 rounded-t-lg text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap ${
                       mobileSelectedDay === d
                         ? 'bg-violet-600 text-white shadow-sm'
                         : 'bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300'
@@ -1202,13 +1204,13 @@ export default function ScheduleManagement() {
           </div>
 
           {/* Footer */}
-          <div className="px-4 md:px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3 flex-shrink-0">
+          <div className="px-4 md:px-6 py-4 border-t border-slate-200 bg-slate-50 flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 flex-shrink-0">
             <button type="button" onClick={() => setShowForm(false)}
-              className="px-6 py-2.5 bg-white text-slate-700 text-xs font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-lg">
+              className="w-full sm:w-auto px-6 py-2.5 bg-white text-slate-700 text-xs font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-lg">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="px-8 py-2.5 bg-violet-600 text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 disabled:opacity-50 flex items-center gap-2 rounded-lg">
+              className="w-full sm:w-auto px-8 py-2.5 bg-violet-600 text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 disabled:opacity-50 flex items-center justify-center gap-2 rounded-lg">
               {saving && <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
               {saving ? 'Saving...' : editItem ? 'Save Changes' : 'Assign Class'}
             </button>

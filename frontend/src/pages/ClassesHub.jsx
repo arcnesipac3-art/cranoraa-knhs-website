@@ -142,8 +142,6 @@ export default function ClassesHub() {
   const [sectionSubjects, setSectionSubjects] = useState({});
   const [sectionSchedules, setSectionSchedules] = useState({});
   const [expandedSchedule, setExpandedSchedule] = useState(null);
-  const [subjectsLoading, setSubjectsLoading] = useState(true);
-  const [schedulesLoading, setSchedulesLoading] = useState(true);
 
   const activeYear = academicYears.find(y => y.is_active) || academicYears[0];
   useEffect(() => {
@@ -158,7 +156,6 @@ export default function ClassesHub() {
   useEffect(() => {
     if (!classes.length) return;
     const load = async () => {
-      setSubjectsLoading(true);
       const results = {};
       await Promise.all(classes.map(async (cls) => {
         try {
@@ -167,7 +164,6 @@ export default function ClassesHub() {
         } catch { results[cls.id] = []; }
       }));
       setSectionSubjects(results);
-      setSubjectsLoading(false);
     };
     load();
   }, [classes]);
@@ -175,7 +171,6 @@ export default function ClassesHub() {
   useEffect(() => {
     if (!classes.length || !selectedYearId) return;
     const load = async () => {
-      setSchedulesLoading(true);
       const results = {};
       await Promise.all(classes.map(async (cls) => {
         try {
@@ -184,7 +179,6 @@ export default function ClassesHub() {
         } catch { results[cls.id] = []; }
       }));
       setSectionSchedules(results);
-      setSchedulesLoading(false);
     };
     load();
   }, [classes, selectedYearId]);
@@ -276,18 +270,18 @@ export default function ClassesHub() {
               <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide">Classroom sections & subject assignments</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
               <span className="text-lg font-black text-slate-800">{classes.length}</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Sections</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase hidden sm:inline">Sections</span>
             </div>
             <div className="flex items-center gap-1.5 bg-violet-50 border border-violet-200 rounded-lg px-3 py-1.5">
               <span className="text-sm font-black text-violet-700">{sortedGrades.length}</span>
-              <span className="text-[10px] font-bold text-violet-500 uppercase">Grade Levels</span>
+              <span className="text-[10px] font-bold text-violet-500 uppercase hidden sm:inline">Grade Levels</span>
             </div>
             <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
               <span className="text-sm font-black text-emerald-700">{classes.reduce((sum, c) => sum + (c.student_count ?? 0), 0)}</span>
-              <span className="text-[10px] font-bold text-emerald-500 uppercase">Students</span>
+              <span className="text-[10px] font-bold text-emerald-500 uppercase hidden sm:inline">Students</span>
             </div>
           </div>
         </div>
@@ -316,13 +310,13 @@ export default function ClassesHub() {
             <button onClick={() => navigate('/subjects')}
               className="flex items-center gap-1.5 bg-white border border-slate-200 text-slate-700 font-bold py-2 px-3 rounded-lg text-sm hover:bg-slate-50 transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332-.477-4.5-1.253" /></svg>
-              Subjects
+              <span className="hidden sm:inline">Subjects</span>
             </button>
             <button onClick={() => { setFormData({ name: '', grade_level: '', teacher: '' }); setEditingClass(null); setShowModal(true); }}
               aria-label="Add new section"
               className="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Add Section
+              <span className="hidden sm:inline">Add Section</span>
             </button>
           </div>
         </div>
@@ -337,21 +331,21 @@ export default function ClassesHub() {
             {sortedGrades.map(grade => (
               <div key={grade} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                 <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-[#5e2a84] flex items-center justify-center rounded-lg">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 bg-[#5e2a84] flex items-center justify-center rounded-lg flex-shrink-0">
                       <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                     </div>
-                    <h3 className="font-bold text-slate-700">{grade}</h3>
+                    <h3 className="font-bold text-slate-700 truncate">{grade}</h3>
                   </div>
-                  <span className="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{groupedClasses[grade].length} sections</span>
+                  <span className="text-sm font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full flex-shrink-0 ml-2">{groupedClasses[grade].length}<span className="hidden sm:inline"> sections</span><span className="sm:hidden"> sec</span></span>
                 </div>
                 <div className="divide-y divide-slate-100">
                   {groupedClasses[grade].map(cls => {
                     const subs = sectionSubjects[cls.id] || [];
                     return (
-                      <div key={cls.id} className="p-4 hover:bg-slate-50 transition-colors">
+                       <div key={cls.id} className="p-3 sm:p-4 hover:bg-slate-50 transition-colors">
                         <div className="flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                          <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
                             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-sm flex-shrink-0">
                               {cls.name.match(/\d+/)?.[0] || cls.name.charAt(0)}
                             </div>
@@ -368,7 +362,7 @@ export default function ClassesHub() {
                                         return t?.profile?.profile_picture || null;
                                       })()}
                                     />
-                                    <span className="text-xs text-slate-500">
+                                    <span className="text-xs text-slate-500 truncate max-w-[100px] sm:max-w-none">
                                       {cls.teacher_name}
                                     </span>
                                   </div>
@@ -380,41 +374,34 @@ export default function ClassesHub() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            {schedulesLoading ? (
-                              <Skeleton className="h-8 w-20 rounded-lg" />
-                            ) : (sectionSchedules[cls.id] || []).length > 0 && (
+                          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+                            {(sectionSchedules[cls.id] || []).length > 0 && (
                               <Button
                                 variant={expandedSchedule === cls.id ? 'primary' : 'secondary'}
                                 size="sm"
                                 onClick={() => setExpandedSchedule(expandedSchedule === cls.id ? null : cls.id)}
+                                className="!px-2 sm:!px-3"
                               >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                Schedule
+                                <span className="hidden sm:inline">Schedule</span>
                               </Button>
                             )}
-                            <Button variant="secondary" size="sm" onClick={() => { setEditingClass(cls); setFormData({ name: cls.name, grade_level: cls.grade_level, teacher: cls.teacher || '' }); setShowModal(true); }}>
+                            <Button variant="secondary" size="sm" onClick={() => { setEditingClass(cls); setFormData({ name: cls.name, grade_level: cls.grade_level, teacher: cls.teacher || '' }); setShowModal(true); }} className="!px-2 sm:!px-3">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                              Edit
+                              <span className="hidden sm:inline">Edit</span>
                             </Button>
-                            <Button variant="danger" size="sm" onClick={() => handleDeleteClass(cls.id)}>
+                            <Button variant="danger" size="sm" onClick={() => handleDeleteClass(cls.id)} className="!px-2 sm:!px-3">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                              Delete
+                              <span className="hidden sm:inline">Delete</span>
                             </Button>
                           </div>
                         </div>
-                        {subjectsLoading ? (
-                          <div className="mt-3 ml-14 flex flex-wrap gap-1.5">
-                            {Array.from({ length: 3 }).map((_, i) => (
-                              <Skeleton key={i} className="h-5 w-24 rounded-full" />
-                            ))}
-                          </div>
-                        ) : subs.length > 0 ? (
-                          <div className="mt-3 ml-14 flex flex-wrap gap-1.5">
+                        {subs.length > 0 && (
+                          <div className="mt-3 sm:ml-14 flex flex-wrap gap-1.5">
                             {subs.map(s => (
                               <span key={s.id} className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold rounded-full bg-violet-50 text-violet-700 border border-violet-200">
                                 <span className="font-mono">{s.subject_code}</span>
-                                <span className="text-violet-300">·</span>
+                                <span className="text-violet-300">�</span>
                                 <span>{s.teacher_name}</span>
                               </span>
                             ))}
@@ -422,19 +409,16 @@ export default function ClassesHub() {
                               + Manage
                             </button>
                           </div>
-                        ) : (
-                          <div className="mt-3 ml-14">
+                        )}
+                        {subs.length === 0 && (
+                           <div className="mt-3 sm:ml-14">
                             <button onClick={() => navigate('/subjects?tab=assignments')} className="text-xs font-semibold text-slate-400 hover:text-violet-600 transition-colors">
                               + Assign subjects
                             </button>
                           </div>
                         )}
-                        {schedulesLoading ? (
-                          <div className="mt-3 ml-14">
-                            <Skeleton className="h-4 w-32 rounded" />
-                          </div>
-                        ) : (sectionSchedules[cls.id] || []).length > 0 && (
-                          <div className="mt-3 ml-14">
+                        {(sectionSchedules[cls.id] || []).length > 0 && (
+                           <div className="mt-3 sm:ml-14">
                             <button
                               onClick={() => setExpandedSchedule(expandedSchedule === cls.id ? null : cls.id)}
                               className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-violet-600 transition-colors"
@@ -444,22 +428,9 @@ export default function ClassesHub() {
                             </button>
                           </div>
                         )}
-                        {expandedSchedule === cls.id && (
+                        {expandedSchedule === cls.id && (sectionSchedules[cls.id] || []).length > 0 && (
                           <div className="mt-3 ml-14 overflow-x-auto">
-                            {schedulesLoading ? (
-                              <div className="border border-slate-200 rounded-lg bg-white p-4 space-y-3">
-                                {Array.from({ length: 3 }).map((_, i) => (
-                                  <div key={i} className="flex gap-3">
-                                    <Skeleton className="h-4 w-16 rounded" />
-                                    {Array.from({ length: 6 }).map((_, j) => (
-                                      <Skeleton key={j} className="h-10 flex-1 rounded" />
-                                    ))}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (sectionSchedules[cls.id] || []).length > 0 && (
-                              <ScheduleGrid schedules={sectionSchedules[cls.id]} />
-                            )}
+                            <ScheduleGrid schedules={sectionSchedules[cls.id]} />
                           </div>
                         )}
                       </div>

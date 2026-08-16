@@ -8,15 +8,15 @@ const FAQ_SECTION = [
     items: [
       {
         q: 'How do I log in to the portal?',
-        a: 'Go to the login page and select your portal (Student, Faculty, Parent, or Admin), then enter your credentials. Students use their Student ID or email. Faculty use their teacher email. Parents use their parent email or ID. First-time users should use the default password provided by the ICT office. You will be required to change your password on first login.'
+        a: 'Go to the login page and enter your Student LRN (12 digits) or registered email/username. First-time users should use the default password provided by the ICT office. You will be required to change your password on first login.'
       },
       {
         q: 'I forgot my password. What should I do?',
-        a: 'Click "Forgot password?" on the login page. A dialog will appear instructing you to contact the ICT coordinator for password reset. There is no self-service password recovery. Parents can also use the Change Password page in their sidebar under Account.'
+        a: 'For students, click "Forgot Password" on the login page and follow the instructions. For staff and admin, contact the ICT office or your administrator to reset your password. Parents can use the password reset link sent to their registered email.'
       },
       {
         q: 'The portal says "Wrong Portal." How do I fix this?',
-        a: 'Each account has a designated role (Student, Faculty, Parent, or Admin). Make sure you are logging in through the correct portal option. If you are a teacher, select the Faculty portal. If you are an administrator, select the Admin portal. Selecting the wrong role will trigger this error.'
+        a: 'Each account has a designated role (Student, Staff, or Parent). Make sure you are logging in through the correct portal tab. If you are a teacher, use the Staff portal. If you are a student, use the Student portal.'
       },
     ]
   },
@@ -30,7 +30,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'How do I track my enrollment application?',
-        a: 'Visit the Track Enrollment page from the login screen or navigation menu. Enter your enrollment reference number or email address to check your application status. Possible statuses include: Pending, Under Review, Pending Requirements, Approved, Rejected, Cancelled, Enrolled, or Withdrawn.'
+        a: 'Visit the Track Enrollment page from the login screen or navigation menu. Enter your email address to check the current status of your application (Pending, Under Review, Approved, or Enrolled).'
       },
       {
         q: 'My application was rejected. Can I reapply?',
@@ -38,7 +38,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'What documents are required for enrollment?',
-        a: 'Required documents vary by grade level and enrollment type. Generally, you will need a Birth Certificate, Report Card or Form 138, and a valid ID. Some grade levels may require a Good Moral Certificate or other documents. The enrollment form will show the specific requirements for your situation.'
+        a: 'Typically required documents include: Birth Certificate, Form 138 (Report Card), Good Moral Certificate, and a valid ID. Additional documents may be required depending on your grade level or strand. Check the enrollment form for the complete list.'
       }
     ]
   },
@@ -48,7 +48,7 @@ const FAQ_SECTION = [
     items: [
       {
         q: 'Where can I view my grades?',
-        a: 'Students can view their grades in the "My Classes" section. Parents can check their child\'s grades from the Parent Dashboard. Teachers can input and manage grades through Grade Submission.'
+        a: 'Students can view their grades in the "My Classes" section. Parents can check their child\'s grades from the Parent Dashboard. Teachers can input and manage grades through Grade Management.'
       },
       {
         q: 'How do I submit my grades? (Teachers)',
@@ -56,7 +56,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'How is attendance recorded?',
-        a: 'Teachers record attendance through the Attendance Dashboard. Students\' attendance is marked as Present, Late, Excused, Absent, School Activity, or Medical Leave. Students and parents can view attendance records in My Attendance.'
+        a: 'Teachers record attendance through the Attendance Dashboard. Students\' attendance is marked as Present, Late, Excused, or Absent. Students and parents can view attendance records in My Attendance.'
       },
       {
         q: 'I was marked absent but I was present. What do I do?',
@@ -70,7 +70,7 @@ const FAQ_SECTION = [
     items: [
       {
         q: 'How do I change my password?',
-        a: 'Go to Settings from the sidebar, then navigate to the Security section. Click "Change Password" and enter your current and new password. For parents, there is also a dedicated Change Password page in the sidebar under Account.'
+        a: 'Go to Settings from the sidebar, then navigate to the Security section. Click "Change Password" and enter your current and new password. You will be logged out after changing your password.'
       },
       {
         q: 'How do I update my profile information?',
@@ -78,7 +78,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'How do I change my notification sound?',
-        a: 'Click the mute/unmute button in the sidebar header to toggle notification sounds on or off. This is located near the top of the sidebar, next to the school name.'
+        a: 'Go to Settings > Notifications. You can toggle notification sounds on or off and choose from available sound options.'
       }
     ]
   },
@@ -91,7 +91,7 @@ const FAQ_SECTION = [
         a: 'Check your internet connection. Try refreshing the page (Ctrl+R or F5). If the problem persists, clear your browser cache and cookies, then log in again.'
       },
       {
-        q: "I'm seeing a '403 Forbidden' or 'Access Denied' error.",
+        q: 'I\'m seeing a "403 Forbidden" or "Access Denied" error.',
         a: 'This means you don\'t have permission to access that page. Make sure you are logged in with the correct account. If you believe this is an error, contact your administrator.'
       },
       {
@@ -103,15 +103,15 @@ const FAQ_SECTION = [
         a: 'Sessions expire after a period of inactivity for security. If you are being logged out too frequently, make sure cookies are enabled in your browser and you are not using a private/incognito window.'
       },
       {
-        q: "I can't upload files or documents.",
+        q: 'I can\'t upload files or documents.',
         a: 'Check that the file is under 10MB and is in an accepted format (PDF, JPG, PNG). Try using a different browser if the upload keeps failing. Ensure you have a stable internet connection.'
       },
       {
         q: 'Notifications are not showing up.',
-        a: 'Refresh the page to load new notifications. Check if your browser blocks pop-ups or notifications from the site. Make sure you are logged in and your session has not expired.'
+        a: 'Make sure notification sounds are enabled in Settings > Notifications. Refresh the page to load new notifications. Check if your browser blocks pop-ups or notifications from the site.'
       },
       {
-        q: "I'm locked out after too many failed login attempts.",
+        q: 'I\'m locked out after too many failed login attempts.',
         a: 'Wait for the lockout timer to expire (usually a few minutes), then try again. Make sure Caps Lock is off and you\'re entering the correct credentials. Contact ICT support if you need immediate access.'
       }
     ]
@@ -134,7 +134,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'How do I encode attendance?',
-        a: 'Go to Attendance Dashboard, select the class and date, then mark each student as Present, Late, Excused, Absent, School Activity, or Medical Leave. Save the attendance record. Students can view their attendance in My Attendance.'
+        a: 'Go to Attendance Dashboard, select the class and date, then mark each student as Present, Late, Excused, or Absent. Save the attendance record. Students can view their attendance in My Attendance.'
       }
     ]
   },
@@ -189,55 +189,40 @@ const FaqItem = ({ item }) => {
   );
 };
 
-const ContactButton = ({ children, onClick, variant = 'primary' }) => {
-  return (
-    <button onClick={onClick}
-      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${variant === 'primary' ? 'bg-violet-600 text-white hover:bg-violet-700 shadow-lg shadow-violet-500/25' : 'bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200'}`}>
-      {children}
-    </button>
-  );
-};
-
 const HelpCenter = () => {
   const [activeSection, setActiveSection] = useState(null);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
         {/* Header */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold text-slate-900">Help Center</h1>
-              <p className="text-lg text-slate-500">Find answers to common questions and troubleshoot issues</p>
+              <h1 className="text-2xl font-extrabold text-slate-900">Help Center</h1>
+              <p className="text-sm text-slate-500">Find answers to common questions and troubleshoot issues</p>
             </div>
           </div>
-          <ContactButton onClick={() => alert('Contact ICT Support!')}>Contact ICT Support</ContactButton>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="text-center">
-            <div className="text-2xl font-bold text-violet-600">24/7</div>
-            <div className="text-sm text-slate-500">Support Available</div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="text-center">
-            <div className="text-2xl font-bold text-blue-600">50+</div>
-            <div className="text-sm text-slate-500">FAQ Topics</div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="text-center">
-            <div className="text-2xl font-bold text-green-600">99%</div>
-            <div className="text-sm text-slate-500">Satisfaction Rate</div>
-          </motion.div>
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }} className="text-center">
-            <div className="text-2xl font-bold text-orange-600">10min</div>
-            <div className="text-sm text-slate-500">Avg. Response</div>
-          </motion.div>
+        {/* Quick Contact */}
+        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl p-5 mb-8 text-white">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-bold text-sm">Can't find what you're looking for?</p>
+              <p className="text-xs text-white/80">Contact ICT Support at <span className="font-semibold">ict@kiwalannhs.edu.ph</span></p>
+            </div>
+          </div>
         </div>
 
         {/* Section Nav */}
@@ -249,22 +234,22 @@ const HelpCenter = () => {
           {FAQ_SECTION.map((section) => (
             <button key={section.title} onClick={() => setActiveSection(section.title)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${activeSection === section.title ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-                {section.title}
-              </button>
+              {section.title}
+            </button>
           ))}
         </div>
 
         {/* FAQ Sections */}
-        <div className="space-y-8">
+        <div className="space-y-6">
           {FAQ_SECTION.filter(s => !activeSection || s.title === activeSection).map((section) => (
-            <div key={section.title} className="border-l-4 border-violet-500">
-              <div className="flex items-center gap-2 px-4 py-3">
+            <div key={section.title}>
+              <div className="flex items-center gap-2 mb-3">
                 <svg className="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={section.icon} />
                 </svg>
-                <h2 className="text-lg font-bold text-slate-900 uppercase tracking-wider">{section.title}</h2>
+                <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">{section.title}</h2>
               </div>
-              <div className="px-4 py-4">
+              <div className="space-y-2">
                 {section.items.map((item, i) => (
                   <FaqItem key={i} item={item} />
                 ))}

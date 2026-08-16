@@ -14,7 +14,7 @@ from .views import (
     system_settings_view, maintenance_status_view,
     RoomViewSet, TimeSlotViewSet, ScheduleViewSet,
     parent_dashboard_view, parent_child_detail_view,
-    fcm_token_register, fcm_token_delete, fcm_deactivate_all, fcm_wipe_all, test_push_notification,
+    fcm_token_register, fcm_token_delete, test_push_notification,
     storage_analytics_view,
     notification_preferences_view,
     TicketViewSet, DepartmentContactViewSet,
@@ -33,7 +33,6 @@ from .views import (
     check_overdue_submissions, sync_teacher_submissions,
     trigger_compliance_reminders,
     bulk_assign_classroom_subject, legacy_submissions, compliance_audit_trail,
-    FacultyMemberViewSet,
 )
 app_name = 'accounts'
 
@@ -84,7 +83,6 @@ router.register(r'v1/grade-submissions', GradeSubmissionViewSet, basename='grade
 router.register(r'v1/grade-reopening-requests', GradeReopeningRequestViewSet, basename='grade-reopening-request')
 router.register(r'v1/compliance/types', ComplianceTypeViewSet, basename='compliance-type')
 router.register(r'v1/compliance/submissions', ComplianceSubmissionViewSet, basename='compliance-submission')
-router.register(r'v1/faculty-members', FacultyMemberViewSet, basename='faculty-member')
 
 # NOTE: school_portal/urls.py mounts these under 'api/', so paths here should NOT include 'api/'.
 # Final URL = api/ + path below  e.g. api/v1/login/
@@ -127,8 +125,6 @@ urlpatterns = [
     path('v1/admin/run-backup-enhanced/', run_backup_view_enhanced, name='run_backup_enhanced'),
     path('v1/fcm-tokens/', fcm_token_register, name='fcm_token_register'),
     path('v1/fcm-tokens/delete/', fcm_token_delete, name='fcm_token_delete'),
-    path('v1/fcm-tokens/deactivate-all/', fcm_deactivate_all, name='fcm_deactivate_all'),
-    path('v1/fcm-tokens/wipe-all/', fcm_wipe_all, name='fcm_wipe_all'),
     path('v1/test-push/', test_push_notification, name='test_push_notification'),
     path('v1/notification-preferences/', notification_preferences_view, name='notification_preferences'),
     path('v1/compliance/dashboard/', compliance_dashboard, name='compliance_dashboard'),

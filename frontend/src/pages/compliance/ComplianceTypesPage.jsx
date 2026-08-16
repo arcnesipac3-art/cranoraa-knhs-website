@@ -132,7 +132,7 @@ export default function ComplianceTypesPage() {
       }
     } else {
       // Reactivate
-      await updateType(type.id, { is_active: true });
+      await updateType(type.id, { ...type, is_active: true });
     }
   };
 
@@ -156,7 +156,7 @@ export default function ComplianceTypesPage() {
   };
 
   const handleToggleActive = async (type) => {
-    await updateType(type.id, { is_active: !type.is_active });
+    await updateType(type.id, { ...type, is_active: !type.is_active });
   };
 
   const activeCount = types.filter(t => t.is_active).length;

@@ -30,7 +30,6 @@ from .academic import (
     ClassroomSubjectViewSet,
     ScratchCardViewSet,
     FeeViewSet,
-    FacultyMemberViewSet,
 )
 
 from .grades import (
@@ -134,8 +133,6 @@ from .misc import (
 from .fcm import (
     fcm_token_register,
     fcm_token_delete,
-    fcm_deactivate_all,
-    fcm_wipe_all,
     test_push_notification,
 )
 

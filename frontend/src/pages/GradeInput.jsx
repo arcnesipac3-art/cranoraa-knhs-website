@@ -384,7 +384,7 @@ const GradeInput = () => {
       {/* PAGE HEADER */}
       {/* ══════════════════════════════════════════════════════════════ */}
       
-      <div className="flex-shrink-0 px-4 sm:px-5 md:px-6 py-4 sm:py-5 bg-white border-b border-slate-200 shadow-sm">
+      <div className="flex-shrink-0 px-3 sm:px-5 md:px-6 py-3 sm:py-5 bg-white border-b border-slate-200 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           {/* Title Section */}
           <div>
@@ -394,7 +394,7 @@ const GradeInput = () => {
               </svg>
               <span>Grade Entry</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
               Final Grade Input
             </h1>
             <p className="text-xs text-slate-600 mt-1 font-semibold">
@@ -403,7 +403,7 @@ const GradeInput = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             {!isEmbedded && (
               <Button
                 variant="secondary"
@@ -435,8 +435,8 @@ const GradeInput = () => {
       {/* CONTROLS PANEL */}
       {/* ══════════════════════════════════════════════════════════════ */}
 
-      <div className="flex-shrink-0 px-4 sm:px-5 md:px-6 py-3 sm:py-4 bg-white border-b border-slate-200">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+      <div className="flex-shrink-0 px-3 sm:px-5 md:px-6 py-2.5 sm:py-4 bg-white border-b border-slate-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-4">
           {/* Classroom - Hide selector in embedded mode */}
           {!isEmbedded && (
             <div className="md:col-span-1">
@@ -615,7 +615,7 @@ const GradeInput = () => {
       {/* ══════════════════════════════════════════════════════════════ */}
 
       {activePeriod !== undefined && (
-        <div className={`flex-shrink-0 px-4 sm:px-5 md:px-6 py-2.5 border-b flex items-center justify-between gap-3 flex-wrap ${
+        <div className={`flex-shrink-0 px-3 sm:px-5 md:px-6 py-2 border-b flex items-center justify-between gap-2 sm:gap-3 flex-wrap ${
           !activePeriod
             ? 'bg-slate-50 border-slate-200'
             : activePeriod.days_remaining < 0
@@ -686,45 +686,45 @@ const GradeInput = () => {
       {/* ══════════════════════════════════════════════════════════════ */}
 
       {selClassroom && selSubject && students.length > 0 && scores.length > 0 && (
-        <div className="flex-shrink-0 px-4 sm:px-5 md:px-6 py-3 sm:py-4 bg-violet-50 border-b border-violet-100">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4">
+        <div className="flex-shrink-0 px-3 sm:px-5 md:px-6 py-2.5 sm:py-4 bg-violet-50 border-b border-violet-100">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
             <div className="text-center">
-              <div className="text-xl md:text-2xl font-extrabold text-violet-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-violet-600">
                 {filled.length}/{students.length}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
                 Encoded
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xl md:text-2xl font-extrabold text-violet-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-violet-600">
                 {avg}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
                 Average
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xl md:text-2xl font-extrabold text-emerald-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-emerald-600">
                 {highest}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
                 Highest
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xl md:text-2xl font-extrabold text-red-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-red-600">
                 {lowest}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
                 Lowest
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xl md:text-2xl font-extrabold text-violet-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-violet-600">
                 {passing}/{scores.length}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
                 Passing
               </div>
             </div>
@@ -739,7 +739,7 @@ const GradeInput = () => {
       <div className="flex-1 overflow-auto min-h-0">
         {loading ? (
           /* Skeleton table — mirrors real row structure: # | name+avatar | grade input | performance */
-          <div className="p-4 sm:p-5 md:p-6" aria-busy="true" aria-label="Loading students…">
+          <div className="p-3 sm:p-5 md:p-6" aria-busy="true" aria-label="Loading students…">
             <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
               {/* Table header */}
               <div className="hidden sm:grid grid-cols-[2.5rem_1fr_8rem_11rem] gap-0 bg-slate-50 border-b-2 border-slate-200 px-4 py-3">
@@ -783,7 +783,7 @@ const GradeInput = () => {
             </div>
           </div>
         ) : !selClassroom ? (
-          <div className="flex items-center justify-center h-full p-8">
+          <div className="flex items-center justify-center h-full p-4 sm:p-8">
             <EmptyState
               title="Select a Classroom"
               description="Choose a classroom to start entering grades"
@@ -795,7 +795,7 @@ const GradeInput = () => {
             />
           </div>
         ) : !selSubject ? (
-          <div className="flex items-center justify-center h-full p-8">
+          <div className="flex items-center justify-center h-full p-4 sm:p-8">
             <EmptyState
               title="Select a Subject"
               description="Choose a subject to start entering grades"
@@ -807,7 +807,7 @@ const GradeInput = () => {
             />
           </div>
         ) : students.length === 0 ? (
-          <div className="flex items-center justify-center h-full p-8">
+          <div className="flex items-center justify-center h-full p-4 sm:p-8">
             <EmptyState
               title="No Students Enrolled"
               description="This classroom doesn't have any students yet"
@@ -819,7 +819,7 @@ const GradeInput = () => {
             />
           </div>
         ) : (
-          <div className="p-4 sm:p-5 md:p-6">
+          <div className="p-3 sm:p-5 md:p-6">
             <Card>
               <CardHeader divider>
                 <CardTitle subtitle={`Enter final grades for ${students.length} students`}>
@@ -831,16 +831,16 @@ const GradeInput = () => {
                   <table className="w-full">
                     <thead className="bg-slate-50 border-b-2 border-slate-200 sticky top-0">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-extrabold text-slate-700 uppercase tracking-wider w-12">
+                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-extrabold text-slate-700 uppercase tracking-wider w-10 sm:w-12">
                           #
                         </th>
-                        <th className="px-4 py-3 text-left text-xs font-extrabold text-slate-700 uppercase tracking-wider min-w-[200px]">
+                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-extrabold text-slate-700 uppercase tracking-wider min-w-[160px] sm:min-w-[200px]">
                           Student Name
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-32">
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-24 sm:w-32">
                           Final Grade
                         </th>
-                        <th className="px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-48">
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-28 sm:w-48">
                           Performance Level
                         </th>
                       </tr>
@@ -894,12 +894,12 @@ const GradeInput = () => {
                                   'hover:bg-slate-50'
                                 }`}
                               >
-                                <td className="px-4 py-3 text-xs font-bold text-slate-500">
+                                <td className="px-3 sm:px-4 py-3 text-xs font-bold text-slate-500">
                                   {displayIdx}
                                 </td>
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`w-9 h-9 rounded-md flex items-center justify-center text-white font-extrabold text-xs shadow-sm shrink-0 ${
+                                <td className="px-3 sm:px-4 py-3">
+                                  <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-md flex items-center justify-center text-white font-extrabold text-xs shadow-sm shrink-0 ${
                                       currentSex === 'male' ? 'bg-violet-500 border border-violet-700' :
                                       currentSex === 'female' ? 'bg-rose-500 border border-rose-700' :
                                       'bg-slate-500 border border-slate-700'
@@ -907,7 +907,7 @@ const GradeInput = () => {
                                       {s.student_name?.charAt(0).toUpperCase()}
                                     </div>
                                     <div className="min-w-0">
-                                      <p className="text-sm font-bold text-slate-900 truncate">
+                                      <p className="text-xs sm:text-sm font-bold text-slate-900 truncate">
                                         {formatName(s.student_name)}
                                       </p>
                                       {existingGrade && raw === '' && (
@@ -923,7 +923,7 @@ const GradeInput = () => {
                                     </div>
                                   </div>
                                 </td>
-                                <td className="px-4 py-3">
+                                <td className="px-3 sm:px-4 py-3">
                                   <input
                                     ref={el => inputRefs.current[s.student] = el}
                                     type="number"
@@ -935,14 +935,14 @@ const GradeInput = () => {
                                     onFocus={() => setActive(s.student)}
                                     onKeyDown={e => handleKeyDown(e, s.student)}
                                     placeholder="0-100"
-                                    className={`w-full px-3 py-2 text-center font-mono text-sm font-bold border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all ${
+                                    className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-center font-mono text-xs sm:text-sm font-bold border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all ${
                                       isOver ? 'border-red-500 bg-red-50 text-red-700' :
                                       isActive ? 'border-violet-500 bg-white' :
                                       'border-slate-200 bg-white'
                                     }`}
                                   />
                                 </td>
-                                <td className="px-4 py-3 text-center">
+                                <td className="px-3 sm:px-4 py-3 text-center">
                                   {isOver ? (
                                     <Badge variant="red">
                                       INVALID (Over 100)
@@ -973,12 +973,12 @@ const GradeInput = () => {
             </Card>
 
             {/* Keyboard Navigation Hint */}
-            <div className="mt-4 sm:mt-5 p-3 sm:p-4 bg-violet-50 border border-violet-200 rounded-md">
-              <p className="text-xs font-semibold text-violet-700 uppercase tracking-wide">
-                <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mt-3 sm:mt-5 p-2.5 sm:p-4 bg-violet-50 border border-violet-200 rounded-md">
+              <p className="text-[10px] sm:text-xs font-semibold text-violet-700 uppercase tracking-wide">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Keyboard Navigation: Use Tab, Enter, or Arrow keys to move between fields
+                Keyboard: Tab, Enter, or Arrow keys to navigate
               </p>
             </div>
           </div>

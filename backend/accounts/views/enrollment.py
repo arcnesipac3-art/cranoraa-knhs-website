@@ -103,14 +103,15 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
     ordering = ['-submitted_at']
 
     def get_permissions(self):
-        if self.action in ('create', 'track', 'submit_documents'):
+        if self.action == 'create':
             return [AllowAny()]
         if self.action in ('start_review', 'reject', 'enroll_student', 'assign_section',
                            'verify_document', 'reject_document', 'request_requirements',
                            'destroy', 'update', 'partial_update', 'bulk_action',
-                           'approve_application', 'update_classroom_capacity', 'delete_application',
-                           'admin_upload_doc'):
+                           'approve_application', 'update_classroom_capacity', 'delete_application'):
             return [IsAdminOrStaff()]
+        if self.action == 'track':
+            return [AllowAny()]
         if self.action in ('list', 'retrieve', 'analytics', 'export_csv',
                            'export_form_pdf', 'export_summary_pdf'):
             return [IsAuthenticated()]
@@ -151,9 +152,6 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        # submit_documents is called from the public tracking page — return all apps
-        if self.action == 'submit_documents':
-            return EnrollmentApplication.objects.all()
         if not user.is_authenticated:
             return EnrollmentApplication.objects.none()
         if user.role in ('admin', 'staff') or user.is_staff:
@@ -588,7 +586,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         application = self.get_object()
-        if getattr(request.user, 'email', '') != application.email and request.user.role != 'admin':
+        if application.submitted_by != request.user and request.user.role != 'admin':
             return Response({'error': 'You can only cancel your own application'}, status=403)
         if application.status not in ('pending', 'under_review', 'pending_requirements'):
             return Response({'error': f'Cannot cancel: status is {application.status}'}, status=400)
@@ -608,112 +606,6 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         except Exception as audit_err:
             logger.error(f"Audit log failed on cancel: {audit_err}")
         return Response({'status': 'Application cancelled'})
-
-    @action(detail=True, methods=['post'], url_path='submit-documents')
-    def submit_documents(self, request, pk=None):
-        """Allow student to submit additional documents when status is pending_requirements."""
-        application = self.get_object()
-        # Allow if logged in as the applicant, OR if enrollment_number matches (public tracking page)
-        enrollment_num = request.data.get('enrollment_number', '')
-        is_owner = (
-            (hasattr(request.user, 'is_authenticated') and request.user.is_authenticated
-             and getattr(request.user, 'email', '') == application.email)
-            or (enrollment_num and application.enrollment_number and
-                application.enrollment_number.lower() == enrollment_num.lower())
-        )
-        if not is_owner and getattr(request.user, 'role', None) != 'admin':
-            return Response({'error': 'Not authorized'}, status=403)
-        if application.status != 'pending_requirements':
-            return Response({'error': f'Cannot submit documents: status is {application.status}'}, status=400)
-
-        doc_fields = [
-            'birth_certificate', 'report_card', 'form_138',
-            'certificate_of_completion', 'good_moral_certificate',
-            'id_picture', 'last_school_attended_cert',
-        ]
-        uploaded = {}
-        errors = []
-        for field_name in doc_fields:
-            if field_name in request.FILES:
-                f = request.FILES[field_name]
-                url, err = upload_file(f, bucket_key='enrollment-docs',
-                                       folder=f"applications/{field_name}")
-                if err:
-                    errors.append(f"{field_name}: {err}")
-                elif url:
-                    if not url.startswith(('http://', 'https://')):
-                        url = 'https://' + url
-                    uploaded[field_name] = url
-                    # Update existing document record or create new
-                    doc_type_map = {
-                        'birth_certificate': 'birth_certificate',
-                        'report_card': 'report_card',
-                        'form_138': 'form_138',
-                        'certificate_of_completion': 'certificate_of_completion',
-                        'good_moral_certificate': 'good_moral',
-                        'id_picture': 'id_picture',
-                        'last_school_attended_cert': 'last_school_attended',
-                    }
-                    doc_type = doc_type_map.get(field_name, 'other')
-                    EnrollmentDocument.objects.filter(
-                        application=application, document_type=doc_type
-                    ).update(file_url=url, file_name=f.name, verification_status='submitted')
-                    # Also update the URL field on the application model
-                    EnrollmentApplication.objects.filter(pk=application.pk).update(**{field_name: url})
-
-        if not uploaded:
-            return Response({'error': 'No documents uploaded', 'upload_errors': errors}, status=400)
-
-        # Move status back to under_review
-        from_status = application.status
-        application.status = 'under_review'
-        application.remarks = ''
-        application.save()
-        EnrollmentStatusHistory.objects.create(
-            application=application, from_status=from_status,
-            to_status='under_review', notes=f'{len(uploaded)} document(s) submitted')
-
-        return Response({
-            'status': 'Documents submitted',
-            'uploaded': list(uploaded.keys()),
-            'errors': errors,
-        })
-
-    @action(detail=True, methods=['post'], url_path='admin-upload-doc')
-    def admin_upload_doc(self, request, pk=None):
-        """Admin/teacher uploads a single document for a student's enrollment application."""
-        if not request.user.is_authenticated or getattr(request.user, 'role', None) not in ('admin', 'staff'):
-            return Response({'error': 'Admin access required'}, status=403)
-        application = self.get_object()
-        doc_type = request.data.get('document_type', '').strip()
-        if not doc_type:
-            return Response({'error': 'document_type is required'}, status=400)
-        if 'file' not in request.FILES:
-            return Response({'error': 'No file provided'}, status=400)
-        f = request.FILES['file']
-        url, err = upload_file(f, bucket_key='enrollment-docs', folder=f"applications/{doc_type}")
-        if err:
-            return Response({'error': err}, status=400)
-        if not url.startswith(('http://', 'https://')):
-            url = 'https://' + url
-        doc, created = EnrollmentDocument.objects.update_or_create(
-            application=application, document_type=doc_type,
-            defaults={'file_url': url, 'file_name': f.name, 'verification_status': 'verified'})
-        # Also update the URL field on the application model
-        field_map = {
-            'birth_certificate': 'birth_certificate', 'report_card': 'report_card',
-            'form_138': 'form_138', 'certificate_of_completion': 'certificate_of_completion',
-            'good_moral': 'good_moral_certificate', 'id_picture': 'id_picture',
-            'last_school_attended': 'last_school_attended_cert',
-        }
-        if doc_type in field_map:
-            EnrollmentApplication.objects.filter(pk=application.pk).update(**{field_map[doc_type]: url})
-        return Response({
-            'status': 'Document uploaded',
-            'document_type': doc_type,
-            'file_url': url,
-            'created': created,
-        })
 
     @action(detail=True, methods=['post'])
     def approve_application(self, request, pk=None):

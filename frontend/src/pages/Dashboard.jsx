@@ -15,7 +15,7 @@ const Dashboard = () => {
     try { return localStorage.getItem('portal_mode') || 'admin'; } catch { return 'admin'; }
   })();
 
-  const isDualRole = user?.role === 'staff' && (user?.is_admin || user?.is_superuser);
+  const isDualRole = user?.role === 'staff' && user?.is_admin;
 
   if (user?.role === 'admin') return <AdminRedirect />;
   if (isDualRole && portalMode === 'admin') return <AdminRedirect />;

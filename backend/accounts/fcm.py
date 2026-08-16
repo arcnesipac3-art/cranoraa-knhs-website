@@ -167,13 +167,13 @@ def send_push_notification(user, title: str, body: str, data: dict = None) -> li
                 logger.info(f'FCM: push sent to user {user.id} token …{token_obj.token[-8:]}')
                 results.append({'token': f'…{token_obj.token[-8:]}', 'status': status_code, 'ok': True})
 
-            elif status_code in (400, 403, 404):
-                # Token is invalid / unregistered / wrong project — deactivate it
+            elif status_code in (400, 404):
+                # Token is invalid / unregistered — deactivate it
                 error_code = (
                     (response.get('error', {}).get('details') or [{}])[0].get('errorCode', '')
                     or response.get('error', {}).get('status', '')
                 )
-                if error_code in ('UNREGISTERED', 'INVALID_ARGUMENT', 'NOT_FOUND', 'SENDER_ID_MISMATCH'):
+                if error_code in ('UNREGISTERED', 'INVALID_ARGUMENT', 'NOT_FOUND'):
                     logger.warning(
                         f'FCM: deactivating stale token for user {user.id} '
                         f'(reason: {error_code})'

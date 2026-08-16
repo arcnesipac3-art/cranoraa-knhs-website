@@ -35,7 +35,7 @@ const getTypeConfig = (type) => TYPE_BADGE[type] || { label: type, dot: 'bg-slat
 const NotifIcon = ({ type }) => {
   const cfg = getNotifConfig(type);
   return (
-    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg} ${cfg.color}`}>
+    <div className={`w-full h-full rounded-xl flex items-center justify-center flex-shrink-0 ${cfg.bg} ${cfg.color}`}>
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cfg.icon} />
       </svg>
@@ -264,12 +264,12 @@ const Notifications = () => {
   const hasUnread    = unreadCount > 0; // use global count, not just current page
 
   return (
-    <div className="space-y-5 animate-fade-in page-bottom-safe">
+    <div className="space-y-5 animate-fade-in page-bottom-safe px-3 sm:px-5">
 
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Notifications</h1>
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-100">
               <div className={`w-2 h-2 rounded-full ${realtimeConnected ? 'bg-green-500' : isPolling ? 'bg-amber-400 animate-pulse' : 'bg-red-400'}`} />
@@ -292,7 +292,7 @@ const Notifications = () => {
             <button
               onClick={handleTestPush}
               disabled={processing || loading}
-              className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-violet-600 text-xs sm:text-sm font-bold text-white hover:bg-violet-700 transition-all disabled:opacity-40 shadow-sm min-h-[44px]"
+              className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-violet-600 text-xs sm:text-sm font-bold text-white hover:bg-violet-700 transition-all disabled:opacity-40 shadow-sm min-h-[44px]"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -303,7 +303,7 @@ const Notifications = () => {
           <button
             onClick={markAllRead}
             disabled={processing || loading || !hasUnread}
-            className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm min-h-[44px]"
+            className="inline-flex flex-1 sm:flex-none items-center justify-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm min-h-[44px]"
           >
             <svg className="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -317,7 +317,7 @@ const Notifications = () => {
               if (next && !prefs) fetchPreferences();
             }}
             title="Notification Preferences"
-            className={`inline-flex items-center justify-center w-11 h-11 rounded-xl border transition-all shadow-sm ${showPrefs ? 'bg-violet-50 border-violet-300 text-violet-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300'}`}
+            className={`inline-flex items-center justify-center w-10 h-10 rounded-xl border transition-all shadow-sm ${showPrefs ? 'bg-violet-50 border-violet-300 text-violet-600' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:border-slate-300'}`}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -329,7 +329,7 @@ const Notifications = () => {
 
       {/* ── Notification Preferences Panel ── */}
       {showPrefs && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-5 space-y-4 animate-fade-in">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 sm:p-5 space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Notification Preferences</h2>
             {prefsSaving && <span className="text-xs text-violet-500 font-medium">Saving...</span>}
@@ -425,8 +425,8 @@ const Notifications = () => {
       )}
 
       {/* ── Filters ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-4">
-        <div className="flex flex-col sm:flex-row gap-3">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 sm:p-4">
+        <div className="flex flex-col gap-3">
           {/* Search */}
           <div className="relative flex-1">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none"
@@ -548,7 +548,7 @@ const Notifications = () => {
               return (
                 <div
                   key={n.id}
-                  className={`flex items-start gap-4 px-5 py-4 transition-colors group
+                  className={`flex items-start gap-3 px-3 sm:px-5 py-3 sm:py-4 transition-colors group
                     ${!n.is_read ? 'bg-violet-50/30' : 'hover:bg-slate-50'}
                     ${isSelected ? 'bg-violet-50' : ''}`}
                 >
@@ -563,18 +563,20 @@ const Notifications = () => {
                   </label>
 
                   {/* Icon */}
-                  <NotifIcon type={n.notification_type} />
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <NotifIcon type={n.notification_type} />
+                  </div>
 
                   {/* Content */}
                   <div
                     className="flex-1 min-w-0 cursor-pointer"
                     onClick={() => { if (n.link) navigate(n.link); if (!n.is_read) markRead(n.id); }}
                   >
-                    <div className="flex items-start justify-between gap-3 mb-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`ui-badge ${cfg.badge}`}>{cfg.label}</span>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className={`ui-badge ${cfg.badge} text-[10px] py-0.5 px-1.5`}>{cfg.label}</span>
                         {!n.is_read && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-600 text-white text-[9px] font-black uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-violet-600 text-white text-[9px] font-black uppercase tracking-wider">
                             New
                           </span>
                         )}
@@ -583,19 +585,19 @@ const Notifications = () => {
                         {formatTime(n.created_at)}
                       </span>
                     </div>
-                    <p className={`text-sm leading-snug mb-0.5 ${!n.is_read ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
+                    <p className={`text-sm sm:text-base leading-snug mb-0.5 ${!n.is_read ? 'font-bold text-slate-900' : 'font-medium text-slate-700'}`}>
                       {n.title}
                     </p>
                     <p className="text-xs text-slate-500 line-clamp-2">{n.message}</p>
                   </div>
 
-                  {/* Actions — always visible on touch, hover-reveal on desktop */}
-                  <div className="flex items-center gap-1 flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  {/* Actions — visible on mobile, hover-reveal on desktop */}
+                  <div className="flex items-center gap-1 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     {!n.is_read && (
                       <button
                         onClick={() => markRead(n.id)}
                         title="Mark as read"
-                        className="p-2 rounded-lg text-violet-500 hover:bg-violet-50 transition-all no-min"
+                        className="p-1.5 rounded-lg text-violet-500 hover:bg-violet-50 transition-all no-min"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -605,7 +607,7 @@ const Notifications = () => {
                     <button
                       onClick={() => handleDelete(n.id)}
                       title="Delete"
-                      className="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all no-min"
+                      className="p-1.5 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all no-min"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -621,11 +623,11 @@ const Notifications = () => {
 
         {/* ── Pagination ── */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-5 py-3.5 border-t border-slate-100 bg-slate-50/50">
+          <div className="flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-3.5 border-t border-slate-100 bg-slate-50/50 flex-wrap gap-2">
             <button
               disabled={page === 1}
               onClick={() => setPage(p => p - 1)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
@@ -638,7 +640,7 @@ const Notifications = () => {
             <button
               disabled={page === totalPages}
               onClick={() => setPage(p => p + 1)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Next
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

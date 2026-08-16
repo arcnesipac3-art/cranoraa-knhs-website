@@ -47,9 +47,7 @@ def login_view(request):
         logger.info(f"Login success for user='{user.username}' role='{user.role}' status='{user.account_status}' approved={user.is_approved} active={user.is_active}")
 
         if required_role and user.role != 'admin':
-            is_dual_role = user.role == 'staff' and (
-                getattr(user, 'is_admin', False) or getattr(user, 'is_superuser', False)
-            )
+            is_dual_role = user.role == 'staff' and getattr(user, 'is_admin', False)
             if required_role == 'admin' and is_dual_role:
                 pass
             elif user.role != required_role:

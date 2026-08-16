@@ -47,7 +47,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
       <div className="w-full max-w-xl bg-white shadow-2xl flex flex-col h-full overflow-hidden">
 
         {/* Header */}
-        <div className="bg-[#5e2a84] px-5 py-4 flex items-start gap-4 flex-shrink-0">
+        <div className="bg-[#5e2a84] px-4 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4 flex-shrink-0">
           <div className="w-12 h-12 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center flex-shrink-0">
             <span className="text-lg font-black text-white">{initials}</span>
           </div>
@@ -69,7 +69,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
         </div>
 
         {/* Quick action bar */}
-        <div className="bg-violet-950 px-4 py-2 flex items-center gap-2 flex-shrink-0 border-b border-violet-900">
+        <div className="bg-violet-950 px-3 sm:px-4 py-2 flex items-center gap-2 flex-shrink-0 border-b border-violet-900">
           <button onClick={() => onResetPassword(parent.id)}
             className="flex items-center gap-1.5 text-[10px] font-bold text-violet-200 hover:text-white px-2.5 py-1.5 rounded hover:bg-white/10 transition-colors">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
@@ -84,7 +84,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
 
         {/* Profile completeness bar */}
         {completeness && (
-          <div className="bg-white px-5 py-2.5 border-b border-slate-200 flex-shrink-0">
+          <div className="bg-white px-4 sm:px-5 py-2.5 border-b border-slate-200 flex-shrink-0">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Profile Completeness</span>
               <span className={`text-[10px] font-black ${completeness.percentage === 100 ? 'text-emerald-600' : completeness.percentage >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
@@ -103,7 +103,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
         )}
 
         {/* Tab bar */}
-        <div className="bg-white border-b border-slate-200 px-4 flex gap-0 flex-shrink-0 overflow-x-auto">
+        <div className="bg-white border-b border-slate-200 px-3 sm:px-4 flex gap-0 flex-shrink-0 overflow-x-auto">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`px-4 py-3 text-xs font-bold whitespace-nowrap border-b-2 transition-colors ${
@@ -121,7 +121,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
               <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
-            <div className="p-5 space-y-1">
+            <div className="p-3 sm:p-5 space-y-1">
 
               {/* PERSONAL */}
               {tab === 'personal' && (

@@ -136,4 +136,4 @@ def is_parent(user):
 
 
 def is_admin_or_staff(user):
-    return user.role in (Role.ADMIN, Role.STAFF) or getattr(user, 'is_admin', False) or getattr(user, 'is_superuser', False)
+    return user.role in (Role.ADMIN, Role.STAFF) or getattr(user, 'is_admin', False)

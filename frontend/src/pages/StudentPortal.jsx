@@ -170,13 +170,13 @@ export default function StudentPortal() {
 
   if (loading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 p-3 sm:p-4 md:p-6">
         <Skeleton className="h-8 w-64" />
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 sm:h-24" />)}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-32" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-28 sm:h-32" />)}
         </div>
       </div>
     );
@@ -185,40 +185,40 @@ export default function StudentPortal() {
   const subjectAverages = getSubjectAverages();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Student Portal</h1>
-          <p className="text-xs sm:text-sm text-gray-500">Welcome back, {user?.first_name || 'Student'}</p>
+<motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Student Portal</h1>
+            <p className="text-xs sm:text-sm text-gray-500">Welcome back, {user?.first_name || 'Student'}</p>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardBody className="py-4">
-            <div className="text-sm opacity-90">Overall Average</div>
-            <div className="text-3xl font-bold mt-1">{stats?.overall_average ?? 'N/A'}</div>
+          <CardBody className="py-3 sm:py-4">
+            <div className="text-xs sm:text-sm opacity-90">Overall Average</div>
+            <div className="text-2xl sm:text-3xl font-bold mt-1">{stats?.overall_average ?? 'N/A'}</div>
           </CardBody>
         </Card>
         <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardBody className="py-4">
-            <div className="text-sm opacity-90">Attendance Rate</div>
-            <div className="text-3xl font-bold mt-1">{stats?.attendance_rate ?? 'N/A'}%</div>
+          <CardBody className="py-3 sm:py-4">
+            <div className="text-xs sm:text-sm opacity-90">Attendance Rate</div>
+            <div className="text-2xl sm:text-3xl font-bold mt-1">{stats?.attendance_rate ?? 'N/A'}%</div>
           </CardBody>
         </Card>
         <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-          <CardBody className="py-4">
-            <div className="text-sm opacity-90">Pending Assignments</div>
-            <div className="text-3xl font-bold mt-1">{stats?.pending_assignments ?? 0}</div>
+          <CardBody className="py-3 sm:py-4">
+            <div className="text-xs sm:text-sm opacity-90">Pending Assignments</div>
+            <div className="text-2xl sm:text-3xl font-bold mt-1">{stats?.pending_assignments ?? 0}</div>
           </CardBody>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
         {featureCards.map((feature, index) => (
           <motion.div
             key={feature.title}
@@ -230,11 +230,11 @@ export default function StudentPortal() {
               className="hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => navigate(feature.link)}
             >
-              <CardBody className="py-5">
+              <CardBody className="py-3 sm:py-5">
                 <div className={`w-10 h-10 rounded-lg ${feature.color} flex items-center justify-center mb-3`}>
                   <feature.icon className="h-5 w-5 text-white" />
                 </div>
-                <h3 className="font-semibold text-gray-900">{feature.title}</h3>
+                <h3 className="font-semibold text-sm sm:text-base text-gray-900">{feature.title}</h3>
                 <p className="text-xs text-gray-500 mt-1">{feature.description}</p>
               </CardBody>
             </Card>
@@ -242,26 +242,26 @@ export default function StudentPortal() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-2 space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Academic Progress</CardTitle>
+            <CardHeader className="p-3 sm:p-4 pb-2">
+              <CardTitle className="text-sm sm:text-base">Academic Progress</CardTitle>
             </CardHeader>
-            <CardBody>
+            <CardBody className="p-3 sm:p-4 pt-0">
               {subjectAverages.length === 0 ? (
                 <p className="text-sm text-gray-500">No grade data available yet.</p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-2 sm:space-y-3">
                   {subjectAverages.map((subject) => (
                     <div key={subject.name}>
-                      <div className="flex items-center justify-between text-sm mb-1">
+                      <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
                         <span className="font-medium text-gray-700">{subject.name}</span>
                         <span className="text-gray-500">{subject.average}%</span>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
                         <div
-                          className={`h-2 rounded-full transition-all ${
+                          className={`h-1.5 sm:h-2 rounded-full transition-all ${
                             subject.average >= 90
                               ? 'bg-green-500'
                               : subject.average >= 75
@@ -280,7 +280,7 @@ export default function StudentPortal() {
             </CardBody>
           </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
             <Card>
               <CardBody>
                 <Button
@@ -313,26 +313,26 @@ export default function StudentPortal() {
             <CardHeader>
               <CardTitle className="text-base">Recent Notifications</CardTitle>
             </CardHeader>
-            <CardBody>
-              {recentNotifications.length === 0 ? (
-                <p className="text-sm text-gray-500">No recent notifications.</p>
-              ) : (
-                <div className="space-y-3">
-                  {recentNotifications.map((notif) => (
-                    <div
-                      key={notif.id}
-                      className="p-3 bg-gray-50 rounded-lg text-sm"
-                    >
-                      <p className="font-medium text-gray-800">{notif.title}</p>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notif.message}</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(notif.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardBody>
+<CardBody className="p-3 sm:p-4">
+                {recentNotifications.length === 0 ? (
+                  <p className="text-sm text-gray-500">No recent notifications.</p>
+                ) : (
+                  <div className="space-y-2 sm:space-y-3">
+                    {recentNotifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        className="p-2 sm:p-3 bg-gray-50 rounded-lg text-sm"
+                      >
+                        <p className="font-medium text-gray-800">{notif.title}</p>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notif.message}</p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(notif.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardBody>
           </Card>
         </div>
       </div>
@@ -355,7 +355,7 @@ export default function StudentPortal() {
             className="bg-white rounded-xl w-full max-w-md"
           >
             <form onSubmit={handleSubmitCertRequest}>
-              <div className="border-b px-6 py-4 flex items-center justify-between">
+              <div className="border-b px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                 <h2 className="text-lg font-semibold">Request Certificate</h2>
                 <button
                   type="button"
@@ -391,7 +391,7 @@ export default function StudentPortal() {
                   />
                 </div>
               </div>
-              <div className="border-t px-6 py-4 flex items-center justify-end gap-2">
+              <div className="border-t px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row items-center justify-end gap-2 sm:gap-3">
                 <Button
                   type="button"
                   variant="outline"

@@ -33,7 +33,7 @@ export function useComplianceTypes() {
 
   const updateType = useCallback(async (id, data) => {
     try {
-      const res = await api.patch(`/compliance/types/${id}/`, data);
+      const res = await api.put(`/compliance/types/${id}/`, data);
       setTypes(prev => prev.map(t => t.id === id ? res.data : t));
       toast.success('Compliance type updated');
       return res.data;

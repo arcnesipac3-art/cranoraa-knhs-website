@@ -29,8 +29,8 @@ const NewsEvents = () => {
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
-              <p className="text-xs font-semibold text-violet-200 tracking-widest mb-4">What's Happening</p>
-              <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight mb-5">
+              <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-4">What's Happening</p>
+              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5 uppercase">
                 News & Events
               </h1>
               <p className="text-violet-100 leading-relaxed text-lg">
@@ -55,10 +55,10 @@ const NewsEvents = () => {
               <button
                 key={f.key}
                 onClick={() => setFilter(f.key)}
-                className={`px-6 py-2.5 rounded-xl font-semibold text-sm transition-all ${
+                className={`px-6 py-2.5 rounded-xl font-bold text-sm uppercase transition-all ${
                   filter === f.key 
                     ? 'bg-violet-900 text-white shadow-lg' 
-                    : 'bg-white text-violet-900 border border-slate-200 hover:border-violet-300'
+                    : 'bg-white text-violet-900 border-2 border-violet-200 hover:border-violet-400'
                 }`}
               >
                 {f.label}
@@ -79,7 +79,7 @@ const NewsEvents = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAnnouncements.map(announcement => (
-                <div key={announcement.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl transition-all group">
+                <div key={announcement.id} className="bg-white rounded-2xl border-2 border-violet-200 overflow-hidden hover:shadow-xl transition-all group">
                   <div className={`h-2 ${
                     announcement.category === 'emergency' ? 'bg-red-500' :
                     announcement.category === 'events' ? 'bg-green-500' :
@@ -100,7 +100,7 @@ const NewsEvents = () => {
                         {new Date(announcement.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3 group-hover:text-violet-900 transition-colors">
+                    <h3 className="text-lg font-black text-slate-900 mb-3 group-hover:text-violet-900 transition-colors">
                       {announcement.title}
                     </h3>
                     <p className="text-sm text-gray-700 leading-relaxed line-clamp-3 mb-4">
@@ -125,9 +125,9 @@ const NewsEvents = () => {
       {/* Calendar CTA */}
       <section className="py-16 bg-violet-950 text-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">View Full Calendar</h2>
+          <h2 className="text-3xl font-black mb-4 uppercase">View Full Calendar</h2>
           <p className="text-violet-100 mb-6">Check all upcoming events, holidays, and important dates</p>
-          <Link to="/calendar" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-violet-900 rounded-xl font-bold hover:bg-violet-50 transition-colors">
+          <Link to="/calendar" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-violet-900 rounded-xl font-black hover:bg-violet-50 transition-colors uppercase">
             Open School Calendar
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />

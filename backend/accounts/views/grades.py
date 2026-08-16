@@ -56,15 +56,13 @@ def grade_distribution_stats(request):
         return Response(cached)
 
     # 1. Base filtering
-    # Match by: grade's own academic_year field, OR classroom's FK, OR student enrollment in the year
     base_grades = Grade.objects.filter(
         grade_type='final_grade',
         raw_score__isnull=False
     ).filter(
         Q(academic_year=academic_year) |
-        Q(classroom__academic_year__name=academic_year) |
-        Q(student__enrollments__classroom__academic_year__name=academic_year)
-    ).distinct()
+        Q(classroom__academic_year__name=academic_year)
+    )
 
     # Filter by Timeframe (submission date)
     if timeframe == 'today':
@@ -356,11 +354,7 @@ class GradeViewSet(viewsets.ModelViewSet):
         if quarter:
             queryset = queryset.filter(quarter=quarter)
         if academic_year:
-            queryset = queryset.filter(
-                Q(academic_year=academic_year) |
-                Q(classroom__academic_year__name=academic_year) |
-                Q(student__enrollments__classroom__academic_year__name=academic_year)
-            )
+            queryset = queryset.filter(academic_year=academic_year)
         if student_id:
             queryset = queryset.filter(student_id=student_id)
 
@@ -675,19 +669,6 @@ class GradeViewSet(viewsets.ModelViewSet):
                     )
                     created_count += 1
 
-        try:
-            cache.delete_pattern('grade_dist:v1:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-        try:
-            cache.delete_pattern('grade_summary:v1:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-        try:
-            cache.delete_pattern('admin_dashboard:v3:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-
         return Response({
             'created': created_count,
             'updated': updated_count,
@@ -807,15 +788,8 @@ class GradeViewSet(viewsets.ModelViewSet):
 
         try:
             cache.delete_pattern('grade_dist:v1:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-        try:
             cache.delete_pattern('grade_summary:v1:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-        try:
-            cache.delete_pattern('admin_dashboard:v3:*')
-        except (AttributeError, ValueError, NotImplementedError):
+        except AttributeError:
             pass
 
     def perform_update(self, serializer):
@@ -857,19 +831,6 @@ class GradeViewSet(viewsets.ModelViewSet):
             except Exception as notif_err:
                 logger.warning(f"Notification failed (perform_update): {str(notif_err)}")
 
-        try:
-            cache.delete_pattern('grade_dist:v1:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-        try:
-            cache.delete_pattern('grade_summary:v1:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-        try:
-            cache.delete_pattern('admin_dashboard:v3:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-
     def perform_destroy(self, instance):
         user = self.request.user
         try:
@@ -886,19 +847,6 @@ class GradeViewSet(viewsets.ModelViewSet):
             logger.warning(f"Audit logging failed (perform_destroy): {str(audit_err)}")
 
         instance.delete()
-
-        try:
-            cache.delete_pattern('grade_dist:v1:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-        try:
-            cache.delete_pattern('grade_summary:v1:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
-        try:
-            cache.delete_pattern('admin_dashboard:v3:*')
-        except (AttributeError, ValueError, NotImplementedError):
-            pass
 
     @action(detail=False, methods=['get'])
     def my_grades(self, request):
@@ -928,11 +876,7 @@ class GradeViewSet(viewsets.ModelViewSet):
         if quarter:
             queryset = queryset.filter(quarter=quarter)
         if academic_year:
-            queryset = queryset.filter(
-                Q(academic_year=academic_year) |
-                Q(classroom__academic_year__name=academic_year) |
-                Q(student__enrollments__classroom__academic_year__name=academic_year)
-            )
+            queryset = queryset.filter(academic_year=academic_year)
         if grade_type:
             queryset = queryset.filter(grade_type=grade_type)
 
@@ -994,18 +938,6 @@ class GradeViewSet(viewsets.ModelViewSet):
             )
 
             serializer = self.get_serializer(final_grade)
-            try:
-                cache.delete_pattern('grade_dist:v1:*')
-            except (AttributeError, ValueError, NotImplementedError):
-                pass
-            try:
-                cache.delete_pattern('grade_summary:v1:*')
-            except (AttributeError, ValueError, NotImplementedError):
-                pass
-            try:
-                cache.delete_pattern('admin_dashboard:v3:*')
-            except (AttributeError, ValueError, NotImplementedError):
-                pass
             return Response(serializer.data)
 
         # Normal subject: weighted WW/PT/QA calculation
@@ -1062,18 +994,6 @@ class GradeViewSet(viewsets.ModelViewSet):
             )
 
             serializer = self.get_serializer(final_grade)
-            try:
-                cache.delete_pattern('grade_dist:v1:*')
-            except (AttributeError, ValueError, NotImplementedError):
-                pass
-            try:
-                cache.delete_pattern('grade_summary:v1:*')
-            except (AttributeError, ValueError, NotImplementedError):
-                pass
-            try:
-                cache.delete_pattern('admin_dashboard:v3:*')
-            except (AttributeError, ValueError, NotImplementedError):
-                pass
             return Response(serializer.data)
 
         return Response({'error': 'Could not calculate final grade'}, status=status.HTTP_400_BAD_REQUEST)

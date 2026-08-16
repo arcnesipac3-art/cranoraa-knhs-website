@@ -38,7 +38,7 @@ const StatCard = ({ title, value, color, icon }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
-    className={`bg-white rounded-xl border border-gray-200 shadow-sm p-5 ${color}`}
+    className={`bg-white rounded-xl border border-gray-200 shadow-sm p-3 sm:p-5 ${color}`}
   >
     <div className="flex items-center gap-3">
       <div className={`p-2.5 rounded-lg ${icon}`}>
@@ -64,8 +64,8 @@ const StatCard = ({ title, value, color, icon }) => (
         )}
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500">{title}</p>
+        <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-xs sm:text-sm text-gray-500">{title}</p>
       </div>
     </div>
   </motion.div>
@@ -102,10 +102,10 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
       className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
     >
       <div className="p-4">
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0 flex-1">
-            <h4 className="font-semibold text-gray-900 truncate">{submission.subject_name}</h4>
-            <p className="text-sm text-gray-500 truncate">{submission.classroom_name}</p>
+            <h4 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{submission.subject_name}</h4>
+            <p className="text-xs sm:text-sm text-gray-500 truncate">{submission.classroom_name}</p>
             {submission.grading_period_quarter && (
               <p className="text-xs text-gray-400 mt-0.5">
                 Term {submission.grading_period_quarter}
@@ -142,7 +142,7 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
           </div>
         )}
 
-        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 mt-4 pt-3 border-t border-gray-100 flex-wrap">
           {canEnterGrades && (
             <Button
               size="sm"
@@ -150,10 +150,11 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
               onClick={() => onEnterGrades(submission)}
               className="border-violet-300 text-violet-700 hover:bg-violet-50"
             >
-              <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
-              Enter Grades
+              <span className="hidden sm:inline">Enter Grades</span>
+              <span className="sm:hidden">Grades</span>
             </Button>
           )}
           {isEditable && (
@@ -168,7 +169,8 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
           )}
           {isLocked && (
             <Button size="sm" variant="outline" onClick={() => onReopen(submission)}>
-              Request Reopening
+              <span className="hidden sm:inline">Request Reopening</span>
+              <span className="sm:hidden">Reopen</span>
             </Button>
           )}
           <Button
@@ -177,7 +179,7 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
             onClick={toggleGrades}
             className="border-slate-300 text-slate-600 hover:bg-slate-50"
           >
-            <svg className="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3.5 h-3.5 sm:mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
             {showGrades ? 'Hide' : 'View'} Grades
@@ -189,7 +191,7 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
               onClick={() => onDelete(submission)}
               className="border-red-300 text-red-600 hover:bg-red-50 ml-auto"
             >
-              <svg className="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               Delete
@@ -471,10 +473,10 @@ export default function TeacherGradeDashboard() {
   const lockedCount = uniqueSubmissions.filter(s => s.status === 'approved' || s.status === 'locked').length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
+    <div className="space-y-4 sm:space-y-6 px-3 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Grade Submission Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Grade Submission Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">Manage and submit grades for your classes</p>
         </div>
         <Button
@@ -482,7 +484,7 @@ export default function TeacherGradeDashboard() {
           size="sm"
           onClick={() => navigate('/my-classes')}
         >
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
           </svg>
           Go to Grade Input
@@ -512,9 +514,9 @@ export default function TeacherGradeDashboard() {
                   : 'bg-emerald-50 border-emerald-200'
               }`}
             >
-              <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                       dashboard.days_remaining < 0
                         ? 'bg-red-100 text-red-700'
@@ -535,11 +537,11 @@ export default function TeacherGradeDashboard() {
                     )}
                   </p>
                 </div>
-                <div className={`text-right ${
+                <div className={`text-left sm:text-right ${
                   dashboard.days_remaining < 0 ? 'text-red-600' :
                   dashboard.days_remaining <= 2 ? 'text-amber-600' : 'text-emerald-600'
                 }`}>
-                  <p className="text-2xl font-extrabold leading-none">
+                  <p className="text-xl sm:text-2xl font-extrabold leading-none">
                     {dashboard.days_remaining < 0
                       ? `${Math.abs(dashboard.days_remaining)}d overdue`
                       : dashboard.days_remaining === 0
@@ -555,8 +557,8 @@ export default function TeacherGradeDashboard() {
           )}
 
           {!dashboard?.active_grading_period && (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 flex items-center gap-3">
-              <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 sm:px-4 py-3 flex items-start sm:items-center gap-3">
+              <svg className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5 sm:mt-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <p className="text-sm text-slate-600">No active grading period. Contact your admin to open one.</p>
@@ -590,7 +592,7 @@ export default function TeacherGradeDashboard() {
             />
           </div>
 
-          <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto">
+          <div className="flex items-center gap-1 border-b border-gray-200 overflow-x-auto flex-nowrap">
             {[
               { key: 'pending', label: 'Pending', count: dashboard?.total_pending },
               { key: 'submitted', label: 'Submitted', count: dashboard?.total_submitted },
@@ -601,7 +603,7 @@ export default function TeacherGradeDashboard() {
               <button
                 key={key}
                 onClick={() => setFilterTab(key)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                   filterTab === key
                     ? 'border-brand-600 text-brand-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'

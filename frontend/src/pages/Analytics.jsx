@@ -230,7 +230,7 @@ const YearSelector = ({ year, onChange }) => (
       <button onClick={() => onChange('prev')} className="px-2.5 h-full hover:bg-slate-50 text-slate-400 border-r border-slate-200 transition-colors">
         <ChevronLeft className="w-3.5 h-3.5" />
       </button>
-      <span className="flex-1 text-center text-sm font-bold text-slate-700 select-none">{year || '—'}</span>
+      <span className="flex-1 text-center text-sm font-bold text-slate-700 select-none">{year}</span>
       <button onClick={() => onChange('next')} className="px-2.5 h-full hover:bg-slate-50 text-slate-400 border-l border-slate-200 transition-colors">
         <ChevronRight className="w-3.5 h-3.5" />
       </button>
@@ -715,7 +715,6 @@ const Analytics = () => {
   }, [activeTab, academicYear, attendanceTimeframe]);
 
   const fetchSystem = async () => {
-    if (!academicYear) { setLoading(false); return; }
     setLoading(true); setData(null);
     try { const res = await api.get(`/admin/stats/?academic_year=${academicYear}`); setData(res.data); }
     catch (err) { console.error(err); }
@@ -723,7 +722,6 @@ const Analytics = () => {
   };
 
   const fetchGrades = async () => {
-    if (!academicYear) { setGradeLoading(false); return; }
     setGradeLoading(true); setGradeData(null);
     try {
       const res = await api.get(`/admin/grade-distribution/?academic_year=${academicYear}&grade_level=${filterLevel}&subject_id=${filterSubject}&quarter=${filterQuarter}&mode=${distributionMode}&timeframe=${gradeTimeframe}`);
@@ -733,7 +731,6 @@ const Analytics = () => {
   };
 
   const fetchAttendance = async () => {
-    if (!academicYear) { setAttendanceLoading(false); return; }
     setAttendanceLoading(true); setAttendanceAnalytics(null);
     try { const res = await api.get(`/attendance/summary/?timeframe=${attendanceTimeframe}&academic_year=${academicYear}`); setAttendanceAnalytics(res.data); }
     catch (err) { console.error(err); }
@@ -799,7 +796,7 @@ const Analytics = () => {
           </div>
           <div>
             <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Analytics</h1>
-            <p className="text-sm text-slate-400">Data Intelligence · SY {academicYear || '—'}</p>
+            <p className="text-sm text-slate-400">Data Intelligence · SY {academicYear}</p>
           </div>
         </div>
         <Button
@@ -807,7 +804,7 @@ const Analytics = () => {
           size="sm"
           onClick={() => handleExport({ system: systemRef, grades: gradesRef, attendance: attendanceRef }[activeTab], activeTab)}
           disabled={exporting}
-          icon={exporting ? undefined : <Download />}
+          icon={exporting ? undefined : Download}
         >
           {exporting ? (
             <span className="flex items-center gap-2">
@@ -836,14 +833,6 @@ const Analytics = () => {
           );
         })}
       </motion.div>
-
-      {!academicYear && (
-        <EmptyState
-          icon={<AlertTriangle className="w-8 h-8" />}
-          title="No Academic Year Selected"
-          description="Please wait while the system loads the active academic year, or select one from the dropdown above."
-        />
-      )}
 
       {/* System Tab */}
       <AnimatePresence mode="wait">

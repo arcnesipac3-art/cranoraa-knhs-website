@@ -116,16 +116,16 @@ export const Toggle = ({ checked, onChange, disabled, color = 'blue' }) => {
 };
 
 export const Field = ({ label, hint, children }) => (
-  <div className="space-y-1.5">
-    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</label>
+  <div className="space-y-1 sm:space-y-1.5">
+    <label className="block text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</label>
     {children}
-    {hint && <p className="text-[10px] text-slate-400 font-medium">{hint}</p>}
+    {hint && <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">{hint}</p>}
   </div>
 );
 
 export const Input = ({ className = '', ...props }) => (
   <input
-    className={`w-full px-4 py-2.5 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-900
+    className={`w-full px-3 py-2 sm:px-4 sm:py-2.5 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-900
       focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500
       disabled:opacity-50 disabled:cursor-not-allowed transition-all ${className}`}
     {...props}
@@ -134,16 +134,16 @@ export const Input = ({ className = '', ...props }) => (
 
 export const SectionCard = ({ title, subtitle, icon, children, danger, className = '' }) => (
   <div className={`bg-white border rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow ${danger ? 'border-rose-200' : 'border-slate-200'} ${className}`}>
-    <div className={`px-5 py-4 border-b flex items-center gap-3 ${danger ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'}`}>
-      <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${danger ? 'bg-rose-100 text-rose-600' : 'bg-violet-100 text-violet-600'}`}>
+    <div className={`px-3 py-3 sm:px-5 sm:py-4 border-b flex items-center gap-2 sm:gap-3 ${danger ? 'bg-rose-50 border-rose-100' : 'bg-slate-50 border-slate-100'}`}>
+      <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center ${danger ? 'bg-rose-100 text-rose-600' : 'bg-violet-100 text-violet-600'}`}>
         <Icon name={icon} />
       </div>
       <div>
-        <h3 className={`text-sm font-extrabold tracking-tight ${danger ? 'text-rose-900' : 'text-slate-900'}`}>{title}</h3>
-        {subtitle && <p className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${danger ? 'text-rose-600' : 'text-slate-500'}`}>{subtitle}</p>}
+        <h3 className={`text-xs sm:text-sm font-extrabold tracking-tight ${danger ? 'text-rose-900' : 'text-slate-900'}`}>{title}</h3>
+        {subtitle && <p className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5 ${danger ? 'text-rose-600' : 'text-slate-500'}`}>{subtitle}</p>}
       </div>
     </div>
-    <div className="p-5">{children}</div>
+    <div className="p-3 sm:p-5">{children}</div>
   </div>
 );
 
@@ -157,11 +157,11 @@ export const EmailServiceNotice = ({ health }) => {
   if (!health) return null;
   const healthy = health.status === 'ok';
   return (
-    <div className={`rounded-lg border px-5 py-4 shadow-sm ${
+    <div className={`rounded-lg border px-3 py-3 sm:px-5 sm:py-4 shadow-sm ${
       healthy ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
     }`} role="alert" aria-label={`Email service is ${healthy ? 'healthy' : 'degraded'}`}>
       <div className="flex items-start gap-3">
-        <div className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-lg ${
+        <div className={`mt-0.5 flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg ${
           healthy ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
         }`} aria-hidden="true">
           {healthy ? (
