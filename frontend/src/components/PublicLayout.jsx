@@ -2,6 +2,8 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSwipeGesture } from '../hooks/useSwipeGesture';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 const NAV_LINKS = [
   { key: 'home', label: 'Home', to: '/' },
@@ -87,10 +89,23 @@ const PublicLayout = () => {
   const isGroupActive = (children = []) => children.some((child) => isActive(child.to));
   const toggleMobileSection = (key) => setMobileExpanded((prev) => (prev === key ? '' : key));
 
+  // Swipe gestures for mobile menu
+  const isMobile = useIsMobile();
+  const swipeHandlers = useSwipeGesture({
+    onSwipeLeft: () => setMobileOpen(false),
+    threshold: 60,
+    disabled: !isMobile || !mobileOpen,
+  });
+  const contentSwipeHandlers = useSwipeGesture({
+    onSwipeRight: () => !mobileOpen && setMobileOpen(true),
+    threshold: 60,
+    disabled: !isMobile || mobileOpen,
+  });
+
   return (
     <div className="public-page min-h-screen flex flex-col">
       <div className="bg-violet-950 text-violet-100">
-        <div className="max-w-7xl mx-auto px-4 py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[10px] font-semibold tracking-wide">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[10px] font-bold uppercase tracking-[0.18em]">
           <span>Republic of the Philippines</span>
           <span className="text-violet-200">Department of Education</span>
         </div>
@@ -112,13 +127,13 @@ const PublicLayout = () => {
             </div>
 
             <div className="text-center min-w-0">
-              <p className="text-[9px] md:text-[11px] font-semibold uppercase tracking-[0.16em] text-violet-800">
+              <p className="text-[9px] md:text-[11px] font-black uppercase tracking-[0.24em] text-violet-800">
                 Official School Website
               </p>
-              <h1 className="text-sm md:text-2xl font-bold tracking-tight text-slate-900">
+              <h1 className="text-sm md:text-2xl font-black uppercase tracking-tight text-slate-900">
                 Kiwalan National High School
               </h1>
-              <p className="text-[10px] md:text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+              <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
                 Iligan City, Lanao del Norte
               </p>
             </div>
@@ -154,7 +169,7 @@ const PublicLayout = () => {
                         <Link
                           key={item.key}
                           to={item.to}
-                          className={`px-3 xl:px-5 h-14 inline-flex items-center text-[13px] font-semibold tracking-wide transition-colors ${
+                          className={`px-3 xl:px-5 h-14 inline-flex items-center text-[13px] font-black uppercase tracking-[0.12em] transition-colors ${
                             isActive(item.to) ? 'bg-violet-900 text-white' : 'text-violet-100 hover:bg-violet-900'
                           }`}
                         >
@@ -171,7 +186,7 @@ const PublicLayout = () => {
                         onMouseLeave={() => setDesktopDropdown('')}
                       >
                         <button
-                          className={`px-3 xl:px-5 h-14 inline-flex items-center gap-2 text-[13px] font-semibold tracking-wide transition-colors ${
+                          className={`px-3 xl:px-5 h-14 inline-flex items-center gap-2 text-[13px] font-black uppercase tracking-[0.12em] transition-colors ${
                             isGroupActive(item.children) || desktopDropdown === item.key
                               ? 'bg-violet-900 text-white'
                               : 'text-violet-100 hover:bg-violet-900'
@@ -251,7 +266,7 @@ const PublicLayout = () => {
                           className="absolute right-0 mt-2 w-60 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl z-[60]"
                         >
                           <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
-                            <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-700">Signed in as</p>
+                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-700">Signed in as</p>
                             <p className="mt-1 truncate text-sm font-bold text-slate-900">{user.email}</p>
                           </div>
                           <Link
@@ -280,7 +295,7 @@ const PublicLayout = () => {
                 ) : (
                   <Link
                     to="/login"
-                    className="inline-flex items-center justify-center rounded-lg bg-violet-700 px-6 py-2 text-xs font-bold text-white hover:bg-violet-600 transition-colors shadow-md"
+                    className="inline-flex items-center justify-center rounded-lg bg-violet-700 px-6 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-violet-600 transition-colors shadow-md shadow-violet-950/20 border border-violet-500/30"
                   >
                     Portal Login
                   </Link>
@@ -315,6 +330,7 @@ const PublicLayout = () => {
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className="border-t border-violet-900 bg-violet-950 lg:hidden overflow-hidden"
+                {...swipeHandlers}
               >
                 <div className="max-h-[75vh] overflow-y-auto px-4 py-3">
                   <div className="mb-3">
@@ -335,7 +351,7 @@ const PublicLayout = () => {
                       {item.to ? (
                         <Link
                           to={item.to}
-                          className={`flex items-center px-1 py-4 text-sm font-semibold tracking-wide ${
+                          className={`flex items-center px-1 py-4 text-sm font-black uppercase tracking-[0.14em] ${
                             isActive(item.to) ? 'text-white' : 'text-violet-100'
                           }`}
                         >
@@ -345,7 +361,7 @@ const PublicLayout = () => {
                         <>
                           <button
                             onClick={() => toggleMobileSection(item.key)}
-                            className={`flex w-full items-center justify-between px-1 py-4 text-sm font-semibold tracking-wide ${
+                            className={`flex w-full items-center justify-between px-1 py-4 text-sm font-black uppercase tracking-[0.14em] ${
                               mobileExpanded === item.key || isGroupActive(item.children) ? 'text-white' : 'text-violet-100'
                             }`}
                           >
@@ -386,13 +402,13 @@ const PublicLayout = () => {
 
                   {user && (
                     <div className="mt-4 rounded-2xl border border-violet-900 bg-violet-900/70 p-4">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300">Signed in as</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-violet-300">Signed in as</p>
                       <p className="mt-1 text-sm font-bold text-white">{user.email}</p>
                       <div className="mt-4 flex gap-2">
-                        <Link to="/dashboard" className="flex-1 rounded-xl bg-white px-4 py-2 text-center text-xs font-bold text-violet-950">
+                        <Link to="/dashboard" className="flex-1 rounded-xl bg-white px-4 py-2 text-center text-xs font-black uppercase tracking-[0.12em] text-violet-950">
                           Dashboard
                         </Link>
-                        <button onClick={handleLogout} className="flex-1 rounded-xl border border-white/20 px-4 py-2 text-xs font-bold text-white">
+                        <button onClick={handleLogout} className="flex-1 rounded-xl border border-white/20 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-white">
                           Sign Out
                         </button>
                       </div>
@@ -405,7 +421,7 @@ const PublicLayout = () => {
         </nav>
       </header>
 
-      <main className="flex-grow overflow-hidden">
+      <main className="flex-grow overflow-hidden" {...contentSwipeHandlers}>
         <Outlet />
       </main>
 
@@ -413,8 +429,8 @@ const PublicLayout = () => {
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="grid gap-10 md:grid-cols-3">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300">Official Contact</p>
-              <h3 className="mt-3 text-lg font-bold">Kiwalan National High School</h3>
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-300">Official Contact</p>
+              <h3 className="mt-3 text-lg font-black">Kiwalan National High School</h3>
               <div className="mt-4 space-y-2 text-sm text-violet-100">
                 <p>Kiwalan, Iligan City, Lanao del Norte, Philippines</p>
                 <p>info@kiwalan-nhs.edu.ph</p>
@@ -423,8 +439,8 @@ const PublicLayout = () => {
             </div>
 
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300">Site Directory</p>
-              <div className="mt-4 grid gap-2 text-sm font-medium text-violet-100">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-300">Site Directory</p>
+              <div className="mt-4 grid gap-2 text-sm font-semibold text-violet-100">
                 <Link to="/" className="hover:text-white">Home</Link>
                 <Link to="/mission" className="hover:text-white">Mission</Link>
                 <Link to="/vision" className="hover:text-white">Vision</Link>
@@ -437,8 +453,8 @@ const PublicLayout = () => {
             </div>
 
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300">Policies</p>
-              <div className="mt-4 space-y-2 text-sm font-medium text-violet-100">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-300">Policies</p>
+              <div className="mt-4 space-y-2 text-sm font-semibold text-violet-100">
                 <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
                 <Link to="/terms" className="hover:text-white">Terms of Service</Link>
                 <Link to="/contact" className="hover:text-white">Contact Office</Link>
@@ -447,7 +463,7 @@ const PublicLayout = () => {
             </div>
           </div>
 
-          <div className="mt-10 border-t border-white/10 pt-5 text-xs tracking-wide text-violet-200">
+          <div className="mt-10 border-t border-white/10 pt-5 text-xs uppercase tracking-[0.16em] text-violet-200">
             © {new Date().getFullYear()} Kiwalan National High School. All rights reserved.
           </div>
         </div>

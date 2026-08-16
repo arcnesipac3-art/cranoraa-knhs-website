@@ -11,6 +11,8 @@ import { getMuted, toggleMute, playSound } from '../utils/sounds';
 import { SkipLink, Breadcrumb, SearchBar } from './navigation';
 import { generateBreadcrumbs } from '../utils/breadcrumbs';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
+import { useSidebarSwipe } from '../hooks/useSwipeGesture';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 import { getNotifConfig, formatNotifTime } from '../utils/notificationConfig';
 
@@ -264,7 +266,7 @@ const Layout = () => {
   };
 
   // Portal mode for dual-role users (admin vs teacher)
-  const isDualRole = user?.role === 'staff' && (user?.is_admin || user?.is_superuser);
+  const isDualRole = user?.role === 'staff' && user?.is_admin;
   const [portalMode, setPortalMode] = useState(() => {
     try {
       const saved = localStorage.getItem('portal_mode');
@@ -369,6 +371,13 @@ const Layout = () => {
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  // Swipe gestures for sidebar (mobile only)
+  const isMobile = useIsMobile();
+  const sidebarSwipeHandlers = useSidebarSwipe(sidebarOpen, setSidebarOpen, {
+    edgeWidth: 30,
+    disabled: !isMobile,
+  });
 
   // Listen for notification clicks from the service worker (background push)
   // and navigate to the correct page inside the SPA.
@@ -958,6 +967,7 @@ const Layout = () => {
           aria-label="Portal content" 
           data-tour="portal-main" 
           className="flex-1 flex flex-col min-h-0 overflow-y-auto bg-[#F8FAFC]"
+          {...(isMobile ? sidebarSwipeHandlers : {})}
         >
           {/* Top bar */}
           <header data-tour="portal-header" className="sticky top-0 z-[80] flex items-center justify-between border-b-2 border-slate-200 bg-white px-4 py-2 shadow-sm lg:px-6">
@@ -1049,17 +1059,7 @@ const Layout = () => {
 
                     {/* List */}
                     <div className="max-h-[40vh] sm:max-h-[400px] overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
-                      {notifications.length === 0 && unreadCount > 0 ? (
-                        <div className="flex flex-col items-center justify-center py-6 sm:py-12 text-slate-300">
-                          <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-violet-50 flex items-center justify-center mb-2 sm:mb-4">
-                            <svg className="w-5 h-5 sm:w-8 sm:h-8 text-violet-300 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                          </div>
-                          <p className="text-xs sm:text-sm font-bold text-slate-400">Loading notifications...</p>
-                          <p className="text-[10px] sm:text-xs text-slate-300 mt-0.5">{unreadCount} unread</p>
-                        </div>
-                      ) : notifications.length === 0 ? (
+                      {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-6 sm:py-12 text-slate-300">
                           <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-violet-50 flex items-center justify-center mb-2 sm:mb-4">
                             <svg className="w-5 h-5 sm:w-8 sm:h-8 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1243,17 +1243,17 @@ const Layout = () => {
             <span className={`text-[9px] font-bold uppercase tracking-wide ${isHomeActive ? 'text-violet-600' : 'text-slate-400'}`}>Home</span>
           </Link>
 
-          {/* Bulletins */}
+          {/* News */}
           <Link
-            to="/communication-center?tab=bulletins"
+            to="/announcements"
             className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl transition-all active:scale-90 min-w-[56px] ${
-              isCommunicationTabActive('bulletins') ? 'text-violet-600' : 'text-slate-400'
+              isActive('/announcements') ? 'text-violet-600' : 'text-slate-400'
             }`}
           >
-            <svg className="w-5 h-5" fill={isCommunicationTabActive('bulletins') ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isCommunicationTabActive('bulletins') ? 0 : 2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            <svg className="w-5 h-5" fill={isActive('/announcements') ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('/announcements') ? 0 : 2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
             </svg>
-            <span className={`text-[9px] font-bold uppercase tracking-wide ${isCommunicationTabActive('bulletins') ? 'text-violet-600' : 'text-slate-400'}`}>News</span>
+            <span className={`text-[9px] font-bold uppercase tracking-wide ${isActive('/announcements') ? 'text-violet-600' : 'text-slate-400'}`}>News</span>
           </Link>
 
           {/* Messages (students/teachers) or Calendar (parents) */}

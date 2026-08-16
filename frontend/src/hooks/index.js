@@ -39,6 +39,18 @@ export {
 
 export { useApiLoading } from './useApiLoading';
 
+// Swipe gesture hooks
+export {
+  useSwipeGesture,
+  useSidebarSwipe,
+} from './useSwipeGesture';
+
+// Pull-to-refresh hooks
+export {
+  usePullToRefresh,
+  PullIndicator,
+} from './usePullToRefresh';
+
 // Offline data hooks (IndexedDB-backed)
 export { useOfflineQuery } from './useOfflineQuery';
 export { useOfflineFetch, useOfflineParallelFetch } from './useOfflineFetch';
