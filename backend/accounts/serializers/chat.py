@@ -136,6 +136,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     online_count = serializers.SerializerMethodField()
     owner_name = serializers.SerializerMethodField()
     owner_details = serializers.SerializerMethodField()
+    streak = serializers.SerializerMethodField()
 
     class Meta:
         model = ChatRoom
@@ -145,7 +146,32 @@ class ChatRoomSerializer(serializers.ModelSerializer):
                   'created_by', 'owner', 'owner_name', 'owner_details',
                   'created_at', 'updated_at', 'last_message', 'unread_count', 'is_pinned',
                   'last_action_type', 'last_action_sender', 'last_action_sender_name', 'last_action_content',
-                  'member_count', 'online_count']
+                  'member_count', 'online_count', 'streak']
+
+    def get_streak(self, obj):
+        from django.utils import timezone
+        from django.db.models.functions import TruncDate
+        from django.db.models import Count
+        from datetime import timedelta, date
+
+        today = timezone.now().date()
+        message_dates = (
+            obj.messages
+            .annotate(date=TruncDate('timestamp'))
+            .values('date')
+            .annotate(msg_count=Count('id'))
+            .order_by('-date')
+            .values_list('date', flat=True)
+        )
+
+        date_set = set(message_dates)
+        streak = 0
+        check_date = today
+        while check_date in date_set:
+            streak += 1
+            check_date -= timedelta(days=1)
+
+        return streak
 
     def get_last_action_sender_name(self, obj):
         if obj.last_action_sender:

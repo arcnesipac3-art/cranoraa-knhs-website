@@ -1030,6 +1030,11 @@ export default function CommunicationCenter() {
                             {getSystemGroupLabel(room.source_type)}
                           </span>
                         )}
+                        {room.streak > 1 && !isSystem && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-bold flex-shrink-0" title={`${room.streak}-day streak!`}>
+                            🔥 {room.streak}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">
                         {formatChatTime(room.updated_at)}
@@ -1082,6 +1087,11 @@ export default function CommunicationCenter() {
                       {!wsConnected ? 'Connecting...' :
                         selectedRoom.is_group ? `${selectedRoom.member_count || (selectedRoom.participants_details || []).length} members` :
                           (selectedRoom.participants_details || []).find(p => p.id !== userId) && onlineUsers.has(selectedRoom.participants_details.find(p => p.id !== userId)?.id) ? 'Online' : 'Offline'}
+                      {selectedRoom.streak > 1 && (
+                        <span className="inline-flex items-center gap-0.5 ml-1 text-orange-500 font-bold">
+                          🔥 {selectedRoom.streak}d
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
