@@ -87,6 +87,24 @@ export function usePushNotifications() {
         // No existing token or already deleted
       }
 
+      // Aggressively clear ALL Firebase data: service workers, push subscriptions, IndexedDB
+      try {
+        // Unregister the Firebase messaging service worker
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          if (reg.scope?.includes('firebase') || reg.active?.scriptURL?.includes('firebase')) {
+            // Clear push subscription before unregistering
+            try {
+              const sub = await reg.pushManager?.getSubscription();
+              if (sub) await sub.unsubscribe();
+            } catch {}
+            await reg.unregister();
+          }
+        }
+      } catch {
+        // Best effort
+      }
+
       // Also clear Firebase installations data from IndexedDB
       // This forces a completely fresh token from the correct project
       try {
