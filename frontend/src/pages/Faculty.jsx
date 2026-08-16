@@ -48,7 +48,7 @@ function PersonCard({ person, isAdmin, onEdit, onDelete }) {
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden
       hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 group relative">
       {isAdmin && (
-        <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 z-10 flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <button onClick={() => onEdit(person)} className="bg-white/90 hover:bg-violet-100 text-violet-700 rounded-lg p-1.5 shadow-sm">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           </button>
@@ -73,7 +73,7 @@ function AdminCard({ person, isAdmin, onEdit, onDelete }) {
     <div className="bg-white rounded-xl border-2 border-violet-200 overflow-hidden
       hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 relative group">
       {isAdmin && (
-        <div className="absolute top-2 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2 z-10 flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
           <button onClick={() => onEdit(person)} className="bg-white/90 hover:bg-violet-100 text-violet-700 rounded-lg p-1.5 shadow-sm">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
           </button>
@@ -296,7 +296,7 @@ function FacultyModal({ isOpen, onClose, onSave, editingMember }) {
 
       <div className="sticky top-0 z-30 bg-white border-b border-slate-200 py-2.5 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-4">
-          <div className="relative w-72">
+          <div className="relative flex-1 max-w-xs">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
