@@ -16,40 +16,40 @@ const StatTile = ({ label, value, icon, color, subtitle }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
-    className={`bg-white rounded-xl border border-gray-200 shadow-sm p-5 ${color}`}
+    className={`bg-white rounded-xl border border-gray-200 shadow-sm p-3 sm:p-5 ${color}`}
   >
-    <div className="flex items-center gap-3">
-      <div className={`p-2.5 rounded-lg ${icon}`}>
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className={`p-1.5 sm:p-2.5 rounded-lg ${icon}`}>
         {label === 'Total Teachers' && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
         )}
         {label === 'Submitted' && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )}
         {label === 'Pending' && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         )}
         {label === 'Overdue' && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
         )}
         {label === 'Completion' && (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
         )}
       </div>
       <div>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-sm text-gray-500">{label}</p>
-        {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+        <p className="text-lg sm:text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-xs sm:text-sm text-gray-500">{label}</p>
+        {subtitle && <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">{subtitle}</p>}
       </div>
     </div>
   </motion.div>
@@ -187,18 +187,18 @@ export default function AdminGradeMonitoring() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Grade Submission Monitoring</h1>
-          <p className="text-sm text-gray-500 mt-1">Monitor teacher grade submissions and completion</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Grade Submission Monitoring</h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">Monitor teacher grade submissions and completion</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {selectedTeachers.length > 0 && (
-            <Button onClick={handleBulkApprove} className="bg-green-600 hover:bg-green-700 text-white">
+            <Button onClick={handleBulkApprove} className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm">
               Approve Selected ({selectedTeachers.length})
             </Button>
           )}
-          <Button variant="outline" onClick={handleExport}>
+          <Button variant="outline" onClick={handleExport} className="text-xs sm:text-sm">
             Export CSV
           </Button>
         </div>
@@ -206,8 +206,8 @@ export default function AdminGradeMonitoring() {
 
       {loading ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
+            {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-16 sm:h-24 rounded-xl" />)}
           </div>
           <Skeleton className="h-96 rounded-xl" />
         </div>
@@ -218,7 +218,7 @@ export default function AdminGradeMonitoring() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
             <StatTile label="Total Teachers" value={data.total_teachers} color="border-l-4 border-l-brand-400" icon="bg-brand-100 text-brand-600" />
             <StatTile label="Submitted" value={data.submitted_teachers} color="border-l-4 border-l-green-400" icon="bg-green-100 text-green-600" />
             <StatTile label="Pending" value={data.pending_teachers} color="border-l-4 border-l-amber-400" icon="bg-amber-100 text-amber-600" />
@@ -226,12 +226,12 @@ export default function AdminGradeMonitoring() {
             <StatTile label="Completion" value={`${data.completion_percentage}%`} color="border-l-4 border-l-purple-400" icon="bg-purple-100 text-purple-600" />
           </div>
 
-          <div className="flex items-center gap-2 border-b border-gray-200">
+          <div className="flex items-center gap-1 sm:gap-2 border-b border-gray-200 overflow-x-auto">
             {['overview', 'teachers', 'charts'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                className={`px-2.5 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                   activeTab === tab
                     ? 'border-brand-600 text-brand-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
