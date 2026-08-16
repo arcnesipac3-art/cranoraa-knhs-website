@@ -99,15 +99,16 @@ def teacher_dashboard_stats(request):
             .annotate(cnt=Count('id'))
             .values_list('classroom_id', 'cnt')
         )
-        grade_counts = dict(
-            Grade.objects.filter(
+        grade_counts = {
+            (row[0], row[1]): row[2]
+            for row in Grade.objects.filter(
                 subject_id__in=teacher_classroom_subjects.values_list('subject_id', flat=True),
                 classroom_id__in=classroom_ids,
             )
             .values('subject_id', 'classroom_id')
             .annotate(cnt=Count('student', distinct=True))
             .values_list('subject_id', 'classroom_id', 'cnt')
-        )
+        }
         pending_grades = 0
         for cs in teacher_classroom_subjects:
             students_in_class = enrollment_counts.get(cs.classroom_id, 0)
