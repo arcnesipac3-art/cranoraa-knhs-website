@@ -86,6 +86,26 @@ export function usePushNotifications() {
       } catch {
         // No existing token or already deleted
       }
+
+      // Also clear Firebase installations data from IndexedDB
+      // This forces a completely fresh token from the correct project
+      try {
+        const dbs = await indexedDB.databases();
+        for (const db of dbs) {
+          if (db.name?.includes('firebase') || db.name?.includes('firebase-installations')) {
+            indexedDB.deleteDatabase(db.name);
+          }
+        }
+      } catch {
+        // Best effort
+      }
+
+      // Wipe all stale tokens on the backend for this user
+      try {
+        await api.post('/fcm-tokens/deactivate-all/');
+      } catch {
+        // Best effort
+      }
       // Register firebase-messaging-sw.js at a dedicated scope so it does NOT
       // conflict with the Workbox PWA service worker (sw.js) which owns '/'.
       // Firebase requires a SW at scope '/firebase-cloud-messaging-push-scope'

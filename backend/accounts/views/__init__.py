@@ -134,6 +134,7 @@ from .misc import (
 from .fcm import (
     fcm_token_register,
     fcm_token_delete,
+    fcm_deactivate_all,
     test_push_notification,
 )
 

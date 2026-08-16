@@ -65,6 +65,18 @@ def fcm_token_delete(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def fcm_deactivate_all(request):
+    """
+    POST /api/v1/fcm-tokens/deactivate-all/
+    Deactivate ALL FCM tokens for the current user.
+    Used on login to force a fresh token registration.
+    """
+    count = FCMToken.objects.filter(user=request.user, is_active=True).update(is_active=False)
+    return Response({'status': 'deactivated', 'count': count})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def test_push_notification(request):
     """
     POST /api/test-push/
