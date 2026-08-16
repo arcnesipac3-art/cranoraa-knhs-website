@@ -742,32 +742,42 @@ const GradeInput = () => {
           <div className="p-4 sm:p-5 md:p-6" aria-busy="true" aria-label="Loading students…">
             <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
               {/* Table header */}
-              <div className="grid grid-cols-[2.5rem_1fr_8rem_11rem] gap-0 bg-slate-50 border-b-2 border-slate-200 px-4 py-3">
+              <div className="hidden sm:grid grid-cols-[2.5rem_1fr_8rem_11rem] gap-0 bg-slate-50 border-b-2 border-slate-200 px-4 py-3">
                 <Skeleton className="h-2.5 w-4 rounded" />
                 <Skeleton className="h-2.5 w-24 rounded" />
                 <Skeleton className="h-2.5 w-16 rounded justify-self-center" />
                 <Skeleton className="h-2.5 w-24 rounded justify-self-center" />
               </div>
+              {/* Mobile header */}
+              <div className="sm:hidden bg-slate-50 border-b-2 border-slate-200 px-3 py-2 flex items-center justify-between">
+                <Skeleton className="h-2.5 w-20 rounded" />
+                <Skeleton className="h-2.5 w-16 rounded" />
+              </div>
               {/* 8 placeholder rows */}
               {[...Array(8)].map((_, i) => (
-                <div
-                  key={i}
-                  className="grid grid-cols-[2.5rem_1fr_8rem_11rem] items-center gap-0 px-4 py-3 border-b border-slate-100 last:border-0"
-                >
-                  {/* # */}
-                  <Skeleton className="h-3 w-4 rounded" />
-                  {/* Avatar + name */}
-                  <div className="flex items-center gap-3">
-                    <Skeleton.Avatar size="sm" square />
-                    <div className="space-y-1.5 min-w-0">
-                      <Skeleton className="h-3.5 rounded" style={{ width: `${110 + (i % 3) * 20}px` }} />
-                      <Skeleton className="h-2.5 w-16 rounded" />
+                <div key={i}>
+                  {/* Desktop row */}
+                  <div className="hidden sm:grid grid-cols-[2.5rem_1fr_8rem_11rem] items-center gap-0 px-4 py-3 border-b border-slate-100 last:border-0">
+                    <Skeleton className="h-3 w-4 rounded" />
+                    <div className="flex items-center gap-3">
+                      <Skeleton.Avatar size="sm" square />
+                      <div className="space-y-1.5 min-w-0">
+                        <Skeleton className="h-3.5 rounded" style={{ width: `${110 + (i % 3) * 20}px` }} />
+                        <Skeleton className="h-2.5 w-16 rounded" />
+                      </div>
                     </div>
+                    <Skeleton className="h-9 w-20 rounded-md justify-self-center" />
+                    <Skeleton className="h-6 w-24 rounded-full justify-self-center" />
                   </div>
-                  {/* Grade input placeholder */}
-                  <Skeleton className="h-9 w-20 rounded-md justify-self-center" />
-                  {/* Performance badge */}
-                  <Skeleton className="h-6 w-24 rounded-full justify-self-center" />
+                  {/* Mobile row */}
+                  <div className="sm:hidden px-3 py-3 border-b border-slate-100 last:border-0 flex items-center gap-3">
+                    <Skeleton.Avatar size="sm" square />
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <Skeleton className="h-3.5 rounded" style={{ width: `${100 + (i % 3) * 15}px` }} />
+                      <Skeleton className="h-2.5 w-14 rounded" />
+                    </div>
+                    <Skeleton className="h-8 w-14 rounded-md shrink-0" />
+                  </div>
                 </div>
               ))}
             </div>

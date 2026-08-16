@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import api from '../utils/api';
+import api, { API_BASE_URL } from '../utils/api';
 import Swal from 'sweetalert2';
 import { useParallelFetch } from '../hooks/useFetch';
 import { ApplicationsTableSkeleton } from '../components/enrollment/Skeletons';
@@ -387,7 +387,7 @@ const EnrollmentManagement = () => {
         <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">Admissions Management</h1>
         <p className="text-xs text-slate-500 mt-1">SY {new Date().getFullYear()}-{new Date().getFullYear() + 1} Enrollment Applications</p>
       </div>
-      <div className="flex items-center gap-2 mb-4 md:mb-6">
+      <div className="hidden lg:flex items-center gap-2 mb-4 md:mb-6">
         <button onClick={handleExportCSV}
           className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-all shadow-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -709,7 +709,11 @@ const EnrollmentManagement = () => {
                                 }`}>{doc.verification_status_display}</span>
                               </div>
                               <div className="flex items-center gap-1">
-                                {doc.file_url ? (
+                                {doc.file_url && doc.id && !String(doc.id).startsWith('url-') && !String(doc.id).startsWith('missing-') ? (
+                                  <a href={`${API_BASE_URL}/enrollment-applications/${selected.id}/documents/${doc.id}/view/`} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-violet-600 rounded-lg" title="View">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                  </a>
+                                ) : doc.file_url ? (
                                   <a href={doc.file_url} target="_blank" rel="noreferrer" className="p-1.5 text-slate-400 hover:text-violet-600 rounded-lg" title="View">
                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                                   </a>
