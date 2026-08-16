@@ -79,6 +79,13 @@ export function usePushNotifications() {
     if (!messaging) return null;
 
     try {
+      // Force-delete any cached token from a previous Firebase project
+      try {
+        const { deleteToken: fbDelete } = await import('firebase/messaging');
+        await fbDelete(messaging);
+      } catch {
+        // No existing token or already deleted
+      }
       // Register firebase-messaging-sw.js at a dedicated scope so it does NOT
       // conflict with the Workbox PWA service worker (sw.js) which owns '/'.
       // Firebase requires a SW at scope '/firebase-cloud-messaging-push-scope'
