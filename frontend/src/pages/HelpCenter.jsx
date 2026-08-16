@@ -251,7 +251,7 @@ const HelpCenter = () => {
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${activeSection === section.title ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
                 {section.title}
               </button>
-          ))
+          ))}
         </div>
 
         {/* FAQ Sections */}
@@ -270,7 +270,7 @@ const HelpCenter = () => {
                 ))}
               </div>
             </div>
-          ))
+          ))}
         </div>
       </motion.div>
     </div>
