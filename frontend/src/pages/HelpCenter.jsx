@@ -8,15 +8,15 @@ const FAQ_SECTION = [
     items: [
       {
         q: 'How do I log in to the portal?',
-        a: 'Go to the login page and enter your Student LRN (12 digits) or registered email/username. First-time users should use the default password provided by the ICT office. You will be required to change your password on first login.'
+        a: 'Go to the login page and select your portal (Student, Faculty, Parent, or Admin), then enter your credentials. Students use their Student ID or email. Faculty use their teacher email. Parents use their parent email or ID. First-time users should use the default password provided by the ICT office. You will be required to change your password on first login.'
       },
       {
         q: 'I forgot my password. What should I do?',
-        a: 'For students, click "Forgot Password" on the login page and follow the instructions. For staff and admin, contact the ICT office or your administrator to reset your password. Parents can use the password reset link sent to their registered email.'
+        a: 'Click "Forgot password?" on the login page. A dialog will appear instructing you to contact the ICT coordinator for password reset. There is no self-service password recovery. Parents can also use the Change Password page in their sidebar under Account.'
       },
       {
         q: 'The portal says "Wrong Portal." How do I fix this?',
-        a: 'Each account has a designated role (Student, Staff, or Parent). Make sure you are logging in through the correct portal tab. If you are a teacher, use the Staff portal. If you are a student, use the Student portal.'
+        a: 'Each account has a designated role (Student, Faculty, Parent, or Admin). Make sure you are logging in through the correct portal option. If you are a teacher, select the Faculty portal. If you are an administrator, select the Admin portal. Selecting the wrong role will trigger this error.'
       },
     ]
   },
@@ -30,7 +30,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'How do I track my enrollment application?',
-        a: 'Visit the Track Enrollment page from the login screen or navigation menu. Enter your email address to check the current status of your application (Pending, Under Review, Approved, or Enrolled).'
+        a: 'Visit the Track Enrollment page from the login screen or navigation menu. Enter your enrollment reference number or email address to check your application status. Possible statuses include: Pending, Under Review, Pending Requirements, Approved, Rejected, Cancelled, Enrolled, or Withdrawn.'
       },
       {
         q: 'My application was rejected. Can I reapply?',
@@ -38,7 +38,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'What documents are required for enrollment?',
-        a: 'Typically required documents include: Birth Certificate, Form 138 (Report Card), Good Moral Certificate, and a valid ID. Additional documents may be required depending on your grade level or strand. Check the enrollment form for the complete list.'
+        a: 'Required documents vary by grade level and enrollment type. Generally, you will need a Birth Certificate, Report Card or Form 138, and a valid ID. Some grade levels may require a Good Moral Certificate or other documents. The enrollment form will show the specific requirements for your situation.'
       }
     ]
   },
@@ -48,7 +48,7 @@ const FAQ_SECTION = [
     items: [
       {
         q: 'Where can I view my grades?',
-        a: 'Students can view their grades in the "My Classes" section. Parents can check their child\'s grades from the Parent Dashboard. Teachers can input and manage grades through Grade Management.'
+        a: 'Students can view their grades in the "My Classes" section. Parents can check their child\'s grades from the Parent Dashboard. Teachers can input and manage grades through Grade Submission.'
       },
       {
         q: 'How do I submit my grades? (Teachers)',
@@ -56,7 +56,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'How is attendance recorded?',
-        a: 'Teachers record attendance through the Attendance Dashboard. Students\' attendance is marked as Present, Late, Excused, or Absent. Students and parents can view attendance records in My Attendance.'
+        a: 'Teachers record attendance through the Attendance Dashboard. Students\' attendance is marked as Present, Late, Excused, Absent, School Activity, or Medical Leave. Students and parents can view attendance records in My Attendance.'
       },
       {
         q: 'I was marked absent but I was present. What do I do?',
@@ -70,7 +70,7 @@ const FAQ_SECTION = [
     items: [
       {
         q: 'How do I change my password?',
-        a: 'Go to Settings from the sidebar, then navigate to the Security section. Click "Change Password" and enter your current and new password. You will be logged out after changing your password.'
+        a: 'Go to Settings from the sidebar, then navigate to the Security section. Click "Change Password" and enter your current and new password. For parents, there is also a dedicated Change Password page in the sidebar under Account.'
       },
       {
         q: 'How do I update my profile information?',
@@ -78,7 +78,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'How do I change my notification sound?',
-        a: 'Go to Settings > Notifications. You can toggle notification sounds on or off and choose from available sound options.'
+        a: 'Click the mute/unmute button in the sidebar header to toggle notification sounds on or off. This is located near the top of the sidebar, next to the school name.'
       }
     ]
   },
@@ -108,7 +108,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'Notifications are not showing up.',
-        a: 'Make sure notification sounds are enabled in Settings > Notifications. Refresh the page to load new notifications. Check if your browser blocks pop-ups or notifications from the site.'
+        a: 'Refresh the page to load new notifications. Check if your browser blocks pop-ups or notifications from the site. Make sure you are logged in and your session has not expired.'
       },
       {
         q: "I'm locked out after too many failed login attempts.",
@@ -134,7 +134,7 @@ const FAQ_SECTION = [
       },
       {
         q: 'How do I encode attendance?',
-        a: 'Go to Attendance Dashboard, select the class and date, then mark each student as Present, Late, Excused, or Absent. Save the attendance record. Students can view their attendance in My Attendance.'
+        a: 'Go to Attendance Dashboard, select the class and date, then mark each student as Present, Late, Excused, Absent, School Activity, or Medical Leave. Save the attendance record. Students can view their attendance in My Attendance.'
       }
     ]
   },
