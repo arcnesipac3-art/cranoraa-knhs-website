@@ -26,6 +26,7 @@ const Enrollment = lazy(() => retryImport(() => import('../pages/Enrollment')));
 const AnnouncementDetails = lazy(() => retryImport(() => import('../pages/AnnouncementDetails')));
 const NewsEvents = lazy(() => retryImport(() => import('../pages/NewsEvents')));
 const Calendar = lazy(() => retryImport(() => import('../pages/Calendar')));
+const Leaderboard = lazy(() => retryImport(() => import('../pages/Leaderboard')));
 const LearningMaterials = lazy(() => retryImport(() => import('../pages/LearningMaterials')));
 const Portals = lazy(() => retryImport(() => import('../pages/Portals')));
 const PrivacyPolicy = lazy(() => retryImport(() => import('../pages/PrivacyPolicy')));
@@ -153,6 +154,7 @@ export const protectedRoutes = [
 
   // Standalone routes
   { path: 'portal-calendar', element: Calendar, props: { mode: 'portal' }, roles: Role.ALL },
+  { path: 'leaderboard', element: Leaderboard, roles: Role.ALL },
   { path: 'password-reset', element: PasswordReset, roles: [Role.PARENT] },
   { path: 'force-password-change', element: ForcePasswordChange, roles: Role.ALL },
   { path: 'help', element: HelpCenter, roles: Role.ALL },

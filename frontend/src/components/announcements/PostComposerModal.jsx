@@ -13,9 +13,10 @@ const CATEGORY_OPTIONS = [
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: 'info',      label: 'Normal',   color: 'text-slate-600' },
-  { value: 'important', label: 'Important', color: 'text-orange-600' },
-  { value: 'critical',  label: 'Urgent',   color: 'text-red-600' },
+  { value: 'normal',  label: 'Normal',   color: 'text-slate-600' },
+  { value: 'low',     label: 'Low',      color: 'text-slate-500' },
+  { value: 'high',    label: 'High',     color: 'text-orange-600' },
+  { value: 'urgent',  label: 'Urgent',   color: 'text-red-600' },
 ];
 
 const AUDIENCE_OPTIONS = [

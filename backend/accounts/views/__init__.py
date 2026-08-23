@@ -184,3 +184,12 @@ from .compliance import (
     legacy_submissions,
     compliance_audit_trail,
 )
+
+from .engagement import (
+    SchoolEventViewSet,
+    BadgeViewSet,
+    StudentBadgeViewSet,
+    StudentLeaderboardViewSet,
+    award_badge,
+    compute_leaderboard,
+)

@@ -80,6 +80,10 @@ from .compliance import (
     ComplianceCommentSerializer, ComplianceReviewSerializer,
     ComplianceBulkReviewSerializer, ComplianceDashboardSerializer,
 )
+from .engagement import (
+    EventRSVPSerializer, SchoolEventSerializer,
+    BadgeSerializer, StudentBadgeSerializer, StudentLeaderboardSerializer,
+)
 
 __all__ = [
     'full_name',

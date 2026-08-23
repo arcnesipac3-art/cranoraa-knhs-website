@@ -24,9 +24,13 @@ const CATEGORY_CONFIG = {
 };
 
 const PRIORITY_CONFIG = {
-  info:     { label: 'Normal',   color: 'bg-slate-100 text-slate-600 border-slate-200',   indicator: '' },
-  important:{ label: 'Important',color: 'bg-orange-50 text-orange-700 border-orange-200', indicator: 'border-l-orange-500' },
-  critical: { label: 'Urgent',   color: 'bg-red-50 text-red-700 border-red-200',           indicator: 'border-l-red-500' },
+  normal:  { label: 'Normal',   color: 'bg-slate-100 text-slate-600 border-slate-200',   indicator: '' },
+  low:     { label: 'Low',      color: 'bg-slate-50 text-slate-500 border-slate-200',    indicator: '' },
+  high:    { label: 'High',     color: 'bg-orange-50 text-orange-700 border-orange-200', indicator: 'border-l-orange-500' },
+  urgent:  { label: 'Urgent',   color: 'bg-red-50 text-red-700 border-red-200',           indicator: 'border-l-red-500' },
+  info:    { label: 'Normal',   color: 'bg-slate-100 text-slate-600 border-slate-200',   indicator: '' },
+  important:{ label: 'High',    color: 'bg-orange-50 text-orange-700 border-orange-200', indicator: 'border-l-orange-500' },
+  critical:{ label: 'Urgent',   color: 'bg-red-50 text-red-700 border-red-200',           indicator: 'border-l-red-500' },
 };
 
 const FILTER_TABS = [
@@ -108,7 +112,7 @@ const formatFileSize = (bytes) => {
 };
 
 const EMPTY_FORM = {
-  title: '', category: 'general', priority: 'info', status: 'live',
+  title: '', category: 'general', priority: 'normal', status: 'live',
   target_audience: 'all', target_classrooms: [], content: '', is_pinned: false, is_public: false,
   event_date: '', end_date: '', attachments: [],
 };
@@ -159,7 +163,7 @@ const Announcements = () => {
     if (search) params.search = search;
     if (activeFilter === 'unread') params.unread = true;
     if (activeFilter === 'pinned') params.is_pinned = true;
-    if (activeFilter === 'urgent') params.priority = 'critical';
+    if (activeFilter === 'urgent') params.priority = 'urgent';
     if (activeFilter === 'academic') params.category = 'academic';
     if (activeFilter === 'events') params.category = 'events';
     if (activeFilter === 'examinations') params.category = 'examinations';
@@ -696,7 +700,7 @@ const Announcements = () => {
 
                         {/* Badges Row */}
                         <div className="flex flex-wrap gap-1.5 mb-3">
-                          {(a.priority === 'critical') && (
+                          {(a.priority === 'urgent') && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wide">
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
@@ -704,7 +708,7 @@ const Announcements = () => {
                               Urgent
                             </span>
                           )}
-                          {(a.priority === 'important') && (
+                          {(a.priority === 'high') && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase tracking-wide">
                               Important
                             </span>
@@ -849,11 +853,11 @@ const Announcements = () => {
                   <span className={`w-1.5 h-1.5 rounded-full ${(CATEGORY_CONFIG[selected.category] || CATEGORY_CONFIG.general).dot}`} />
                   {(CATEGORY_CONFIG[selected.category] || CATEGORY_CONFIG.general).label}
                 </span>
-                {selected.priority === 'critical' && (
+                {selected.priority === 'urgent' && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase">Urgent</span>
                 )}
-                {selected.priority === 'important' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase">Important</span>
+                {selected.priority === 'high' && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase">High</span>
                 )}
                 {selected.is_pinned && (
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase">

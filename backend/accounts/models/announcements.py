@@ -16,8 +16,10 @@ class Announcement(models.Model):
     ]
 
     PRIORITY_CHOICES = [
-        ('info', 'Info'),
-        ('critical', 'Critical'),
+        ('urgent', 'Urgent'),
+        ('high', 'High'),
+        ('normal', 'Normal'),
+        ('low', 'Low'),
     ]
 
     STATUS_CHOICES = [

@@ -45,6 +45,38 @@ class SchoolEvent(models.Model):
     def __str__(self):
         return f"{self.title} ({self.start_date})"
 
+    @property
+    def rsvp_going_count(self):
+        return self.rsvps.filter(status='going').count()
+
+    @property
+    def rsvp_maybe_count(self):
+        return self.rsvps.filter(status='maybe').count()
+
+    @property
+    def rsvp_not_going_count(self):
+        return self.rsvps.filter(status='not_going').count()
+
+
+class EventRSVP(models.Model):
+    STATUS_CHOICES = [
+        ('going', 'Going'),
+        ('maybe', 'Maybe'),
+        ('not_going', 'Not Going'),
+    ]
+
+    event = models.ForeignKey(SchoolEvent, on_delete=models.CASCADE, related_name='rsvps')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_rsvps')
+    status = models.CharField(max=10, choices=STATUS_CHOICES, default='going')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('event', 'user')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.event.title} ({self.status})"
+
 
 class WebsiteContent(models.Model):
     SECTION_CHOICES = [

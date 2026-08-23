@@ -13,7 +13,7 @@ import Modal, { ModalHeader, ModalTitle, ModalBody, ModalFooter, ModalField, Mod
 import { AssignSectionModal } from '../components/modals/AssignSectionModal';
 
 // ── Student Profile Drawer ─────────────────────────────────────────────────
-function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, onAssignSection, onDelete, onStartChat, currentUser }) {
+function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, onAssignSection, onDelete, onStartChat, onAwardBadge, currentUser }) {
   const [tab, setTab] = useState('personal');
   const [appData,  setAppData]  = useState(null);
   const [grades,   setGrades]   = useState([]);
@@ -178,6 +178,11 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
               Message
             </button>
           )}
+          <button onClick={() => { onAwardBadge(student.id); onClose(); }}
+            className="flex items-center gap-1.5 text-[10px] font-bold text-amber-300 hover:text-amber-100 px-2.5 py-1.5 rounded hover:bg-amber-500/20 transition-colors">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+            Award Badge
+          </button>
           <button onClick={() => { onDelete(student.id); onClose(); }}
             className="flex items-center gap-1.5 text-[10px] font-bold text-rose-300 hover:text-rose-100 px-2.5 py-1.5 rounded hover:bg-rose-500/20 transition-colors ml-auto">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -711,6 +716,37 @@ setSelectedIds([]);
       const msg = err.response?.data?.error || 'Failed to start chat';
       toast.error(msg);
     }
+  };
+
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [badgeStudentId, setBadgeStudentId] = useState(null);
+  const [availableBadges, setAvailableBadges] = useState([]);
+  const [selectedBadge, setSelectedBadge] = useState(null);
+  const [badgeReason, setBadgeReason] = useState('');
+  const [awardingBadge, setAwardingBadge] = useState(false);
+
+  const handleAwardBadge = async (studentId) => {
+    setBadgeStudentId(studentId);
+    setSelectedBadge(null);
+    setBadgeReason('');
+    setShowBadgeModal(true);
+    try {
+      const res = await api.get('/badges/');
+      setAvailableBadges(res.data.results || res.data);
+    } catch { toast.error('Failed to load badges'); }
+  };
+
+  const handleConfirmAward = async () => {
+    if (!selectedBadge) return toast.error('Select a badge');
+    setAwardingBadge(true);
+    try {
+      await api.post('/award-badge/', { student_id: badgeStudentId, badge_id: selectedBadge.id, reason: badgeReason });
+      toast.success(`Badge "${selectedBadge.name}" awarded!`);
+      setShowBadgeModal(false);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to award badge');
+    }
+    setAwardingBadge(false);
   };
 
   const handleToggleStatus = async (student, newStatus) => {
@@ -1399,6 +1435,7 @@ setSelectedIds([]);
           onAssignSection={handleAssignSection}
           onDelete={handleDelete}
           onStartChat={handleStartChat}
+          onAwardBadge={handleAwardBadge}
           currentUser={user}
         />
       )}
@@ -1496,6 +1533,39 @@ setSelectedIds([]);
         title="Assign Section"
         confirmText="Assign"
       />
+
+      {/* Award Badge Modal */}
+      <Modal isOpen={showBadgeModal} onClose={() => setShowBadgeModal(false)} size="md">
+        <ModalHeader onClose={() => setShowBadgeModal(false)}>
+          <ModalTitle title="Award Badge" subtitle="Select a badge to award" />
+        </ModalHeader>
+        <ModalBody className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+            {availableBadges.map(badge => (
+              <button key={badge.id} onClick={() => setSelectedBadge(badge)}
+                className={`flex flex-col items-center p-3 rounded-xl border transition-all ${
+                  selectedBadge?.id === badge.id
+                    ? 'bg-violet-50 border-violet-400 ring-2 ring-violet-300'
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}>
+                <span className="text-2xl mb-1">{badge.icon}</span>
+                <span className="text-xs font-bold text-slate-800">{badge.name}</span>
+                <span className="text-[10px] text-slate-400">{badge.points} pts</span>
+              </button>
+            ))}
+          </div>
+          <ModalField label="Reason (optional)">
+            <input value={badgeReason} onChange={e => setBadgeReason(e.target.value)}
+              placeholder="Why is this badge being awarded?" className={modalInputCls} />
+          </ModalField>
+        </ModalBody>
+        <ModalFooter>
+          <ModalBtnSecondary onClick={() => setShowBadgeModal(false)}>Cancel</ModalBtnSecondary>
+          <ModalBtnPrimary onClick={handleConfirmAward} disabled={!selectedBadge || awardingBadge}>
+            {awardingBadge ? 'Awarding...' : 'Award Badge'}
+          </ModalBtnPrimary>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };

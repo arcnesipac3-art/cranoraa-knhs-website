@@ -33,6 +33,8 @@ from .views import (
     check_overdue_submissions, sync_teacher_submissions,
     trigger_compliance_reminders,
     bulk_assign_classroom_subject, legacy_submissions, compliance_audit_trail,
+    BadgeViewSet, StudentBadgeViewSet, StudentLeaderboardViewSet,
+    award_badge, compute_leaderboard,
 )
 app_name = 'accounts'
 
@@ -74,6 +76,9 @@ router.register(r'v1/enrollment-waitlist', EnrollmentWaitlistViewSet, basename='
 router.register(r'v1/ptm-meetings', ParentTeacherMeetingViewSet, basename='ptm-meeting')
 router.register(r'v1/behavioral-records', BehavioralRecordViewSet, basename='behavioral-record')
 router.register(r'v1/school-events', SchoolEventViewSet, basename='school-event')
+router.register(r'v1/badges', BadgeViewSet, basename='badge')
+router.register(r'v1/student-badges', StudentBadgeViewSet, basename='student-badge')
+router.register(r'v1/leaderboard', StudentLeaderboardViewSet, basename='leaderboard')
 router.register(r'v1/user-blocks', UserBlockViewSet, basename='user-block')
 router.register(r'v1/emergency-messages', EmergencyMessageViewSet, basename='emergency-message')
 router.register(r'v1/departments', DepartmentViewSet, basename='department')
@@ -137,5 +142,7 @@ urlpatterns = [
     path('v1/compliance/legacy/', legacy_submissions, name='legacy_submissions'),
     path('v1/compliance/bulk-assign/', bulk_assign_classroom_subject, name='bulk_assign_classroom_subject'),
     path('v1/compliance/audit-trail/', compliance_audit_trail, name='compliance_audit_trail'),
+    path('v1/engagement/award-badge/', award_badge, name='award_badge'),
+    path('v1/engagement/leaderboard/compute/', compute_leaderboard, name='compute_leaderboard'),
     path('', include(router.urls)),
 ]

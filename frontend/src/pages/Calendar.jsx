@@ -874,6 +874,34 @@ const Calendar = ({ mode = 'public' }) => {
               {selectedEvent.description && (
                 <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap mb-4">{selectedEvent.description}</div>
               )}
+              {selectedEvent.type === 'event' && (
+                <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">RSVP</p>
+                  <div className="flex items-center gap-2">
+                    {['going', 'maybe', 'not_going'].map(s => (
+                      <button key={s} onClick={async () => {
+                        const rawId = String(selectedEvent.id).replace('event-', '');
+                        try {
+                          const r = await api.post(`/school-events/${rawId}/rsvp/`, { status: s });
+                          setSelectedEvent(prev => ({ ...prev, my_rsvp: s, rsvp_going_count: r.data.going, rsvp_maybe_count: r.data.maybe, rsvp_not_going_count: r.data.not_going }));
+                          toast.success(`RSVP: ${s === 'not_going' ? 'Not Going' : s.charAt(0).toUpperCase() + s.slice(1)}`);
+                        } catch { toast.error('Failed to RSVP'); }
+                      }} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                        selectedEvent.my_rsvp === s
+                          ? s === 'going' ? 'bg-emerald-500 text-white' : s === 'maybe' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
+                          : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
+                      }`}>
+                        {s === 'going' ? '✓ Going' : s === 'maybe' ? '? Maybe' : '✕ Not Going'}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-4 mt-3 text-xs text-slate-500">
+                    <span>✓ {selectedEvent.rsvp_going_count || 0} Going</span>
+                    <span>? {selectedEvent.rsvp_maybe_count || 0} Maybe</span>
+                    <span>✕ {selectedEvent.rsvp_not_going_count || 0} Not Going</span>
+                  </div>
+                </div>
+              )}
             </div>
             <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">

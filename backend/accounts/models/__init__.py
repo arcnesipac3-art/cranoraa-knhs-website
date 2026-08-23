@@ -16,8 +16,9 @@ from .enrollment import (
     EnrollmentWaitlist, ParentLink, EnrollmentChecklist, EnrollmentDocumentVersion,
 )
 from .communication import ParentTeacherMeeting, BehavioralRecord
-from .events import SchoolEvent, WebsiteContent
+from .events import SchoolEvent, WebsiteContent, EventRSVP
 from .assignments import Assignment, Submission, Grade
+from .badges import Badge, StudentBadge, StudentLeaderboard
 from .schedule import Room, TimeSlot, Schedule
 from .grades import GradeReport, CoreValuesGrade
 from .tickets import (
