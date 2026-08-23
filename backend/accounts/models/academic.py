@@ -84,6 +84,9 @@ class ClassroomSubject(models.Model):
         unique_together = ['classroom', 'subject']
         ordering = ['classroom__name', 'subject__name']
 
+    def __str__(self):
+        return f"{self.classroom} - {self.subject}"
+
 
 class SystemSetting(models.Model):
     site_name = models.CharField(max_length=255, default='School Portal')

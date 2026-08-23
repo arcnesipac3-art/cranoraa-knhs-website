@@ -30,6 +30,16 @@ class ComplianceTypeSerializer(serializers.ModelSerializer):
             'is_required': assignment.is_required,
         } for assignment in assignments]
 
+    def validate_deadline_day(self, value):
+        if value is not None and (value < 1 or value > 31):
+            raise serializers.ValidationError("Deadline day must be between 1 and 31.")
+        return value
+
+    def validate_name(self, value):
+        if value is not None and not value.strip():
+            raise serializers.ValidationError("Name must not be empty.")
+        return value
+
 
 class ComplianceFileSerializer(serializers.ModelSerializer):
     class Meta:

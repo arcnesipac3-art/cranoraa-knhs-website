@@ -2,6 +2,16 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User, Profile, WebsiteContent, Room, TimeSlot, Schedule, DashboardPreferences
 from .models import FCMToken
+from .models import Announcement, AnnouncementAttachment, AnnouncementComment
+from .models import Classroom, Subject, ClassroomSubject
+from .models import Attendance, AbsenceExcuse
+from .models import Grade, GradeReport, CoreValuesGrade
+from .models import ChatRoom, ChatMessage
+from .models import Notification
+from .models import EnrollmentApplication, EnrollmentDocument
+from .models import SchoolEvent, EventRSVP, Badge, StudentBadge, StudentLeaderboard
+from .models import GradingPeriod
+from .models import ComplianceType, ComplianceSubmission
 
 
 class ProfileInline(admin.StackedInline):
@@ -102,5 +112,50 @@ class FCMTokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'device_type', 'is_active', 'created_at')
     list_filter = ('is_active', 'device_type')
     search_fields = ('user__email', 'token')
+
+
+# Announcements
+admin.site.register(Announcement)
+admin.site.register(AnnouncementAttachment)
+admin.site.register(AnnouncementComment)
+
+# Academic
+admin.site.register(Classroom)
+admin.site.register(Subject)
+admin.site.register(ClassroomSubject)
+
+# Attendance
+admin.site.register(Attendance)
+admin.site.register(AbsenceExcuse)
+
+# Grades
+admin.site.register(Grade)
+admin.site.register(GradeReport)
+admin.site.register(CoreValuesGrade)
+
+# Chat
+admin.site.register(ChatRoom)
+admin.site.register(ChatMessage)
+
+# Notifications
+admin.site.register(Notification)
+
+# Enrollment
+admin.site.register(EnrollmentApplication)
+admin.site.register(EnrollmentDocument)
+
+# Events & Engagement
+admin.site.register(SchoolEvent)
+admin.site.register(EventRSVP)
+admin.site.register(Badge)
+admin.site.register(StudentBadge)
+admin.site.register(StudentLeaderboard)
+
+# Grading Management
+admin.site.register(GradingPeriod)
+
+# Compliance
+admin.site.register(ComplianceType)
+admin.site.register(ComplianceSubmission)
 
 

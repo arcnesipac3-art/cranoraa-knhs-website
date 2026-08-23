@@ -301,7 +301,7 @@ def check_result(request):
         return Response({'error': 'Invalid registration number'}, status=400)
     except Exception as e:
         logger.error(f"check_result error: {str(e)}", exc_info=True)
-        return Response({'error': 'An error occurred processing your request.'}, status=500)
+        return Response({'error': 'Failed to process grade data. Please check your input and try again.'}, status=500)
 
 
 class GradeViewSet(viewsets.ModelViewSet):

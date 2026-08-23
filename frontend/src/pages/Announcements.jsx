@@ -155,7 +155,7 @@ const Announcements = () => {
     try {
       const r = await api.get('/classrooms/');
       setClassrooms(r.data);
-    } catch {}
+    } catch { /* non-critical */ }
   };
 
   const fetchAnnouncements = async () => {
@@ -285,10 +285,10 @@ const Announcements = () => {
     }
   };
 
-  const handlePin = async (a) => { try { await api.patch(`/announcements/${a.id}/`, { is_pinned: !a.is_pinned }); fetchAnnouncements(); } catch {} };
-  const handlePublish = async (a) => { try { await api.post(`/announcements/${a.id}/publish/`); toast.success('Published'); fetchAnnouncements(); } catch {} };
-  const handleArchive = async (a) => { try { await api.post(`/announcements/${a.id}/archive/`); toast.success('Archived'); fetchAnnouncements(); } catch {} };
-  const handleRead = async (a) => { try { await api.post(`/announcements/${a.id}/mark-read/`); fetchAnnouncements(); } catch {} };
+  const handlePin = async (a) => { try { await api.patch(`/announcements/${a.id}/`, { is_pinned: !a.is_pinned }); fetchAnnouncements(); } catch { toast.error('Failed to pin'); } };
+  const handlePublish = async (a) => { try { await api.post(`/announcements/${a.id}/publish/`); toast.success('Published'); fetchAnnouncements(); } catch { toast.error('Failed to publish'); } };
+  const handleArchive = async (a) => { try { await api.post(`/announcements/${a.id}/archive/`); toast.success('Archived'); fetchAnnouncements(); } catch { toast.error('Failed to archive'); } };
+  const handleRead = async (a) => { try { await api.post(`/announcements/${a.id}/mark-read/`); fetchAnnouncements(); } catch { /* non-critical */ } };
 
   const handleDeleteAttachment = async (attId) => {
     if (!selected) return;

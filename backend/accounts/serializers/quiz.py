@@ -24,6 +24,21 @@ class QuestionSerializer(serializers.ModelSerializer):
     def get_created_by_name(self, obj):
         return full_name(obj.created_by) if obj.created_by else ''
 
+    def validate_points(self, value):
+        if value is not None and value <= 0:
+            raise serializers.ValidationError("Points must be greater than 0.")
+        return value
+
+    def validate(self, data):
+        correct_answer = data.get('correct_answer', getattr(self.instance, 'correct_answer', None))
+        options = data.get('options', getattr(self.instance, 'options', None))
+        if correct_answer is not None and options is not None and options != []:
+            if isinstance(options, list):
+                labels = [opt.get('label') if isinstance(opt, dict) else opt for opt in options]
+                if correct_answer not in labels:
+                    raise serializers.ValidationError({'correct_answer': 'Correct answer must be one of the provided option labels.'})
+        return data
+
 
 class QuestionBankSerializer(serializers.ModelSerializer):
     subject_name = serializers.CharField(source='subject.name', read_only=True, default=None)

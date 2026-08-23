@@ -72,7 +72,7 @@ class StudentLeaderboardViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return StudentLeaderboard.objects.select_related('student', 'student__profile').all()[:50]
+        return StudentLeaderboard.objects.select_related('student', 'student__profile').all()
 
 
 @api_view(['POST'])
@@ -92,7 +92,7 @@ def award_badge(request):
     try:
         student = StudentBadge._meta.get_field('student').related_model.objects.get(id=student_id)
         badge = Badge.objects.get(id=badge_id)
-    except Exception:
+    except (StudentBadge._meta.get_field('student').related_model.DoesNotExist, Badge.DoesNotExist):
         return Response({'error': 'Invalid student or badge'}, status=400)
 
     sb, created = StudentBadge.objects.get_or_create(
@@ -127,7 +127,7 @@ def compute_leaderboard(request):
     from datetime import date, timedelta
 
     User = get_user_model()
-    students = User.objects.filter(role='student')
+    students = User.objects.filter(role='student').order_by('-total_points')[:100]
 
     for student in students:
         lb, _ = StudentLeaderboard.objects.get_or_create(student=student)

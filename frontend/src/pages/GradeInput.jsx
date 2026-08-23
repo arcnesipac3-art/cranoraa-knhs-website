@@ -258,7 +258,10 @@ const GradeInput = () => {
         if (!openPeriod) {
           return toast.error(`Term ${selQuarter} is not open. Contact your admin to open it.`);
         }
-      } catch {}
+      } catch (e) {
+        toast.error('Failed to verify grading period. Please try again.');
+        return;
+      }
     }
 
     // Check for overwrites

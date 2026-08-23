@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../utils/api';
+import toast from 'react-hot-toast';
 import { Card, CardHeader, CardBody, CardFooter } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useAcademicYear } from '../context/AcademicYearContext';
@@ -35,7 +36,7 @@ function SF9Page() {
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
-    } catch { }
+    } catch { toast.error('Failed to export PDF'); }
   };
 
   const studentInfo = data?.student_info?.student || {};

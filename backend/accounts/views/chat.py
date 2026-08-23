@@ -548,7 +548,7 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
             })
         except Exception as e:
             logger.error(f"System group sync failed: {e}")
-            return Response({'error': str(e)}, status=500)
+            return Response({'error': 'Failed to process request'}, status=500)
 
 
 class ChatMessageViewSet(viewsets.ModelViewSet):

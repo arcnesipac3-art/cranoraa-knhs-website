@@ -16,6 +16,7 @@ export const SCHOOL_INFO = {
   address: 'Kiwalan, Iligan City, Lanao del Norte',
   region: 'Region X - Iligan City',
   division: 'Division of Lanao del Norte',
+  // TODO: Update with actual school contact
   contact: '(063) 221-XXXX',
   email: 'knhs@deped.gov.ph',
   website: 'www.knhs.edu.ph',

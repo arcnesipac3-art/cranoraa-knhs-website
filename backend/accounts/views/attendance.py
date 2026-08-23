@@ -587,7 +587,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             return self._teacher_dashboard_inner(request)
         except Exception as exc:
             logger.exception('teacher_dashboard error: %s', exc)
-            return Response({'error': str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': 'Failed to process attendance'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _teacher_dashboard_inner(self, request):
         if request.user.role not in ['staff', 'admin']:

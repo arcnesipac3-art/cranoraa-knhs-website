@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../utils/api';
+import toast from 'react-hot-toast';
 import { Card, CardHeader, CardBody, CardFooter } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -33,7 +34,7 @@ function SF10Page() {
       const res = await api.post('/sf10/export_pdf/', {}, { params: new URLSearchParams(Object.entries(filters).filter(([, v]) => v)) });
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       window.open(URL.createObjectURL(blob), '_blank');
-    } catch { }
+    } catch { toast.error('Failed to export PDF'); }
   };
 
   const handleExportExcel = async () => {
@@ -44,7 +45,7 @@ function SF10Page() {
       a.href = URL.createObjectURL(blob);
       a.download = 'SF10_Permanent_Record.xlsx';
       a.click();
-    } catch { }
+    } catch { toast.error('Failed to export Excel'); }
   };
 
   const studentInfo = data?.student_info?.student || {};

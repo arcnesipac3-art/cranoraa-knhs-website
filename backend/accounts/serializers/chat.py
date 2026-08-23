@@ -38,7 +38,7 @@ class ChatMemberSerializer(serializers.ModelSerializer):
     def get_user_profile_picture(self, obj):
         try:
             return obj.user.profile.profile_picture or None
-        except Exception:
+        except AttributeError:
             return None
 
     def get_user_staff_title(self, obj):
@@ -81,7 +81,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     def get_sender_profile_picture(self, obj):
         try:
             return obj.sender.profile.profile_picture or None
-        except Exception:
+        except AttributeError:
             return None
 
     def get_reactions(self, obj):

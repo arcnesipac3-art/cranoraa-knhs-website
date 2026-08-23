@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../utils/api';
+import toast from 'react-hot-toast';
 import { Card, CardHeader, CardBody, CardFooter } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -44,7 +45,7 @@ function SF2Page() {
       const blob = new Blob([res.data.pdf], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       window.open(url, '_blank');
-    } catch { } finally { setExporting(null); }
+    } catch { toast.error('Failed to export PDF'); } finally { setExporting(null); }
   };
 
   const handleExportExcel = async () => {
@@ -60,7 +61,7 @@ function SF2Page() {
       a.download = 'SF2_Attendance_Report.xlsx';
       a.click();
       URL.revokeObjectURL(url);
-    } catch { } finally { setExporting(null); }
+    } catch { toast.error('Failed to export Excel'); } finally { setExporting(null); }
   };
 
   const summary = data?.summary || {};

@@ -97,7 +97,7 @@ class StudentLeaderboardSerializer(serializers.ModelSerializer):
     def get_student_profile_picture(self, obj):
         try:
             return obj.student.profile.profile_picture or None
-        except Exception:
+        except AttributeError:
             return None
 
     def get_badge_count(self, obj):

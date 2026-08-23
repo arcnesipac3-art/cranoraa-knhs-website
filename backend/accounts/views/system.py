@@ -54,7 +54,7 @@ def system_settings_view(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logger.error(f"Error updating system settings: {str(e)}", exc_info=True)
-            return Response({'error': 'Failed to update system settings.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': 'Failed to update settings. Please check your input and try again.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     # GET
     serializer = SystemSettingSerializer(sys_settings)

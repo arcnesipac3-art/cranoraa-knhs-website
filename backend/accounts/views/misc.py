@@ -10,6 +10,7 @@ from ..models import (
     ParentTeacherMeeting,
     BehavioralRecord,
     SchoolEvent,
+    EventRSVP,
     EmergencyMessage,
     Department,
     StaffPerformance,
@@ -125,6 +126,10 @@ def student_calendar_view(request):
             'start_time': e.start_time.isoformat() if e.start_time else None,
             'end_time': e.end_time.isoformat() if e.end_time else None,
             'is_all_day': e.is_all_day,
+            'rsvp_going_count': EventRSVP.objects.filter(event=e, status='going').count(),
+            'rsvp_maybe_count': EventRSVP.objects.filter(event=e, status='maybe').count(),
+            'rsvp_not_going_count': EventRSVP.objects.filter(event=e, status='not_going').count(),
+            'my_rsvp': EventRSVP.objects.filter(event=e, user=user).values_list('status', flat=True).first() if user else None,
         })
     
     return Response(events)

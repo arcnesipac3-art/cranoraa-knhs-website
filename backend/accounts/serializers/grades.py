@@ -48,6 +48,24 @@ class GradeSerializer(serializers.ModelSerializer):
         profile = getattr(obj.student, 'profile', None)
         return getattr(profile, 'profile_picture', None) if profile else None
 
+    def validate_raw_score(self, value):
+        if value is not None and value < 0:
+            raise serializers.ValidationError("Raw score must be >= 0.")
+        return value
+
+    def validate_quarter(self, value):
+        if value is not None and value not in (1, 2, 3, 4):
+            raise serializers.ValidationError("Quarter must be 1, 2, 3, or 4.")
+        return value
+
+    def validate(self, data):
+        raw_score = data.get('raw_score', getattr(self.instance, 'raw_score', None))
+        total_score = data.get('total_score', getattr(self.instance, 'total_score', None))
+        if raw_score is not None and total_score is not None:
+            if total_score < raw_score:
+                raise serializers.ValidationError({'total_score': 'Total score must be >= raw score.'})
+        return data
+
 
 class GradeReportSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()

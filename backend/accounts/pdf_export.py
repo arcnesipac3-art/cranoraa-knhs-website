@@ -32,7 +32,7 @@ SCHOOL_NAME = "Kiwalan National High School"
 SCHOOL_ADDRESS = "Kiwalan, Iligan City, Lanao del Norte"
 SCHOOL_REGION = "Region X - Northern Mindanao"
 SCHOOL_DIVISION = "Division of Iligan City"
-SCHOOL_CONTACT = "(063) 221-XXXX"
+SCHOOL_CONTACT = "(063) 221-0000"  # TODO: Configure via SystemSetting model
 SCHOOL_EMAIL = "knhs@deped.gov.ph"
 
 

@@ -28,6 +28,19 @@ class GradingPeriodSerializer(serializers.ModelSerializer):
     def get_created_by_name(self, obj):
         return full_name(obj.created_by) if obj.created_by else ''
 
+    def validate_quarter(self, value):
+        if value is not None and value not in (1, 2, 3, 4):
+            raise serializers.ValidationError("Quarter must be 1, 2, 3, or 4.")
+        return value
+
+    def validate(self, data):
+        start_date = data.get('start_date', getattr(self.instance, 'start_date', None))
+        submission_deadline = data.get('submission_deadline', getattr(self.instance, 'submission_deadline', None))
+        if start_date is not None and submission_deadline is not None:
+            if submission_deadline <= start_date:
+                raise serializers.ValidationError({'submission_deadline': 'Submission deadline must be after the start date.'})
+        return data
+
 
 class GradeSubmissionSerializer(serializers.ModelSerializer):
     teacher_name = serializers.SerializerMethodField()

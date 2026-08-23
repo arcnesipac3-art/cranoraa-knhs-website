@@ -157,7 +157,6 @@ export function usePushNotifications() {
             token: currentToken,
             device_type: 'web',
           });
-          console.log('FCM token registered with backend:', res.data);
         } catch (err) {
           console.error('Failed to register FCM token with backend:', err.response?.data || err.message);
         }

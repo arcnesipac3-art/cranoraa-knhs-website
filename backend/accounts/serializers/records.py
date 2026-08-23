@@ -125,6 +125,22 @@ class RecordRequestSerializer(serializers.ModelSerializer):
     def get_handled_by_name(self, obj):
         return full_name(obj.handled_by) if obj.handled_by else None
 
+    def validate_record_type(self, value):
+        if value is not None:
+            valid_types = [
+                'transcript', 'transfer_certificate', 'character_certificate',
+                'achievement_record', 'good_moral', 'enrollment_verification',
+                'other',
+            ]
+            if value not in valid_types:
+                raise serializers.ValidationError(f"record_type must be one of: {', '.join(valid_types)}")
+        return value
+
+    def validate_purpose(self, value):
+        if value is not None and len(value) > 500:
+            raise serializers.ValidationError("Purpose must not exceed 500 characters.")
+        return value
+
 
 class StudentPromotionRecordSerializer(serializers.ModelSerializer):
     student_name = serializers.SerializerMethodField()

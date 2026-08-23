@@ -26,6 +26,7 @@ export default function Leaderboard() {
   const [badges, setBadges] = useState([]);
   const [myBadges, setMyBadges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('leaderboard');
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function Leaderboard() {
         setEntries(lbRes.data.results || lbRes.data);
         setBadges(badgeRes.data.results || badgeRes.data);
         setMyBadges(myBadgeRes.data.results || myBadgeRes.data);
-      } catch { /* ignore */ }
+      } catch { setError('Failed to load leaderboard data. Please try again later.'); }
       setLoading(false);
     };
     load();
@@ -76,6 +77,11 @@ export default function Leaderboard() {
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+        </div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <p className="text-sm text-red-600 font-medium">{error}</p>
+          <button onClick={() => window.location.reload()} className="mt-3 text-xs text-violet-600 font-bold hover:underline">Retry</button>
         </div>
       ) : activeTab === 'leaderboard' ? (
         <div className="space-y-3">

@@ -997,7 +997,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             logger.error(f"Error in approve action: {str(e)}")
-            return Response({'error': 'Failed to approve account.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': 'Unable to approve account. The account may have been modified.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
@@ -1033,7 +1033,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             logger.error(f"Error in reject action: {str(e)}")
-            return Response({'error': 'Failed to reject account.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'error': 'Unable to reject account. The account may have been modified.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['get'], url_path='activity')
     def user_activity(self, request, pk=None):
@@ -1299,4 +1299,4 @@ def student_profile(request):
         except Exception as e:
             import traceback
             logger.error(f"Error updating profile for user {target_user.username}: {str(e)}\n{traceback.format_exc()}")
-            return Response({'error': 'Failed to update profile. Please check your input.'}, status=500)
+            return Response({'error': 'Failed to update profile. Please verify all fields and try again.'}, status=500)

@@ -183,7 +183,7 @@ def student_dashboard_stats(request):
         return Response(res_data)
     except Exception as e:
         logger.error(f"Student dashboard stats error: {str(e)}", exc_info=True)
-        return Response({'error': 'Failed to load dashboard statistics.'}, status=500)
+        return Response({'error': 'Unable to load dashboard data. Please try again later.'}, status=500)
 
 
 @api_view(['GET'])

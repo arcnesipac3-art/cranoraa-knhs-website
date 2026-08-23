@@ -124,6 +124,9 @@ class Mention(models.Model):
     class Meta:
         unique_together = ('message', 'mentioned_user')
 
+    def __str__(self):
+        return f"Mention of {self.mentioned_user} by {self.message.sender}"
+
 
 class ReportedMessage(models.Model):
     STATUS_CHOICES = [

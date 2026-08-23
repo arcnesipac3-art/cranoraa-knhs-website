@@ -34,8 +34,6 @@ export async function exportSF10(classroom, enrollments, allGrades, info = {}) {
     a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
-    
-    console.log('SF10 template downloaded successfully - please fill manually in Excel');
   } catch (error) {
     console.error('SF10 download error:', error);
     throw error;

@@ -66,7 +66,7 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
           .map(p => p.quarter)
           .filter(q => q !== null);
         if (active.length > 0) setActiveQuarters([...new Set(active)].sort());
-      } catch {}
+      } catch { /* non-critical */ }
     };
     fetchActiveSemesters();
   }, [classroom.id]);
@@ -938,7 +938,6 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
       return false;
     }
 
-    console.log('[Attendance] Saving', markedStudents.length, 'records. Sample:', { student: parseInt(markedStudents[0][0]), classroom: classroom.id, date: selectedDate, status: markedStudents[0][1] });
     const savePromises = markedStudents.map(([studentId, status]) => {
       const payload = {
         student: parseInt(studentId),

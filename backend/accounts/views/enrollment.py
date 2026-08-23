@@ -821,7 +821,7 @@ class EnrollmentApplicationViewSet(viewsets.ModelViewSet):
         except Exception as e:
             import traceback
             logger.error(f"enroll_student error: {str(e)}\n{traceback.format_exc()}")
-            return Response({'error': f'Enrollment failed: {str(e)}'}, status=500)
+            return Response({'error': 'Enrollment processing failed. Please try again.'}, status=500)
 
     def _auto_assign_section(self, application):
         from django.db.models import Count, F

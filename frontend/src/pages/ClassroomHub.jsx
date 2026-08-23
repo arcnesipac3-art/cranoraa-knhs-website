@@ -2106,7 +2106,11 @@ const GradeInputView = ({ classroom, onBack }) => {
           setSubmitting(false);
           return;
         }
-      } catch {}
+      } catch (e) {
+        toast.error('Failed to verify grading period. Please try again.');
+        setSubmitting(false);
+        return;
+      }
     }
 
     setSubmitting(true);

@@ -99,13 +99,13 @@ function ApplicationsTab({ refetch }) {
     try {
       const fresh = await api.get(`/enrollment-applications/${app.id}/`);
       setSelected(fresh.data);
-    } catch {}
+    } catch { toast.error('Failed to load application details'); }
     if (app.status === 'pending') {
       try {
         await api.post(`/enrollment-applications/${app.id}/start-review/`, { remarks: '' });
         setSelected(prev => prev ? { ...prev, status: 'under_review' } : null);
         refetch();
-      } catch {}
+      } catch { toast.error('Failed to start review'); }
     }
   };
 
