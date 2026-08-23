@@ -31,7 +31,7 @@ const BookOpenIcon = (p) => <svg width={p.size||14} height={p.size||14} viewBox=
 const BuildingIcon = (p) => <svg width={p.size||14} height={p.size||14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01M16 6h.01M12 6h.01M8 10h.01M16 10h.01M12 10h.01M8 14h.01M16 14h.01M12 14h.01"/></svg>;
 const MessageCircleIcon = (p) => <svg width={p.size||16} height={p.size||16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={p.className}><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>;
 
-const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '😡', '🎉', '🔥', '👏', '🙏', '💯', '✨', '🤔', '😍', '🥳', '😎'];
+const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '😡', '🎉', '🔥'];
 
 const AVATAR_COLORS = ['bg-blue-500', 'bg-emerald-500', 'bg-violet-500', 'bg-amber-500', 'bg-rose-500', 'bg-indigo-500'];
 
@@ -455,6 +455,7 @@ export default function CommunicationCenter() {
   const [showPinned, setShowPinned] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const [chatUploading, setChatUploading] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(null);
   const [wsConnected, setWsConnected] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
@@ -708,6 +709,7 @@ export default function CommunicationCenter() {
     const file = e.target.files?.[0];
     if (!file || !selectedRoom) return;
     setChatUploading(true);
+    setUploadingFile({ name: file.name, type: file.type, size: file.size });
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -719,6 +721,7 @@ export default function CommunicationCenter() {
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
     } catch { toast.error('Upload failed'); }
     setChatUploading(false);
+    setUploadingFile(null);
     if (chatFileInputRef.current) chatFileInputRef.current.value = '';
   }, [selectedRoom, replyTo]);
 
@@ -1030,6 +1033,11 @@ export default function CommunicationCenter() {
                             {getSystemGroupLabel(room.source_type)}
                           </span>
                         )}
+                        {room.streak > 1 && !isSystem && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-bold flex-shrink-0" title={`${room.streak}-day streak!`}>
+                            🔥 {room.streak}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[11px] text-slate-400 flex-shrink-0 ml-2">
                         {formatChatTime(room.updated_at)}
@@ -1082,6 +1090,11 @@ export default function CommunicationCenter() {
                       {!wsConnected ? 'Connecting...' :
                         selectedRoom.is_group ? `${selectedRoom.member_count || (selectedRoom.participants_details || []).length} members` :
                           (selectedRoom.participants_details || []).find(p => p.id !== userId) && onlineUsers.has(selectedRoom.participants_details.find(p => p.id !== userId)?.id) ? 'Online' : 'Offline'}
+                      {selectedRoom.streak > 1 && (
+                        <span className="inline-flex items-center gap-0.5 ml-1 text-orange-500 font-bold">
+                          🔥 {selectedRoom.streak}d
+                        </span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -1186,6 +1199,28 @@ export default function CommunicationCenter() {
                       )}
                     </div>
                   ))
+                )}
+                {uploadingFile && (
+                  <div className="flex justify-end mb-2 chat-msg-enter">
+                    <div className="max-w-[70%] min-w-0 flex flex-col items-end">
+                      <div className="px-3 py-2 rounded-2xl rounded-br-md bg-violet-600 text-white">
+                        {uploadingFile.type?.startsWith('image/') ? (
+                          <div className="w-[200px] h-[140px] bg-violet-500/30 rounded-xl flex items-center justify-center">
+                            <LoaderIcon size={24} className="text-white animate-spin" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <LoaderIcon size={16} className="text-violet-200 animate-spin flex-shrink-0" />
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate max-w-[160px]">{uploadingFile.name}</p>
+                              <p className="text-[10px] text-violet-200">{formatFileSize(uploadingFile.size)}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <span className="text-[10px] text-slate-400 mt-0.5 mr-1">Sending...</span>
+                    </div>
+                  </div>
                 )}
                 {Object.keys(chatTypingUsers).length > 0 && (
                   <div className="flex items-center gap-2 px-1 py-1">
