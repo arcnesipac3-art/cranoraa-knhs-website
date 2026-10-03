@@ -13,6 +13,7 @@ import { generateBreadcrumbs } from '../utils/breadcrumbs';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 import { useSidebarSwipe } from '../hooks/useSwipeGesture';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import { hasModuleAccess, moduleForPath } from '../constants/modules';
 
 import { getNotifConfig, formatNotifTime } from '../utils/notificationConfig';
 
@@ -731,7 +732,26 @@ const Layout = () => {
     ]
   }), [user?.role, user?.is_adviser]);
 
-  const currentNav = NAV_STRUCTURE[(isDualRole && portalMode === 'admin') ? 'admin' : user?.role] || [];
+  const baseNav = useMemo(
+    () => NAV_STRUCTURE[(isDualRole && portalMode === 'admin') ? 'admin' : user?.role] || [],
+    [NAV_STRUCTURE, isDualRole, portalMode, user?.role],
+  );
+
+  // Departments restrict the sidebar (Decision §11-A — departments can only
+  // deny): drop any entry whose module the account's departments do not grant,
+  // then drop sections left empty. Admins, students and parents come back with
+  // every module so their nav is unchanged, personal pages have no module so
+  // they are never hidden, and if `effective_modules` hasn't loaded yet nothing
+  // is filtered — the API remains the enforcement point either way.
+  const currentNav = useMemo(
+    () => baseNav
+      .map((section) => ({
+        ...section,
+        items: section.items.filter((item) => hasModuleAccess(user, moduleForPath(item.to))),
+      }))
+      .filter((section) => section.items.length > 0),
+    [baseNav, user],
+  );
 
   // Flatten all nav items for search/pin lookups
   const allNavItems = useMemo(() => currentNav.flatMap(s => s.items), [currentNav]);

@@ -4,7 +4,10 @@ import {
   MODULE_GROUPS,
   MODULE_KEYS,
   MODULE_LABELS,
+  ROUTE_MODULES,
   groupSelected,
+  hasModuleAccess,
+  moduleForPath,
   normalizeGroups,
   summarizeModules,
 } from './modules';
@@ -105,5 +108,55 @@ describe('groupSelected', () => {
 
   it('is stable regardless of the order keys arrive in', () => {
     expect(groupSelected(['settings', 'enrollment'])).toEqual(groupSelected(['enrollment', 'settings']));
+  });
+});
+
+describe('route → module mapping', () => {
+  it('only maps to keys that exist in the registry', () => {
+    for (const [path, key] of Object.entries(ROUTE_MODULES)) {
+      expect(MODULE_KEYS, `bad module for ${path}`).toContain(key);
+    }
+  });
+
+  it('never maps a personal page', () => {
+    for (const path of ['/dashboard', '/settings', '/help', '/my-classes', '/my-schedule', '/password-reset']) {
+      expect(moduleForPath(path), path).toBeNull();
+    }
+  });
+
+  it('normalises query strings and trailing slashes', () => {
+    expect(moduleForPath('/enrollment?tab=applications')).toBe('enrollment');
+    expect(moduleForPath('/departments/')).toBe('departments');
+    expect(moduleForPath('/people?tab=students')).toBe('people');
+  });
+
+  it('returns null for empty input', () => {
+    expect(moduleForPath('')).toBeNull();
+    expect(moduleForPath(null)).toBeNull();
+    expect(moduleForPath(undefined)).toBeNull();
+  });
+});
+
+describe('hasModuleAccess', () => {
+  it('allows paths that are not module-gated', () => {
+    expect(hasModuleAccess({ effective_modules: [] }, null)).toBe(true);
+    expect(hasModuleAccess({ effective_modules: [] }, undefined)).toBe(true);
+  });
+
+  it('allows a granted module and denies an ungranted one', () => {
+    const user = { effective_modules: ['enrollment', 'people'] };
+    expect(hasModuleAccess(user, 'enrollment')).toBe(true);
+    expect(hasModuleAccess(user, 'grade-management')).toBe(false);
+  });
+
+  it('fails open while effective_modules has not loaded', () => {
+    expect(hasModuleAccess({}, 'grade-management')).toBe(true);
+    expect(hasModuleAccess({ effective_modules: null }, 'grade-management')).toBe(true);
+    expect(hasModuleAccess(null, 'grade-management')).toBe(true);
+  });
+
+  it('treats a full grant as unrestricted', () => {
+    const user = { effective_modules: [...MODULE_KEYS] };
+    for (const key of MODULE_KEYS) expect(hasModuleAccess(user, key)).toBe(true);
   });
 });

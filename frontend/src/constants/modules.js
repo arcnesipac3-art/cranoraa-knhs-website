@@ -132,3 +132,79 @@ export function groupSelected(keys) {
     modules: MODULES.filter((m) => m.group === g.key && selected.has(m.key)),
   })).filter((g) => g.modules.length > 0);
 }
+
+/**
+ * Route path -> the portal module it belongs to.
+ *
+ * Only paths that genuinely sit behind a module are listed. Personal pages
+ * (`/dashboard`, `/settings` as a staff account page, `/help`, `/my-classes`,
+ * `/my-schedule`, `/password-reset`) and the school forms are deliberately
+ * absent: they stay governed by role alone, exactly as before, so giving a
+ * department a module can never take away someone's own profile page.
+ *
+ * The key must match the route key `ProtectedRoute` derives (the first path
+ * segment, no query string), and the module key must exist in `MODULE_KEYS`.
+ */
+export const ROUTE_MODULES = {
+  // Academics
+  '/academic-setup': 'academic-setup',
+  '/grade-management': 'grade-management',
+  '/teacher-grade-dashboard': 'grade-management',
+  '/classes': 'classes',
+  '/subjects': 'subjects',
+  '/schedules': 'schedules',
+
+  // People
+  '/people': 'people',
+  '/departments': 'departments',
+
+  // Enrollment
+  '/enrollment': 'enrollment',
+
+  // Attendance
+  '/attendance-monitoring': 'attendance-monitoring',
+  '/attendance-dashboard': 'attendance-dashboard',
+  '/attendance-audit-trail': 'attendance-audit',
+  '/excuse-slips': 'excuse-slips',
+
+  // Records
+  '/compliance': 'compliance',
+  '/my-compliance': 'compliance',
+
+  // Communication
+  '/announcements': 'announcements',
+  '/communication-center': 'messages',
+  '/notifications': 'notifications',
+  '/calendar': 'calendar',
+  '/portal-calendar': 'calendar',
+
+  // System
+  '/analytics': 'analytics',
+  '/system-admin': 'system-admin',
+};
+
+/** The module guarding a path, or null when the path is not module-gated. */
+export function moduleForPath(pathname) {
+  if (!pathname) return null;
+  const path = String(pathname).split('?')[0].replace(/\/+$/, '');
+  return ROUTE_MODULES[path] || null;
+}
+
+/**
+ * Whether this account's department configuration allows `key`.
+ *
+ * Deliberately fail-open: `user.effective_modules` is only the frontend's
+ * *mirror* of the backend's decision. If it has not arrived yet — first paint
+ * before `/profile/` returns, or a session written before this feature — we
+ * render the UI and let the API be the judge, which it still is. Hiding
+ * nothing when we don't know is safer than locking a user out of their own
+ * dashboard on a flaky response.
+ *
+ * `key === null/undefined` means the path is not module-gated at all.
+ */
+export function hasModuleAccess(user, key) {
+  if (!key) return true;
+  const granted = user?.effective_modules;
+  if (!Array.isArray(granted)) return true;
+  return granted.includes(key);
+}

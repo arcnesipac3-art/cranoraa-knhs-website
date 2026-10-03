@@ -27,6 +27,9 @@ export const AuthProvider = ({ children }) => {
         is_admin: response.data.is_admin,
         staff_title: response.data.staff_title,
         additional_roles: response.data.additional_roles,
+        // Portal modules this account's departments grant (accounts.access).
+        // The sidebar and route guard read this; the API still enforces it.
+        effective_modules: response.data.effective_modules,
         profile_picture: profileResponse?.data?.profile?.profile_picture ?? response.data.profile?.profile_picture,
         mute_until: profileResponse?.data?.profile?.mute_until ?? null,
         is_muted: !!(profileResponse?.data?.profile?.is_muted),

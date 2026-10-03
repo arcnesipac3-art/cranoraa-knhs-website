@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Role, ROLE_HOME } from '../constants/roles';
 import { protectedRoutes } from '../constants/routes';
+import { hasModuleAccess, moduleForPath } from '../constants/modules';
 
 function getRouteKey(pathname) {
   return pathname.replace(/^\/+/, '').replace(/\/+$/, '').split('?')[0].split('/')[0];
@@ -42,6 +43,17 @@ const ProtectedRoute = ({ children }) => {
       })();
       if (portalMode === 'admin') return children;
     }
+    return <Navigate to={ROLE_HOME[user.role] || '/dashboard'} replace />;
+  }
+
+  // Department module access (Decision §11-A). This comes AFTER the role check
+  // deliberately, mirroring the backend, where role is first and authoritative
+  // and departments can only narrow what it already allowed. The API refuses
+  // these requests regardless — this just replaces a page full of 403s with a
+  // redirect. `hasModuleAccess` fails open while `effective_modules` is still
+  // loading, so a slow profile response can never bounce someone to home.
+  const requiredModule = moduleForPath(location.pathname);
+  if (!hasModuleAccess(user, requiredModule)) {
     return <Navigate to={ROLE_HOME[user.role] || '/dashboard'} replace />;
   }
 

@@ -62,13 +62,18 @@ class UserSerializer(serializers.ModelSerializer):
         queryset=Department.objects.all(), many=True, required=False
     )
     department_names = serializers.SerializerMethodField()
+    # The portal modules this account may actually open — the frontend's copy
+    # of the backend's decision in accounts.access, so the sidebar and route
+    # guard mirror what the API enforces instead of re-deriving it. Read-only:
+    # departments can only ever narrow this list, never widen it.
+    effective_modules = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ['id', 'email', 'username', 'first_name', 'last_name', 'full_name',
                   'role', 'staff_title', 'additional_roles', 'is_verified', 'is_approved', 'is_online', 'profile',
                   'must_change_password', 'account_status', 'department', 'department_name',
-                  'departments', 'department_names',
+                  'departments', 'department_names', 'effective_modules',
                   'is_adviser', 'is_admin']
 
     def get_full_name(self, obj):
@@ -91,6 +96,12 @@ class UserSerializer(serializers.ModelSerializer):
             return names
         # Legacy rows written before the M2M backfill ran.
         return [obj.department.name] if obj.department else []
+
+    def get_effective_modules(self, obj):
+        # Same function the API gate uses, so the client cannot be shown a
+        # module the server would reject (or hide one it would allow).
+        from ..access import effective_module_keys
+        return sorted(effective_module_keys(obj))
 
     def validate_department(self, value):
         """Guard department assignment.
