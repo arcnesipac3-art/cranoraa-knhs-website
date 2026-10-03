@@ -48,6 +48,10 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student', db_index=True)
     staff_title = models.CharField(max_length=30, choices=STAFF_TITLE_CHOICES, null=True, blank=True, db_index=True)
     additional_roles = models.TextField(blank=True, default='', help_text="Comma-separated additional staff titles e.g. teacher,guidance_counselor")
+    department = models.ForeignKey(
+        'Department', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='members', help_text="Organizational department for admin/staff accounts"
+    )
     is_verified = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False, help_text="Grants admin privileges regardless of role. Allows staff to access admin panel while keeping their teaching role.")
