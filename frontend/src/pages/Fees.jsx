@@ -19,6 +19,7 @@ const statusBadge = (status) => {
 };
 
 const feeTypeLabel = (type) => {
+  if (!type) return 'Unknown';
   const labels = {
     tuition: 'Tuition Fee',
     miscellaneous: 'Miscellaneous Fee',
@@ -282,6 +283,7 @@ export default function Fees() {
 
   // Filters
   const filteredFees = fees.filter((f) => {
+    if (!f) return false; // defensive: skip null/undefined items
     const matchesSearch = !search ||
       (f.student_name && f.student_name.toLowerCase().includes(search.toLowerCase())) ||
       (f.student_email && f.student_email.toLowerCase().includes(search.toLowerCase()));
