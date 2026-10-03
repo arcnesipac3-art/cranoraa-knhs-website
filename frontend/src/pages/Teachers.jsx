@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
@@ -146,6 +146,25 @@ const Teachers = () => {
 
   useScrollLock(showAddModal || showEditModal || showImportModal || viewingTeacher);
 
+  // Same admin predicate the rest of this page uses for its admin-only controls.
+  const isAdminUser = user?.role === 'admin';
+  const [departments, setDepartments] = useState([]);
+
+  // Only admins may change department membership, so only admins fetch the list.
+  useEffect(() => {
+    if (!isAdminUser) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await api.get('/departments/', { params: { status: 'active' } });
+        if (!cancelled) setDepartments(Array.isArray(data) ? data : data?.results || []);
+      } catch {
+        // Department list is optional; the edit modal degrades to "No department".
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isAdminUser]);
+
   const STAFF_TITLES = [
     // ── DepEd teaching ranks ──────────────────────────────────────────────
     { value: 'teacher_i',                  label: 'Teacher I' },
@@ -226,7 +245,7 @@ const Teachers = () => {
   const handleEditTeacher = async (e) => {
     e.preventDefault();
     try {
-      await api.patch(`/users/${editingTeacher.id}/`, {
+      const payload = {
         first_name: editingTeacher.first_name,
         last_name: editingTeacher.last_name,
         email: editingTeacher.email,
@@ -235,14 +254,23 @@ const Teachers = () => {
           phone_number: editingTeacher.profile?.phone_number,
           sex: editingTeacher.profile?.sex
         }
-      });
+      };
+      // Department is organizational only and admin-writable (Decision 2).
+      // It is never sent for non-admins so a no-op payload can't trip the
+      // serializer's permission guard.
+      if (isAdminUser) payload.department = editingTeacher.department ?? null;
+
+      await api.patch(`/users/${editingTeacher.id}/`, payload);
       setShowEditModal(false);
       setEditingTeacher(null);
       refetch();
       toast.success('Teacher updated successfully!');
     } catch (err) {
       console.error('Failed to update teacher:', err);
-      toast.error(err.response?.data?.error || 'Failed to update teacher');
+      const data = err.response?.data;
+      toast.error(
+        data?.department?.[0] || data?.detail || data?.error || 'Failed to update teacher'
+      );
     }
   };
 
@@ -414,8 +442,8 @@ const Teachers = () => {
         'First Name': sanitizeForExport(t.first_name),
         'Email': t.email,
         'Phone': t.profile?.phone_number || '',
-        'Department': sanitizeForExport(t.profile?.department || ''),
-        'Position': sanitizeForExport(t.profile?.position || ''),
+        'Department': sanitizeForExport(t.department_name || ''),
+        'Position': sanitizeForExport(t.staff_title || ''),
         'Employee ID': t.profile?.employee_id || '',
         'Status': t.account_status,
         'Password Status': t.must_change_password ? 'Temporary' : 'Updated',
@@ -668,7 +696,7 @@ const Teachers = () => {
         x += colWidths[3];
         
         // Department
-        doc.text(sanitizeForExport(t.profile?.department || '—').substring(0, 20), x + 2, y);
+        doc.text(sanitizeForExport(t.department_name || '—').substring(0, 20), x + 2, y);
         x += colWidths[4];
         
         // Status
@@ -1126,6 +1154,25 @@ const Teachers = () => {
                     ))}
                   </div>
 
+                  {/* Department + account status */}
+                  <div className="flex items-center gap-1.5 mb-1.5 min-w-0">
+                    <svg className="w-3 h-3 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <span className={`text-[9px] truncate ${teacher.department_name ? 'text-slate-500' : 'text-slate-400 italic'}`}>
+                      {teacher.department_name || 'No department'}
+                    </span>
+                    <span
+                      className={`ml-auto text-[8px] font-bold px-1.5 py-0.5 rounded-full border flex-shrink-0 ${
+                        teacher.account_status === 'active'
+                          ? 'text-emerald-700 bg-emerald-50 border-emerald-200'
+                          : 'text-red-700 bg-red-50 border-red-200'
+                      }`}
+                    >
+                      {teacher.account_status}
+                    </span>
+                  </div>
+
                   {/* Email */}
                   {teacher.email && (
                     <p className="text-[9px] text-slate-400 truncate mb-1.5">{teacher.email}</p>
@@ -1390,6 +1437,20 @@ const Teachers = () => {
                 </select>
               </ModalField>
             </div>
+            {isAdminUser && (
+              <ModalField label="Department" hint="Organizational membership only — it never changes this account's role or permissions.">
+                <select
+                  value={editingTeacher.department ?? ''}
+                  onChange={(e) => setEditingTeacher({ ...editingTeacher, department: e.target.value ? Number(e.target.value) : null })}
+                  className={modalSelectCls}
+                >
+                  <option value="">No department</option>
+                  {departments.map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </ModalField>
+            )}
           </ModalBody>
           <ModalFooter>
             <ModalBtnSecondary onClick={() => setShowEditModal(false)}>Cancel</ModalBtnSecondary>
