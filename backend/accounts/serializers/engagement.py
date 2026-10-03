@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
-from .events import SchoolEvent, EventRSVP
-from .badges import Badge, StudentBadge, StudentLeaderboard
+from ..models import SchoolEvent, EventRSVP, Badge, StudentBadge, StudentLeaderboard
 from ._base import full_name
 
 User = get_user_model()

@@ -67,7 +67,7 @@ class EventRSVP(models.Model):
 
     event = models.ForeignKey(SchoolEvent, on_delete=models.CASCADE, related_name='rsvps')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_rsvps')
-    status = models.CharField(max=10, choices=STATUS_CHOICES, default='going')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='going')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
