@@ -66,7 +66,7 @@ export default function ExportMenu({
           item.must_change_password ? 'Pending' : 'Changed',
           item.account_status,
         ];
-      case 'parent':
+      case 'parent': {
         const linked = item.profile?.linked_students || [];
         return [
           item.first_name,
@@ -78,6 +78,7 @@ export default function ExportMenu({
           item.account_status,
           item.must_change_password ? 'Pending' : 'Changed',
         ];
+      }
       default:
         return [];
     }

@@ -357,7 +357,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 AXES_FAILURE_LIMIT = int(os.environ.get('AXES_FAILURE_LIMIT', 20))
 AXES_COOLOFF_TIME = timedelta(minutes=int(os.environ.get('AXES_COOLOFF_TIME', 15)))
 AXES_RESET_ON_SUCCESS = True
-AXES_LOCKOUT_PARAMETERS = ['username']
+AXES_LOCKOUT_PARAMETERS = ['username', 'ip_address']
 AXES_VERBOSE = True  # Show detailed error messages with remaining attempts
 
 # Security Headers

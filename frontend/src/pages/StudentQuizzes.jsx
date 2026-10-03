@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 import {
   FileText, BarChart3,
   ChevronRight, AlertTriangle, Trophy,
+  XCircle,
 } from 'lucide-react';
 
 const StudentQuizzes = () => {

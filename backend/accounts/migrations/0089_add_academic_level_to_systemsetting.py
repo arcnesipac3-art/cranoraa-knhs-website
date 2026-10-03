@@ -38,18 +38,7 @@ class Migration(migrations.Migration):
             model_name='fee',
             name='idx_fee_due_status',
         ),
-        migrations.RemoveIndex(
-            model_name='friendship',
-            name='idx_friendship_status',
-        ),
-        migrations.RemoveIndex(
-            model_name='friendship',
-            name='idx_friendship_from_status',
-        ),
-        migrations.RemoveIndex(
-            model_name='friendship',
-            name='idx_friendship_to_status',
-        ),
+        
         migrations.RemoveIndex(
             model_name='grade',
             name='idx_grade_year_student',

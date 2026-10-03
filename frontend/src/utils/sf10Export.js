@@ -286,7 +286,7 @@ function buildWorkbook(studentData, schoolInfo, sheetLabel, customAreas) {
   });
 
   extendRange(ws, row, TOTAL_COLS - 1);
-  const safeName = sheetLabel.replace(/[:\\/?\[\]*]/g, '-').substring(0, 31);
+  const safeName = sheetLabel.replace(/[:\\/?[\]*]/g, '-').substring(0, 31);
   XLSX.utils.book_append_sheet(wb, ws, safeName || 'SF10');
   const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   return new Blob([wbout], {

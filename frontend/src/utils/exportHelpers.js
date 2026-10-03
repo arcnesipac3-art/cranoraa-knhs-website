@@ -614,7 +614,8 @@ export const validateExportData = (data, requiredFields = []) => {
 export const sanitizeForExport = (text) => {
   if (!text) return '';
   return String(text)
-    .replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '') // Remove control characters
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0008\u000B-\u000C\u000E-\u001F\u007F]/g, '') // Remove control characters
     .trim();
 };
 

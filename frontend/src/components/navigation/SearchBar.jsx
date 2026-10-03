@@ -326,7 +326,7 @@ export const SearchBar = ({
           style={{ top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width }}
         >
           <div className="text-center text-slate-500 text-sm">
-            No results found for "{query}"
+            No results found for &apos;{query}&apos;
           </div>
         </div>
       )}
