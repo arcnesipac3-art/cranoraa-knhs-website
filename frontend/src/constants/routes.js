@@ -54,6 +54,7 @@ const MySchedule = lazy(() => retryImport(() => import('../pages/MySchedule')));
 const ClassroomHub = lazy(() => retryImport(() => import('../pages/ClassroomHub')));
 const ScheduleManagement = lazy(() => retryImport(() => import('../pages/ScheduleManagement')));
 const Analytics = lazy(() => retryImport(() => import('../pages/Analytics')));
+const Fees = lazy(() => retryImport(() => import('../pages/Fees')));
 
 // Grade Management
 const GradeManagementAdmin = lazy(() => retryImport(() => import('../pages/GradeManagementAdmin')));
@@ -125,6 +126,7 @@ export const protectedRoutes = [
   // WRITE is IsAdmin (page hides write controls for staff); students and
   // parents are excluded entirely.
   { path: 'departments', element: Departments, roles: [Role.ADMIN, Role.STAFF] },
+  { path: 'fees', element: Fees, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'classes', element: ClassesHub, roles: [Role.ADMIN] },
   { path: 'enrollment', element: EnrollmentHub, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'subjects', element: SubjectsHub, roles: [Role.ADMIN] },
