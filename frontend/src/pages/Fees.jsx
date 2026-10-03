@@ -252,7 +252,9 @@ export default function Fees() {
         api.get('/fees/'),
         api.get('/users/', { params: { role: 'student', limit: 1000 } }),
       ]);
-      setFees(feesRes.data);
+      // Sanitize: remove any null/undefined fee objects from API response
+      const cleanFees = (feesRes.data || []).filter(f => f && typeof f === 'object');
+      setFees(cleanFees);
       setStudents(studentsRes.data.results || studentsRes.data);
     } catch (err) {
       toast.error('Failed to load data');
