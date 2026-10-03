@@ -22,6 +22,7 @@ const PATH_LABEL_MAP = {
   'classes': 'Classes',
   'grade-input': 'Grade Input',
   'people': 'People',
+  'departments': 'Departments',
   'system-admin': 'System Admin',
   'communication-center': 'Communication Center',
   'academic-setup': 'Academic Setup',

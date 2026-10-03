@@ -46,6 +46,7 @@ const AcademicSetup = lazy(() => retryImport(() => import('../pages/AcademicSetu
 
 // New Hub Pages
 const PeopleHub = lazy(() => retryImport(() => import('../pages/PeopleHub')));
+const Departments = lazy(() => retryImport(() => import('../pages/Departments')));
 const ClassesHub = lazy(() => retryImport(() => import('../pages/ClassesHub')));
 const EnrollmentHub = lazy(() => retryImport(() => import('../pages/EnrollmentHub')));
 const SubjectsHub = lazy(() => retryImport(() => import('../pages/SubjectsHub')));
@@ -120,6 +121,10 @@ export const protectedRoutes = [
 
   // New Hub routes
   { path: 'people', element: PeopleHub, roles: Role.ALL },
+  // Department Management sits under People. READ is IsAdminOrStaff and
+  // WRITE is IsAdmin (page hides write controls for staff); students and
+  // parents are excluded entirely.
+  { path: 'departments', element: Departments, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'classes', element: ClassesHub, roles: [Role.ADMIN] },
   { path: 'enrollment', element: EnrollmentHub, roles: [Role.ADMIN, Role.STAFF] },
   { path: 'subjects', element: SubjectsHub, roles: [Role.ADMIN] },
