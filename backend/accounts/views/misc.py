@@ -266,28 +266,150 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     serializer_class = DepartmentSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        from ..permissions import IsAdmin, IsAdminOrStaff
+        if self.action in ['list', 'retrieve']:
+            return [IsAdminOrStaff()]
+        return [IsAdmin()]
+
     def get_queryset(self):
-        if self.request.user.role in ['admin', 'staff']:
-            return Department.objects.all()
-        return Department.objects.filter(is_active=True)
+        user = self.request.user
+        qs = Department.objects.prefetch_related('members').select_related('head')
+        # Search
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(Q(name__icontains=search) | Q(code__icontains=search))
+        # Status filter
+        status = self.request.query_params.get('status')
+        if status == 'active':
+            qs = qs.filter(is_active=True)
+        elif status == 'inactive':
+            qs = qs.filter(is_active=False)
+        return qs
 
     def perform_create(self, serializer):
-        if self.request.user.role != 'admin':
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Only admins can create departments")
-        serializer.save()
+        instance = serializer.save()
+        try:
+            from ..utils import log_audit_action
+            log_audit_action(self.request.user, 'create', 'Department',
+                object_id=instance.id, object_repr=str(instance),
+                description=f'Created department: {instance.name}', request=self.request)
+        except Exception:
+            pass
 
     def perform_update(self, serializer):
-        if self.request.user.role != 'admin':
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Only admins can update departments")
-        serializer.save()
+        instance = serializer.save()
+        try:
+            from ..utils import log_audit_action
+            log_audit_action(self.request.user, 'update', 'Department',
+                object_id=instance.id, object_repr=str(instance),
+                description=f'Updated department: {instance.name}', request=self.request)
+        except Exception:
+            pass
 
     def perform_destroy(self, instance):
-        if self.request.user.role != 'admin':
-            from rest_framework.exceptions import PermissionDenied
-            raise PermissionDenied("Only admins can delete departments")
-        instance.delete()
+        # Decision 3: DELETE always archives. Departments are never hard
+        # deleted through the normal UI — they hold audit history and may be
+        # referenced by name elsewhere in the system.
+        instance.is_active = False
+        instance.save(update_fields=['is_active', 'updated_at'])
+        try:
+            from ..utils import log_audit_action
+            log_audit_action(self.request.user, 'archive', 'Department',
+                object_id=instance.id, object_repr=str(instance),
+                description=f'Archived department (via delete): {instance.name}',
+                request=self.request)
+        except Exception:
+            pass
+
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        """Toggle archive/active status."""
+        dept = self.get_object()
+        dept.is_active = not dept.is_active
+        dept.save(update_fields=['is_active', 'updated_at'])
+        action_word = 'Activated' if dept.is_active else 'Archived'
+        try:
+            from ..utils import log_audit_action
+            log_audit_action(request.user, 'archive', 'Department',
+                object_id=dept.id, object_repr=str(dept),
+                description=f'{action_word} department: {dept.name}', request=request)
+        except Exception:
+            pass
+        return Response(DepartmentSerializer(dept, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'])
+    def assign_member(self, request, pk=None):
+        """Assign a user to this department. Body: {user_id: int}"""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        dept = self.get_object()
+
+        # Never add members to an archived department.
+        if not dept.is_active:
+            return Response(
+                {'error': f'Department "{dept.name}" is archived. Activate it before assigning members.'},
+                status=400,
+            )
+
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id is required'}, status=400)
+        try:
+            member = User.objects.get(pk=user_id, role__in=['admin', 'staff'])
+        except User.DoesNotExist:
+            return Response({'error': 'User not found or not eligible'}, status=404)
+
+        if not member.is_active:
+            return Response({'error': 'User account is not active'}, status=400)
+
+        old_dept = member.department
+        member.department = dept
+        member.save(update_fields=['department'])
+        try:
+            from ..utils import log_audit_action
+            log_audit_action(request.user, 'update', 'Department',
+                object_id=dept.id, object_repr=str(dept),
+                description=f'Assigned {member.get_full_name() or member.username} to {dept.name} (was: {old_dept})',
+                request=request)
+        except Exception:
+            pass
+        return Response({'status': 'assigned', 'user_id': member.id, 'department': dept.id})
+
+    @action(detail=True, methods=['post'])
+    def remove_member(self, request, pk=None):
+        """Remove a user from this department. Body: {user_id: int}"""
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        dept = self.get_object()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response({'error': 'user_id is required'}, status=400)
+        try:
+            member = User.objects.get(pk=user_id, department=dept)
+        except User.DoesNotExist:
+            return Response({'error': 'User not in this department'}, status=404)
+        member.department = None
+        member.save(update_fields=['department'])
+        try:
+            from ..utils import log_audit_action
+            log_audit_action(request.user, 'update', 'Department',
+                object_id=dept.id, object_repr=str(dept),
+                description=f'Removed {member.get_full_name() or member.username} from {dept.name}',
+                request=request)
+        except Exception:
+            pass
+        return Response({'status': 'removed', 'user_id': member.id})
+
+    @action(detail=True, methods=['get'])
+    def members(self, request, pk=None):
+        """List all members of this department."""
+        from django.contrib.auth import get_user_model
+        from ..serializers import UserSerializer
+        dept = self.get_object()
+        members = dept.members.select_related('profile').filter(is_active=True)
+        serializer = UserSerializer(members, many=True, context={'request': request})
+        return Response(serializer.data)
 
 
 class StaffPerformanceViewSet(viewsets.ModelViewSet):
