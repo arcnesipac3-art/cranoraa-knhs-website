@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
 from ..models import Department, StaffPerformance
+from ..modules import (
+    MODULE_KEYS,
+    effective_module_keys,
+    normalize_module_keys,
+    ordered,
+)
 from ..roles import Role
 from ._base import full_name
 
@@ -51,6 +57,15 @@ class DepartmentSerializer(serializers.ModelSerializer):
     head_name = serializers.SerializerMethodField()
     member_count = serializers.SerializerMethodField()
     members = serializers.SerializerMethodField()
+    module_count = serializers.SerializerMethodField()
+    # Read returns the *effective* grant (null -> every module); write validates
+    # the keys against the registry so a typo can never be persisted.
+    modules = serializers.ListField(
+        child=serializers.CharField(),
+        source='module_keys',
+        required=False,
+        allow_null=True,
+    )
 
     # Declared explicitly (without max_length) so normalization runs *before*
     # the length check in validate_* — otherwise raw input is checked first.
@@ -60,7 +75,8 @@ class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = ['id', 'name', 'code', 'description', 'head', 'head_name',
-                  'member_count', 'members', 'is_active', 'created_at', 'updated_at']
+                  'member_count', 'members', 'modules', 'module_count',
+                  'is_active', 'created_at', 'updated_at']
         read_only_fields = ['created_at']
 
     def validate_name(self, value):
@@ -94,6 +110,19 @@ class DepartmentSerializer(serializers.ModelSerializer):
         if qs.exists():
             raise serializers.ValidationError("A department with this code already exists.")
         return value
+
+    def validate_modules(self, value):
+        """Validate portal-module access against the code-side registry.
+
+        ``None`` means "not yet configured" and grants every module; ``[]``
+        means the department is explicitly granted nothing.
+        """
+        if value is None:
+            return None
+        try:
+            return normalize_module_keys(value)
+        except ValueError as exc:
+            raise serializers.ValidationError(str(exc))
 
     def validate_head(self, value):
         """Head must be an active, eligible admin/staff account."""
@@ -153,6 +182,18 @@ class DepartmentSerializer(serializers.ModelSerializer):
         if hasattr(obj, '_prefetched_objects_cache') and 'members' in obj._prefetched_objects_cache:
             return len(obj._prefetched_objects_cache['members'])
         return obj.members.count()
+
+    def get_module_count(self, obj):
+        keys = effective_module_keys(obj)
+        return len(MODULE_KEYS) if keys is None else len(keys)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        # Always hand the client a concrete list: an unconfigured department
+        # grants everything, and the UI should simply show that as all-checked.
+        raw = data.get('modules')
+        data['modules'] = list(MODULE_KEYS) if raw is None else ordered(raw)
+        return data
 
     def get_members(self, obj):
         # Only include members on detail (retrieve) actions, not list

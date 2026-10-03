@@ -444,6 +444,41 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+class ModuleRegistryViewSet(viewsets.ViewSet):
+    """Read-only listing of the portal module registry.
+
+    The admin UI fetches this instead of hard-coding labels and groups, so the
+    module-access checkboxes can never disagree with what the backend actually
+    enforces. Keys come from ``accounts.modules`` — the same table the
+    permission layer reads — so there is a single source of truth.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        from ..permissions import IsAdminOrStaff
+        return [IsAdminOrStaff()]
+
+    def list(self, request):
+        from ..modules import MODULE_KEYS, registry_payload
+        return Response({
+            'groups': registry_payload(),
+            'keys': list(MODULE_KEYS),
+            'total': len(MODULE_KEYS),
+        })
+
+    def retrieve(self, request, pk=None):
+        from ..modules import MODULES_BY_GROUP, is_known_module, label_for
+        if not is_known_module(pk):
+            return Response({'error': f'Unknown module: {pk}'}, status=404)
+        group = next((g for g in MODULES_BY_GROUP if pk in g[2]), None)
+        return Response({
+            'key': pk,
+            'label': label_for(pk),
+            'group': group[0] if group else None,
+            'group_label': group[1] if group else None,
+        })
+
+
 class StaffPerformanceViewSet(viewsets.ModelViewSet):
     serializer_class = StaffPerformanceSerializer
     permission_classes = [IsAuthenticated]

@@ -8,6 +8,17 @@ class Department(models.Model):
     code = models.CharField(max_length=20, unique=True)
     description = models.TextField(blank=True)
     head = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='accounts_headed_departments')
+    # Portal modules this department may access. Keys only — labels and grouping
+    # live in accounts.modules, which is the single source of truth.
+    #   None  -> not yet configured: grants ALL modules (pre-upgrade departments)
+    #   []    -> explicitly granted nothing
+    #   [...] -> exactly these modules
+    # Membership is organisational: it never alters a user's role or account type.
+    module_keys = models.JSONField(
+        null=True, blank=True, default=None,
+        help_text="Portal module keys this department may access. "
+                  "null means not yet configured (all modules); [] means none."
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

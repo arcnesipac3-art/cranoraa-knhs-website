@@ -127,6 +127,7 @@ from .misc import (
     SchoolEventViewSet,
     EmergencyMessageViewSet,
     DepartmentViewSet,
+    ModuleRegistryViewSet,
     StaffPerformanceViewSet,
 )
 

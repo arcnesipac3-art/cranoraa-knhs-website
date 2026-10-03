@@ -24,7 +24,7 @@ from .views import (
     ParentTeacherMeetingViewSet, BehavioralRecordViewSet, SchoolEventViewSet,
     parent_report_card_pdf, parent_year_over_year,
     UserBlockViewSet, EmergencyMessageViewSet,
-    DepartmentViewSet, StaffPerformanceViewSet,
+    DepartmentViewSet, StaffPerformanceViewSet, ModuleRegistryViewSet,
     admin_attendance_analytics, admin_grade_analytics,
     data_retention_view, run_backup_view_enhanced,
     GradingPeriodViewSet, GradeSubmissionViewSet, GradeReopeningRequestViewSet,
@@ -82,6 +82,7 @@ router.register(r'v1/leaderboard', StudentLeaderboardViewSet, basename='leaderbo
 router.register(r'v1/user-blocks', UserBlockViewSet, basename='user-block')
 router.register(r'v1/emergency-messages', EmergencyMessageViewSet, basename='emergency-message')
 router.register(r'v1/departments', DepartmentViewSet, basename='department')
+router.register(r'v1/modules', ModuleRegistryViewSet, basename='module')
 router.register(r'v1/staff-performance', StaffPerformanceViewSet, basename='staff-performance')
 router.register(r'v1/grading-periods', GradingPeriodViewSet, basename='grading-period')
 router.register(r'v1/grade-submissions', GradeSubmissionViewSet, basename='grade-submission')
