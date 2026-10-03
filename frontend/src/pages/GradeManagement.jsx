@@ -210,7 +210,7 @@ const GradeManagement = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 uppercase tracking-wide mb-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 tracking-wide mb-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
@@ -221,7 +221,7 @@ const GradeManagement = () => {
             </svg>
             <span>Grade Overview</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
             Grade Management
           </h1>
           <p className="text-xs text-slate-600 mt-1 font-semibold">
@@ -421,10 +421,10 @@ const GradeManagement = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <Card className="border-l-4 border-l-violet-500">
               <CardBody className="p-4 text-center">
-                <div className="text-2xl md:text-3xl font-extrabold text-violet-600">
+                <div className="text-2xl md:text-3xl font-bold text-violet-600">
                   {sortedClassrooms.length}
                 </div>
-                <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">
+                <div className="text-xs font-bold text-slate-600 tracking-wide mt-1">
                   Classrooms
                 </div>
               </CardBody>
@@ -432,10 +432,10 @@ const GradeManagement = () => {
 
             <Card className="border-l-4 border-l-emerald-500">
               <CardBody className="p-4 text-center">
-                <div className="text-2xl md:text-3xl font-extrabold text-emerald-600">
+                <div className="text-2xl md:text-3xl font-bold text-emerald-600">
                   {sortedClassrooms.reduce((sum, c) => sum + c.studentCount, 0)}
                 </div>
-                <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">
+                <div className="text-xs font-bold text-slate-600 tracking-wide mt-1">
                   Students
                 </div>
               </CardBody>
@@ -443,10 +443,10 @@ const GradeManagement = () => {
 
             <Card className="border-l-4 border-l-amber-500">
               <CardBody className="p-4 text-center">
-                <div className="text-2xl md:text-3xl font-extrabold text-amber-600">
+                <div className="text-2xl md:text-3xl font-bold text-amber-600">
                   {sortedClassrooms.reduce((sum, c) => sum + c.subjectCount, 0)}
                 </div>
-                <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">
+                <div className="text-xs font-bold text-slate-600 tracking-wide mt-1">
                   Subjects
                 </div>
               </CardBody>
@@ -454,10 +454,10 @@ const GradeManagement = () => {
 
             <Card className="border-l-4 border-l-violet-500">
               <CardBody className="p-4 text-center">
-                <div className="text-2xl md:text-3xl font-extrabold text-violet-600">
+                <div className="text-2xl md:text-3xl font-bold text-violet-600">
                   {filteredGrades.length}
                 </div>
-                <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">
+                <div className="text-xs font-bold text-slate-600 tracking-wide mt-1">
                   Grade Entries
                 </div>
               </CardBody>
@@ -480,7 +480,7 @@ const GradeManagement = () => {
                 >
                   <CardHeader divider>
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-md bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-extrabold text-base sm:text-lg shadow-sm border border-violet-700 shrink-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-md bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-bold text-base sm:text-lg shadow-sm border border-violet-700 shrink-0">
                         {classroom.name?.match(/\d+/)?.[0] || classroom.name?.charAt(0)}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -509,26 +509,26 @@ const GradeManagement = () => {
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
                       <div className="text-center">
-                        <div className="text-lg font-extrabold text-violet-600">
+                        <div className="text-lg font-bold text-violet-600">
                           {classroom.subjectCount}
                         </div>
-                        <div className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                        <div className="text-xs font-bold text-slate-600 tracking-wide">
                           Subjects
                         </div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-extrabold text-emerald-600">
+                        <div className="text-lg font-bold text-emerald-600">
                           {classroom.totalGrades}
                         </div>
-                        <div className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                        <div className="text-xs font-bold text-slate-600 tracking-wide">
                           Grades
                         </div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-extrabold text-amber-600">
+                        <div className="text-lg font-bold text-amber-600">
                           {classroom.avgGrade || '—'}
                         </div>
-                        <div className="text-xs font-bold text-slate-600 uppercase tracking-wide">
+                        <div className="text-xs font-bold text-slate-600 tracking-wide">
                           Average
                         </div>
                       </div>
@@ -536,7 +536,7 @@ const GradeManagement = () => {
 
                     {/* Subject Pills */}
                     <div>
-                      <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                      <p className="text-xs font-bold text-slate-700 tracking-wider mb-2">
                         Subjects
                       </p>
                       <div className="flex flex-wrap gap-1.5">
@@ -633,7 +633,7 @@ const ClassroomDetailModal = ({
                 onClick={() =>
                   setSelectedSubject(selectedSubject?.id === subject.id ? null : subject)
                 }
-                className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md text-[10px] sm:text-xs font-extrabold uppercase tracking-wide transition-all shrink-0 ${
+                className={`px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-md text-[10px] sm:text-xs font-bold tracking-wide transition-all shrink-0 ${
                   selectedSubject?.id === subject.id
                     ? 'bg-violet-600 text-white shadow-md'
                     : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -671,7 +671,7 @@ const ClassroomDetailModal = ({
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">
+            <p className="text-sm font-bold text-slate-500 tracking-wide">
               Select a subject to view grades
             </p>
           </div>
@@ -731,7 +731,7 @@ const SubjectGradeTable = ({
   return (
     <div>
       <div className="mb-3 p-3 bg-violet-50 border border-violet-200 rounded-md">
-        <h3 className="text-sm font-extrabold text-violet-900 uppercase tracking-wide">
+        <h3 className="text-sm font-bold text-violet-900 tracking-wide">
           {subject.name}
         </h3>
         <p className="text-xs font-semibold text-violet-700 mt-0.5">
@@ -744,40 +744,40 @@ const SubjectGradeTable = ({
         <table className="w-full text-xs sm:text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
-              <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider w-8 sm:w-12">
+              <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider w-8 sm:w-12">
                 #
               </th>
-              <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider min-w-[120px] sm:min-w-[180px]">
+              <th className="px-2 sm:px-4 py-2 sm:py-3 text-left text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider min-w-[120px] sm:min-w-[180px]">
                 Student Name
               </th>
               {hasComponents ? (
                 <>
                   {periodShortLabels.map((label) => (
-                    <th key={`ma-${label}`} className="px-1 sm:px-2 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider bg-rose-50">
+                    <th key={`ma-${label}`} className="px-1 sm:px-2 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider bg-rose-50">
                       {label}<br/><span className="text-[8px] sm:text-[9px] font-bold text-rose-500">MA</span>
                     </th>
                   ))}
                   {periodShortLabels.map((label) => (
-                    <th key={`peh-${label}`} className="px-1 sm:px-2 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider bg-blue-50">
+                    <th key={`peh-${label}`} className="px-1 sm:px-2 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider bg-blue-50">
                       {label}<br/><span className="text-[8px] sm:text-[9px] font-bold text-blue-500">PEH</span>
                     </th>
                   ))}
                 </>
               ) : (
                 periodShortLabels.map((label) => (
-                  <th key={label} className="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                  <th key={label} className="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider">
                     {label}
                   </th>
                 ))
               )}
-              <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider bg-violet-50">
+              <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider bg-violet-50">
                 Final
               </th>
-              <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider hidden sm:table-cell">
+              <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider hidden sm:table-cell">
                 Remarks
               </th>
               {(user?.role === 'admin' || user?.role === 'staff') && (
-                <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-extrabold text-slate-700 uppercase tracking-wider">
+                <th className="px-2 sm:px-4 py-2 sm:py-3 text-center text-[10px] sm:text-xs font-bold text-slate-700 tracking-wider">
                   <span className="hidden sm:inline">Actions</span>
                 </th>
               )}
@@ -821,7 +821,7 @@ const SubjectGradeTable = ({
                   <td className="px-2 sm:px-4 py-2 sm:py-3">
                     <div className="flex items-center gap-2 sm:gap-3">
                       <div
-                        className={`w-7 h-7 sm:w-9 sm:h-9 rounded-md flex items-center justify-center text-white font-extrabold text-[10px] sm:text-xs shadow-sm shrink-0 ${
+                        className={`w-7 h-7 sm:w-9 sm:h-9 rounded-md flex items-center justify-center text-white font-bold text-[10px] sm:text-xs shadow-sm shrink-0 ${
                           currentSex === 'male'
                             ? 'bg-violet-500 border border-violet-700'
                             : currentSex === 'female'

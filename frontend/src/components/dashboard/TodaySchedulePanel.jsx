@@ -80,14 +80,14 @@ const TodaySchedulePanel = memo(() => {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">Today&apos;s Schedule</h3>
+            <h3 className="text-sm font-bold text-slate-900">Today&apos;s Schedule</h3>
             <p className="text-[10px] text-slate-500 font-medium">
               {schedule.length > 0 ? `${schedule.length} class${schedule.length !== 1 ? 'es' : ''} today` : 'No classes today'}
             </p>
           </div>
         </div>
         <button onClick={() => navigate('/my-schedule')}
-          className="text-[11px] font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide transition-colors">
+          className="text-[11px] font-bold text-violet-600 hover:text-violet-700 tracking-wide transition-colors">
           Full Schedule
         </button>
       </div>
@@ -99,7 +99,7 @@ const TodaySchedulePanel = memo(() => {
           </div>
         ) : schedule.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center py-8">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center mb-3">
               <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
@@ -118,9 +118,9 @@ const TodaySchedulePanel = memo(() => {
               <div className="rounded-xl bg-gradient-to-r from-violet-600 to-purple-700 p-3.5 shadow-md shadow-violet-200/40">
                 <div className="flex items-center gap-1.5 mb-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-[10px] font-bold text-violet-200 uppercase tracking-widest">Now Teaching</span>
+                  <span className="text-[10px] font-bold text-violet-200 tracking-[0.1em]">Now Teaching</span>
                 </div>
-                <p className="text-sm font-extrabold text-white leading-tight">
+                <p className="text-sm font-bold text-white leading-tight">
                   {schedule[currentIdx]?.subject_name || schedule[currentIdx]?.subject_detail?.name || 'Subject'}
                 </p>
                 <p className="text-xs text-violet-200 mt-0.5">
@@ -146,10 +146,10 @@ const TodaySchedulePanel = memo(() => {
             {nextClass && (
               <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-200">
                 <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
-                  <span className="text-sm font-extrabold text-amber-700">{fmtCountdown(minutesToNext)}</span>
+                  <span className="text-sm font-bold text-amber-700">{fmtCountdown(minutesToNext)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wide">Up Next</p>
+                  <p className="text-[10px] font-bold text-amber-700 tracking-wide">Up Next</p>
                   <p className="text-xs font-bold text-slate-900 truncate">
                     {nextClass.subject_name || nextClass.subject_detail?.name}
                   </p>
@@ -182,7 +182,7 @@ const TodaySchedulePanel = memo(() => {
                     isPast && 'bg-slate-50 border-slate-100 opacity-50',
                   )}>
                     <div className="text-center min-w-[46px] shrink-0">
-                      <p className={cn('text-[11px] font-extrabold leading-tight', isCurrent ? 'text-white' : 'text-slate-900')}>
+                      <p className={cn('text-[11px] font-bold leading-tight', isCurrent ? 'text-white' : 'text-slate-900')}>
                         {s.time_slot_detail?.start_time_display}
                       </p>
                       <p className={cn('text-[9px] font-semibold', isCurrent ? 'text-violet-200' : 'text-slate-400')}>
@@ -190,7 +190,7 @@ const TodaySchedulePanel = memo(() => {
                       </p>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={cn('text-xs font-extrabold truncate', isCurrent ? 'text-white' : 'text-slate-900')}>
+                      <p className={cn('text-xs font-bold truncate', isCurrent ? 'text-white' : 'text-slate-900')}>
                         {s.subject_name || s.subject_detail?.name || 'Subject'}
                       </p>
                       <p className={cn('text-[10px] font-medium truncate', isCurrent ? 'text-violet-100' : 'text-slate-500')}>
@@ -198,7 +198,7 @@ const TodaySchedulePanel = memo(() => {
                       </p>
                     </div>
                     {isCurrent && (
-                      <span className="text-[9px] font-bold uppercase tracking-wide bg-emerald-500 text-white px-1.5 py-0.5 rounded shrink-0">Now</span>
+                      <span className="text-[9px] font-bold tracking-wide bg-emerald-500 text-white px-1.5 py-0.5 rounded shrink-0">Now</span>
                     )}
                     {isPast && (
                       <svg className="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

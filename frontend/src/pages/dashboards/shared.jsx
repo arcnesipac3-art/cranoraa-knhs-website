@@ -19,18 +19,18 @@ export const SchoolHeaderBanner = ({ user, today }) => {
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           {/* School Identity */}
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-md bg-white p-2 flex items-center justify-center border-2 border-slate-200 shadow-sm shrink-0">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-md bg-white p-2 flex items-center justify-center border border-slate-200 shadow-sm shrink-0">
               <img src="/icons/school-logo-source.png" alt="KNHS Logo" className="w-full h-full object-contain" loading="lazy" />
             </div>
             <div>
-              <h1 className="text-base md:text-lg font-extrabold text-slate-900 uppercase tracking-tight leading-tight">
+              <h1 className="text-base md:text-lg font-bold text-slate-900 tracking-tight leading-tight">
                 Kiwalan National High School
               </h1>
-              <p className="text-xs md:text-sm font-bold text-violet-700 uppercase tracking-wide mt-0.5">
+              <p className="text-xs md:text-sm font-bold text-violet-700 tracking-wide mt-0.5">
                 Official Digital Campus Portal
               </p>
               {academicYear && (
-                <p className="text-[10px] md:text-xs font-semibold text-slate-600 uppercase tracking-wide mt-1">
+                <p className="text-[10px] md:text-xs font-semibold text-slate-600 tracking-wide mt-1">
                   School Year {academicYear}
                 </p>
               )}
@@ -50,7 +50,7 @@ export const SchoolHeaderBanner = ({ user, today }) => {
               <p className="text-xs font-bold text-slate-900">
                 {user?.first_name} {user?.last_name}
               </p>
-              <p className="text-[10px] font-bold text-violet-700 uppercase tracking-wide">
+              <p className="text-[10px] font-bold text-violet-700 tracking-wide">
                 {user?.role}
               </p>
               <p className="text-[10px] font-semibold text-slate-600 mt-0.5">
@@ -105,10 +105,10 @@ export const StatCard = memo(({ label, value, sub, icon, color = 'blue', onClick
           )}
         </div>
         <div className="mt-1.5">
-          <p className="text-[9px] md:text-[10px] font-semibold text-slate-600 mb-0.5 uppercase tracking-wide truncate">
+          <p className="text-[9px] md:text-[10px] font-semibold text-slate-600 mb-0.5 tracking-wide truncate">
             {label}
           </p>
-          <h3 className="text-base md:text-lg font-extrabold text-slate-900 tracking-tight leading-none truncate">
+          <h3 className="text-base md:text-lg font-bold text-slate-900 tracking-tight leading-none truncate">
             {value ?? '—'}
           </h3>
           {sub && (
@@ -160,7 +160,7 @@ export const TodayScheduleWidget = memo(({ navigate }) => {
           <CardTitle subtitle="Your teaching schedule">Today's Classes</CardTitle>
           <button
             onClick={() => navigate('/my-schedule')}
-            className="text-xs font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide"
+            className="text-xs font-bold text-violet-600 hover:text-violet-700 tracking-wide"
           >
             Full Schedule
           </button>
@@ -190,7 +190,7 @@ export const TodayScheduleWidget = memo(({ navigate }) => {
                 <div
                   key={s.id}
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-md border-2 transition-all",
+                    "flex items-center gap-3 p-3 rounded-md border transition-all",
                     isCurrent && "bg-violet-600 border-violet-700 text-white shadow-md",
                     !isCurrent && !isPast && "bg-white border-slate-200 hover:border-violet-300",
                     isPast && "bg-slate-50 border-slate-100 opacity-60"
@@ -198,7 +198,7 @@ export const TodayScheduleWidget = memo(({ navigate }) => {
                 >
                   <div className="text-center min-w-[56px] shrink-0">
                     <p className={cn(
-                      "text-xs font-extrabold leading-tight",
+                      "text-xs font-bold leading-tight",
                       isCurrent ? "text-white" : "text-slate-900"
                     )}>
                       {s.time_slot_detail?.start_time_display}
@@ -212,7 +212,7 @@ export const TodayScheduleWidget = memo(({ navigate }) => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className={cn(
-                      "text-sm font-extrabold truncate",
+                      "text-sm font-bold truncate",
                       isCurrent ? "text-white" : "text-slate-900"
                     )}>
                       {s.subject_detail?.name || 'Subject'}
@@ -227,7 +227,7 @@ export const TodayScheduleWidget = memo(({ navigate }) => {
                   {isCurrent && (
                     <div className="flex items-center gap-1.5 shrink-0">
                       <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-xs font-bold uppercase tracking-wide">Now</span>
+                      <span className="text-xs font-bold tracking-wide">Now</span>
                     </div>
                   )}
                 </div>
@@ -273,7 +273,7 @@ export const RecentAnnouncementsWidget = memo(({ navigate }) => {
           <CardTitle subtitle="School updates">Recent Announcements</CardTitle>
           <button
             onClick={() => navigate('/announcements')}
-            className="text-xs font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide"
+            className="text-xs font-bold text-violet-600 hover:text-violet-700 tracking-wide"
           >
             View All
           </button>
@@ -300,15 +300,15 @@ export const RecentAnnouncementsWidget = memo(({ navigate }) => {
               <button
                 key={a.id}
                 onClick={() => navigate('/announcements')}
-                className="w-full text-left p-3 rounded-md border-2 border-slate-200 bg-white hover:border-violet-400 hover:shadow-md transition-all group"
+                className="w-full text-left p-3 rounded-md border border-slate-200 bg-white hover:border-violet-400 hover:shadow-md transition-all group"
               >
-                <p className="text-sm font-extrabold text-slate-900 line-clamp-1 group-hover:text-violet-700 transition-colors">
+                <p className="text-sm font-bold text-slate-900 line-clamp-1 group-hover:text-violet-700 transition-colors">
                   {a.title}
                 </p>
                 <p className="text-xs text-slate-600 line-clamp-2 mt-1">
                   {a.content}
                 </p>
-                <p className="text-[10px] font-semibold text-violet-600 uppercase tracking-wide mt-2">
+                <p className="text-[10px] font-semibold text-violet-600 tracking-wide mt-2">
                   {formatTime(a.created_at)}
                 </p>
               </button>

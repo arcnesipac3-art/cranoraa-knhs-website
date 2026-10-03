@@ -38,7 +38,7 @@ export default function ComplianceStatusBadge({ status, size = 'sm' }) {
   };
 
   return (
-    <span className={`inline-flex items-center gap-1.5 font-bold uppercase rounded-md border ${config.color} ${sizeClasses[size]}`}>
+    <span className={`inline-flex items-center gap-1.5 font-bold rounded-md border ${config.color} ${sizeClasses[size]}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
       {config.label}
     </span>

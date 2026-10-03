@@ -99,13 +99,13 @@ const PeriodCard = memo(({ period, sortedSlots, timeSlots, editingSlot, editSlot
         <div className="w-1 h-10 rounded-full shrink-0" style={{ background: ts.barText }} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-extrabold text-slate-900">
+            <span className="text-sm font-bold text-slate-900">
               {period.start_display || normalizeTime(period.start_time)} &ndash; {period.end_display || normalizeTime(period.end_time)}
             </span>
             <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md">{fmtDur(dur)}</span>
             <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${ts.color}`} style={{ background: ts.barBg, borderColor: ts.barBorder, color: ts.barText }}>{ts.label}</span>
           </div>
-          {period.label && <p className="text-[10px] font-bold text-violet-600 uppercase tracking-wide mt-0.5">{period.label}</p>}
+          {period.label && <p className="text-[10px] font-bold text-violet-600 tracking-wide mt-0.5">{period.label}</p>}
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           {!isBreak && !isFull && dayCount > 0 && (
@@ -157,30 +157,30 @@ const PeriodCard = memo(({ period, sortedSlots, timeSlots, editingSlot, editSlot
       </div>
       {isEditing && !isBreak && (
         <div className="px-4 pb-4 border-t border-violet-100 bg-violet-50/30">
-          <p className="text-[10px] font-bold text-violet-600 uppercase tracking-wide pt-3 mb-2">Editing slot</p>
+          <p className="text-[10px] font-bold text-violet-600 tracking-wide pt-3 mb-2">Editing slot</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap items-end gap-3">
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Day</label>
+              <label className="block text-[9px] font-bold text-slate-500 mb-1">Day</label>
               <select value={editSlotForm.day} onChange={e => setEditSlotForm(f => ({...f, day: e.target.value}))} className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30">
                 {DAYS.map(d => <option key={d} value={d}>{DAY_FULL[d]}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Start</label>
+              <label className="block text-[9px] font-bold text-slate-500 mb-1">Start</label>
               <input type="time" value={editSlotForm.start_time} onChange={e => setEditSlotForm(f => ({...f, start_time: e.target.value}))} className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
             </div>
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">End</label>
+              <label className="block text-[9px] font-bold text-slate-500 mb-1">End</label>
               <input type="time" value={editSlotForm.end_time} onChange={e => setEditSlotForm(f => ({...f, end_time: e.target.value}))} className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
             </div>
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Type</label>
+              <label className="block text-[9px] font-bold text-slate-500 mb-1">Type</label>
               <select value={editSlotForm.slot_type || 'class'} onChange={e => setEditSlotForm(f => ({...f, slot_type: e.target.value}))} className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/30">
                 {SLOT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Label</label>
+              <label className="block text-[9px] font-bold text-slate-500 mb-1">Label</label>
               <input value={editSlotForm.label} onChange={e => setEditSlotForm(f => ({...f, label: e.target.value}))} placeholder="e.g. Period 1" className="px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 w-28" />
             </div>
             <div className="flex gap-1.5 items-end">
@@ -251,7 +251,7 @@ const BellPeriodModal = ({
             {/* Quick actions */}
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               <div className="px-3 py-2 border-b border-slate-100 bg-slate-50">
-                <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Quick Actions</p>
+                <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Quick Actions</p>
               </div>
               <div className="p-3 space-y-2">
                 <button type="button" onClick={() => applyStandardBell(false)} disabled={savingSlot}
@@ -277,16 +277,16 @@ const BellPeriodModal = ({
             {/* Add period form */}
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               <div className="px-3 py-2 border-b border-slate-100 bg-slate-50">
-                <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">New Period</p>
+                <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">New Period</p>
               </div>
               <form onSubmit={saveSlotBulk} className="p-3 space-y-3">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Label <span className="text-rose-400">*</span></label>
+                  <label className="block text-[10px] font-bold text-slate-500 tracking-wide mb-1">Label <span className="text-rose-400">*</span></label>
                   <input value={slotForm.label} onChange={e => setSlotForm(f => ({...f, label: e.target.value}))} placeholder="e.g. Period 1, Lunch…"
                     className={`w-full px-3 py-2 rounded-lg border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 transition-all ${!slotForm.label.trim() ? 'border-rose-200 bg-rose-50/30' : 'border-slate-200'}`} />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Type</label>
+                  <label className="block text-[10px] font-bold text-slate-500 tracking-wide mb-1.5">Type</label>
                   <div className="flex flex-wrap gap-1">
                     {SLOT_TYPES.map(t => (
                       <button key={t.value} type="button" onClick={() => setSlotForm(f => ({...f, slot_type: t.value, label: f.label || t.label}))}
@@ -298,12 +298,12 @@ const BellPeriodModal = ({
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">Start <span className="text-rose-400">*</span></label>
+                    <label className="block text-[10px] font-bold text-slate-500 tracking-wide mb-1">Start <span className="text-rose-400">*</span></label>
                     <input required type="time" value={slotForm.start_time} onChange={e => setSlotForm(f => ({...f, start_time: e.target.value}))}
                       className="w-full px-2 py-2 rounded-lg border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1">End <span className="text-rose-400">*</span></label>
+                    <label className="block text-[10px] font-bold text-slate-500 tracking-wide mb-1">End <span className="text-rose-400">*</span></label>
                     <input required type="time" value={slotForm.end_time} onChange={e => setSlotForm(f => ({...f, end_time: e.target.value}))}
                       className={`w-full px-2 py-2 rounded-lg border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-violet-500/30 ${durationMins(slotForm.start_time, slotForm.end_time) <= 0 ? 'border-rose-200 bg-rose-50/30' : 'border-slate-200'}`} />
                   </div>
@@ -314,7 +314,7 @@ const BellPeriodModal = ({
                   </p>
                 )}
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Days <span className="text-rose-400">*</span></label>
+                  <label className="block text-[10px] font-bold text-slate-500 tracking-wide mb-1.5">Days <span className="text-rose-400">*</span></label>
                   <DayChips selected={slotForm.days} onChange={days => setSlotForm(f => ({...f, days}))} />
                 </div>
                 {validationErrors.length > 0 && (
@@ -337,7 +337,7 @@ const BellPeriodModal = ({
             {/* Summary */}
             <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
               <div className="px-3 py-2 border-b border-slate-100 bg-slate-50">
-                <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest">Schedule Summary</p>
+                <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Schedule Summary</p>
               </div>
               <div className="p-3 grid grid-cols-2 gap-2">
                 {[
@@ -349,8 +349,8 @@ const BellPeriodModal = ({
                   { label: 'Last Period',   value: summary.last  ? (summary.last.end_display   || normalizeTime(summary.last.end_time))   : '\u2014' },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-slate-50 rounded-lg px-2.5 py-2">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">{label}</p>
-                    <p className="text-sm font-extrabold text-slate-900 mt-0.5">{value ?? '\u2014'}</p>
+                    <p className="text-[9px] font-bold text-slate-400 tracking-wide">{label}</p>
+                    <p className="text-sm font-bold text-slate-900 mt-0.5">{value ?? '\u2014'}</p>
                   </div>
                 ))}
               </div>
@@ -369,7 +369,7 @@ const BellPeriodModal = ({
         <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
-              <p className="text-xs font-extrabold text-slate-700 uppercase tracking-widest">Period Overview</p>
+              <p className="text-xs font-bold text-slate-700 tracking-[0.1em]">Period Overview</p>
               {uniquePeriods.length > 0 && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold">{uniquePeriods.length} configured</span>
               )}
@@ -383,10 +383,10 @@ const BellPeriodModal = ({
           <div className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4">
             {uniquePeriods.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full py-12">
-                <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 rounded-lg bg-violet-100 flex items-center justify-center mx-auto mb-4">
                   <svg className="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
-                <p className="text-sm font-extrabold text-slate-700 mb-2">No periods yet</p>
+                <p className="text-sm font-bold text-slate-700 mb-2">No periods yet</p>
                 <p className="text-xs text-slate-400 text-center max-w-xs leading-relaxed mb-4">
                   Tap <strong className="text-violet-600">Standard Schedule</strong> to load a 7-period day instantly, or add custom periods.
                 </p>
@@ -415,7 +415,7 @@ const BellPeriodModal = ({
       {/* Tutorial overlay */}
       {showTutorial && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm rounded-xl">
-          <div className="w-full max-w-sm mx-4 bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+          <div className="w-full max-w-sm mx-4 bg-white rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
             <div className="h-1 w-full bg-slate-100">
               <div className="h-full bg-gradient-to-r from-violet-600 to-violet-400 transition-all duration-300" style={{ width: `${((tutorialStep + 1) / tutorialSteps.length) * 100}%` }} />
             </div>
@@ -426,7 +426,7 @@ const BellPeriodModal = ({
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-slate-900">{tutorialSteps[tutorialStep].title}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Step {tutorialStep + 1} of {tutorialSteps.length}</p>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wider">Step {tutorialStep + 1} of {tutorialSteps.length}</p>
                 </div>
                 <button type="button" onClick={dismissTutorial} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/></svg>
@@ -434,12 +434,12 @@ const BellPeriodModal = ({
               </div>
               <p className="text-sm text-slate-600 leading-relaxed">{tutorialSteps[tutorialStep].desc}</p>
               <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
-                <button type="button" onClick={dismissTutorial} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-wider">Skip</button>
+                <button type="button" onClick={dismissTutorial} className="text-[10px] font-bold text-slate-400 hover:text-slate-600 tracking-wider">Skip</button>
                 <div className="flex items-center gap-2">
                   {tutorialStep > 0 && (
-                    <button type="button" onClick={prevTutorial} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 transition-all uppercase tracking-wider">Back</button>
+                    <button type="button" onClick={prevTutorial} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-[10px] font-bold hover:bg-slate-50 transition-all tracking-wider">Back</button>
                   )}
-                  <button type="button" onClick={nextTutorial} className="px-5 py-2 rounded-lg bg-violet-600 text-white text-[10px] font-bold hover:bg-violet-700 transition-all uppercase tracking-wider shadow-md shadow-violet-200">
+                  <button type="button" onClick={nextTutorial} className="px-5 py-2 rounded-lg bg-violet-600 text-white text-[10px] font-bold hover:bg-violet-700 transition-all tracking-wider shadow-md shadow-violet-200">
                     {tutorialStep < tutorialSteps.length - 1 ? 'Next' : 'Got it!'}
                   </button>
                 </div>

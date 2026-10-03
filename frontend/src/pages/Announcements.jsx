@@ -256,7 +256,7 @@ const Announcements = () => {
       title: 'Delete Announcement?', text: "This action cannot be undone.", icon: 'warning',
       showCancelButton: true, confirmButtonText: 'Yes, delete it',
       confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (result.isConfirmed) {
       try {
@@ -273,7 +273,7 @@ const Announcements = () => {
       title: `Delete ${selectedIds.length} announcements?`, text: "This action cannot be undone.", icon: 'warning',
       showCancelButton: true, confirmButtonText: 'Yes, delete them',
       confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (result.isConfirmed) {
       try {
@@ -333,7 +333,7 @@ const Announcements = () => {
   return (
     <div className="animate-fade-in page-bottom-safe min-h-screen bg-slate-50">
       {/* ── Header ── */}
-      <div className="bg-white border-b-2 border-slate-200 sticky top-0 z-30">
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -343,8 +343,8 @@ const Announcements = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight">Announcements</h1>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                <h1 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight">Announcements</h1>
+                <p className="text-xs font-semibold text-slate-500 tracking-wide">
                   School News & Updates
                   {isStaleData && (
                     <span className="ml-2 inline-flex items-center gap-1 text-amber-600">
@@ -461,7 +461,7 @@ const Announcements = () => {
           {/* ── Mobile Search ── */}
           <div className="lg:hidden fixed bottom-20 left-0 right-0 z-20 px-4 pointer-events-none">
             <div className="max-w-lg mx-auto pointer-events-auto">
-              <div className="relative shadow-lg rounded-2xl">
+              <div className="relative shadow-lg rounded-lg">
                 <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
@@ -470,7 +470,7 @@ const Announcements = () => {
                   placeholder="Search announcements..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 bg-white border-0 rounded-2xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+                  className="w-full pl-11 pr-4 py-3 bg-white border-0 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
                 />
               </div>
             </div>
@@ -562,7 +562,7 @@ const Announcements = () => {
             ) : sorted.length === 0 ? (
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
                 <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-violet-100 flex items-center justify-center mb-4">
+                  <div className="w-16 h-16 rounded-lg bg-violet-100 flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                     </svg>
@@ -589,7 +589,7 @@ const Announcements = () => {
                       <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                       </svg>
-                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Pinned Announcements</span>
+                      <span className="text-xs font-bold text-slate-500 tracking-wider">Pinned Announcements</span>
                     </div>
                   </div>
                 )}
@@ -618,7 +618,7 @@ const Announcements = () => {
                           <svg className="w-3.5 h-3.5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
                           </svg>
-                          <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Pinned Announcement</span>
+                          <span className="text-[11px] font-bold text-amber-700 tracking-wider">Pinned Announcement</span>
                         </div>
                       )}
 
@@ -639,7 +639,7 @@ const Announcements = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-sm font-bold text-slate-900">{a.author_name || 'School Admin'}</span>
-                              <span className="text-[10px] font-semibold text-slate-400 uppercase px-1.5 py-0.5 bg-slate-100 rounded">
+                              <span className="text-[10px] font-semibold text-slate-400 px-1.5 py-0.5 bg-slate-100 rounded">
                                 {(PRIORITY_CONFIG[a.priority] || PRIORITY_CONFIG.info).label === 'Urgent' ? 'Admin' :
                                  a.author_role === 'staff' ? 'Faculty' : a.author_role === 'admin' ? 'Admin' : a.author_role === 'student' ? 'Student' : 'Staff'}
                               </span>
@@ -701,7 +701,7 @@ const Announcements = () => {
                         {/* Badges Row */}
                         <div className="flex flex-wrap gap-1.5 mb-3">
                           {(a.priority === 'urgent') && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wide">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold tracking-wide">
                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                               </svg>
@@ -709,15 +709,15 @@ const Announcements = () => {
                             </span>
                           )}
                           {(a.priority === 'high') && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase tracking-wide">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold tracking-wide">
                               Important
                             </span>
                           )}
                           {a.status === 'draft' && (
-                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold uppercase">Draft</span>
+                            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">Draft</span>
                           )}
                           {a.is_public && (
-                            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold uppercase">Public</span>
+                            <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-bold">Public</span>
                           )}
                         </div>
 
@@ -846,21 +846,21 @@ const Announcements = () => {
       {/* ── View Modal ── */}
       {showView && selected && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col border border-slate-200 animate-in zoom-in-95 duration-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${(CATEGORY_CONFIG[selected.category] || CATEGORY_CONFIG.general).color}`}>
+                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold tracking-wider ${(CATEGORY_CONFIG[selected.category] || CATEGORY_CONFIG.general).color}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${(CATEGORY_CONFIG[selected.category] || CATEGORY_CONFIG.general).dot}`} />
                   {(CATEGORY_CONFIG[selected.category] || CATEGORY_CONFIG.general).label}
                 </span>
                 {selected.priority === 'urgent' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase">Urgent</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold">Urgent</span>
                 )}
                 {selected.priority === 'high' && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold uppercase">High</span>
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold">High</span>
                 )}
                 {selected.is_pinned && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold uppercase">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" /></svg>
                     Pinned
                   </span>
@@ -900,7 +900,7 @@ const Announcements = () => {
                 if (detailMedia.length === 0) return null;
                 return (
                   <div className="mb-5">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Attachments ({detailMedia.length})</p>
+                    <p className="text-xs font-bold text-slate-500 tracking-wider mb-3">Attachments ({detailMedia.length})</p>
                     <PostMediaCarousel
                       items={detailMedia}
                       maxHeight="360px"

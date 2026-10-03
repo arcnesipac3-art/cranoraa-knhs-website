@@ -39,9 +39,9 @@ function StatCard({ label, value, colorCls, bgCls, borderCls, icon, delay }) {
     >
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-base">{icon}</span>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+        <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em]">{label}</p>
       </div>
-      <p className={`text-3xl font-extrabold ${colorCls}`}>{value ?? 0}</p>
+      <p className={`text-3xl font-bold ${colorCls}`}>{value ?? 0}</p>
     </motion.div>
   );
 }
@@ -52,7 +52,7 @@ function FilterBar({ filters, setFilters, subjects, academicYears, semesters }) 
     <div className="bg-white rounded-xl border border-slate-200 p-4">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+          <label className="block text-[10px] font-bold text-slate-500 tracking-wider mb-1">
             Academic Year
           </label>
           <select
@@ -67,7 +67,7 @@ function FilterBar({ filters, setFilters, subjects, academicYears, semesters }) 
           </select>
         </div>
         <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+          <label className="block text-[10px] font-bold text-slate-500 tracking-wider mb-1">
             Semester
           </label>
           <select
@@ -82,7 +82,7 @@ function FilterBar({ filters, setFilters, subjects, academicYears, semesters }) 
           </select>
         </div>
         <div>
-          <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+          <label className="block text-[10px] font-bold text-slate-500 tracking-wider mb-1">
             Subject
           </label>
           <select
@@ -130,7 +130,7 @@ function MissingSubmissionsTable({ rows }) {
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Missing Submissions</h3>
+          <h3 className="text-xs font-bold text-slate-400 tracking-[0.1em]">Missing Submissions</h3>
           <p className="text-[11px] text-slate-400 mt-0.5">{rows.length} item{rows.length !== 1 ? 's' : ''} need attention</p>
         </div>
         <div className="relative w-56">
@@ -149,7 +149,7 @@ function MissingSubmissionsTable({ rows }) {
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
               {['Teacher', 'Subject', 'Classroom', 'Compliance Type', 'Status', 'Deadline', 'Days Overdue'].map(h => (
-                <th key={h} className="px-4 py-2.5 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                <th key={h} className="px-4 py-2.5 text-left text-[10px] font-bold text-slate-400 tracking-wider whitespace-nowrap">
                   {h}
                 </th>
               ))}
@@ -297,13 +297,13 @@ export default function ComplianceDashboardPage() {
       >
         <div className="flex-1">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Overall Compliance Rate</h3>
+            <h3 className="text-xs font-bold text-slate-400 tracking-[0.1em]">Overall Compliance Rate</h3>
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${ratePillCls(stats.compliance_rate)}`}>
               {rateLabel(stats.compliance_rate)}
             </span>
           </div>
           <div className="flex items-end gap-4">
-            <span className={`text-4xl font-extrabold ${rateColor(stats.compliance_rate)}`}>
+            <span className={`text-4xl font-bold ${rateColor(stats.compliance_rate)}`}>
               {stats.compliance_rate}%
             </span>
             <div className="flex-1 pb-1">
@@ -321,7 +321,7 @@ export default function ComplianceDashboardPage() {
 
         {/* Trigger reminders */}
         <div className="flex flex-col gap-2 sm:border-l sm:pl-5 sm:border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Send Reminders</p>
+          <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em]">Send Reminders</p>
           <div className="flex gap-2">
             <button
               onClick={() => handleTriggerReminders(true)}
@@ -369,7 +369,7 @@ export default function ComplianceDashboardPage() {
       {activeSection === 'overview' && stats.by_type?.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compliance by Type</h3>
+          <h3 className="text-xs font-bold text-slate-400 tracking-[0.1em] mb-4">Compliance by Type</h3>
           <div className="space-y-3">
             {stats.by_type.map((item, i) => {
               const r = item.total > 0 ? Math.round(item.reviewed_count / item.total * 100) : 0;
@@ -395,7 +395,7 @@ export default function ComplianceDashboardPage() {
       {activeSection === 'by_subject' && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Compliance by Subject</h3>
+          <h3 className="text-xs font-bold text-slate-400 tracking-[0.1em] mb-4">Compliance by Subject</h3>
           {!stats.by_subject?.length ? (
             <p className="text-sm text-slate-400 text-center py-8">No subject-linked submissions yet.</p>
           ) : (
@@ -429,7 +429,7 @@ export default function ComplianceDashboardPage() {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per-Teacher Compliance</h3>
+            <h3 className="text-xs font-bold text-slate-400 tracking-[0.1em]">Per-Teacher Compliance</h3>
           </div>
           {!stats.by_teacher?.length ? (
             <p className="text-sm text-slate-400 text-center py-8">No data.</p>
@@ -437,7 +437,7 @@ export default function ComplianceDashboardPage() {
             <>
               <div className="hidden md:grid grid-cols-[1fr_80px_80px_80px_80px_100px] px-5 py-2 bg-slate-50 border-b border-slate-100">
                 {['Teacher','Total','Done','Pending','Overdue','Rate'].map(h => (
-                  <span key={h} className="text-[10px] font-black text-slate-400 uppercase tracking-wider text-center first:text-left">{h}</span>
+                  <span key={h} className="text-[10px] font-bold text-slate-400 tracking-wider text-center first:text-left">{h}</span>
                 ))}
               </div>
               <div className="divide-y divide-slate-50">

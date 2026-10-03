@@ -63,7 +63,7 @@ function StatusBadge({ status }) {
   if (!status) return <span className="text-slate-300 text-[10px] font-bold">&mdash;</span>;
   const display = STATUS_DISPLAY[status] || status.charAt(0).toUpperCase();
   return (
-    <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-[9px] font-black ${STATUS_COLORS[status] || 'bg-slate-100 text-slate-500'}`}>
+    <span className={`inline-flex items-center justify-center w-5 h-5 rounded text-[9px] font-bold ${STATUS_COLORS[status] || 'bg-slate-100 text-slate-500'}`}>
       {display}
     </span>
   );
@@ -400,7 +400,7 @@ const AttendanceDashboard = () => {
           <td key={sd.date} className="px-0.5 py-1 text-center border-r border-slate-100 relative">
             <div ref={el => { cellRefs.current[cellKey] = el; }} className="relative inline-flex items-center justify-center">
               <button onClick={() => setEditingCell(editingCell?.studentId === s.id && editingCell?.date === sd.date ? null : { studentId: s.id, date: sd.date, status: att?.status })}
-                className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-black transition-all cursor-pointer ${att?.status ? STATUS_COLORS[att.status] : 'bg-slate-50 text-slate-300 hover:bg-slate-100'} ${isSaving ? 'opacity-50' : ''}`}
+                className={`w-6 h-6 rounded flex items-center justify-center text-[9px] font-bold transition-all cursor-pointer ${att?.status ? STATUS_COLORS[att.status] : 'bg-slate-50 text-slate-300 hover:bg-slate-100'} ${isSaving ? 'opacity-50' : ''}`}
                 title={`${s.name} — ${sd.dayName} ${sd.day}: ${att?.status || 'Not recorded'}`}>
                 {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <StatusBadge status={att?.status} />}
               </button>
@@ -417,14 +417,14 @@ const AttendanceDashboard = () => {
       <td className="px-2 py-1.5 text-[10px] font-bold text-red-700 text-center border-l border-slate-200 bg-red-50/50">{s.days_absent}</td>
       <td className="px-2 py-1.5 text-[10px] font-bold text-amber-700 text-center border-l border-slate-200 bg-amber-50/50">{s.days_late}</td>
       <td className="px-2 py-1.5 text-[10px] font-bold text-blue-700 text-center border-l border-slate-200 bg-blue-50/50">{s.days_excused}</td>
-      <td className="px-2 py-1.5 text-[10px] font-black text-slate-700 text-center border-l border-slate-200 bg-slate-50">{s.pct}%</td>
+      <td className="px-2 py-1.5 text-[10px] font-bold text-slate-700 text-center border-l border-slate-200 bg-slate-50">{s.pct}%</td>
     </tr>
   ));
 
   const renderTotalsRow = (label, present, absent, late, excused, pct, isGrand = false) => (
-    <tr className={isGrand ? 'bg-slate-100 font-black' : 'bg-slate-50'}>
+    <tr className={isGrand ? 'bg-slate-100 font-bold' : 'bg-slate-50'}>
       <td colSpan={4} className={`px-2 py-1.5 text-[10px] border-r border-slate-200 sticky left-0 ${isGrand ? 'bg-slate-100' : 'bg-slate-50'} z-10`}>
-        <span className="font-bold text-slate-700 uppercase">{label}</span>
+        <span className="font-bold text-slate-700">{label}</span>
         <span className="text-slate-400 ml-1">({isGrand ? students.length : '—'})</span>
       </td>
       {schoolDays.map(sd => {
@@ -440,7 +440,7 @@ const AttendanceDashboard = () => {
       <td className="px-2 py-1.5 text-[10px] font-bold text-red-700 text-center border-l border-slate-200">{absent}</td>
       <td className="px-2 py-1.5 text-[10px] font-bold text-amber-700 text-center border-l border-slate-200">{late}</td>
       <td className="px-2 py-1.5 text-[10px] font-bold text-blue-700 text-center border-l border-slate-200">{excused}</td>
-      <td className="px-2 py-1.5 text-[10px] font-black text-slate-700 text-center border-l border-slate-200">{pct}%</td>
+      <td className="px-2 py-1.5 text-[10px] font-bold text-slate-700 text-center border-l border-slate-200">{pct}%</td>
     </tr>
   );
 
@@ -452,7 +452,7 @@ const AttendanceDashboard = () => {
       <div className="hidden print:block text-center mb-4">
         <p className="text-[10px] text-slate-600">Republic of the Philippines</p>
         <p className="text-[10px] text-slate-600">Department of Education</p>
-        <p className="text-sm font-black text-slate-900">{schoolSettings?.site_name || 'School Name'}</p>
+        <p className="text-sm font-bold text-slate-900">{schoolSettings?.site_name || 'School Name'}</p>
         <p className="text-[10px] text-slate-600">School ID: {schoolSettings?.school_id || '—'} | {schoolSettings?.region || '—'} | {schoolSettings?.division || '—'}</p>
         <p className="text-xs font-bold text-slate-900 mt-2">SCHOOL FORM 2 (SF2) — Daily Attendance Report of Learners</p>
         <p className="text-[10px] text-slate-600">SY: {filters.academic_year} | Grade: {filters.grade_level} | Section: {filters.section} | Month: {monthName} {filters.year} | Adviser: {selectedClassroom?.teacher_name || '—'}</p>
@@ -461,7 +461,7 @@ const AttendanceDashboard = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 no-print">
         <div className="min-w-0">
-          <h1 className="text-lg sm:text-xl font-black text-slate-900">SF2 — Daily Attendance Report</h1>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900">SF2 — Daily Attendance Report</h1>
           <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5 truncate">{monthName} {filters.year} | {filters.grade_level} {filters.section}</p>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
@@ -479,7 +479,7 @@ const AttendanceDashboard = () => {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-end gap-2 sm:gap-3 p-3 sm:p-4 bg-white border border-slate-200 rounded-xl no-print">
         <div className="w-full sm:w-auto">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Academic Year</label>
+          <label className="block text-[10px] font-bold text-slate-500 mb-1">Academic Year</label>
           <select value={filters.academic_year} onChange={e => setFilters(f => ({ ...f, academic_year: e.target.value, grade_level: '', section: '' }))}
             className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">Select Year</option>
@@ -487,14 +487,14 @@ const AttendanceDashboard = () => {
           </select>
         </div>
         <div className="w-full sm:w-auto">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Month</label>
+          <label className="block text-[10px] font-bold text-slate-500 mb-1">Month</label>
           <select value={filters.month} onChange={e => setFilters(f => ({ ...f, month: parseInt(e.target.value) }))}
             className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
             {MONTHS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
           </select>
         </div>
         <div className="w-full sm:w-auto">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Grade Level</label>
+          <label className="block text-[10px] font-bold text-slate-500 mb-1">Grade Level</label>
           <select value={filters.grade_level} onChange={e => setFilters(f => ({ ...f, grade_level: e.target.value, section: '' }))}
             className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">All</option>
@@ -502,7 +502,7 @@ const AttendanceDashboard = () => {
           </select>
         </div>
         <div className="w-full sm:w-auto">
-          <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Section</label>
+          <label className="block text-[10px] font-bold text-slate-500 mb-1">Section</label>
           <select value={filters.section} onChange={e => setFilters(f => ({ ...f, section: e.target.value }))}
             className="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500">
             <option value="">Select Section</option>
@@ -520,7 +520,7 @@ const AttendanceDashboard = () => {
       {!loading && classrooms.length > 0 && (
         <div className="no-print">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider">Your Classes — View Attendance History</h2>
+            <h2 className="text-[10px] sm:text-xs font-bold text-slate-500 tracking-wider">Your Classes — View Attendance History</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {classrooms.map(cls => (
@@ -529,12 +529,12 @@ const AttendanceDashboard = () => {
                 onClick={() => navigate(`/my-classes?classroom=${cls.id}&view=attendance-history`)}
                 className="flex items-center gap-3 bg-white border border-slate-200 rounded-lg px-3 py-2.5 hover:border-violet-300 hover:shadow-md transition-all text-left group"
               >
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white font-extrabold text-xs flex-shrink-0">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
                   {cls.name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-extrabold text-slate-900 truncate">{cls.name}</p>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
+                  <p className="text-xs font-bold text-slate-900 truncate">{cls.name}</p>
+                  <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
                     {cls.grade_level || 'Grade'}{cls.teacher_name ? ` · ${cls.teacher_name}` : ''}
                   </p>
                 </div>
@@ -577,7 +577,7 @@ const AttendanceDashboard = () => {
             <span className="font-bold">Legend:</span>
             {Object.entries(STATUS_DISPLAY).filter(([k]) => ['present', 'absent', 'late', 'excused'].includes(k)).map(([k, v]) => (
               <span key={k} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded ${STATUS_COLORS[k]}`}>
-                <span className="font-black">{v}</span> = {k.charAt(0).toUpperCase() + k.slice(1)}
+                <span className="font-bold">{v}</span> = {k.charAt(0).toUpperCase() + k.slice(1)}
               </span>
             ))}
             <span className="text-slate-300">&mdash; = Not recorded</span>
@@ -589,38 +589,38 @@ const AttendanceDashboard = () => {
               <table className="w-full border-collapse" style={{ minWidth: `${12 + 8 + 140 + 8 + (schoolDays.length * 28) + 80}px` }}>
                 <thead className="bg-[#2D1B4D] text-white sticky top-0 z-20">
                   <tr>
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-r border-violet-700 sticky left-0 bg-[#2D1B4D] z-30 w-8">No.</th>
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-r border-violet-700 sticky left-8 bg-[#2D1B4D] z-30 w-24">LRN</th>
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-left border-r border-violet-700 sticky left-[8rem] bg-[#2D1B4D] z-30 min-w-[140px]">Name of Learner</th>
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-r border-violet-700 sticky left-[calc(8rem+140px)] bg-[#2D1B4D] z-30 w-8">S</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-r border-violet-700 sticky left-0 bg-[#2D1B4D] z-30 w-8">No.</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-r border-violet-700 sticky left-8 bg-[#2D1B4D] z-30 w-24">LRN</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-left border-r border-violet-700 sticky left-[8rem] bg-[#2D1B4D] z-30 min-w-[140px]">Name of Learner</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-r border-violet-700 sticky left-[calc(8rem+140px)] bg-[#2D1B4D] z-30 w-8">S</th>
                     {schoolDays.map(sd => (
                       <th key={sd.date} className="px-1 py-2 text-center border-r border-violet-700 w-7" title={`${sd.dayName} ${sd.day}`}>
                         <div className="text-[8px] text-violet-300 leading-none">{sd.dayName}</div>
-                        <div className="text-[10px] font-black leading-tight">{sd.day}</div>
+                        <div className="text-[10px] font-bold leading-tight">{sd.day}</div>
                       </th>
                     ))}
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-green-800 w-14">Prs</th>
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-red-800 w-14">Abs</th>
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-amber-800 w-14">Late</th>
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-blue-800 w-14">Exc</th>
-                    <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-slate-700 w-14">%</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-green-800 w-14">Prs</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-red-800 w-14">Abs</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-amber-800 w-14">Late</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-blue-800 w-14">Exc</th>
+                    <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-slate-700 w-14">%</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {maleStudents.length > 0 && (
                     <>
-                      <tr><td colSpan={4 + schoolDays.length + 5} className="px-3 py-1 bg-blue-50 text-[9px] font-bold text-blue-700 uppercase tracking-widest border-b border-blue-100">Male ({maleStudents.length})</td></tr>
+                      <tr><td colSpan={4 + schoolDays.length + 5} className="px-3 py-1 bg-blue-50 text-[9px] font-bold text-blue-700 tracking-[0.1em] border-b border-blue-100">Male ({maleStudents.length})</td></tr>
                       {renderStudentRows(maleStudents, 0)}
                     </>
                   )}
                   {femaleStudents.length > 0 && (
                     <>
-                      <tr><td colSpan={4 + schoolDays.length + 5} className="px-3 py-1 bg-pink-50 text-[9px] font-bold text-pink-700 uppercase tracking-widest border-b border-pink-100">Female ({femaleStudents.length})</td></tr>
+                      <tr><td colSpan={4 + schoolDays.length + 5} className="px-3 py-1 bg-pink-50 text-[9px] font-bold text-pink-700 tracking-[0.1em] border-b border-pink-100">Female ({femaleStudents.length})</td></tr>
                       {renderStudentRows(femaleStudents, maleStudents.length)}
                     </>
                   )}
                 </tbody>
-                <tfoot className="bg-slate-100 border-t-2 border-slate-300 sticky bottom-0 z-20">
+                <tfoot className="bg-slate-100 border-t border-slate-300 sticky bottom-0 z-20">
                   {maleStudents.length > 0 && (() => {
                     let mp = 0, ma = 0, ml = 0, me = 0;
                     maleStudents.forEach(s => { mp += s.days_present; ma += s.days_absent; ml += s.days_late; me += s.days_excused; });

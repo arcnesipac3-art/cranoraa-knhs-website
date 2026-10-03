@@ -23,7 +23,7 @@ export default function UpdateSnackbar() {
       className="fixed bottom-4 inset-x-0 z-[9998] px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pointer-events-none"
     >
       <div className="max-w-lg mx-auto pointer-events-auto animate-fade-in-up">
-        <div className="flex items-center gap-3 rounded-2xl bg-white border border-violet-100 shadow-2xl shadow-violet-900/15 p-4">
+        <div className="flex items-center gap-3 rounded-lg bg-white border border-violet-100 shadow-2xl shadow-violet-900/15 p-4">
           {/* Pulse dot */}
           <div className="relative shrink-0">
             <div className="w-3 h-3 rounded-full bg-violet-500" />

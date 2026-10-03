@@ -69,7 +69,7 @@ function SubjectsTab() {
     <div className="page-bottom-safe bg-slate-50/50">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 md:mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">Subjects</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Subjects</h1>
           <p className="text-xs text-slate-500 mt-1">{subjects.length} subjects in the curriculum</p>
         </div>
         <div className="flex items-center gap-2">
@@ -105,20 +105,20 @@ function SubjectsTab() {
           {Object.entries(grouped).sort(([a], [b]) => (parseInt(a.replace(/\D/g, '')) || 999) - (parseInt(b.replace(/\D/g, '')) || 999)).map(([level, items]) => (
             <div key={level} className="bg-white border border-slate-200 rounded-xl border-l-4 border-l-violet-500 overflow-hidden">
               <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-md bg-violet-100 flex items-center justify-center font-extrabold text-sm text-violet-700 border border-violet-200">{parseInt(level.replace(/\D/g, '')) || level.charAt(0)}</div>
+                <div className="w-10 h-10 rounded-md bg-violet-100 flex items-center justify-center font-bold text-sm text-violet-700 border border-violet-200">{parseInt(level.replace(/\D/g, '')) || level.charAt(0)}</div>
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-900">{level}</h3>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">{items.length} Subjects</p>
+                  <h3 className="text-sm font-bold text-slate-900">{level}</h3>
+                  <p className="text-[10px] font-bold text-slate-500 tracking-wide">{items.length} Subjects</p>
                 </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
-                      <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider w-32">Code</th>
-                      <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Subject Name</th>
-                      <th className="hidden md:table-cell px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Description</th>
-                      <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider text-center w-28">Actions</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider w-32">Code</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Subject Name</th>
+                      <th className="hidden md:table-cell px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Description</th>
+                      <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider text-center w-28">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -154,7 +154,7 @@ function SubjectsTab() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-700 mb-1.5">Subject Code <span className="text-red-500">*</span></label>
-                  <input type="text" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="e.g. MATH7" className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-mono uppercase focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required />
+                  <input type="text" value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="e.g. MATH7" className="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required />
                 </div>
                 <Select label="Grade Level" required value={form.grade_level} onChange={e => setForm({ ...form, grade_level: e.target.value })}>
                   <option value="">— Select —</option>
@@ -301,7 +301,7 @@ function AssignmentsTab() {
     <div className="page-bottom-safe bg-slate-50/50">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 md:mb-6">
         <div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">Subject Assignments</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Subject Assignments</h1>
           <p className="text-xs text-slate-500 mt-1">{assignments.length} assignments across {classrooms.length} sections</p>
         </div>
         <div className="flex items-center gap-2">
@@ -342,10 +342,10 @@ function AssignmentsTab() {
             <table className="w-full text-left">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Section</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Subject</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Teacher</th>
-                  <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider text-center w-28">Actions</th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Section</th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Subject</th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Teacher</th>
+                  <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider text-center w-28">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -457,8 +457,8 @@ const SubjectsHub = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">Subject Management</h1>
-              <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide">Curriculum subjects & section assignments</p>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Subject Management</h1>
+              <p className="text-xs font-semibold text-violet-600 tracking-wide">Curriculum subjects & section assignments</p>
             </div>
           </div>
           <div className="flex items-center gap-1">

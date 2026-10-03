@@ -101,11 +101,11 @@ export default function SF10Dashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1.5">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-violet-600 tracking-[0.2em] mb-1.5">
             <BookOpen className="w-3.5 h-3.5" />
             <span>School Forms</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
             School Form 10 (SF10)
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-semibold">
@@ -176,14 +176,14 @@ export default function SF10Dashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Student Name</th>
-                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">LRN</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Sex</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Grade Levels</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Years Covered</th>
-                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Generated</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Status</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Actions</th>
+                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Student Name</th>
+                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">LRN</th>
+                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Sex</th>
+                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Grade Levels</th>
+                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Years Covered</th>
+                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Generated</th>
+                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Status</th>
+                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">

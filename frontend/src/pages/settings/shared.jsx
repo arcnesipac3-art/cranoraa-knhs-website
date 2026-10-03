@@ -117,7 +117,7 @@ export const Toggle = ({ checked, onChange, disabled, color = 'blue' }) => {
 
 export const Field = ({ label, hint, children }) => (
   <div className="space-y-1 sm:space-y-1.5">
-    <label className="block text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</label>
+    <label className="block text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-[0.1em]">{label}</label>
     {children}
     {hint && <p className="text-[9px] sm:text-[10px] text-slate-400 font-medium">{hint}</p>}
   </div>
@@ -139,8 +139,8 @@ export const SectionCard = ({ title, subtitle, icon, children, danger, className
         <Icon name={icon} />
       </div>
       <div>
-        <h3 className={`text-xs sm:text-sm font-extrabold tracking-tight ${danger ? 'text-rose-900' : 'text-slate-900'}`}>{title}</h3>
-        {subtitle && <p className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider mt-0.5 ${danger ? 'text-rose-600' : 'text-slate-500'}`}>{subtitle}</p>}
+        <h3 className={`text-xs sm:text-sm font-bold tracking-tight ${danger ? 'text-rose-900' : 'text-slate-900'}`}>{title}</h3>
+        {subtitle && <p className={`text-[9px] sm:text-[10px] font-bold tracking-wider mt-0.5 ${danger ? 'text-rose-600' : 'text-slate-500'}`}>{subtitle}</p>}
       </div>
     </div>
     <div className="p-3 sm:p-5">{children}</div>
@@ -176,7 +176,7 @@ export const EmailServiceNotice = ({ health }) => {
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <div>
-            <p className={`text-xs font-extrabold uppercase tracking-wider ${healthy ? 'text-emerald-700' : 'text-amber-700'}`}>
+            <p className={`text-xs font-bold tracking-wider ${healthy ? 'text-emerald-700' : 'text-amber-700'}`}>
               Email Service Health
             </p>
             <p className={`mt-1 text-sm font-bold ${healthy ? 'text-emerald-900' : 'text-amber-900'}`}>

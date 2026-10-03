@@ -257,16 +257,16 @@ const StudentGradeView = () => {
           <div className="text-center">
             {/* School Seal */}
             <div className="flex justify-center mb-1.5 sm:mb-2">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center text-white font-extrabold text-lg sm:text-xl md:text-2xl shadow-lg border-3 border-white ring-2 ring-violet-200">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-violet-600 to-violet-700 flex items-center justify-center text-white font-bold text-lg sm:text-xl md:text-2xl shadow-lg border-3 border-white ring-2 ring-violet-200">
                 K
               </div>
             </div>
 
             {/* School Name */}
-            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-slate-900 uppercase tracking-tight">
+            <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">
               Kiwalan National High School
             </h1>
-            <p className="text-xs sm:text-xs md:text-sm font-bold text-violet-700 uppercase tracking-wider mt-0.5 sm:mt-1">
+            <p className="text-xs sm:text-xs md:text-sm font-bold text-violet-700 tracking-wider mt-0.5 sm:mt-1">
               Official Student Report Card
             </p>
             <p className="text-[10px] sm:text-xs md:text-xs font-semibold text-slate-600 mt-0.5 sm:mt-1">
@@ -282,7 +282,7 @@ const StudentGradeView = () => {
 
       <Card>
         <CardHeader divider className="p-2 sm:p-3 md:p-4">
-          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-violet-700 uppercase tracking-wide">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-violet-700 tracking-wide">
             <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
@@ -295,7 +295,7 @@ const StudentGradeView = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1">
                   Student Name
                 </label>
                 <p className="text-sm font-bold text-slate-900">
@@ -303,7 +303,7 @@ const StudentGradeView = () => {
                 </p>
               </div>
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1">
                   LRN / Student ID
                 </label>
                 <p className="text-sm font-bold text-slate-900">
@@ -311,7 +311,7 @@ const StudentGradeView = () => {
                 </p>
               </div>
               <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1">
                   Grade Level
                 </label>
                 <Badge variant="blue" size="md">
@@ -332,7 +332,7 @@ const StudentGradeView = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
             {/* Grading Period Filter */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
                 {periodLabel}
               </label>
               <select
@@ -349,7 +349,7 @@ const StudentGradeView = () => {
 
             {/* Subject Filter */}
             <div className="md:col-span-2">
-              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
                 Subject
               </label>
               <select
@@ -366,7 +366,7 @@ const StudentGradeView = () => {
 
             {/* Academic Year */}
             <div>
-              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
                 Academic Year
               </label>
               <div className="flex items-center border border-slate-300 rounded-md overflow-hidden bg-white shadow-sm">
@@ -431,11 +431,11 @@ const StudentGradeView = () => {
           <CardBody className="p-4 sm:p-5 md:p-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6">
               <div>
-                <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1">
+                <p className="text-xs font-bold text-slate-700 tracking-wider mb-1">
                   General Average
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-violet-600">
+                  <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-violet-600">
                     {overallRounded}
                   </div>
                   {overallPerformance && (
@@ -452,7 +452,7 @@ const StudentGradeView = () => {
 
               {/* Grade Scale Reference */}
               <div className="bg-white rounded-lg border border-slate-200 p-3 sm:p-4 shadow-sm">
-                <p className="text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+                <p className="text-xs font-bold text-slate-700 tracking-wider mb-2">
                   Performance Scale
                 </p>
                 <div className="space-y-1.5">
@@ -491,10 +491,10 @@ const StudentGradeView = () => {
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <Card className="border-l-4 border-l-violet-500">
             <CardBody className="p-3 sm:p-4 text-center">
-              <div className="text-lg sm:text-2xl md:text-3xl font-extrabold text-violet-600">
+              <div className="text-lg sm:text-2xl md:text-3xl font-bold text-violet-600">
                 {subjectEntries.length}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">
+              <div className="text-xs font-bold text-slate-600 tracking-wide mt-1">
                 Total Subjects
               </div>
             </CardBody>
@@ -502,10 +502,10 @@ const StudentGradeView = () => {
 
           <Card className="border-l-4 border-l-emerald-500">
             <CardBody className="p-3 sm:p-4 text-center">
-              <div className="text-lg sm:text-2xl md:text-3xl font-extrabold text-emerald-600">
+              <div className="text-lg sm:text-2xl md:text-3xl font-bold text-emerald-600">
                 {allScores.filter(s => s >= 90).length}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">
+              <div className="text-xs font-bold text-slate-600 tracking-wide mt-1">
                 Outstanding
               </div>
             </CardBody>
@@ -513,10 +513,10 @@ const StudentGradeView = () => {
 
           <Card className="border-l-4 border-l-amber-500">
             <CardBody className="p-3 sm:p-4 text-center">
-              <div className="text-lg sm:text-2xl md:text-3xl font-extrabold text-amber-600">
+              <div className="text-lg sm:text-2xl md:text-3xl font-bold text-amber-600">
                 {allScores.filter(s => s >= 75).length}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">
+              <div className="text-xs font-bold text-slate-600 tracking-wide mt-1">
                 Passing
               </div>
             </CardBody>
@@ -524,10 +524,10 @@ const StudentGradeView = () => {
 
           <Card className="border-l-4 border-l-red-500">
             <CardBody className="p-3 sm:p-4 text-center">
-              <div className="text-lg sm:text-2xl md:text-3xl font-extrabold text-red-600">
+              <div className="text-lg sm:text-2xl md:text-3xl font-bold text-red-600">
                 {allScores.filter(s => s < 75).length}
               </div>
-              <div className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">
+              <div className="text-xs font-bold text-slate-600 tracking-wide mt-1">
                 Needs Improvement
               </div>
             </CardBody>
@@ -563,20 +563,20 @@ const StudentGradeView = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b-2 border-slate-200 sticky top-0">
+                <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
                   <tr>
-                    <th className="px-3 py-2.5 sm:px-4 sm:py-3 text-left text-xs font-extrabold text-slate-700 uppercase tracking-wider min-w-[180px] sm:min-w-[200px]">
+                    <th className="px-3 py-2.5 sm:px-4 sm:py-3 text-left text-xs font-bold text-slate-700 tracking-wider min-w-[180px] sm:min-w-[200px]">
                       Subject
                     </th>
                     {periodShortLabels.map(label => (
-                      <th key={label} className="px-2 py-2.5 sm:px-4 sm:py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-20 sm:w-24">
+                      <th key={label} className="px-2 py-2.5 sm:px-4 sm:py-3 text-center text-xs font-bold text-slate-700 tracking-wider w-20 sm:w-24">
                         {label}
                       </th>
                     ))}
-                    <th className="px-2 py-2.5 sm:px-4 sm:py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-20 sm:w-24 bg-violet-50">
+                    <th className="px-2 py-2.5 sm:px-4 sm:py-3 text-center text-xs font-bold text-slate-700 tracking-wider w-20 sm:w-24 bg-violet-50">
                       Final
                     </th>
-                    <th className="px-2 py-2.5 sm:px-4 sm:py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-32 sm:w-40">
+                    <th className="px-2 py-2.5 sm:px-4 sm:py-3 text-center text-xs font-bold text-slate-700 tracking-wider w-32 sm:w-40">
                       Performance
                     </th>
                   </tr>

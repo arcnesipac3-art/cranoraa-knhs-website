@@ -93,13 +93,13 @@ const AnalyticsSnapshot = memo(({ classroomIds = [] }) => {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">Analytics Snapshot</h3>
+            <h3 className="text-sm font-bold text-slate-900">Analytics Snapshot</h3>
             <p className="text-[10px] text-slate-500 font-medium">Weekly trends</p>
           </div>
         </div>
         <button
           onClick={() => navigate('/my-classes?view=analytics')}
-          className="text-[11px] font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide transition-colors"
+          className="text-[11px] font-bold text-violet-600 hover:text-violet-700 tracking-wide transition-colors"
         >
           Details
         </button>
@@ -107,7 +107,7 @@ const AnalyticsSnapshot = memo(({ classroomIds = [] }) => {
 
       <div className="px-4 md:px-5 py-3">
         <div className="mb-4">
-          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Attendance Trend</p>
+          <p className="text-[10px] font-semibold text-slate-500 tracking-wide mb-2">Attendance Trend</p>
           {loading ? (
             <div className="h-[100px] flex items-end justify-center">
               <Skeleton className="w-full h-[80px] rounded" />
@@ -140,7 +140,7 @@ const AnalyticsSnapshot = memo(({ classroomIds = [] }) => {
         </div>
 
         <div>
-          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Grade Distribution</p>
+          <p className="text-[10px] font-semibold text-slate-500 tracking-wide mb-2">Grade Distribution</p>
           {loading ? (
             <div className="h-[80px] flex items-end justify-center">
               <Skeleton className="w-full h-[64px] rounded" />

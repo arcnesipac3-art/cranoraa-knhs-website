@@ -93,7 +93,7 @@ const ExcuseSlipsAdmin = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Excuse Slips</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Excuse Slips</h1>
           <p className="text-sm text-slate-500 mt-1">Review and manage absence excuse submissions</p>
         </div>
         <Button variant="ghost" size="sm" onClick={fetchExcuses}>

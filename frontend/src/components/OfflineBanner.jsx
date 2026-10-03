@@ -25,7 +25,7 @@ const OfflineBanner = () => {
       <div
         role="status"
         aria-live="polite"
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-2.5 rounded-2xl bg-green-600 px-5 py-3 text-white shadow-2xl shadow-green-900/30 animate-fade-in-up"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-2.5 rounded-lg bg-green-600 px-5 py-3 text-white shadow-2xl shadow-green-900/30 animate-fade-in-up"
       >
         <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />

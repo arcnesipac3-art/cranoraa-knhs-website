@@ -69,7 +69,7 @@ const QuickAccessLinks = ({ role, variant = 'grid', className = '' }) => {
   return (
     <div className={`quick-access-links ${className}`}>
       <div className="flex items-center justify-between mb-2">
-        <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+        <h2 className="text-xs font-bold text-slate-700 tracking-wide">
           Quick Access
         </h2>
       </div>

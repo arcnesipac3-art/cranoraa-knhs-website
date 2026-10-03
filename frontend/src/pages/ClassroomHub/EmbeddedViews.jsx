@@ -504,8 +504,8 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
                 { label: 'Passing', value: `${stats.passing}/${stats.total}`, color: stats.failing > 0 ? 'text-amber-600' : 'text-emerald-700' },
               ].map(s => (
                 <div key={s.label} className="text-center">
-                  <p className={`text-lg font-extrabold ${s.color}`}>{s.value}</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{s.label}</p>
+                  <p className={`text-lg font-bold ${s.color}`}>{s.value}</p>
+                  <p className="text-[10px] font-bold text-slate-500 tracking-wider">{s.label}</p>
                 </div>
               ))}
             </div>
@@ -546,17 +546,17 @@ export const GradeManagementView = ({ classroom, onBack, navigate }) => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
+                <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">#</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">#</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Student</th>
                     {displayedQuarters.map(q => (
-                      <th key={q} className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">
+                      <th key={q} className="px-4 py-3 text-center text-xs font-bold text-slate-700">
                         {q.toUpperCase()}
                       </th>
                     ))}
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Final</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Remarks</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700">Final</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Remarks</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">
@@ -1064,7 +1064,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
         </Button>
         <div className="flex items-center gap-2">
           {/* Workflow Status Badge */}
-          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
             workflowStatus === 'submitted' ? 'bg-green-100 text-green-700' :
             workflowStatus === 'locked' ? 'bg-red-100 text-red-700' :
             'bg-slate-100 text-slate-600'
@@ -1155,7 +1155,7 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
         <CardBody className="p-4 md:p-6">
           {/* Date Selector */}
           <div className="mb-4 md:mb-6">
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-semibold text-slate-700 tracking-wider mb-1.5">
               <Calendar className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
               Date
             </label>
@@ -1171,23 +1171,23 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
           <div className="grid grid-cols-7 gap-1 sm:gap-1.5 md:gap-3 mb-4 md:mb-6">
             <div className="bg-slate-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-slate-700">{stats.total}</div>
-              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-slate-600 uppercase font-semibold mt-0.5">Total</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-slate-600 font-semibold mt-0.5">Total</div>
             </div>
             <div className="bg-green-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-green-600">{stats.present}</div>
-              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-green-700 uppercase font-semibold mt-0.5">Present</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-green-700 font-semibold mt-0.5">Present</div>
             </div>
             <div className="bg-red-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-red-600">{stats.absent}</div>
-              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-red-700 uppercase font-semibold mt-0.5">Absent</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-red-700 font-semibold mt-0.5">Absent</div>
             </div>
             <div className="bg-amber-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-amber-600">{stats.late}</div>
-              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-amber-700 uppercase font-semibold mt-0.5">Late</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-amber-700 font-semibold mt-0.5">Late</div>
             </div>
             <div className="bg-blue-50 rounded-lg p-1.5 sm:p-2 md:p-3 text-center">
               <div className="text-sm sm:text-lg md:text-xl font-bold text-blue-600">{stats.excused}</div>
-              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-blue-700 uppercase font-semibold mt-0.5">Excused</div>
+              <div className="text-[7px] sm:text-[9px] md:text-[10px] text-blue-700 font-semibold mt-0.5">Excused</div>
             </div>
           </div>
 
@@ -1223,12 +1223,12 @@ export const AttendanceView = ({ classroom, onBack, isStudent, isTeacher, schedu
                     </h3>
                     <div className="overflow-x-auto">
                       <table className="w-full">
-                        <thead className="bg-slate-50 border-b-2 border-slate-200">
+                        <thead className="bg-slate-50 border-b border-slate-200">
                           <tr>
-                            <th className="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase w-8">#</th>
-                            <th className="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
-                            <th className="px-3 py-2 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
-                            {!isStudent && <th className="px-3 py-2 text-left text-xs font-bold text-slate-700 uppercase w-40">Remarks</th>}
+                            <th className="px-3 py-2 text-left text-xs font-bold text-slate-700 w-8">#</th>
+                            <th className="px-3 py-2 text-left text-xs font-bold text-slate-700">Student</th>
+                            <th className="px-3 py-2 text-center text-xs font-bold text-slate-700">Status</th>
+                            {!isStudent && <th className="px-3 py-2 text-left text-xs font-bold text-slate-700 w-40">Remarks</th>}
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-slate-100">
@@ -1497,7 +1497,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
 
   const headerRow = (studentList, sectionLabel, isGrand) => (
     <tr className={isGrand ? 'bg-indigo-50' : 'bg-slate-50'}>
-      <th colSpan={4} className={`px-3 py-2 text-left text-xs font-bold ${isGrand ? 'text-indigo-700' : 'text-slate-700'} uppercase`}>
+      <th colSpan={4} className={`px-3 py-2 text-left text-xs font-bold ${isGrand ? 'text-indigo-700' : 'text-slate-700'}`}>
         {sectionLabel}
       </th>
       <th className="px-2 py-2 text-center text-xs font-bold text-slate-500">Prs</th>
@@ -1555,21 +1555,21 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
         <table className="w-full border-collapse text-xs">
           <thead>
             <tr className="bg-slate-200">
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-8">#</th>
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-20">LRN</th>
-              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-600 uppercase border border-slate-300">Name of Learner</th>
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-8">Sex</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 border border-slate-300 w-8">#</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 border border-slate-300 w-20">LRN</th>
+              <th className="px-2 py-2 text-left text-[10px] font-bold text-slate-600 border border-slate-300">Name of Learner</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 border border-slate-300 w-8">Sex</th>
               {weekdayDates.map(wd => (
                 <th key={wd.dateStr} className="px-1 py-2 text-center border border-slate-300 min-w-[32px]">
                   <div className="text-[10px] font-bold text-slate-600">{wd.dayAbbr}</div>
                   <div className="text-[10px] text-slate-500">{wd.dayNum}</div>
                 </th>
               ))}
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-10">Prs</th>
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-10">Abs</th>
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-10">Late</th>
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-10">Exc</th>
-              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 uppercase border border-slate-300 w-10">%</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 border border-slate-300 w-10">Prs</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 border border-slate-300 w-10">Abs</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 border border-slate-300 w-10">Late</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 border border-slate-300 w-10">Exc</th>
+              <th className="px-2 py-2 text-center text-[10px] font-bold text-slate-600 border border-slate-300 w-10">%</th>
             </tr>
           </thead>
           <tbody>
@@ -1668,7 +1668,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
           {/* School info header */}
           <div className="bg-slate-800 text-white px-4 py-3 text-center">
             <p className="text-sm font-bold tracking-wide">{classroom.school_name || 'KNHS'}</p>
-            <p className="text-[10px] text-slate-300 uppercase tracking-widest">School Attendance Log</p>
+            <p className="text-[10px] text-slate-300 tracking-[0.1em]">School Attendance Log</p>
             <p className="text-xs font-semibold mt-1">{monthNames[selectedMonth - 1]} {selectedYear} — {classroom.name || classroom.section || 'Section'}</p>
           </div>
 
@@ -1688,7 +1688,7 @@ export const AttendanceHistoryView = ({ classroom, onBack }) => {
 
           {/* Grand Total */}
           {(maleStudents.length > 0 || femaleStudents.length > 0) && (
-            <div className="bg-indigo-50 border-t-2 border-indigo-200">
+            <div className="bg-indigo-50 border-t border-indigo-200">
               <table className="w-full text-xs">
                 <tbody>
                   {totalsRow(grandTotals, 'Grand Total', true)}
@@ -1826,38 +1826,38 @@ export const AnalyticsView = ({ classroom, onBack }) => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                 <div className="bg-violet-50 rounded-lg p-4 text-center">
                   <div className="text-3xl font-bold text-violet-600">{analytics.average}</div>
-                  <div className="text-xs text-violet-700 uppercase font-semibold mt-1">Average</div>
+                  <div className="text-xs text-violet-700 font-semibold mt-1">Average</div>
                 </div>
                 <div className="bg-blue-50 rounded-lg p-4 text-center">
                   <div className="text-3xl font-bold text-blue-600">{analytics.median}</div>
-                  <div className="text-xs text-blue-700 uppercase font-semibold mt-1">Median</div>
+                  <div className="text-xs text-blue-700 font-semibold mt-1">Median</div>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4 text-center">
                   <div className="text-3xl font-bold text-green-600">{analytics.highest}</div>
-                  <div className="text-xs text-green-700 uppercase font-semibold mt-1">Highest</div>
+                  <div className="text-xs text-green-700 font-semibold mt-1">Highest</div>
                 </div>
                 <div className="bg-red-50 rounded-lg p-4 text-center">
                   <div className="text-3xl font-bold text-red-600">{analytics.lowest}</div>
-                  <div className="text-xs text-red-700 uppercase font-semibold mt-1">Lowest</div>
+                  <div className="text-xs text-red-700 font-semibold mt-1">Lowest</div>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-slate-50 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-slate-700">{analytics.total}</div>
-                  <div className="text-xs text-slate-600 uppercase font-semibold mt-1">Total Students</div>
+                  <div className="text-xs text-slate-600 font-semibold mt-1">Total Students</div>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-green-600">
                     {analytics.passing} ({((analytics.passing / analytics.total) * 100).toFixed(1)}%)
                   </div>
-                  <div className="text-xs text-green-700 uppercase font-semibold mt-1">Passing {'(≥75)'}</div>
+                  <div className="text-xs text-green-700 font-semibold mt-1">Passing {'(≥75)'}</div>
                 </div>
                 <div className="bg-red-50 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold text-red-600">
                     {analytics.failing} ({((analytics.failing / analytics.total) * 100).toFixed(1)}%)
                   </div>
-                  <div className="text-xs text-red-700 uppercase font-semibold mt-1">Failing {'(<75)'}</div>
+                  <div className="text-xs text-red-700 font-semibold mt-1">Failing {'(<75)'}</div>
                 </div>
               </div>
 

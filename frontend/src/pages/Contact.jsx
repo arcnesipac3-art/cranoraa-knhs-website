@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom';
 import { useWebsiteContent } from '../hooks/useWebsiteContent';
 import { Skeleton } from '../components/ui';
+import { PageHero, SectionHeading } from '../components/public';
 
 const Contact = () => {
   const { content, loading } = useWebsiteContent();
@@ -32,7 +34,7 @@ const Contact = () => {
       icon: 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z',
     },
     {
-      label: 'Office Hours',
+      label: 'Office hours',
       value: content.contact_office_hours?.content || 'Mon – Fri: 7:00 AM – 5:00 PM',
       icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
     },
@@ -40,60 +42,51 @@ const Contact = () => {
 
   return (
     <div className="bg-white">
+      <PageHero
+        breadcrumb={[{ label: 'Home', to: '/' }, { label: 'Contact' }]}
+        kicker="Contact the school"
+        title={content.contact_title?.content || 'Get in touch'}
+        lead={
+          content.contact_subtitle?.content ||
+          'Have questions about enrollment or our programs? We are here to help.'
+        }
+        actions={
+          <Link to="/enroll" className="public-btn-primary">
+            Apply for enrollment
+          </Link>
+        }
+      />
 
-      {/* ── Hero Banner ── */}
-      <section className="bg-violet-950 py-16 md:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-5">
-          <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-              <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-4">Contact Information</p>
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5">
-                {content.contact_title?.content || 'Get in Touch'}
-              </h1>
-              <p className="text-violet-100 leading-relaxed text-lg">
-                {content.contact_subtitle?.content || 'Have questions about enrollment or our programs? We are here to help.'}
-              </p>
-            </div>
-        </div>
-      </section>
+      {/* ── Contact details + map ── */}
+      <section className="public-section">
+        <div className="public-shell">
+          <SectionHeading
+            kicker="Contact information"
+            title="How to reach the school"
+            lead="Reach the school office by email, phone or letter, or visit us during office hours."
+          />
 
-      {/* ── Contact Info + Map ── */}
-      <section className="py-16 md:py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-
-            {/* Info cards */}
-            <div className="lg:col-span-2 space-y-4">
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-5">
+            {/* Info list */}
+            <dl className="public-card divide-y divide-slate-200 self-start lg:col-span-2">
               {infoItems.map((item, i) => (
-                <div key={i} className="bg-white rounded-2xl border-2 border-violet-200 p-6 flex items-start gap-4 hover:shadow-lg hover:border-violet-400 transition-all group">
-                  <div className="w-12 h-12 rounded-xl bg-violet-100 border-2 border-violet-200 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-900 transition-colors">
-                    <svg className="w-6 h-6 text-violet-800 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
+                <div key={i} className="flex items-start gap-4 p-5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-violet-200 bg-violet-50 text-violet-700">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d={item.icon} />
                     </svg>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-violet-800 uppercase tracking-widest mb-1">{item.label}</p>
-                    <p className="text-sm font-bold text-gray-800">{item.value}</p>
+                  </span>
+                  <div className="min-w-0">
+                    <dt className="public-dl-label">{item.label}</dt>
+                    <dd className="public-dl-value mt-1 break-words">{item.value}</dd>
                   </div>
                 </div>
               ))}
-
-              {/* Quick CTA */}
-              <div className="bg-violet-900 rounded-2xl p-6 text-white border-2 border-violet-900">
-                <p className="text-base font-black mb-1 uppercase">Ready to Enroll?</p>
-                <p className="text-sm text-violet-100 mb-4">Applications are open for SY 2026–2027.</p>
-                <a href="/enroll" className="inline-flex items-center gap-1.5 text-sm font-black bg-white text-violet-900 px-5 py-2.5 rounded-lg hover:bg-violet-50 transition-colors uppercase">
-                  Apply Now
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4 4H3" /></svg>
-                </a>
-              </div>
-            </div>
+            </dl>
 
             {/* Map */}
             <div className="lg:col-span-3">
-              <div className="bg-white rounded-2xl border-2 border-violet-200 overflow-hidden h-full min-h-[480px] relative shadow-sm">
+              <div className="public-card overflow-hidden">
                 {content.contact_map_url?.content ? (
                   <iframe
                     src={content.contact_map_url.content}
@@ -117,18 +110,20 @@ const Contact = () => {
                   />
                 )}
 
-                {/* Floating label */}
-                <div className="absolute bottom-4 left-4 right-4 bg-violet-950/95 backdrop-blur-sm rounded-xl p-4 hidden sm:flex items-center justify-between gap-4 border-2 border-violet-800">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center text-violet-900 text-sm font-black flex-shrink-0">KN</div>
-                    <div>
-                      <p className="text-white text-sm font-black leading-none">Kiwalan National High School</p>
-                      <p className="text-violet-200 text-xs mt-0.5">Main Campus · Kiwalan, Philippines</p>
-                    </div>
+                {/* Plain caption bar */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Kiwalan National High School</p>
+                    <p className="mt-0.5 text-xs text-slate-500">Main campus · Kiwalan, Philippines</p>
                   </div>
-                  <button className="px-4 py-2 bg-white text-violet-900 rounded-lg text-xs font-black hover:bg-violet-50 transition-colors flex-shrink-0 uppercase">
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=Kiwalan+National+High+School"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="public-btn-secondary"
+                  >
                     Directions
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
@@ -136,6 +131,21 @@ const Contact = () => {
         </div>
       </section>
 
+      {/* ── Enrollment CTA ── */}
+      <section className="public-section-alt">
+        <div className="public-shell-narrow">
+          <div className="public-card p-8 text-center">
+            <p className="public-kicker">Enrollment</p>
+            <h2 className="public-heading mt-2">Ready to enroll?</h2>
+            <p className="public-lead mx-auto max-w-xl">Applications are open for SY 2026&ndash;2027.</p>
+            <div className="mt-5 flex justify-center">
+              <Link to="/enroll" className="public-btn-primary">
+                Apply now
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

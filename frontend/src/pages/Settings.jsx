@@ -108,9 +108,9 @@ const ImageCropModal = ({ isOpen, onClose, onCrop, imageSrc }) => {
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-[92vw] max-w-md overflow-hidden">
+      <div className="relative bg-white rounded-lg shadow-2xl w-[92vw] max-w-md overflow-hidden">
         <div className="px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-200">
-          <h3 className="text-sm sm:text-base font-black text-slate-900">Edit Profile Picture</h3>
+          <h3 className="text-sm sm:text-base font-bold text-slate-900">Edit Profile Picture</h3>
           <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">Drag to reposition, use slider to zoom</p>
         </div>
 
@@ -132,7 +132,7 @@ const ImageCropModal = ({ isOpen, onClose, onCrop, imageSrc }) => {
               }}
               draggable={false}
             />
-            <div className="absolute inset-0 rounded-full border-2 border-white/40 pointer-events-none" />
+            <div className="absolute inset-0 rounded-full border border-white/40 pointer-events-none" />
           </div>
 
           <div className="mt-5 space-y-2">
@@ -210,7 +210,7 @@ const RolesPermissionsTab = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
           {Object.entries(roleConfig).map(([key, config]) => (
             <div key={key} className={`${config.color} rounded-lg p-2 sm:p-3 text-center`}>
-              <p className="text-xl sm:text-2xl font-extrabold">{roleCounts[key] || 0}</p>
+              <p className="text-xl sm:text-2xl font-bold">{roleCounts[key] || 0}</p>
               <p className="text-[10px] sm:text-xs font-bold mt-1">{config.label}</p>
             </div>
           ))}
@@ -222,11 +222,11 @@ const RolesPermissionsTab = () => {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-slate-200">
-                <th className="text-left py-2 px-2 sm:px-3 font-extrabold text-slate-700">Feature</th>
-                <th className="text-center py-2 px-2 sm:px-3 font-extrabold text-rose-700">Admin</th>
-                <th className="text-center py-2 px-2 sm:px-3 font-extrabold text-blue-700">Staff</th>
-                <th className="text-center py-2 px-2 sm:px-3 font-extrabold text-emerald-700">Student</th>
-                <th className="text-center py-2 px-2 sm:px-3 font-extrabold text-amber-700">Parent</th>
+                <th className="text-left py-2 px-2 sm:px-3 font-bold text-slate-700">Feature</th>
+                <th className="text-center py-2 px-2 sm:px-3 font-bold text-rose-700">Admin</th>
+                <th className="text-center py-2 px-2 sm:px-3 font-bold text-blue-700">Staff</th>
+                <th className="text-center py-2 px-2 sm:px-3 font-bold text-emerald-700">Student</th>
+                <th className="text-center py-2 px-2 sm:px-3 font-bold text-amber-700">Parent</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -286,7 +286,7 @@ const RolesPermissionsTab = () => {
                   <p className="text-[11px] text-slate-500">@{u.username}</p>
                 </div>
               </div>
-              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${roleConfig[u.role]?.color || 'bg-slate-100 text-slate-600'}`}>
+              <span className={`text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full ${roleConfig[u.role]?.color || 'bg-slate-100 text-slate-600'}`}>
                 {u.role}
               </span>
             </div>
@@ -523,7 +523,7 @@ const AuditLogsTab = () => {
                         {log.user?.username || 'System'} &middot; {new Date(log.timestamp).toLocaleString()}
                       </p>
                     </div>
-                    <span className={`flex-shrink-0 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${typeColors[log.action_type] || 'bg-slate-100 text-slate-600'}`}>
+                    <span className={`flex-shrink-0 text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full ${typeColors[log.action_type] || 'bg-slate-100 text-slate-600'}`}>
                       {log.action_type || log.action}
                     </span>
                   </div>
@@ -597,7 +597,7 @@ const SchoolInfoTab = () => {
       <SectionCard title="School Identity" subtitle="Displayed across the portal and public website" icon="building">
         <div className="flex items-start gap-6 mb-6">
           <div className="flex-shrink-0">
-            <div className="w-20 h-20 rounded-lg border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-20 rounded-lg border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden">
               {logoPreview
                  ? <img src={logoPreview} alt="School logo" className="w-full h-full object-contain" loading="lazy" />
                 : <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -605,7 +605,7 @@ const SchoolInfoTab = () => {
             </div>
             <button type="button" onClick={() => logoRef.current?.click()}
               disabled={uploadingLogo}
-              className="mt-2 w-20 text-center text-[10px] font-black text-violet-600 hover:text-violet-800 uppercase tracking-widest disabled:opacity-50">
+              className="mt-2 w-20 text-center text-[10px] font-bold text-violet-600 hover:text-violet-800 tracking-[0.1em] disabled:opacity-50">
               {uploadingLogo ? 'Uploading…' : 'Change'}
             </button>
             <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} aria-label="Upload school logo" />
@@ -741,7 +741,7 @@ const PortalSettingsTab = () => {
 
           {/* Grading Period Preview */}
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 sm:p-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Grading Period Structure</p>
+            <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em] mb-3">Grading Period Structure</p>
             <div className="flex flex-wrap gap-2">
               {(settings.academic_level === 'shs'
                 ? ['1st Semester', '2nd Semester', '3rd Semester (Summer)']
@@ -912,7 +912,7 @@ const ProfileTab = () => {
       <SectionCard title="My Profile" subtitle="View and update your personal information" icon="user">
         <div className="flex items-center gap-3 sm:gap-5 mb-4 sm:mb-6">
           <div className="relative">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xl sm:text-2xl font-black overflow-hidden shadow-lg">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-xl sm:text-2xl font-bold overflow-hidden shadow-lg">
               {profilePic
                 ? <img src={profilePic} alt="Profile" className="w-full h-full object-cover" loading="lazy" />
                 : <span>{initials}</span>
@@ -921,7 +921,7 @@ const ProfileTab = () => {
             <div className="absolute -bottom-1.5 -right-1.5 flex gap-1">
               {profilePic && (
                 <button type="button" onClick={() => { setCropImageSrc(profilePic); setCropOpen(true); }} disabled={uploadingPic}
-                  className="w-7 h-7 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-emerald-600 transition-all disabled:opacity-50 border-2 border-white"
+                  className="w-7 h-7 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-emerald-600 transition-all disabled:opacity-50 border border-white"
                   title="Crop existing picture">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -929,10 +929,10 @@ const ProfileTab = () => {
                 </button>
               )}
               <button type="button" onClick={() => picRef.current?.click()} disabled={uploadingPic}
-                className="w-7 h-7 bg-violet-600 text-white rounded-full flex items-center justify-center shadow-md hover:bg-violet-700 transition-all disabled:opacity-50 border-2 border-white"
+                className="w-7 h-7 bg-violet-600 text-white rounded-full flex items-center justify-center shadow-md hover:bg-violet-700 transition-all disabled:opacity-50 border border-white"
                 title="Upload new picture">
                 {uploadingPic
-                  ? <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ? <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
                   : <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -943,8 +943,8 @@ const ProfileTab = () => {
             <input ref={picRef} type="file" className="hidden" accept="image/*" onChange={handlePicUpload} />
           </div>
           <div>
-            <p className="text-sm sm:text-base font-black text-slate-900 truncate">{fullName}</p>
-            <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-widest truncate">{user?.role} · {profile?.email}</p>
+            <p className="text-sm sm:text-base font-bold text-slate-900 truncate">{fullName}</p>
+            <p className="text-[10px] sm:text-xs font-bold text-slate-400 tracking-[0.1em] truncate">{user?.role} · {profile?.email}</p>
           </div>
         </div>
       </SectionCard>
@@ -1197,7 +1197,7 @@ const SecurityTab = () => {
                     <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= strength ? strengthColor[strength] : 'bg-slate-200'}`} />
                   ))}
                 </div>
-                <p className={`text-[10px] font-black uppercase tracking-widest ${strengthColor[strength].replace('bg-', 'text-')}`}>
+                <p className={`text-[10px] font-bold tracking-[0.1em] ${strengthColor[strength].replace('bg-', 'text-')}`}>
                   {strengthLabel[strength]}
                 </p>
               </div>
@@ -1206,7 +1206,7 @@ const SecurityTab = () => {
           <Field label="Confirm New Password">
             <Input type="password" value={form.confirmPassword} onChange={e => setForm(p => ({...p, confirmPassword: e.target.value}))} placeholder="••••••••" required />
             {form.confirmPassword && form.newPassword !== form.confirmPassword && (
-              <p className="text-[10px] font-black text-red-500 uppercase tracking-widest mt-1">Passwords do not match</p>
+              <p className="text-[10px] font-bold text-red-500 tracking-[0.1em] mt-1">Passwords do not match</p>
             )}
           </Field>
         </div>
@@ -1225,33 +1225,33 @@ const SecurityTab = () => {
 const SettingsDashboard = ({ activeYear, totalUsers }) => (
   <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
     <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
-      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">School Profile</p>
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-wider mb-1">School Profile</p>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
         <span className="text-[11px] sm:text-xs font-bold text-emerald-700">Complete</span>
       </div>
     </div>
     <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
-      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Active Year</p>
-      <p className="text-xs sm:text-sm font-extrabold text-violet-900 truncate">{activeYear || '—'}</p>
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-wider mb-1">Active Year</p>
+      <p className="text-xs sm:text-sm font-bold text-violet-900 truncate">{activeYear || '—'}</p>
     </div>
     <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
-      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Users</p>
-      <p className="text-xs sm:text-sm font-extrabold text-slate-900">{totalUsers ?? '—'}</p>
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-wider mb-1">Total Users</p>
+      <p className="text-xs sm:text-sm font-bold text-slate-900">{totalUsers ?? '—'}</p>
     </div>
     <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
-      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">System Health</p>
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-wider mb-1">System Health</p>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
         <span className="text-[11px] sm:text-xs font-bold text-emerald-700">Online</span>
       </div>
     </div>
     <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
-      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Last Backup</p>
-      <p className="text-xs sm:text-sm font-extrabold text-slate-900">—</p>
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-wider mb-1">Last Backup</p>
+      <p className="text-xs sm:text-sm font-bold text-slate-900">—</p>
     </div>
     <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow">
-      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Database</p>
+      <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 tracking-wider mb-1">Database</p>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true" />
         <span className="text-[11px] sm:text-xs font-bold text-emerald-700">Connected</span>
@@ -1308,7 +1308,7 @@ const SystemStatusPanel = () => {
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-3 sm:p-5">
-      <h3 className="text-[10px] sm:text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3 sm:mb-4">System Status</h3>
+      <h3 className="text-[10px] sm:text-xs font-bold text-slate-900 tracking-wider mb-3 sm:mb-4">System Status</h3>
       <div className="space-y-2 sm:space-y-3">
         {items.map(item => (
           <div key={item.label} className="flex items-center justify-between">
@@ -1426,13 +1426,13 @@ const Settings = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-4 sm:mb-5">
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-bold text-violet-700 uppercase tracking-wide mb-1 sm:mb-1.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] font-bold text-violet-700 tracking-wide mb-1 sm:mb-1.5">
             <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <span className="truncate">{isAdmin ? 'System Configuration' : 'Account Settings'}</span>
           </div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight truncate">
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight truncate">
             Settings & Configuration
           </h1>
           <p className="text-[11px] sm:text-xs text-slate-500 font-medium mt-0.5 hidden sm:block">
@@ -1482,7 +1482,7 @@ const Settings = () => {
               </svg>
             </button>
             <div className="overflow-x-auto flex-nowrap min-w-0 flex-1">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+              <span className="text-xs font-bold text-slate-500 tracking-wider whitespace-nowrap">
                 {userNav.flatMap(s => s.items).find(i => i.id === activeTab)?.label || activeTab}
               </span>
             </div>
@@ -1512,7 +1512,7 @@ const Settings = () => {
               {/* Mobile close */}
               {mobileNavOpen && (
                 <div className="flex items-center justify-between mb-4 lg:hidden">
-                  <span className="text-sm font-extrabold text-slate-900">Settings</span>
+                  <span className="text-sm font-bold text-slate-900">Settings</span>
                   <button onClick={() => setMobileNavOpen(false)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100" aria-label="Close menu">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
@@ -1523,7 +1523,7 @@ const Settings = () => {
                   <div key={section.label}>
                     <div className="flex items-center gap-2 px-3 mb-1.5">
                       <Icon name={section.icon} className="text-slate-400" />
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{section.label}</p>
+                      <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em]">{section.label}</p>
                     </div>
                     <div className="space-y-0.5">
                       {section.items.map(item => {

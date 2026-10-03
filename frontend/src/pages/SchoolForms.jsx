@@ -36,7 +36,7 @@ export default function SchoolForms() {
           <FileText className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">School Forms</h1>
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">School Forms</h1>
           <p className="text-xs text-slate-500 font-medium">Generate and manage DepEd official school forms</p>
         </div>
       </div>
@@ -50,7 +50,7 @@ export default function SchoolForms() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold whitespace-nowrap transition-all duration-150 border-b-2 ${
+                className={`flex items-center gap-2 px-5 py-3.5 text-sm font-semibold whitespace-nowrap transition-all duration-150 border-b ${
                   isActive
                     ? 'border-violet-600 text-violet-700 bg-violet-50/60'
                     : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'

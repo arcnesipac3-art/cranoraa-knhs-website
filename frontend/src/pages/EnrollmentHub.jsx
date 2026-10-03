@@ -14,7 +14,7 @@ const STATUS_CONFIG = {
   pending_requirements: { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Pending Req' },
   approved: { color: 'bg-emerald-100 text-emerald-800 border-emerald-200', label: 'Approved' },
   rejected: { color: 'bg-rose-100 text-rose-800 border-rose-200', label: 'Rejected' },
-  cancelled: { color: 'bg-gray-100 text-gray-700 border-gray-200', label: 'Cancelled' },
+  cancelled: { color: 'bg-gray-100 text-slate-700 border-gray-200', label: 'Cancelled' },
   enrolled: { color: 'bg-violet-100 text-violet-800 border-violet-200', label: 'Enrolled' },
   withdrawn: { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Withdrawn' },
 };
@@ -341,8 +341,8 @@ function ApplicationsTab({ refetch }) {
               { label: 'Rejected', value: analytics.rejected, color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
             ].map(s => (
               <div key={s.label} className={`${s.bg} border rounded-xl p-4`}>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{s.label}</p>
-                <p className={`text-2xl font-black mt-1 ${s.color}`}>{s.value}</p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-wide">{s.label}</p>
+                <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
               </div>
             ))}
           </div>
@@ -400,7 +400,7 @@ function ApplicationsTab({ refetch }) {
                     <p className="text-sm font-bold text-slate-900 truncate">{app.first_name} {app.last_name}</p>
                     <p className="text-[10px] text-slate-400 truncate">{app.email}</p>
                   </div>
-                  <span className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border flex-shrink-0 ${(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).color}`}>
+                  <span className={`px-2 py-0.5 text-[9px] font-bold rounded-md border flex-shrink-0 ${(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).color}`}>
                     {(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).label}
                   </span>
                 </div>
@@ -418,7 +418,7 @@ function ApplicationsTab({ refetch }) {
           {/* Desktop table view */}
           <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+              <thead className="bg-slate-50/50 text-[10px] font-bold text-slate-400 tracking-wider border-b border-slate-100">
                 <tr>
                   <th className="px-3 py-3 w-8"><input type="checkbox" onChange={e => setSelectedIds(e.target.checked ? filtered.map(a => a.id) : [])} checked={selectedIds.length === filtered.length && filtered.length > 0} className="w-4 h-4 text-violet-600 rounded" /></th>
                   <th className="px-3 py-3">Applicant</th>
@@ -449,7 +449,7 @@ function ApplicationsTab({ refetch }) {
                     </td>
                     <td className="px-3 py-3 text-[10px] text-slate-500 font-semibold">{app.enrollment_type?.replace('_', ' ') || '—'}</td>
                     <td className="px-3 py-3">
-                      <span className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border ${(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).color}`}>
+                      <span className={`px-2 py-0.5 text-[9px] font-bold rounded-md border ${(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).color}`}>
                         {(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).label}
                       </span>
                     </td>
@@ -560,7 +560,7 @@ function ApplicationsTab({ refetch }) {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Enroll Student</h2>
+                    <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">Enroll Student</h2>
                     <p className="text-violet-200 text-[11px] mt-1 font-medium">
                       {enrollApp?.first_name} {enrollApp?.last_name}
                       {enrollApp?.grade_level && <span className="text-violet-300 ml-1.5">· Grade {enrollApp.grade_level}</span>}
@@ -577,7 +577,7 @@ function ApplicationsTab({ refetch }) {
 
               {/* ── Body ── */}
               <div className="px-6 pt-5 pb-2 flex-1 overflow-y-auto">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                <label className="block text-[10px] font-bold text-slate-500 tracking-[0.1em] mb-2">
                   Select a section for Grade {enrollApp?.grade_level || '—'}
                 </label>
 
@@ -615,7 +615,7 @@ function ApplicationsTab({ refetch }) {
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-slate-800">{c.name}</span>
                             {isFull && (
-                              <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded border border-rose-200">Full</span>
+                              <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded border border-rose-200">Full</span>
                             )}
                           </div>
                           <div className="flex items-center gap-2 mt-1">
@@ -641,7 +641,7 @@ function ApplicationsTab({ refetch }) {
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Parent Email (optional)</label>
+                  <label className="block text-[10px] font-bold text-slate-500 tracking-[0.1em] mb-2">Parent Email (optional)</label>
                   <input type="email" value={enrollParentEmail} onChange={e => setEnrollParentEmail(e.target.value)}
                     placeholder="parent@email.com"
                     className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" />
@@ -660,11 +660,11 @@ function ApplicationsTab({ refetch }) {
               <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl flex-shrink-0">
                 <button type="button"
                   onClick={() => { setShowEnrollModal(false); setEnrollApp(null); setEnrollClassroom(''); setEnrollParentEmail(''); }}
-                  className="px-6 py-2.5 bg-white text-slate-600 text-[11px] font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors">
+                  className="px-6 py-2.5 bg-white text-slate-600 text-[11px] font-bold tracking-[0.1em] border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors">
                   Cancel
                 </button>
                 <button type="button" onClick={enrollStudent} disabled={enrolling}
-                  className="px-6 py-2.5 bg-[#5e2a84] text-white text-[11px] font-black uppercase tracking-widest hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                  className="px-6 py-2.5 bg-[#5e2a84] text-white text-[11px] font-bold tracking-[0.1em] hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                   {enrolling ? 'Enrolling...' : 'Enroll Now'}
                 </button>
               </div>
@@ -802,7 +802,7 @@ function EnrollStudentsTab({ refetch }) {
       confirmButtonColor: '#ef4444',
       confirmButtonText: 'Withdraw Student',
       cancelButtonColor: '#64748b',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
       preConfirm: () => {
         const reason = document.getElementById('swal-reason')?.value?.trim();
         if (!reason) { Swal.showValidationMessage('A reason is required'); return false; }
@@ -856,7 +856,7 @@ function EnrollStudentsTab({ refetch }) {
       <div className="space-y-4">
         {/* Classroom selector — card grid */}
         <div className="space-y-2">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Section</label>
+          <label className="block text-xs font-bold text-slate-700 tracking-wider">Select Section</label>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
             {sortedClassrooms.map(c => {
               const cnt = c.student_count ?? 0;
@@ -877,7 +877,7 @@ function EnrollStudentsTab({ refetch }) {
                 <button
                   key={c.id}
                   onClick={() => { setSelectedClassroom(c.id); setEnrollSearch(''); }}
-                  className={`relative text-left rounded-xl border-2 transition-all duration-200 p-3 md:p-4
+                  className={`relative text-left rounded-xl border transition-all duration-200 p-3 md:p-4
                     ${isFull
                       ? 'border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed'
                       : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm cursor-pointer'
@@ -885,9 +885,9 @@ function EnrollStudentsTab({ refetch }) {
                   disabled={isFull}
                 >
                   <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center mb-2 ${isFull ? 'opacity-50' : ''}`}>
-                    <span className="text-white text-[10px] md:text-xs font-black">{gradeNum || '?'}</span>
+                    <span className="text-white text-[10px] md:text-xs font-bold">{gradeNum || '?'}</span>
                   </div>
-                  <p className={`text-[10px] md:text-sm font-black uppercase tracking-tight truncate leading-tight ${isFull ? 'text-slate-400' : 'text-slate-800'}`}>
+                  <p className={`text-[10px] md:text-sm font-bold tracking-tight truncate leading-tight ${isFull ? 'text-slate-400' : 'text-slate-800'}`}>
                     {c.name}
                   </p>
                   <div className="flex items-center gap-1.5 mt-1">
@@ -895,7 +895,7 @@ function EnrollStudentsTab({ refetch }) {
                       {cnt}/{cap}
                     </span>
                     {isFull && (
-                      <span className="text-[7px] md:text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1 py-px rounded uppercase">Full</span>
+                      <span className="text-[7px] md:text-[9px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1 py-px rounded">Full</span>
                     )}
                   </div>
                 </button>
@@ -920,7 +920,7 @@ function EnrollStudentsTab({ refetch }) {
           Back to Sections
         </button>
         <div className="ml-auto">
-          <p className="text-sm font-black text-slate-900">{currentClassroom?.name}</p>
+          <p className="text-sm font-bold text-slate-900">{currentClassroom?.name}</p>
           <p className="text-xs text-slate-400">
             {enrolledCount}/{capacity} enrolled {isFull ? ' · Full' : ''}
           </p>
@@ -941,7 +941,7 @@ function EnrollStudentsTab({ refetch }) {
       {/* Enrolled Students List */}
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-3">
-          <p className="text-sm font-black text-slate-700 uppercase tracking-wide">Enrolled Students</p>
+          <p className="text-sm font-bold text-slate-700 tracking-wide">Enrolled Students</p>
           <div className="ml-auto relative w-56">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -964,7 +964,7 @@ function EnrollStudentsTab({ refetch }) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-wider border-b border-slate-100">
+              <thead className="bg-slate-50 text-[10px] font-bold text-slate-400 tracking-wider border-b border-slate-100">
                 <tr>
                   <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Student</th>
@@ -980,7 +980,7 @@ function EnrollStudentsTab({ refetch }) {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-                          <span className="text-xs font-black text-violet-600">
+                          <span className="text-xs font-bold text-violet-600">
                             {(e.student_name || '?').split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase()}
                           </span>
                         </div>
@@ -1019,7 +1019,7 @@ function EnrollStudentsTab({ refetch }) {
       {showModal && (
         <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-xl border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[88vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
+            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b border-violet-900">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1027,8 +1027,8 @@ function EnrollStudentsTab({ refetch }) {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Add Students</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">
+                  <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">Add Students</h2>
+                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium tracking-wide">
                     {currentClassroom?.name} · {enrolledCount}/{capacity} enrolled
                   </p>
                 </div>
@@ -1075,7 +1075,7 @@ function EnrollStudentsTab({ refetch }) {
                   <label key={s.id} className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${checked ? 'bg-violet-50' : 'hover:bg-slate-50'}`}>
                     <input type="checkbox" checked={checked} onChange={() => toggleStudent(s.id)} className="w-4 h-4 rounded text-violet-600 flex-shrink-0" />
                     <div className="w-8 h-8 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-black text-violet-600">
+                      <span className="text-xs font-bold text-violet-600">
                         {`${s.first_name?.[0] || ''}${s.last_name?.[0] || ''}`.toUpperCase() || '?'}
                       </span>
                     </div>
@@ -1094,11 +1094,11 @@ function EnrollStudentsTab({ refetch }) {
             </div>
             <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
               <button onClick={() => setShowModal(false)}
-                className="px-5 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
+                className="px-5 py-2.5 bg-white text-slate-700 text-xs font-bold tracking-[0.1em] border border-gray-300 hover:bg-gray-100 rounded-sm">
                 Cancel
               </button>
               <button onClick={handleEnroll} disabled={saving || !selectedStudents.length}
-                className="px-5 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm disabled:opacity-50">
+                className="px-5 py-2.5 bg-[#5e2a84] text-white text-xs font-bold tracking-[0.1em] hover:bg-violet-700 rounded-sm disabled:opacity-50">
                 {saving ? 'Enrolling…' : `Enroll ${selectedStudents.length || ''} Student${selectedStudents.length !== 1 ? 's' : ''}`}
               </button>
             </div>
@@ -1142,8 +1142,8 @@ export default function EnrollmentHub() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">Enrollment Hub</h1>
-              <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide">Applications & student section assignments</p>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Enrollment Hub</h1>
+              <p className="text-xs font-semibold text-violet-600 tracking-wide">Applications & student section assignments</p>
             </div>
           </div>
           <div className="flex items-center gap-1">

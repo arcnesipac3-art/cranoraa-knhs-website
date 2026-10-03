@@ -52,38 +52,38 @@ function QuizInfoScreen({ quiz, onStart, loading, hasAttempt, attemptsUsed, maxA
 
       <Card>
         <CardHeader>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{quiz.title}</h1>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{quiz.title}</h1>
           {quiz.grade_component && (
             <Badge variant="primary" className="mt-1">{quiz.grade_component}</Badge>
           )}
         </CardHeader>
         <CardBody className="space-y-6">
           {quiz.description && (
-            <p className="text-gray-600 dark:text-gray-300">{quiz.description}</p>
+            <p className="text-slate-600 dark:text-slate-300">{quiz.description}</p>
           )}
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Questions</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Questions</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">
                 {quiz.question_count ?? quiz.questions?.length ?? 0}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Time Limit</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Time Limit</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">
                 {quiz.time_limit_minutes ? `${quiz.time_limit_minutes} min` : 'None'}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Total Points</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Total Points</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">
                 {quiz.total_points ?? quiz.questions?.reduce((s, q) => s + (q.points || 1), 0) ?? 0}
               </p>
             </div>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Passing Score</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Passing Score</p>
+              <p className="text-xl font-bold text-slate-900 dark:text-white">
                 {quiz.passing_score != null ? `${quiz.passing_score}%` : 'N/A'}
               </p>
             </div>
@@ -142,12 +142,12 @@ function QuestionNavigator({ questions, answers, markedQuestions, currentQuestio
   const statusColors = {
     answered: 'bg-green-500 text-white',
     marked: 'bg-amber-500 text-white',
-    unanswered: 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
+    unanswered: 'bg-gray-200 dark:bg-gray-700 text-slate-700 dark:text-slate-300',
   }
 
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
-      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Questions</h3>
+      <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Questions</h3>
       <div className="grid grid-cols-5 gap-2">
         {questions.map((q, idx) => {
           const status = getStatus(q)
@@ -166,7 +166,7 @@ function QuestionNavigator({ questions, answers, markedQuestions, currentQuestio
           )
         })}
       </div>
-      <div className="flex items-center gap-4 mt-4 text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex items-center gap-4 mt-4 text-xs text-slate-500 dark:text-slate-400">
         <span className="flex items-center gap-1">
           <span className="w-3 h-3 rounded bg-green-500" /> Answered
         </span>
@@ -190,7 +190,7 @@ function QuestionRenderer({ question, answer, onAnswer }) {
         {question.options?.map((opt, idx) => (
           <label
             key={opt.label ?? opt.id ?? idx}
-            className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+            className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
               answer === opt.label
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
@@ -203,7 +203,7 @@ function QuestionRenderer({ question, answer, onAnswer }) {
               onChange={() => onAnswer(opt.label)}
               className="mt-1 accent-blue-500"
             />
-            <span className="text-gray-800 dark:text-gray-200">
+            <span className="text-slate-800 dark:text-slate-200">
               <span className="font-medium">{opt.label}.</span> {opt.text}
             </span>
           </label>
@@ -220,7 +220,7 @@ function QuestionRenderer({ question, answer, onAnswer }) {
         {[trueLabel, falseLabel].map((label) => (
           <label
             key={label}
-            className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 cursor-pointer transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border cursor-pointer transition-all ${
               answer === label
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
@@ -233,7 +233,7 @@ function QuestionRenderer({ question, answer, onAnswer }) {
               onChange={() => onAnswer(label)}
               className="accent-blue-500"
             />
-            <span className="font-medium text-gray-800 dark:text-gray-200">{label}</span>
+            <span className="font-medium text-slate-800 dark:text-slate-200">{label}</span>
           </label>
         ))}
       </div>
@@ -247,7 +247,7 @@ function QuestionRenderer({ question, answer, onAnswer }) {
         value={answer ?? ''}
         onChange={(e) => onAnswer(e.target.value)}
         placeholder="Type your answer here..."
-        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
+        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors"
       />
     )
   }
@@ -259,12 +259,12 @@ function QuestionRenderer({ question, answer, onAnswer }) {
         onChange={(e) => onAnswer(e.target.value)}
         placeholder="Write your essay answer here..."
         rows={8}
-        className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors resize-y"
+        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none transition-colors resize-y"
       />
     )
   }
 
-  return <p className="text-gray-500">Unsupported question type</p>
+  return <p className="text-slate-500">Unsupported question type</p>
 }
 
 function Timer({ timeRemaining }) {
@@ -282,7 +282,7 @@ function Timer({ timeRemaining }) {
           ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 animate-pulse'
           : isLow
           ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-          : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+          : 'bg-gray-100 text-slate-700 dark:bg-gray-800 dark:text-slate-300'
       }`}
     >
       <Clock className="w-4 h-4" />
@@ -304,13 +304,13 @@ function ConfirmDialog({ open, onConfirm, onCancel, unansweredCount, markedCount
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 max-w-sm mx-4 w-full"
+        className="relative bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 max-w-sm mx-4 w-full"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
             <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Submit Quiz?</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Submit Quiz?</h3>
         </div>
         {unansweredCount > 0 && (
           <p className="text-amber-600 dark:text-amber-400 text-sm font-medium mb-2">
@@ -322,7 +322,7 @@ function ConfirmDialog({ open, onConfirm, onCancel, unansweredCount, markedCount
             You have {markedCount} marked question{markedCount !== 1 ? 's' : ''} for review.
           </p>
         )}
-        <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
+        <p className="text-slate-600 dark:text-slate-300 text-sm mb-6">
           Are you sure you want to submit your quiz? This action cannot be undone.
         </p>
         <div className="flex gap-3 justify-end">
@@ -369,8 +369,8 @@ function ResultsScreen({ results, quiz, onBack }) {
           </motion.div>
 
           <div>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">{percentage}%</h2>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white">{percentage}%</h2>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
               {score} / {total} points
             </p>
           </div>
@@ -388,7 +388,7 @@ function ResultsScreen({ results, quiz, onBack }) {
 
       {results.answers && results.answers.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Review Answers</h3>
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Review Answers</h3>
           {results.answers.map((detail, idx) => {
             const type = detail.question_type || detail.type
             const isCorrect = detail.is_correct
@@ -398,21 +398,21 @@ function ResultsScreen({ results, quiz, onBack }) {
                 <CardBody className="p-5">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Q{idx + 1}</span>
+                      <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Q{idx + 1}</span>
                       <Badge variant={type === 'essay' ? 'warning' : isCorrect ? 'success' : 'danger'} className="text-xs">
                         {type === 'essay' ? 'Pending Review' : isCorrect ? 'Correct' : 'Incorrect'}
                       </Badge>
                     </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-sm text-slate-500 dark:text-slate-400">
                       {detail.points_earned ?? 0}/{detail.question_points ?? detail.points ?? 1} pts
                     </span>
                   </div>
 
-                  <p className="text-gray-800 dark:text-gray-200 font-medium mb-3">{detail.question_content ?? detail.question_text ?? detail.question}</p>
+                  <p className="text-slate-800 dark:text-slate-200 font-medium mb-3">{detail.question_content ?? detail.question_text ?? detail.question}</p>
 
                   <div className="space-y-2 text-sm">
                     <div>
-                      <span className="text-gray-500 dark:text-gray-400">Your answer: </span>
+                      <span className="text-slate-500 dark:text-slate-400">Your answer: </span>
                       <span className={`${isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} font-medium`}>
                         {Array.isArray(detail.answer) ? detail.answer.join(', ') : (detail.answer || 'No answer')}
                       </span>
@@ -420,7 +420,7 @@ function ResultsScreen({ results, quiz, onBack }) {
 
                     {!isCorrect && detail.correct_answer_display != null && (
                       <div>
-                        <span className="text-gray-500 dark:text-gray-400">Correct answer: </span>
+                        <span className="text-slate-500 dark:text-slate-400">Correct answer: </span>
                         <span className="text-green-600 dark:text-green-400 font-medium">{detail.correct_answer_display}</span>
                       </div>
                     )}
@@ -719,7 +719,7 @@ export default function QuizTake() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate">{quiz.title}</h1>
+          <h1 className="text-lg font-bold text-slate-900 dark:text-white truncate">{quiz.title}</h1>
           <div className="flex items-center gap-3">
             {autosaveStatus && (
               <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full ${
@@ -733,7 +733,7 @@ export default function QuizTake() {
               </div>
             )}
             {lastSaved && !autosaveStatus && (
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-slate-400">
                 Last saved: {lastSaved.toLocaleTimeString()}
               </span>
             )}
@@ -774,7 +774,7 @@ export default function QuizTake() {
                     <CardBody className="p-6">
                       <div className="flex items-start justify-between gap-4 mb-4">
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                          <span className="text-sm font-bold text-slate-500 dark:text-slate-400">
                             Question {currentQuestion + 1} of {questions.length}
                           </span>
                           <Badge variant="outline" className="text-xs">
@@ -789,7 +789,7 @@ export default function QuizTake() {
                           className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium transition-all ${
                             markedQuestions.has(q.id)
                               ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                              : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                              : 'bg-gray-100 text-slate-500 dark:bg-gray-800 dark:text-slate-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                           }`}
                         >
                           <AlertTriangle className="w-3.5 h-3.5" />
@@ -797,7 +797,7 @@ export default function QuizTake() {
                         </button>
                       </div>
 
-                      <p className="text-gray-800 dark:text-gray-200 text-lg font-medium mb-6 whitespace-pre-wrap">
+                      <p className="text-slate-800 dark:text-slate-200 text-lg font-medium mb-6 whitespace-pre-wrap">
                         {q.content ?? q.question_text ?? q.question}
                       </p>
 
@@ -843,19 +843,19 @@ export default function QuizTake() {
             />
 
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
                 <span>Answered</span>
                 <span className="font-semibold text-green-600 dark:text-green-400">
                   {answeredCount}/{questions.length}
                 </span>
               </div>
-              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
                 <span>Marked</span>
                 <span className="font-semibold text-amber-600 dark:text-amber-400">{markedCount}</span>
               </div>
-              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+              <div className="flex justify-between text-slate-600 dark:text-slate-400">
                 <span>Unanswered</span>
-                <span className="font-semibold text-gray-900 dark:text-gray-200">
+                <span className="font-semibold text-slate-900 dark:text-slate-200">
                   {questions.length - answeredCount}
                 </span>
               </div>

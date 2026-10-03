@@ -72,7 +72,7 @@ export default function InstallBanner() {
       className="fixed bottom-0 inset-x-0 z-[9998] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] animate-fade-in-up"
     >
       <div className="max-w-lg mx-auto">
-        <div className="relative overflow-hidden rounded-2xl bg-white border border-violet-100 shadow-2xl shadow-violet-900/10">
+        <div className="relative overflow-hidden rounded-lg bg-white border border-violet-100 shadow-2xl shadow-violet-900/10">
           {/* Purple accent bar */}
           <div className="h-1 bg-gradient-to-r from-violet-600 via-purple-500 to-violet-400" />
 
@@ -81,11 +81,11 @@ export default function InstallBanner() {
             <div className="flex items-start gap-4">
               {/* App icon */}
               <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                <span className="text-white font-black text-lg tracking-tight">K</span>
+                <span className="text-white font-bold text-lg tracking-tight">K</span>
               </div>
 
               <div className="flex-1 min-w-0">
-                <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
+                <h3 className="text-sm font-bold text-slate-900 tracking-tight">
                   Install KNHS Portal
                 </h3>
                 <p className="mt-1 text-xs text-slate-500 leading-relaxed">

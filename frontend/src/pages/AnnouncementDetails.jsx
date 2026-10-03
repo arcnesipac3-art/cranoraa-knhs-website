@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import api from '../utils/api';
 
 import { Skeleton } from '../components/ui';
+import { PageHero } from '../components/public';
 
 const AnnouncementDetails = () => {
   const [content, setContent] = useState({});
@@ -27,40 +28,47 @@ const AnnouncementDetails = () => {
     );
   }
 
+  const title = content.announcement_details_title || 'Enrollment for SY 2026–2027 Now Open';
+  const category = content.announcement_details_category || 'Academic';
+  const date = content.announcement_details_date || 'December 15, 2025';
+
   return (
     <div className="bg-white">
 
       {/* ── Hero ── */}
-      <section className="bg-slate-900 py-16 md:py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-xs font-bold text-violet-400 uppercase tracking-widest mb-3">Announcements</p>
-          <h1 className="text-3xl md:text-4xl font-black text-white mb-3">Announcement Details</h1>
-          <p className="text-slate-400">Latest news and updates from Kiwalan National High School</p>
-        </div>
-      </section>
+      <PageHero
+        breadcrumb={[
+          { label: 'Home', to: '/' },
+          { label: 'News & events', to: '/news-events' },
+          { label: title },
+        ]}
+        kicker="Announcements"
+        title="Announcement details"
+        lead="Latest news and updates from Kiwalan National High School."
+      />
 
       {/* ── Content ── */}
-      <section className="py-16 md:py-20 bg-slate-50">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="public-section">
+        <div className="public-shell-narrow">
 
-          <div className="bg-white rounded-2xl border border-slate-100 p-8 md:p-10 mb-6">
+          <article className="public-card p-6 md:p-10">
             {/* Meta */}
-            <div className="flex items-center gap-3 mb-6 flex-wrap">
-              <span className="px-3 py-1 rounded-full bg-violet-50 text-violet-700 text-xs font-bold border border-violet-100 uppercase tracking-wider">
-                {content.announcement_details_category || 'Academic'}
+            <div className="flex items-center gap-3 mb-5 flex-wrap">
+              <span className="public-badge">
+                {category}
               </span>
-              <span className="text-sm text-slate-400">
-                {content.announcement_details_date || 'December 15, 2025'}
+              <span className="text-sm text-slate-500">
+                {date}
               </span>
             </div>
 
             {/* Title */}
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 leading-tight">
-              {content.announcement_details_title || 'Enrollment for SY 2026–2027 Now Open'}
+            <h2 className="public-title">
+              {title}
             </h2>
 
             {/* Body */}
-            <div className="text-slate-600 leading-relaxed whitespace-pre-line text-sm md:text-base">
+            <div className="public-prose mt-5 text-slate-600 leading-relaxed whitespace-pre-line text-sm md:text-base">
               {content.announcement_details_content || `We are pleased to announce that enrollment for the upcoming school year 2026-2027 is now open. Registration is accepting applications for all grade levels from Grade 7 to Grade 12.
 
 Requirements for Enrollment:
@@ -78,26 +86,26 @@ For inquiries, please visit our school office or contact us through the provided
             </div>
 
             {/* Back */}
-            <div className="mt-8 pt-6 border-t border-slate-100">
-              <Link to="/" className="inline-flex items-center gap-2 text-sm font-semibold text-violet-600 hover:text-violet-700 transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="mt-8 pt-6 border-t border-slate-200">
+              <Link to="/" className="public-link inline-flex items-center gap-2 text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Back to Home
+                Back to home
               </Link>
             </div>
-          </div>
+          </article>
 
           {/* CTA */}
-          <div className="bg-violet-50 border border-violet-100 rounded-2xl p-8 text-center">
-            <h3 className="text-xl font-black text-slate-900 mb-2">Ready to Enroll?</h3>
-            <p className="text-slate-500 text-sm mb-5">Start your enrollment process today by filling out our online application form.</p>
+          <div className="mt-6 bg-violet-50 border border-violet-200 rounded-lg p-6 md:p-8 text-center">
+            <h3 className="public-heading">Ready to enroll?</h3>
+            <p className="mt-2 text-sm text-slate-600 leading-relaxed">Start your enrollment process today by filling out our online application form.</p>
             <Link
               to="/enroll"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-violet-600 text-white text-sm font-bold hover:bg-violet-700 transition-colors"
+              className="public-btn-primary mt-5"
             >
-              Apply for Enrollment
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4 4H3" /></svg>
+              Apply for enrollment
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4 4H3" /></svg>
             </Link>
           </div>
 

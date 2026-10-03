@@ -73,7 +73,7 @@ function SF5Page() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">SF5 - Promotion and Learning Progress</h1>
+          <h1 className="text-2xl font-bold text-slate-900">SF5 - Promotion and Learning Progress</h1>
           <p className="text-sm text-slate-500 mt-1">Promotion status with class summary</p>
         </div>
         <div className="flex gap-2">
@@ -93,16 +93,16 @@ function SF5Page() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card><CardBody className="text-center"><p className="text-3xl font-extrabold text-emerald-600">{classSummary.promoted || 0}</p><p className="text-xs text-slate-500 mt-1">Promoted</p></CardBody></Card>
-        <Card><CardBody className="text-center"><p className="text-3xl font-extrabold text-amber-600">{classSummary.conditional || 0}</p><p className="text-xs text-slate-500 mt-1">Conditional</p></CardBody></Card>
-        <Card><CardBody className="text-center"><p className="text-3xl font-extrabold text-red-600">{classSummary.retained || 0}</p><p className="text-xs text-slate-500 mt-1">Retained</p></CardBody></Card>
-        <Card><CardBody className="text-center"><p className="text-3xl font-extrabold text-violet-600">{classSummary.class_average || 0}</p><p className="text-xs text-slate-500 mt-1">Class Average</p></CardBody></Card>
+        <Card><CardBody className="text-center"><p className="text-3xl font-bold text-emerald-600">{classSummary.promoted || 0}</p><p className="text-xs text-slate-500 mt-1">Promoted</p></CardBody></Card>
+        <Card><CardBody className="text-center"><p className="text-3xl font-bold text-amber-600">{classSummary.conditional || 0}</p><p className="text-xs text-slate-500 mt-1">Conditional</p></CardBody></Card>
+        <Card><CardBody className="text-center"><p className="text-3xl font-bold text-red-600">{classSummary.retained || 0}</p><p className="text-xs text-slate-500 mt-1">Retained</p></CardBody></Card>
+        <Card><CardBody className="text-center"><p className="text-3xl font-bold text-violet-600">{classSummary.class_average || 0}</p><p className="text-xs text-slate-500 mt-1">Class Average</p></CardBody></Card>
       </div>
 
       <Card>
         <CardBody className="p-0">
           {isLoading ? (
-            <div className="flex items-center justify-center py-12"><div className="w-8 h-8 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" /></div>
+            <div className="flex items-center justify-center py-12"><div className="w-8 h-8 border border-slate-200 border-t-violet-600 rounded-full animate-spin" /></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

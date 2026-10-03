@@ -116,7 +116,7 @@ const AcademicYearsTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-slate-900">Academic Years</h2>
+          <h2 className="text-lg font-bold text-slate-900">Academic Years</h2>
           <p className="text-xs text-slate-500 font-medium mt-0.5">Manage school years for classrooms and data filtering</p>
         </div>
         <Button onClick={openCreate} variant="primary" size="sm">
@@ -143,33 +143,33 @@ const AcademicYearsTab = () => {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-3">
-                      <h3 className={`text-base font-extrabold ${y.is_active ? 'text-violet-900' : 'text-slate-900'}`}>
+                      <h3 className={`text-base font-bold ${y.is_active ? 'text-violet-900' : 'text-slate-900'}`}>
                         {y.name}
                       </h3>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${status.bg} ${status.text}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider ${status.bg} ${status.text}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${status.color} mr-1.5`} aria-hidden="true" />
                         {status.label}
                       </span>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Start</p>
+                        <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-0.5">Start</p>
                         <p className="font-semibold text-slate-700">{y.start_date}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">End</p>
+                        <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-0.5">End</p>
                         <p className="font-semibold text-slate-700">{y.end_date}</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Classes</p>
+                        <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-0.5">Classes</p>
                         <p className="font-semibold text-slate-700">—</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Students</p>
+                        <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-0.5">Students</p>
                         <p className="font-semibold text-slate-700">—</p>
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Teachers</p>
+                        <p className="text-[10px] font-bold text-slate-400 tracking-wider mb-0.5">Teachers</p>
                         <p className="font-semibold text-slate-700">—</p>
                       </div>
                     </div>
@@ -220,7 +220,7 @@ const AcademicYearsTab = () => {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[100] p-4" role="dialog" aria-modal="true" aria-label={editingYear ? 'Edit academic year' : 'New academic year'}>
           <div className="bg-white rounded-xl w-full max-w-sm shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h3 className="text-sm font-black text-slate-900">{editingYear ? 'Edit Academic Year' : 'New Academic Year'}</h3>
+              <h3 className="text-sm font-bold text-slate-900">{editingYear ? 'Edit Academic Year' : 'New Academic Year'}</h3>
               <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 transition-all" aria-label="Close">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>

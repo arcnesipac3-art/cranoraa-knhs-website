@@ -171,7 +171,7 @@ export default function ParentManagement() {
   return (
     <div className="page-bottom-safe bg-slate-50">
       {/* Official Header */}
-      <div className="bg-white border-b-2 border-slate-200 px-4 md:px-6 py-3 md:py-4 mb-4">
+      <div className="bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 mb-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 md:h-11 md:w-11 bg-[#5e2a84] flex items-center justify-center shrink-0">
             <svg className="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,10 +179,10 @@ export default function ParentManagement() {
             </svg>
           </div>
           <div>
-            <h1 className="text-base md:text-lg font-black text-slate-900 uppercase tracking-wide">
+            <h1 className="text-base md:text-lg font-bold text-slate-900 tracking-wide">
               Parent Accounts
             </h1>
-            <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            <p className="text-[10px] md:text-xs font-bold text-slate-400 tracking-[0.1em] mt-0.5">
               Guardian Management & Student Linking
             </p>
           </div>
@@ -195,7 +195,7 @@ export default function ParentManagement() {
         <div></div>
         <button
           onClick={() => { setForm(emptyForm); setShowAddModal(true); }}
-          className="flex items-center gap-1.5 bg-[#5e2a84] hover:bg-violet-700 text-white font-bold py-1.5 px-3 sm:px-4 transition-colors text-xs uppercase tracking-wide"
+          className="flex items-center gap-1.5 bg-[#5e2a84] hover:bg-violet-700 text-white font-bold py-1.5 px-3 sm:px-4 transition-colors text-xs tracking-wide"
         >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -263,7 +263,7 @@ export default function ParentManagement() {
           <div className="">
             <table className="w-full text-left">
               <thead className="bg-[#5e2a84]">
-                <tr className="text-[9px] font-bold text-white uppercase tracking-widest">
+                <tr className="text-[9px] font-bold text-white tracking-[0.1em]">
                   <th className="px-2.5 py-2 sm:px-4 sm:py-2.5">Parent</th>
                   <th className="px-2.5 py-2 sm:px-4 sm:py-2.5 hidden md:table-cell">Email</th>
                   <th className="px-2.5 py-2 sm:px-4 sm:py-2.5">Linked Children</th>
@@ -280,7 +280,7 @@ export default function ParentManagement() {
                       <td className="px-2.5 py-2.5 sm:px-4 sm:py-3">
                         <div>
                           <p className="text-xs font-bold text-slate-800">{p.first_name} {p.last_name}</p>
-                          <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Parent</p>
+                          <p className="text-[9px] text-slate-400 font-bold tracking-[0.1em] mt-0.5">Parent</p>
                           <p className="text-[10px] text-slate-400 md:hidden">{p.email || '—'}</p>
                         </div>
                       </td>
@@ -302,7 +302,7 @@ export default function ParentManagement() {
                         )}
                       </td>
                       <td className="px-2.5 py-2.5 sm:px-4 sm:py-3 hidden sm:table-cell">
-                        <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide border ${
+                        <span className={`px-1.5 py-0.5 text-[9px] font-bold tracking-wide border ${
                           p.account_status === 'active' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' :
                           p.account_status === 'suspended' ? 'text-rose-600 bg-rose-50 border-rose-200' :
                           'text-slate-500 bg-slate-50 border-slate-200'
@@ -430,7 +430,7 @@ export default function ParentManagement() {
                 className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:bg-white" />
             </div>
             {linkedIds.length > 0 && (
-              <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1.5">
+              <p className="text-[9px] text-slate-500 font-bold tracking-[0.1em] mt-1.5">
                 {linkedIds.length} student{linkedIds.length !== 1 ? 's' : ''} selected
               </p>
             )}
@@ -447,7 +447,7 @@ export default function ParentManagement() {
                       ? 'bg-violet-50 border-violet-300'
                       : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   }`}>
-                  <div className={`w-4.5 h-4.5 border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                  <div className={`w-4.5 h-4.5 border flex items-center justify-center flex-shrink-0 transition-colors ${
                     isLinked ? 'bg-violet-600 border-violet-600' : 'border-slate-300'
                   }`} style={{ width: '18px', height: '18px' }}>
                     {isLinked && (

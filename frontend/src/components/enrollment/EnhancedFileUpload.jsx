@@ -63,7 +63,7 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
   const hasFile = !!file;
 
   return (
-    <div className={`border-2 transition-all rounded-sm ${
+    <div className={`border transition-all rounded-sm ${
       sizeError ? 'border-red-300 bg-red-50' :
       dragOver ? 'border-violet-400 bg-slate-50' :
       hasFile ? 'border-green-400 bg-green-50/50' : 'border-gray-300 bg-white hover:border-gray-400'
@@ -72,10 +72,10 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
         {/* Header row */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-800">
+            <p className="text-sm font-bold text-slate-800">
               {label} {required && <span className="text-red-600">*</span>}
             </p>
-            {note && <p className="text-[10px] text-gray-500 mt-0.5 italic">{note}</p>}
+            {note && <p className="text-[10px] text-slate-500 mt-0.5 italic">{note}</p>}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {hasFile && (
@@ -86,7 +86,7 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
                 </svg>
               </button>
             )}
-            <label className="cursor-pointer px-3 py-1.5 bg-gray-100 border border-gray-300 text-gray-700 text-xs font-bold hover:bg-gray-200 transition-colors rounded-sm">
+            <label className="cursor-pointer px-3 py-1.5 bg-gray-100 border border-gray-300 text-slate-700 text-xs font-bold hover:bg-gray-200 transition-colors rounded-sm">
               {hasFile ? 'Change' : 'Browse'}
               <input ref={inputRef} type="file" accept={accept || '.pdf,.jpg,.jpeg,.png'} className="hidden"
                 onChange={e => { if (e.target.files[0]) handleFile(e.target.files[0]); }} />
@@ -125,10 +125,10 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
               </svg>
               Uploaded
             </span>
-            <span className="text-gray-400">|</span>
-            <span className="text-gray-500 font-medium">{formatFileSize(file.size)}</span>
-            <span className="text-gray-400">|</span>
-            <span className="text-gray-500 font-medium truncate max-w-[150px]">{file.name}</span>
+            <span className="text-slate-400">|</span>
+            <span className="text-slate-500 font-medium">{formatFileSize(file.size)}</span>
+            <span className="text-slate-400">|</span>
+            <span className="text-slate-500 font-medium truncate max-w-[150px]">{file.name}</span>
           </div>
         )}
 
@@ -141,7 +141,7 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
-            <p className="text-[9px] text-gray-400 mt-0.5 text-right">{Math.round(uploadProgress)}%</p>
+            <p className="text-[9px] text-slate-400 mt-0.5 text-right">{Math.round(uploadProgress)}%</p>
           </div>
         )}
 
@@ -163,11 +163,11 @@ const EnhancedFileUpload = ({ label, required, file, onFile, onRemove, note, acc
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
           >
-            <svg className="w-7 h-7 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-7 h-7 mx-auto text-slate-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p className="text-[10px] text-gray-500 font-medium">Drag & drop or click Browse</p>
-            <p className="text-[9px] text-gray-400">PDF, JPG, PNG (max {maxSizeMB} MB)</p>
+            <p className="text-[10px] text-slate-500 font-medium">Drag & drop or click Browse</p>
+            <p className="text-[9px] text-slate-400">PDF, JPG, PNG (max {maxSizeMB} MB)</p>
           </div>
         )}
       </div>

@@ -56,7 +56,7 @@ export const DataTable = ({
           <div className="space-y-2">
             {columns.slice(0, 3).map((col) => (
               <div key={col.key} className="flex items-center gap-3">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider w-20 shrink-0">{col.label}</span>
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider w-20 shrink-0">{col.label}</span>
                 <div className="h-4 bg-slate-100 rounded animate-pulse flex-1" />
               </div>
             ))}
@@ -118,7 +118,7 @@ export const DataTable = ({
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`px-5 py-3.5 text-[10px] font-black text-slate-500 uppercase tracking-[0.15em] whitespace-nowrap ${col.className || ''} ${col.sortable ? 'cursor-pointer select-none hover:text-slate-700 transition-colors' : ''}`}
+                  className={`px-5 py-3.5 text-[10px] font-bold text-slate-500 tracking-[0.15em] whitespace-nowrap ${col.className || ''} ${col.sortable ? 'cursor-pointer select-none hover:text-slate-700 transition-colors' : ''}`}
                   onClick={col.sortable && onSort ? () => onSort(col.key) : undefined}
                 >
                   <span className="inline-flex items-center gap-1.5">
@@ -210,7 +210,7 @@ function MobileCardRow({ row, columns, index }) {
           if (value === undefined || value === null || value === '') return null;
           return (
             <div key={col.key} className="flex items-start justify-between gap-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 min-w-[80px]">
+              <span className="text-[10px] font-bold text-slate-400 tracking-wider shrink-0 min-w-[80px]">
                 {col.label}
               </span>
               <span className="text-xs text-slate-700 text-right min-w-0">

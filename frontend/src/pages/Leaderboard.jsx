@@ -58,7 +58,7 @@ export default function Leaderboard() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-black text-slate-900">Leaderboard & Badges</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Leaderboard & Badges</h1>
         <p className="text-sm text-slate-500 mt-1">See who&apos;s leading and what achievements have been earned</p>
       </div>
 
@@ -76,7 +76,7 @@ export default function Leaderboard() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+          <div className="w-8 h-8 border border-slate-200 border-t-violet-600 rounded-full animate-spin" />
         </div>
       ) : error ? (
         <div className="text-center py-16">
@@ -98,7 +98,7 @@ export default function Leaderboard() {
               return (
                 <div key={entry.id}
                   className={`flex items-center gap-4 p-4 rounded-xl border transition-all ${bg} ${isMe ? 'ring-2 ring-violet-400' : ''}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ${idx < 3 ? medal : 'text-slate-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${idx < 3 ? medal : 'text-slate-400'}`}>
                     {idx < 3 ? ['🥇', '🥈', '🥉'][idx] : `#${idx + 1}`}
                   </div>
                   {entry.student_profile_picture ? (
@@ -124,8 +124,8 @@ export default function Leaderboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-black text-slate-900">{entry.total_points}</p>
-                    <p className="text-[10px] text-slate-400 uppercase font-bold">points</p>
+                    <p className="text-lg font-bold text-slate-900">{entry.total_points}</p>
+                    <p className="text-[10px] text-slate-400 font-bold">points</p>
                   </div>
                 </div>
               );
@@ -137,7 +137,7 @@ export default function Leaderboard() {
         <div>
           {myBadges.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">Your Badges ({myBadges.length})</h3>
+              <h3 className="text-xs font-bold text-slate-500 tracking-wider mb-3">Your Badges ({myBadges.length})</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {myBadges.map(sb => (
                   <div key={sb.id} className="bg-white border border-slate-200 rounded-xl p-4 text-center hover:shadow-md transition-shadow">
@@ -149,7 +149,7 @@ export default function Leaderboard() {
               </div>
             </div>
           )}
-          <h3 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">All Badges</h3>
+          <h3 className="text-xs font-bold text-slate-500 tracking-wider mb-3">All Badges</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {badges.map(badge => {
               const earned = myBadges.some(mb => mb.badge === badge.id);

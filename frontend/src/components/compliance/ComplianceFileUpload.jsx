@@ -88,7 +88,7 @@ export default function ComplianceFileUpload({ files, onFilesChange, maxFiles = 
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onClick={() => !disabled && inputRef.current?.click()}
-        className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all
+        className={`border border-dashed rounded-xl p-6 text-center cursor-pointer transition-all
           ${disabled ? 'opacity-50 cursor-not-allowed border-slate-200 bg-slate-50' :
             dragOver ? 'border-violet-400 bg-violet-50' : 'border-slate-200 hover:border-violet-300 hover:bg-slate-50'}`}
       >

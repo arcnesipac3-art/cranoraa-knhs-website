@@ -25,9 +25,9 @@ const LoadingSpinner = ({
 
   const spinner = (
     <div className={cn('relative', sizes[size])}>
-      <div className="absolute inset-0 rounded-full border-2 border-slate-200" />
+      <div className="absolute inset-0 rounded-full border border-slate-200" />
       <div
-        className="absolute inset-0 rounded-full border-2 border-violet-600 border-t-transparent animate-spin"
+        className="absolute inset-0 rounded-full border border-violet-600 border-t-transparent animate-spin"
         {...props}
       />
     </div>
@@ -37,8 +37,8 @@ const LoadingSpinner = ({
     return (
       <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center" role="status" aria-label="Loading">
         <div className={cn('relative', sizes.xl)}>
-          <div className="absolute inset-0 rounded-full border-2 border-slate-200" />
-          <div className="absolute inset-0 rounded-full border-2 border-violet-600 border-t-transparent animate-spin" />
+          <div className="absolute inset-0 rounded-full border border-slate-200" />
+          <div className="absolute inset-0 rounded-full border border-violet-600 border-t-transparent animate-spin" />
         </div>
         {message && (
           <p className="mt-4 text-sm font-medium text-slate-600">{message}</p>

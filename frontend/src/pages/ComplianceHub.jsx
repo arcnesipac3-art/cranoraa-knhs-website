@@ -33,7 +33,7 @@ export default function ComplianceHub() {
     >
       {/* Header */}
       <div>
-        <h1 className="text-xl md:text-2xl font-extrabold text-slate-900">Compliance Monitoring</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">Compliance Monitoring</h1>
         <p className="text-sm text-slate-500 mt-0.5">Teacher compliance submissions and tracking</p>
       </div>
 

@@ -218,7 +218,7 @@ const QuestionBank = () => {
   return (
     <div className="p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Question Bank</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Question Bank</h1>
         <Button onClick={() => setShowCreateBank(true)} className="flex items-center gap-2">
           <Plus size={16} /> New Bank
         </Button>
@@ -235,12 +235,12 @@ const QuestionBank = () => {
             <CardBody className="p-4">
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-gray-900">{bank.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{bank.description || 'No description'}</p>
+                  <h3 className="font-semibold text-slate-900">{bank.name}</h3>
+                  <p className="text-sm text-slate-500 mt-1">{bank.description || 'No description'}</p>
                 </div>
                 <Badge className="bg-blue-100 text-blue-800">{bank.question_count} Q</Badge>
               </div>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-xs text-slate-400 mt-2">
                 {bank.subject_name || 'All subjects'} · {bank.is_shared ? 'Shared' : 'Private'}
               </p>
             </CardBody>
@@ -266,7 +266,7 @@ const QuestionBank = () => {
             {/* Filters */}
             <div className="flex flex-wrap gap-3 mb-4">
               <div className="relative flex-1 min-w-[200px]">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search questions..."
@@ -294,16 +294,16 @@ const QuestionBank = () => {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-mono text-gray-400">Q{idx + 1}</span>
+                        <span className="text-xs font-mono text-slate-400">Q{idx + 1}</span>
                         <Badge className={`text-xs ${DIFFICULTY_COLORS[q.difficulty]}`}>{q.difficulty}</Badge>
-                        <Badge className="text-xs bg-gray-100 text-gray-700">{QUESTION_TYPES.find(t => t.value === q.question_type)?.label}</Badge>
-                        <span className="text-xs text-gray-400">{q.points} pt{q.points !== 1 ? 's' : ''}</span>
+                        <Badge className="text-xs bg-gray-100 text-slate-700">{QUESTION_TYPES.find(t => t.value === q.question_type)?.label}</Badge>
+                        <span className="text-xs text-slate-400">{q.points} pt{q.points !== 1 ? 's' : ''}</span>
                       </div>
-                      <p className="text-sm text-gray-800">{q.content}</p>
+                      <p className="text-sm text-slate-800">{q.content}</p>
                       {q.question_type === 'multiple_choice' && q.options && (
                         <div className="mt-2 grid grid-cols-2 gap-1">
                           {q.options.map((opt) => (
-                            <span key={opt.label} className={`text-xs px-2 py-1 rounded ${opt.is_correct ? 'bg-green-100 text-green-800 font-medium' : 'bg-gray-100 text-gray-600'}`}>
+                            <span key={opt.label} className={`text-xs px-2 py-1 rounded ${opt.is_correct ? 'bg-green-100 text-green-800 font-medium' : 'bg-gray-100 text-slate-600'}`}>
                               {opt.label}. {opt.text}
                             </span>
                           ))}
@@ -317,7 +317,7 @@ const QuestionBank = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={() => handleEditQuestion(q)} className="p-1.5 rounded hover:bg-gray-200 text-gray-500">
+                      <button onClick={() => handleEditQuestion(q)} className="p-1.5 rounded hover:bg-gray-200 text-slate-500">
                         <Edit size={14} />
                       </button>
                       <button onClick={() => handleDeleteQuestion(q.id)} className="p-1.5 rounded hover:bg-red-100 text-red-500">
@@ -342,17 +342,17 @@ const QuestionBank = () => {
             <h2 className="text-lg font-bold mb-4">Create Question Bank</h2>
             <form onSubmit={handleCreateBank} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Name *</label>
                 <input type="text" required value={bankForm.name} onChange={(e) => setBankForm({ ...bankForm, name: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="e.g., Grade 7 Math - Chapter 1" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
                 <textarea value={bankForm.description} onChange={(e) => setBankForm({ ...bankForm, description: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm" rows={2} placeholder="Optional description" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
                 <select value={bankForm.subject} onChange={(e) => setBankForm({ ...bankForm, subject: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm">
                   <option value="">All Subjects</option>
@@ -376,14 +376,14 @@ const QuestionBank = () => {
             <form onSubmit={handleAddQuestion} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Type *</label>
                   <select value={questionForm.question_type} onChange={(e) => setQuestionForm({ ...questionForm, question_type: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-sm">
                     {QUESTION_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Difficulty</label>
                   <select value={questionForm.difficulty} onChange={(e) => setQuestionForm({ ...questionForm, difficulty: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-sm">
                     <option value="easy">Easy</option>
@@ -394,13 +394,13 @@ const QuestionBank = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Question *</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Question *</label>
                 <textarea required value={questionForm.content} onChange={(e) => setQuestionForm({ ...questionForm, content: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm" rows={3} placeholder="Enter the question..." />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Points</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Points</label>
                 <input type="number" min={1} value={questionForm.points} onChange={(e) => setQuestionForm({ ...questionForm, points: parseInt(e.target.value) || 1 })}
                   className="w-24 border rounded-lg px-3 py-2 text-sm" />
               </div>
@@ -408,7 +408,7 @@ const QuestionBank = () => {
               {/* MC Options */}
               {(questionForm.question_type === 'multiple_choice' || questionForm.question_type === 'true_false') && (
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">Options (click radio to mark correct)</label>
+                  <label className="block text-sm font-medium text-slate-700">Options (click radio to mark correct)</label>
                   {questionForm.options.map((opt, idx) => (
                     <div key={idx} className="flex items-center gap-2">
                       <input type="radio" name="correct" checked={opt.is_correct}
@@ -436,7 +436,7 @@ const QuestionBank = () => {
               {/* Identification / Fill Blank */}
               {(questionForm.question_type === 'identification' || questionForm.question_type === 'fill_blank') && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Correct Answer *</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Correct Answer *</label>
                   <input type="text" required value={questionForm.correct_answer}
                     onChange={(e) => setQuestionForm({ ...questionForm, correct_answer: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-sm" placeholder="Enter the correct answer" />
@@ -446,7 +446,7 @@ const QuestionBank = () => {
               {/* Essay */}
               {questionForm.question_type === 'essay' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Model Answer / Rubric</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Model Answer / Rubric</label>
                   <textarea value={questionForm.model_answer}
                     onChange={(e) => setQuestionForm({ ...questionForm, model_answer: e.target.value })}
                     className="w-full border rounded-lg px-3 py-2 text-sm" rows={3}
@@ -455,7 +455,7 @@ const QuestionBank = () => {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Explanation (shown after answering)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Explanation (shown after answering)</label>
                 <textarea value={questionForm.explanation}
                   onChange={(e) => setQuestionForm({ ...questionForm, explanation: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm" rows={2}

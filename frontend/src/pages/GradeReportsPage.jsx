@@ -28,9 +28,9 @@ const ReportCard = ({ report, onClick }) => (
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={report.icon} />
           </svg>
         </div>
-        <h4 className="font-semibold text-gray-900">{report.label}</h4>
+        <h4 className="font-semibold text-slate-900">{report.label}</h4>
       </div>
-      <p className="text-sm text-gray-500">Generate and export {report.label.toLowerCase()}</p>
+      <p className="text-sm text-slate-500">Generate and export {report.label.toLowerCase()}</p>
     </div>
   </motion.div>
 );
@@ -40,18 +40,18 @@ const SubmissionReportTable = ({ data }) => (
     <table className="w-full">
       <thead>
         <tr className="bg-gray-50 border-b border-gray-200">
-          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teacher</th>
-          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Classes</th>
-          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
-          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pending</th>
-          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Completion</th>
-          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Activity</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Teacher</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Classes</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Submitted</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Pending</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Completion</th>
+          <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Last Activity</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100">
         {data.map((row) => (
           <tr key={row.id} className="hover:bg-gray-50">
-            <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.name}</td>
+            <td className="px-4 py-3 text-sm font-medium text-slate-900">{row.name}</td>
             <td className="px-4 py-3 text-sm">{row.total_classes}</td>
             <td className="px-4 py-3 text-sm text-green-600">{row.submitted}</td>
             <td className="px-4 py-3 text-sm text-amber-600">{row.pending}</td>
@@ -66,10 +66,10 @@ const SubmissionReportTable = ({ data }) => (
                     style={{ width: `${row.completion_percentage}%` }}
                   />
                 </div>
-                <span className="text-xs text-gray-500">{row.completion_percentage}%</span>
+                <span className="text-xs text-slate-500">{row.completion_percentage}%</span>
               </div>
             </td>
-            <td className="px-4 py-3 text-xs text-gray-500">
+            <td className="px-4 py-3 text-xs text-slate-500">
               {row.last_submission ? new Date(row.last_submission).toLocaleDateString() : 'N/A'}
             </td>
           </tr>
@@ -163,8 +163,8 @@ export default function GradeReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Grade Reports</h1>
-        <p className="text-sm text-gray-500 mt-1">Generate and export grade management reports</p>
+        <h1 className="text-2xl font-bold text-slate-900">Grade Reports</h1>
+        <p className="text-sm text-slate-500 mt-1">Generate and export grade management reports</p>
       </div>
 
       {!selectedReport ? (
@@ -186,7 +186,7 @@ export default function GradeReportsPage() {
               </svg>
               Back
             </Button>
-            <h2 className="text-lg font-semibold text-gray-900">{selectedReport.label}</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{selectedReport.label}</h2>
             {reportData && (
               <div className="ml-auto flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleExport('csv')}>
@@ -208,20 +208,20 @@ export default function GradeReportsPage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 text-center">
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <p className="text-3xl font-bold text-gray-900">{reportData.total}</p>
-                      <p className="text-sm text-gray-500">Total Teachers</p>
+                      <p className="text-3xl font-bold text-slate-900">{reportData.total}</p>
+                      <p className="text-sm text-slate-500">Total Teachers</p>
                     </div>
                     <div className="p-4 bg-green-50 rounded-lg">
                       <p className="text-3xl font-bold text-green-600">{reportData.submitted}</p>
-                      <p className="text-sm text-gray-500">Submitted</p>
+                      <p className="text-sm text-slate-500">Submitted</p>
                     </div>
                     <div className="p-4 bg-amber-50 rounded-lg">
                       <p className="text-3xl font-bold text-amber-600">{reportData.pending}</p>
-                      <p className="text-sm text-gray-500">Pending</p>
+                      <p className="text-sm text-slate-500">Pending</p>
                     </div>
                     <div className="p-4 bg-purple-50 rounded-lg">
                       <p className="text-3xl font-bold text-purple-600">{reportData.percentage}%</p>
-                      <p className="text-sm text-gray-500">Completion</p>
+                      <p className="text-sm text-slate-500">Completion</p>
                     </div>
                   </div>
                   {reportData.teacher_details?.length > 0 && (
@@ -231,7 +231,7 @@ export default function GradeReportsPage() {
               ) : Array.isArray(reportData) ? (
                 <SubmissionReportTable data={reportData} />
               ) : (
-                <pre className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg overflow-auto">
+                <pre className="text-sm text-slate-700 bg-gray-50 p-4 rounded-lg overflow-auto">
                   {JSON.stringify(reportData, null, 2)}
                 </pre>
               )}

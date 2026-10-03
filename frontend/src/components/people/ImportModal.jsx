@@ -220,7 +220,7 @@ export default function ImportModal({
   return (
     <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4 animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-md border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-        <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
+        <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b border-violet-900">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -228,8 +228,8 @@ export default function ImportModal({
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Import {userType.charAt(0).toUpperCase() + userType.slice(1)}s</h2>
-              <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Upload CSV/Excel file to bulk create accounts</p>
+              <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">Import {userType.charAt(0).toUpperCase() + userType.slice(1)}s</h2>
+              <p className="text-violet-200 text-[10px] mt-0.5 font-medium tracking-wide">Upload CSV/Excel file to bulk create accounts</p>
             </div>
           </div>
           <button type="button" onClick={onClose}
@@ -241,7 +241,7 @@ export default function ImportModal({
         </div>
         <div className="p-5 space-y-5 flex-1 overflow-y-auto">
           <div
-            className={`border-2 dashed rounded-lg p-6 transition-colors ${dragActive ? 'border-violet-500 bg-violet-50' : 'border-slate-200'}`}
+            className={`border dashed rounded-lg p-6 transition-colors ${dragActive ? 'border-violet-500 bg-violet-50' : 'border-slate-200'}`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -286,7 +286,7 @@ export default function ImportModal({
                 Download Template
               </button>
               <div className="absolute top-full left-0 mt-2 w-72 p-4 bg-slate-900 text-white rounded shadow-xl opacity-0 invisible group-hover/opacity-100 group-hover/visible transition-all z-[110]">
-                <h4 className="text-xs font-bold uppercase tracking-wide text-violet-400 mb-3 border-b border-white/10 pb-2">Import Instructions</h4>
+                <h4 className="text-xs font-bold tracking-wide text-violet-400 mb-3 border-b border-white/10 pb-2">Import Instructions</h4>
                 <ul className="space-y-2">
                   {template.instructions.map((instruction, i) => (
                     <li key={i} className="flex gap-2">

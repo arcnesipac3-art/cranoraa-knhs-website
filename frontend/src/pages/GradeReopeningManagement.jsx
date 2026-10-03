@@ -28,8 +28,8 @@ const RequestCard = ({ request, onApprove, onReject }) => {
       <div className="p-5">
         <div className="flex items-start justify-between mb-3">
           <div>
-            <h4 className="font-semibold text-gray-900">{request.teacher_name}</h4>
-            <p className="text-sm text-gray-500">{detail?.classroom_name} - {detail?.subject_name}</p>
+            <h4 className="font-semibold text-slate-900">{request.teacher_name}</h4>
+            <p className="text-sm text-slate-500">{detail?.classroom_name} - {detail?.subject_name}</p>
           </div>
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}>
             {style.label}
@@ -37,12 +37,12 @@ const RequestCard = ({ request, onApprove, onReject }) => {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm mb-3">
-          <div><span className="text-gray-500">Quarter:</span> <span className="font-medium">Q{detail?.quarter}</span></div>
-          <div><span className="text-gray-500">Status:</span> <span className="font-medium">{detail?.status}</span></div>
+          <div><span className="text-slate-500">Quarter:</span> <span className="font-medium">Q{detail?.quarter}</span></div>
+          <div><span className="text-slate-500">Status:</span> <span className="font-medium">{detail?.status}</span></div>
         </div>
 
         <div className="bg-gray-50 rounded-lg p-3 mb-3">
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-slate-700">
             <span className="font-medium">Reason:</span> {request.reason}
           </p>
         </div>
@@ -55,7 +55,7 @@ const RequestCard = ({ request, onApprove, onReject }) => {
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-gray-400 pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-gray-100">
           <span>Requested: {new Date(request.created_at).toLocaleString()}</span>
           {request.reviewed_at && (
             <span>Reviewed: {new Date(request.reviewed_at).toLocaleString()}</span>
@@ -95,18 +95,18 @@ const ReviewModal = ({ isOpen, onClose, request, action, onConfirm }) => {
       <ModalBody>
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               <span className="font-medium">Teacher:</span> {request.teacher_name}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               <span className="font-medium">Class:</span> {request.submission_detail?.classroom_name} - {request.submission_detail?.subject_name}
             </p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               <span className="font-medium">Quarter:</span> Q{request.submission_detail?.quarter}
             </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               {action === 'approve' ? 'Notes (optional)' : 'Reason for rejection'}
             </label>
             <textarea
@@ -192,8 +192,8 @@ export default function GradeReopeningManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Grade Reopening Requests</h1>
-        <p className="text-sm text-gray-500 mt-1">Review and manage teacher requests to reopen locked grades</p>
+        <h1 className="text-2xl font-bold text-slate-900">Grade Reopening Requests</h1>
+        <p className="text-sm text-slate-500 mt-1">Review and manage teacher requests to reopen locked grades</p>
       </div>
 
       <div className="flex items-center gap-2 overflow-x-auto pb-2">
@@ -204,7 +204,7 @@ export default function GradeReopeningManagement() {
             className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
               filterStatus === status
                 ? 'bg-brand-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
             }`}
           >
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -226,7 +226,7 @@ export default function GradeReopeningManagement() {
           title="No Reopening Requests"
           description="There are no reopening requests matching this filter."
           icon={
-            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           }

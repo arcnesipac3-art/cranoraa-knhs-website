@@ -169,10 +169,10 @@ export default function GradeAnalytics() {
       {/* Header & Filters */}
       <motion.div variants={item} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
             Grade Analytics
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Performance insights for your classes
           </p>
         </div>
@@ -270,7 +270,7 @@ export default function GradeAnalytics() {
               {loading ? (
                 <Skeleton className="h-56 sm:h-72 w-full" />
               ) : subjectPerformance.length === 0 ? (
-                <p className="py-12 text-center text-sm text-gray-400">
+                <p className="py-12 text-center text-sm text-slate-400">
                   No subject data available
                 </p>
               ) : (
@@ -324,7 +324,7 @@ export default function GradeAnalytics() {
               {loading ? (
                 <Skeleton className="h-56 sm:h-72 w-full" />
               ) : gradeDistribution.length === 0 ? (
-                <p className="py-12 text-center text-sm text-gray-400">
+                <p className="py-12 text-center text-sm text-slate-400">
                   No distribution data available
                 </p>
               ) : (
@@ -371,7 +371,7 @@ export default function GradeAnalytics() {
               {loading ? (
                 <Skeleton className="h-56 sm:h-72 w-full" />
               ) : quarterlyTrend.length === 0 ? (
-              <p className="py-12 text-center text-sm text-gray-400">
+              <p className="py-12 text-center text-sm text-slate-400">
                 No quarterly data available
               </p>
             ) : (
@@ -432,13 +432,13 @@ export default function GradeAnalytics() {
                 <Skeleton className="h-48 w-full" />
               </div>
             ) : atRiskStudents.length === 0 ? (
-              <p className="py-12 text-center text-sm text-gray-400">
+              <p className="py-12 text-center text-sm text-slate-400">
                 No at-risk students found
               </p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="border-b border-gray-200 bg-gray-50 text-xs font-medium uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                  <thead className="border-b border-gray-200 bg-gray-50 text-xs font-medium tracking-wider text-slate-500 dark:border-gray-700 dark:bg-gray-800 dark:text-slate-400">
                     <tr>
                       <th className="px-6 py-3">Student Name</th>
                       <th className="px-6 py-3">Average</th>
@@ -459,7 +459,7 @@ export default function GradeAnalytics() {
                           })
                         }
                       >
-                        <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">
+                        <td className="whitespace-nowrap px-6 py-4 font-medium text-slate-900 dark:text-white">
                           {s.name}
                         </td>
                         <td className="whitespace-nowrap px-6 py-4">
@@ -467,16 +467,16 @@ export default function GradeAnalytics() {
                             className={
                               s.average < 75
                                 ? 'font-semibold text-red-600'
-                                : 'text-gray-700 dark:text-gray-300'
+                                : 'text-slate-700 dark:text-slate-300'
                             }
                           >
                             {s.average?.toFixed(1) ?? '—'}
                           </span>
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-gray-700 dark:text-gray-300">
+                        <td className="whitespace-nowrap px-6 py-4 text-slate-700 dark:text-slate-300">
                           {s.failing_subjects ?? 0}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-gray-700 dark:text-gray-300">
+                        <td className="whitespace-nowrap px-6 py-4 text-slate-700 dark:text-slate-300">
                           {s.attendance_rate != null
                             ? `${s.attendance_rate.toFixed(1)}%`
                             : '—'}
@@ -490,7 +490,7 @@ export default function GradeAnalytics() {
                             {RISK_LABEL[s.risk_level] ?? s.risk_level}
                           </span>
                         </td>
-                        <td className="max-w-[260px] truncate px-6 py-4 text-gray-500 dark:text-gray-400">
+                        <td className="max-w-[260px] truncate px-6 py-4 text-slate-500 dark:text-slate-400">
                           {s.risk_factors?.join(', ') ?? '—'}
                         </td>
                       </tr>
@@ -518,7 +518,7 @@ export default function GradeAnalytics() {
               {loading ? (
                 <Skeleton className="h-56 w-full" />
               ) : (stats?.top_performers ?? []).length === 0 ? (
-                <p className="py-8 text-center text-sm text-gray-400">
+                <p className="py-8 text-center text-sm text-slate-400">
                   No data available
                 </p>
               ) : (
@@ -532,10 +532,10 @@ export default function GradeAnalytics() {
                         {i + 1}
                       </span>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-slate-900 dark:text-white">
                           {s.name}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {s.subject ?? 'Overall'}
                         </p>
                       </div>
@@ -563,7 +563,7 @@ export default function GradeAnalytics() {
               {loading ? (
                 <Skeleton className="h-56 w-full" />
               ) : (stats?.struggling_students ?? []).length === 0 ? (
-                <p className="py-8 text-center text-sm text-gray-400">
+                <p className="py-8 text-center text-sm text-slate-400">
                   No data available
                 </p>
               ) : (
@@ -577,10 +577,10 @@ export default function GradeAnalytics() {
                         {i + 1}
                       </span>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-slate-900 dark:text-white">
                           {s.name}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {s.suggestion ?? 'Schedule a parent conference & provide supplemental materials'}
                         </p>
                       </div>
@@ -609,10 +609,10 @@ function StatCard({ icon, label, value, accent, highlight }) {
           {icon}
         </div>
         <div>
-          <p className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400">
+          <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
             {label}
           </p>
-          <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
+          <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
             {value}
           </p>
         </div>

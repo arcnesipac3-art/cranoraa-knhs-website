@@ -99,13 +99,13 @@ export default function UserTableRow({
     <div className="bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-shadow group relative overflow-visible min-w-0">
       <div className="flex items-start justify-between mb-3">
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-black text-slate-800 leading-tight truncate">{displayName}</h3>
+          <h3 className="text-sm font-bold text-slate-800 leading-tight truncate">{displayName}</h3>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <span className={`text-[9px] font-bold uppercase tracking-wide border px-2 py-0.5 rounded ${statusColor}`}>
+            <span className={`text-[9px] font-bold tracking-wide border px-2 py-0.5 rounded ${statusColor}`}>
               {user.account_status}
             </span>
             {user.role === 'staff' && (
-              <span className="text-[9px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded uppercase">
+              <span className="text-[9px] font-bold text-violet-600 bg-violet-50 px-2 py-0.5 rounded">
                 {user.staff_title || 'Teacher'}
               </span>
             )}
@@ -198,11 +198,11 @@ export default function UserTableRow({
                 </button>
 
                 <div className="border-t border-slate-100 mt-1 pt-1 px-3 py-2">
-                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">Status</label>
+                  <label className="text-[9px] font-bold text-slate-400 tracking-wide mb-1 block">Status</label>
                   <select 
                     value={user.account_status} 
                     onChange={(e) => handleToggleStatus(e.target.value)}
-                    className="w-full text-xs font-bold px-2 py-1.5 border border-slate-200 rounded bg-white focus:ring-1 focus:ring-violet-500 cursor-pointer uppercase tracking-wide"
+                    className="w-full text-xs font-bold px-2 py-1.5 border border-slate-200 rounded bg-white focus:ring-1 focus:ring-violet-500 cursor-pointer tracking-wide"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -259,12 +259,12 @@ export default function UserTableRow({
           <svg className="w-3 h-3 mr-2 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          <span className="text-[9px] md:text-xs font-medium uppercase text-slate-500">{user.profile?.sex || 'N/A'}</span>
+          <span className="text-[9px] md:text-xs font-medium text-slate-500">{user.profile?.sex || 'N/A'}</span>
         </div>
 
         {showTempPassword && user.must_change_password && (
           <div className="mt-1 flex items-center gap-1">
-            <span className="text-[8px] font-bold text-amber-600 uppercase">Temp:</span>
+            <span className="text-[8px] font-bold text-amber-600">Temp:</span>
             <span className="text-[9px] font-mono font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 border border-amber-200 select-all cursor-help" title="Visible until user changes password">
               {user.temp_password_storage || 'Pending'}
             </span>
@@ -285,8 +285,8 @@ export default function UserTableRow({
 
       <div className="pt-2 border-t border-slate-100">
         <div className="flex items-center justify-between mb-1">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Classes</p>
-          <span className="text-[9px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded uppercase">
+          <p className="text-[9px] font-bold text-slate-400 tracking-[0.1em]">Classes</p>
+          <span className="text-[9px] font-bold text-violet-600 bg-violet-50 px-1.5 py-0.5 rounded">
             {user.classroom_count || 0}
           </span>
         </div>

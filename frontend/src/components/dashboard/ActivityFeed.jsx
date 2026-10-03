@@ -22,7 +22,7 @@ const ActivityFeed = memo(({ activities = [] }) => {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">Activity Feed</h3>
+            <h3 className="text-sm font-bold text-slate-900">Activity Feed</h3>
             <p className="text-[10px] text-slate-500 font-medium">Recent actions</p>
           </div>
         </div>
@@ -57,7 +57,7 @@ const ActivityFeed = memo(({ activities = [] }) => {
                     className="flex items-start gap-3 relative"
                   >
                     <div className={cn(
-                      'w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0 relative z-10 border-2 border-white shadow-sm',
+                      'w-[30px] h-[30px] rounded-lg flex items-center justify-center shrink-0 relative z-10 border border-white shadow-sm',
                       icon.bg, icon.text
                     )}>
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

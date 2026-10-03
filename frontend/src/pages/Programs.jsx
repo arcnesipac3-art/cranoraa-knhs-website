@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { useWebsiteContent } from '../hooks/useWebsiteContent';
 import { Skeleton } from '../components/ui';
+import { PageHero, SectionHeading } from '../components/public';
 
 const Programs = () => {
   const { content, loading } = useWebsiteContent();
@@ -10,13 +11,13 @@ const Programs = () => {
     const detailKey = `programs_${program.key}_details`;
     const details = content[detailKey]?.content || 'Details for this program are coming soon. Please check back later or contact the school office for more information.';
     Swal.fire({
-      title: `<span class="text-xl font-black text-gray-900">${program.title}</span>`,
+      title: `<span class="text-xl font-bold text-slate-900">${program.title}</span>`,
       html: `
         <div class="text-left">
-          <div class="w-full h-44 rounded-xl overflow-hidden mb-5">
-            <img src="${program.image}" class="w-full h-full object-cover" />
+          <div class="mb-5 h-44 w-full overflow-hidden rounded-lg border border-slate-200">
+            <img src="${program.image}" alt="" class="h-full w-full object-cover" />
           </div>
-          <p class="text-gray-600 leading-relaxed whitespace-pre-line text-sm font-medium">${details}</p>
+          <p class="whitespace-pre-line text-sm leading-relaxed text-slate-600">${details}</p>
         </div>
       `,
       showCloseButton: true,
@@ -25,7 +26,7 @@ const Programs = () => {
       padding: '2rem',
       background: '#ffffff',
       customClass: {
-        popup: 'rounded-2xl border border-violet-200 shadow-2xl',
+        popup: 'rounded-lg border border-slate-200 shadow-xl',
       },
     });
   };
@@ -72,100 +73,112 @@ const Programs = () => {
 
   return (
     <div className="bg-white">
+      {/* ── Page header ── */}
+      <PageHero
+        breadcrumb={[
+          { label: 'Home', to: '/' },
+          { label: 'About' },
+          { label: 'School programs' },
+        ]}
+        kicker="Academic excellence"
+        title={content.programs_title?.content || 'Our Programs'}
+        lead={content.programs_subtitle?.content || 'Discover the diverse educational opportunities we offer, designed to prepare students for a bright future.'}
+        actions={
+          <Link to="/enroll" className="public-btn-primary">Apply for enrollment</Link>
+        }
+      />
+      {/* ── Program offerings ── */}
+      <section className="public-section">
+        <div className="public-shell">
+          <SectionHeading
+            kicker="Program offerings"
+            title="Programs offered"
+            lead="Four program areas that develop the academic, technical, artistic and athletic potential of every learner under the DepEd basic education curriculum."
+          />
 
-      {/* ── Hero Banner ── */}
-      <section className="bg-violet-950 py-16 md:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-5">
-          <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-              <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-4">Academic Excellence</p>
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5">
-                {content.programs_title?.content || 'Our Programs'}
-              </h1>
-              <p className="text-violet-100 leading-relaxed text-lg">
-                {content.programs_subtitle?.content || 'Discover the diverse educational opportunities we offer, designed to prepare students for a bright future.'}
-              </p>
-            </div>
-        </div>
-      </section>
-
-      {/* ── Programs Grid ── */}
-      <section className="py-16 md:py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
             {programList.map((program, i) => (
-              <div key={i} className="group bg-white rounded-2xl border-2 border-violet-200 overflow-hidden hover:shadow-xl hover:border-violet-400 transition-all duration-300 flex flex-col">
+              <article key={program.key} className="public-card-interactive flex flex-col overflow-hidden">
                 {/* Image */}
-                <div className="relative h-56 overflow-hidden">
-                   <img src={program.image} alt={program.title} className="w-full h-full object-cover" loading="lazy" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-violet-950/70 via-violet-900/30 to-transparent" />
-                  {/* Number badge */}
-                  <div className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-white/20 border border-white/40 backdrop-blur-sm flex items-center justify-center">
-                    <span className="text-sm font-black text-white">0{i + 1}</span>
-                  </div>
-                  {/* Icon */}
-                  <div className="absolute bottom-4 left-4 flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-violet-900 flex items-center justify-center shadow-lg">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={program.icon} />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-black text-white drop-shadow-lg">{program.title}</h3>
-                  </div>
+                <div className="relative h-44 overflow-hidden border-b border-slate-200">
+                  <img
+                    src={program.image}
+                    alt={program.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-gradient-to-t from-slate-900/45 via-slate-900/10 to-transparent"
+                  />
+                  <span className="absolute left-3 top-3 rounded border border-white/60 bg-white/85 px-2 py-0.5 text-[11px] font-semibold tracking-wider text-slate-600">
+                    {`0${i + 1}`}
+                  </span>
                 </div>
+
                 {/* Content */}
-                <div className="p-3 sm:p-6 flex-1 flex flex-col">
-                  <p className="text-sm text-gray-600 leading-relaxed flex-1">{program.content}</p>
-                  <div className="mt-5 pt-4 border-t border-violet-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-violet-800 uppercase">DepEd Curriculum</span>
+                <div className="flex flex-1 flex-col p-5 sm:p-6">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-violet-200 bg-violet-50 text-violet-700">
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d={program.icon} />
+                      </svg>
+                    </span>
+                    <h3 className="public-subheading">{program.title}</h3>
+                  </div>
+
+                  <p className="mt-4 flex-1 text-sm leading-relaxed text-slate-600">{program.content}</p>
+
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                    <span className="public-badge">DepEd curriculum</span>
                     <button
+                      type="button"
                       onClick={() => handleViewDetails(program)}
-                      className="inline-flex items-center gap-1.5 text-sm font-bold text-violet-900 hover:text-slate-900 transition-colors"
+                      className="public-link inline-flex items-center gap-1.5 text-sm"
                     >
-                      View Details
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4 4H3" />
+                      View details
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M17 8l4 4m0 0l-4 4m4 4H3" />
                       </svg>
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
       </section>
+      {/* ── Admissions call to action ── */}
+      <section className="public-section public-section-alt">
+        <div className="public-shell">
+          <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-2">
+            <SectionHeading
+              kicker="Admissions"
+              title="Ready to enroll?"
+              lead="Our curriculum is designed to challenge and inspire students at every level. Speak with the school office or start your application online."
+            />
 
-      {/* ── CTA Section ── */}
-      <section className="py-16 md:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-violet-950 rounded-3xl px-8 py-14 md:px-16 md:py-20 relative overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none opacity-5">
-              <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-            </div>
-            <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-              <div>
-                <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-3">Start Your Journey</p>
-                <h2 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight uppercase">Ready to Enroll?</h2>
-                <p className="text-violet-100 leading-relaxed mb-6">Our comprehensive curriculum is designed to challenge and inspire students at every level.</p>
-                <div className="flex flex-wrap gap-2">
-                  {['Science & Tech', 'Liberal Arts', 'Engineering', 'Vocational'].map(tag => (
-                    <span key={tag} className="px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white text-xs font-bold">{tag}</span>
-                  ))}
-                </div>
+            <div className="public-card p-6">
+              <p className="public-kicker-muted">Areas of study</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {['Science and tech', 'Liberal arts', 'Engineering', 'Vocational'].map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded border border-violet-200 bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-800"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
-              <div className="lg:text-right">
-                <Link to="/enroll" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-white text-violet-900 font-black text-sm hover:bg-violet-50 transition-colors shadow-2xl uppercase">
-                  Apply for Admission
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4 4H3" /></svg>
-                </Link>
+
+              <div className="mt-5 flex flex-wrap gap-3 border-t border-slate-100 pt-5">
+                <Link to="/enroll" className="public-btn-primary">Apply for admission</Link>
+                <Link to="/contact" className="public-btn-secondary">Contact the school office</Link>
               </div>
             </div>
           </div>
         </div>
       </section>
-
     </div>
   );
 };

@@ -104,7 +104,7 @@ const Modal = ({
       >
         {/* Auto-header when title prop is passed */}
         {title && (
-          <div className="bg-violet-600 flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-700">
+          <div className="bg-violet-600 flex items-center justify-between px-5 py-3 flex-shrink-0 border-b border-violet-700">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-7 h-7 rounded-lg bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -112,8 +112,8 @@ const Modal = ({
                 </svg>
               </div>
               <div className="min-w-0">
-                <h2 id="modal-title" className="text-sm font-black text-white uppercase tracking-widest leading-none">{title}</h2>
-                {subtitle && <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">{subtitle}</p>}
+                <h2 id="modal-title" className="text-sm font-bold text-white tracking-[0.1em] leading-none">{title}</h2>
+                {subtitle && <p className="text-violet-200 text-[10px] mt-0.5 font-medium tracking-wide">{subtitle}</p>}
               </div>
             </div>
             <button type="button" onClick={onClose} aria-label="Close dialog"
@@ -135,7 +135,7 @@ const Modal = ({
 /* ─── ModalHeader ─────────────────────────────────────────────────────────── */
 export const ModalHeader = ({ children, onClose, className = '', icon, ...props }) => (
   <div className={cn(
-    'bg-violet-600 flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-700',
+    'bg-violet-600 flex items-center justify-between px-5 py-3 flex-shrink-0 border-b border-violet-700',
     className
   )} {...props}>
     <div className="flex items-center gap-3 min-w-0">
@@ -162,8 +162,8 @@ export const ModalHeader = ({ children, onClose, className = '', icon, ...props 
 /** Convenience: standard title + subtitle inside ModalHeader */
 export const ModalTitle = ({ title, subtitle }) => (
   <div>
-    <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">{title}</h2>
-    {subtitle && <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">{subtitle}</p>}
+    <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">{title}</h2>
+    {subtitle && <p className="text-violet-200 text-[10px] mt-0.5 font-medium tracking-wide">{subtitle}</p>}
   </div>
 );
 
@@ -205,7 +205,7 @@ export const modalTextareaCls = 'w-full px-4 py-2.5 border border-slate-300 roun
 /** Primary action button */
 export const ModalBtnPrimary = ({ children, loading, className = '', ...props }) => (
   <button type="submit"
-    className={cn('inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-violet-600 text-white text-xs font-bold uppercase tracking-wider hover:bg-violet-700 active:bg-violet-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2', className)}
+    className={cn('inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-violet-600 text-white text-xs font-bold tracking-wider hover:bg-violet-700 active:bg-violet-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2', className)}
     disabled={loading}
     aria-busy={loading || undefined}
     {...props}
@@ -223,7 +223,7 @@ export const ModalBtnPrimary = ({ children, loading, className = '', ...props })
 /** Cancel / secondary button */
 export const ModalBtnSecondary = ({ children, className = '', ...props }) => (
   <button type="button"
-    className={cn('inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-slate-700 text-xs font-bold uppercase tracking-wider border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2', className)}
+    className={cn('inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white text-slate-700 text-xs font-bold tracking-wider border border-slate-300 hover:bg-slate-50 hover:border-slate-400 active:bg-slate-100 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2', className)}
     {...props}
   >
     {children}

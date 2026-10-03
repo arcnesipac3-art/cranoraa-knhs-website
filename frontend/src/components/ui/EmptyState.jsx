@@ -26,7 +26,7 @@ const EmptyState = ({
       {...props}
     >
       {icon && (
-        <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-5">
+        <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 mb-5">
           {icon}
         </div>
       )}

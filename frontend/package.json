@@ -21,10 +21,14 @@
     "codemod:fix-escape:dry": "jscodeshift -t ../scripts/codemods/fix-escape-unescape.js --dry",
     "codemod:fix-html": "jscodeshift -t ../scripts/codemods/fix-html-methods.js",
     "codemod:fix-html:dry": "jscodeshift -t ../scripts/codemods/fix-html-methods.js --dry",
+    "codemod:formalize": "jscodeshift -t ../scripts/codemods/formalize-portal-ui.js",
+    "codemod:formalize:dry": "jscodeshift -t ../scripts/codemods/formalize-portal-ui.js --dry",
+    "codemod:apply-formalize": "cross-env NODE_PATH=node_modules node ../scripts/codemods/apply-formalize.js",
     "codemod:test": "cross-env NODE_PATH=node_modules node ../scripts/codemods/fix-substr.test.js",
     "codemod:test:substr": "cross-env NODE_PATH=node_modules node ../scripts/codemods/fix-substr.test.js",
     "codemod:test:escape": "cross-env NODE_PATH=node_modules node ../scripts/codemods/fix-escape-unescape.test.js",
-    "codemod:test:html": "cross-env NODE_PATH=node_modules node ../scripts/codemods/fix-html-methods.test.js"
+    "codemod:test:html": "cross-env NODE_PATH=node_modules node ../scripts/codemods/fix-html-methods.test.js",
+    "codemod:test:formalize": "cross-env NODE_PATH=node_modules node ../scripts/codemods/formalize-portal-ui.test.js"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.10",

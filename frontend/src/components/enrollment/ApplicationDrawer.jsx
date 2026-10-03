@@ -121,10 +121,10 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
               </svg>
             </div>
             <div className="min-w-0">
-              <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none truncate">
+              <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none truncate">
                 {app.full_name || `${app.first_name} ${app.last_name}`}
               </h2>
-              <p className="text-violet-200 text-[10px] mt-1 font-medium uppercase tracking-wide">
+              <p className="text-violet-200 text-[10px] mt-1 font-medium tracking-wide">
                 {app.enrollment_number || 'No Number'}
               </p>
             </div>
@@ -157,7 +157,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex items-center gap-1.5 px-4 py-3 text-xs font-bold uppercase tracking-wide border-b-2 transition-colors',
+                'flex items-center gap-1.5 px-4 py-3 text-xs font-bold tracking-wide border-b transition-colors',
                 activeTab === tab.id
                   ? 'border-violet-600 text-violet-700'
                   : 'border-transparent text-slate-400 hover:text-slate-600'
@@ -169,7 +169,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
               {tab.label}
               {tab.id === 'documents' && docsTotal > 0 && (
                 <span className={cn(
-                  'ml-1 px-1.5 py-0.5 text-[8px] font-black rounded-full',
+                  'ml-1 px-1.5 py-0.5 text-[8px] font-bold rounded-full',
                   docsVerified === docsTotal ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                 )}>{docsVerifiedCount}/{docsTotal}</span>
               )}
@@ -193,7 +193,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
 
               {/* Address */}
               <div className="bg-slate-50 p-3 rounded-xl">
-                <p className="text-[9px] font-bold text-slate-400 uppercase">Address</p>
+                <p className="text-[9px] font-bold text-slate-400">Address</p>
                 <p className="text-sm font-bold text-slate-800 mt-0.5">
                   {[app.street_address, app.barangay, app.city_municipality, app.province].filter(Boolean).join(', ')}
                 </p>
@@ -201,7 +201,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
 
               {/* Contact Info */}
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Contact</p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-wide mb-2">Contact</p>
                 <div className="space-y-1.5">
                   <ContactRow icon="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" label={app.email} />
                   {app.phone_number && <ContactRow icon="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" label={app.phone_number} />}
@@ -210,14 +210,14 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
 
               {/* Parents */}
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Parents / Guardian</p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-wide mb-2">Parents / Guardian</p>
                 <div className="space-y-2">
                   {app.father_name && <ParentCard name={app.father_name} contact={app.father_contact} email={app.father_email} color="emerald" label="Father" />}
                   {app.mother_name && <ParentCard name={app.mother_name} contact={app.mother_contact} email={app.mother_email} color="rose" label="Mother" />}
                   {app.guardian_name && <ParentCard name={`${app.guardian_name} (${app.guardian_relationship})`} contact={app.guardian_contact} email={app.guardian_email} color="amber" label="Guardian" />}
                   {app.linked_parent_email && (
                     <div className="bg-violet-50 p-3 rounded-xl border border-violet-200">
-                      <p className="text-[9px] font-bold text-violet-600 uppercase">Linked Parent Account</p>
+                      <p className="text-[9px] font-bold text-violet-600">Linked Parent Account</p>
                       <p className="text-xs text-violet-700 font-semibold mt-0.5">{app.linked_parent_email}</p>
                     </div>
                   )}
@@ -227,7 +227,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
               {/* Remarks */}
               {app.remarks && (
                 <div className="bg-slate-50 p-3 rounded-xl">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">Remarks</p>
+                  <p className="text-[9px] font-bold text-slate-400">Remarks</p>
                   <p className="text-sm text-slate-700 mt-0.5">{app.remarks}</p>
                 </div>
               )}
@@ -324,7 +324,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
                     <div key={h.id} className="flex gap-3">
                       <div className="flex flex-col items-center">
                         <div className={cn(
-                          'w-4 h-4 rounded-full border-2',
+                          'w-4 h-4 rounded-full border',
                           i === 0 ? 'bg-violet-500 border-violet-500' : 'bg-white border-slate-300'
                         )} />
                         {i < app.status_history.length - 1 && <div className="w-0.5 h-8 bg-slate-200" />}
@@ -356,13 +356,13 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
           <div className="flex items-center gap-2 flex-wrap">
             {onRequestDocs && (
               <button onClick={() => onRequestDocs(app.id)}
-                className="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 rounded-lg transition-colors">
+                className="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-[10px] font-bold tracking-[0.1em] hover:bg-slate-100 rounded-lg transition-colors">
                 Request Docs
               </button>
             )}
             {onAssignSection && (
               <button onClick={() => onAssignSection(app.id, app.grade_level)}
-                className="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 rounded-lg transition-colors">
+                className="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-[10px] font-bold tracking-[0.1em] hover:bg-slate-100 rounded-lg transition-colors">
                 Set Section
               </button>
             )}
@@ -372,12 +372,12 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
               <>
                 {onReject && (
                   <button onClick={() => onReject(app.id)}
-                    className="px-3 py-1.5 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-700 transition-colors">
+                    className="px-3 py-1.5 bg-rose-600 text-white text-[10px] font-bold tracking-[0.1em] rounded-lg hover:bg-rose-700 transition-colors">
                     Reject
                   </button>
                 )}
                 <button onClick={() => onAction(app.id, 'start_review', { remarks: '' })}
-                  className="px-3 py-1.5 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-violet-700 transition-colors">
+                  className="px-3 py-1.5 bg-violet-600 text-white text-[10px] font-bold tracking-[0.1em] rounded-lg hover:bg-violet-700 transition-colors">
                   Start Review
                 </button>
               </>
@@ -386,13 +386,13 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
               <>
                 {onReject && (
                   <button onClick={() => onReject(app.id)}
-                    className="px-3 py-1.5 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-700 transition-colors">
+                    className="px-3 py-1.5 bg-rose-600 text-white text-[10px] font-bold tracking-[0.1em] rounded-lg hover:bg-rose-700 transition-colors">
                     Reject
                   </button>
                 )}
                 {onApprove && docsVerified && (
                   <button onClick={() => onApprove(app.id)}
-                    className="px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-emerald-700 transition-colors">
+                    className="px-3 py-1.5 bg-emerald-600 text-white text-[10px] font-bold tracking-[0.1em] rounded-lg hover:bg-emerald-700 transition-colors">
                     Approve
                   </button>
                 )}
@@ -400,28 +400,28 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
             )}
             {status === 'approved' && onEnroll && (
               <button onClick={() => onEnroll(app)}
-                className="px-3 py-1.5 bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-violet-700 transition-colors">
+                className="px-3 py-1.5 bg-violet-600 text-white text-[10px] font-bold tracking-[0.1em] rounded-lg hover:bg-violet-700 transition-colors">
                 Enroll Student
               </button>
             )}
             {status === 'enrolled' && onWithdraw && (
               <button onClick={() => onWithdraw(app.id)}
-                className="px-3 py-1.5 bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-amber-700 transition-colors">
+                className="px-3 py-1.5 bg-amber-600 text-white text-[10px] font-bold tracking-[0.1em] rounded-lg hover:bg-amber-700 transition-colors">
                 Unenroll
               </button>
             )}
             {status !== 'enrolled' && onDelete && (
               <button onClick={() => onDelete(app.id, `${app.first_name} ${app.last_name}`)}
-                className="px-3 py-1.5 bg-rose-600 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-rose-700 transition-colors">
+                className="px-3 py-1.5 bg-rose-600 text-white text-[10px] font-bold tracking-[0.1em] rounded-lg hover:bg-rose-700 transition-colors">
                 Delete
               </button>
             )}
             <a href={`/api/enrollment-applications/export-form-pdf/?id=${app.id}`} target="_blank" rel="noreferrer"
-              className="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 rounded-lg transition-colors">
+              className="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-[10px] font-bold tracking-[0.1em] hover:bg-slate-100 rounded-lg transition-colors">
               Print
             </a>
             <button onClick={onClose}
-              className="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 rounded-lg transition-colors">
+              className="px-3 py-1.5 border border-slate-300 bg-white text-slate-700 text-[10px] font-bold tracking-[0.1em] hover:bg-slate-100 rounded-lg transition-colors">
               Close
             </button>
           </div>
@@ -435,7 +435,7 @@ const ApplicationDrawer = ({ application: app, onClose, onAction, classrooms = [
 
 const InfoCard = ({ label, value }) => (
   <div className="bg-slate-50 p-3 rounded-xl">
-    <p className="text-[9px] font-bold text-slate-400 uppercase">{label}</p>
+    <p className="text-[9px] font-bold text-slate-400">{label}</p>
     <p className="text-sm font-bold text-slate-800 mt-0.5">{value}</p>
   </div>
 );
@@ -451,7 +451,7 @@ const ContactRow = ({ icon, label }) => (
 
 const ParentCard = ({ name, contact, email, color, label }) => (
   <div className={`bg-${color}-50 p-3 rounded-xl`}>
-    <p className={`text-[9px] font-bold text-${color}-600 uppercase`}>{label}</p>
+    <p className={`text-[9px] font-bold text-${color}-600`}>{label}</p>
     <p className="text-sm font-bold text-slate-800 mt-0.5">{name}</p>
     {contact && <p className="text-xs text-slate-500">{contact}</p>}
     {email && <p className="text-[10px] text-slate-400">{email}</p>}

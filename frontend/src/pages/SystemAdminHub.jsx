@@ -64,17 +64,17 @@ const TodayAttendanceWidget = ({ data, navigate }) => {
         <div className="flex items-center justify-between">
           <CardTitle subtitle="School-wide today">Attendance</CardTitle>
           <button onClick={() => navigate('/analytics')}
-            className="text-xs font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide">
+            className="text-xs font-bold text-violet-600 hover:text-violet-700 tracking-wide">
             Details
           </button>
         </div>
       </CardHeader>
       <CardBody>
         <div className={`rounded-md border p-4 mb-4 ${palette.bg}`}>
-          <p className={`text-4xl font-extrabold tabular-nums ${palette.num}`}>
+          <p className={`text-4xl font-bold tabular-nums ${palette.num}`}>
             {rate != null ? `${rate}%` : '—'}
           </p>
-          <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">Today's Rate</p>
+          <p className="text-xs font-bold text-slate-600 tracking-wide mt-1">Today's Rate</p>
           {total != null && (
             <p className="text-xs text-slate-500 mt-1">
               {present != null ? `${present} / ` : ''}{total} records
@@ -83,7 +83,7 @@ const TodayAttendanceWidget = ({ data, navigate }) => {
         </div>
         {last7.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">Last 7 school days</p>
+            <p className="text-[10px] font-bold text-slate-500 tracking-wide mb-2">Last 7 school days</p>
             <div className="flex items-end gap-1 h-10">
               {last7.map((d, i) => {
                 const h = Math.max(4, Math.round((d.rate / 100) * 40));
@@ -251,11 +251,11 @@ function DashboardOverview() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-50 via-white to-violet-50/30 border border-violet-100 shadow-sm"
+        className="relative overflow-hidden rounded-lg bg-gradient-to-br from-violet-50 via-white to-violet-50/30 border border-violet-100 shadow-sm"
       >
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 px-6 py-6 md:px-8 md:py-7">
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
               Welcome back, {user?.first_name || 'Admin'} 👋
             </h1>
             <p className="text-sm text-slate-500 mt-1.5 font-medium max-w-md">
@@ -284,7 +284,7 @@ function DashboardOverview() {
               </button>
             </div>
           </div>
-          <div className="hidden md:flex items-center justify-center w-28 h-28 rounded-2xl bg-gradient-to-br from-violet-100 to-violet-50 ring-1 ring-violet-200/60 flex-shrink-0">
+          <div className="hidden md:flex items-center justify-center w-28 h-28 rounded-lg bg-gradient-to-br from-violet-100 to-violet-50 ring-1 ring-violet-200/60 flex-shrink-0">
             <Shield className="w-14 h-14 text-violet-400" strokeWidth={1.2} />
           </div>
         </div>
@@ -314,7 +314,7 @@ function DashboardOverview() {
                       <AlertTriangle className="w-5 h-5" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-extrabold mb-1 ${
+                      <p className={`text-sm font-bold mb-1 ${
                         alert.type === 'warning' ? 'text-amber-900' :
                         alert.type === 'error' ? 'text-red-900' : 'text-violet-900'
                       }`}>{alert.title}</p>
@@ -339,7 +339,7 @@ function DashboardOverview() {
       {/* ── SCHOOL OVERVIEW STAT CARDS ── */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">School Overview</h2>
+          <h2 className="text-xs font-bold text-slate-700 tracking-wider">School Overview</h2>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-1.5">
           <StatCard
@@ -395,22 +395,22 @@ function DashboardOverview() {
             <CardBody>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                 <div className="p-4 md:p-5 rounded-md bg-violet-50 border border-violet-200">
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Average Grade</p>
-                  <p className="text-3xl md:text-4xl font-extrabold text-violet-700">
+                  <p className="text-xs font-bold text-slate-600 tracking-wide mb-2">Average Grade</p>
+                  <p className="text-3xl md:text-4xl font-bold text-violet-700">
                     {stats?.average_grade != null ? stats.average_grade.toFixed(1) : '—'}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">Across all subjects</p>
                 </div>
                 <div className="p-4 md:p-5 rounded-md bg-emerald-50 border border-emerald-200">
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Attendance Rate</p>
-                  <p className="text-3xl md:text-4xl font-extrabold text-emerald-700">
+                  <p className="text-xs font-bold text-slate-600 tracking-wide mb-2">Attendance Rate</p>
+                  <p className="text-3xl md:text-4xl font-bold text-emerald-700">
                     {stats?.today_rate != null ? `${stats.today_rate}%` : '—'}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">Today's school-wide rate</p>
                 </div>
                 <div className="p-4 md:p-5 rounded-md bg-sky-50 border border-sky-200">
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Passing Rate</p>
-                  <p className="text-3xl md:text-4xl font-extrabold text-sky-700">
+                  <p className="text-xs font-bold text-slate-600 tracking-wide mb-2">Passing Rate</p>
+                  <p className="text-3xl md:text-4xl font-bold text-sky-700">
                     {stats?.all_subjects?.total_count > 0
                       ? `${100 - (stats?.all_subjects?.below_75_pct ?? 0)}%` : '—'}
                   </p>
@@ -451,7 +451,7 @@ function DashboardOverview() {
                 ) : (
                   <div className="text-center py-6 text-slate-400">
                     <BarChart3 className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    <p className="text-xs font-bold uppercase tracking-widest">No grade data available</p>
+                    <p className="text-xs font-bold tracking-[0.1em]">No grade data available</p>
                     <p className="text-[10px] mt-1">Grades will appear here once teachers submit records.</p>
                   </div>
                 )}

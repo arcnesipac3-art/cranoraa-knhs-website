@@ -122,7 +122,7 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[9999] p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-violet-700 to-indigo-700 flex items-center justify-between px-5 py-4 flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -132,8 +132,8 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest">{isEditing ? 'Edit Event' : 'New Event'}</h2>
-              <p className="text-violet-200 text-[10px] mt-1 font-medium uppercase tracking-wide">Add to school calendar</p>
+              <h2 className="text-sm font-bold text-white tracking-[0.1em]">{isEditing ? 'Edit Event' : 'New Event'}</h2>
+              <p className="text-violet-200 text-[10px] mt-1 font-medium tracking-wide">Add to school calendar</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-white/60 hover:bg-white/20 hover:text-white transition-all" aria-label="Close">
@@ -145,7 +145,7 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
           <div className="p-5 space-y-5">
             {/* Title */}
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Event Title</label>
+              <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">Event Title</label>
               <input type="text" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="e.g. Midterm Examinations" required maxLength={150}
                 className="w-full text-base font-semibold text-slate-900 placeholder-slate-400 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition-all bg-white" />
@@ -153,7 +153,7 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
 
             {/* Description */}
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Description</label>
+              <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">Description</label>
               <textarea value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
                 placeholder="Event details..." rows={3}
                 className="w-full text-sm text-slate-800 placeholder-slate-400 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 resize-none transition-all bg-white" />
@@ -162,12 +162,12 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
             {/* Date & Time */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Start Date & Time</label>
+                <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">Start Date & Time</label>
                 <input type="datetime-local" value={form.event_date} onChange={e => setForm(f => ({ ...f, event_date: e.target.value }))}
                   required className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">End Date & Time</label>
+                <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">End Date & Time</label>
                 <input type="datetime-local" value={form.end_date} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400" />
                 <p className="text-[10px] text-slate-400 mt-1">Optional</p>
@@ -177,14 +177,14 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
             {/* Category & Priority */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Category</label>
+                <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">Category</label>
                 <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400">
                   {CATEGORY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Priority</label>
+                <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">Priority</label>
                 <select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400">
                   {PRIORITY_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -194,7 +194,7 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
 
             {/* Audience */}
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Target Audience</label>
+              <label className="text-xs font-bold text-slate-600 tracking-wider mb-2 block">Target Audience</label>
               <div className="flex flex-wrap gap-2">
                 {AUDIENCE_OPTIONS.map(opt => (
                   <button key={opt.value} type="button" onClick={() => setForm(f => ({ ...f, target_audience: opt.value }))}
@@ -228,7 +228,7 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
 
             {/* Attachments */}
             <div>
-              <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Attachments</label>
+              <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">Attachments</label>
               <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" multiple className="hidden" id="cal-attach"
                 onChange={e => { setAttachments(prev => [...prev, ...Array.from(e.target.files)]); e.target.value = ''; }} />
               {attachments.length > 0 && (
@@ -242,7 +242,7 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
                   ))}
                 </div>
               )}
-              <label htmlFor="cal-attach" className="flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-500 hover:border-violet-300 hover:bg-violet-50/50 hover:text-violet-700 transition-colors rounded-xl cursor-pointer">
+              <label htmlFor="cal-attach" className="flex items-center justify-center gap-2 py-3 border border-dashed border-slate-200 text-sm font-semibold text-slate-500 hover:border-violet-300 hover:bg-violet-50/50 hover:text-violet-700 transition-colors rounded-xl cursor-pointer">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                 </svg>
@@ -268,12 +268,12 @@ const CalendarEventModal = ({ open, onClose, event, onSaved }) => {
           {/* Footer */}
           <div className="sticky bottom-0 flex gap-3 px-5 py-4 border-t border-slate-200 bg-slate-50 flex-shrink-0">
             <button type="button" onClick={onClose}
-              className="px-5 py-2.5 bg-white text-slate-700 text-xs font-bold uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-xl transition-colors">
+              className="px-5 py-2.5 bg-white text-slate-700 text-xs font-bold tracking-[0.1em] border border-slate-300 hover:bg-slate-100 rounded-xl transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-[2] py-2.5 bg-violet-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-violet-700 disabled:opacity-60 flex items-center justify-center gap-2 rounded-xl transition-colors shadow-sm">
-              {saving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              className="flex-[2] py-2.5 bg-violet-600 text-white text-xs font-bold tracking-[0.1em] hover:bg-violet-700 disabled:opacity-60 flex items-center justify-center gap-2 rounded-xl transition-colors shadow-sm">
+              {saving ? <span className="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin" />
                 : isEditing ? 'Save Changes' : 'Create Event'}
             </button>
           </div>

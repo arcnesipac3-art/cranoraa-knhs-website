@@ -25,7 +25,7 @@ const Button = React.forwardRef(({
   const variants = {
     primary: 'bg-violet-600 text-white border border-violet-700 hover:bg-violet-700 shadow-sm',
     secondary: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:border-slate-400 shadow-sm',
-    outline: 'bg-transparent text-violet-700 border-2 border-violet-300 hover:bg-violet-50 hover:border-violet-400',
+    outline: 'bg-transparent text-violet-700 border border-violet-300 hover:bg-violet-50 hover:border-violet-400',
     ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-800',
     danger: 'bg-red-600 text-white border border-red-700 hover:bg-red-700 shadow-sm',
     success: 'bg-emerald-600 text-white border border-emerald-700 hover:bg-emerald-700 shadow-sm',

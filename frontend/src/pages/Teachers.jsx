@@ -78,11 +78,11 @@ function TeacherAvatar({ teacher, size = 'card' }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-violet-50 to-violet-100">
-            <span className="text-3xl font-black text-violet-400 select-none">{initials}</span>
+            <span className="text-3xl font-bold text-violet-400 select-none">{initials}</span>
           </div>
         )}
         {/* Status dot overlay */}
-        <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full border-2 border-white shadow-sm ${
+        <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full border border-white shadow-sm ${
           teacher.account_status === 'active' ? 'bg-emerald-400' :
           teacher.account_status === 'suspended' ? 'bg-rose-400' : 'bg-slate-300'
         }`} />
@@ -96,7 +96,7 @@ function TeacherAvatar({ teacher, size = 'card' }) {
       {showPhoto ? (
          <img src={photo} alt={name} className="w-full h-full object-cover object-top" loading="lazy" onError={() => setImgError(true)} />
       ) : (
-        <span className="text-sm font-black text-violet-500">{initials}</span>
+        <span className="text-sm font-bold text-violet-500">{initials}</span>
       )}
     </div>
   );
@@ -910,37 +910,37 @@ const Teachers = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">Faculty Management</h1>
-              <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide">Staff Accounts & Assignments</p>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Faculty Management</h1>
+              <p className="text-xs font-semibold text-violet-600 tracking-wide">Staff Accounts & Assignments</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
-              <span className="text-lg font-black text-slate-800">{teachers.length}</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Total</span>
+              <span className="text-lg font-bold text-slate-800">{teachers.length}</span>
+              <span className="text-[10px] font-bold text-slate-400">Total</span>
             </div>
             <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              <span className="text-sm font-black text-emerald-700">{activeCount}</span>
-              <span className="text-[10px] font-bold text-emerald-500 uppercase">Active</span>
+              <span className="text-sm font-bold text-emerald-700">{activeCount}</span>
+              <span className="text-[10px] font-bold text-emerald-500">Active</span>
             </div>
             {suspendedCount > 0 && (
               <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 rounded-lg px-3 py-1.5">
                 <span className="w-2 h-2 rounded-full bg-rose-400" />
-                <span className="text-sm font-black text-rose-700">{suspendedCount}</span>
-                <span className="text-[10px] font-bold text-rose-400 uppercase">Suspended</span>
+                <span className="text-sm font-bold text-rose-700">{suspendedCount}</span>
+                <span className="text-[10px] font-bold text-rose-400">Suspended</span>
               </div>
             )}
             {pendingCount > 0 && (
               <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-400" />
-                <span className="text-sm font-black text-amber-700">{pendingCount}</span>
-                <span className="text-[10px] font-bold text-amber-500 uppercase">Pending login</span>
+                <span className="text-sm font-bold text-amber-700">{pendingCount}</span>
+                <span className="text-[10px] font-bold text-amber-500">Pending login</span>
               </div>
             )}
             <div className="flex items-center gap-1.5 bg-violet-50 border border-violet-200 rounded-lg px-3 py-1.5">
-              <span className="text-sm font-black text-violet-700">{adviserCount}</span>
-              <span className="text-[10px] font-bold text-violet-500 uppercase">Advisers</span>
+              <span className="text-sm font-bold text-violet-700">{adviserCount}</span>
+              <span className="text-[10px] font-bold text-violet-500">Advisers</span>
             </div>
           </div>
         </div>
@@ -989,11 +989,11 @@ const Teachers = () => {
             <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden">
               <button onClick={handleExportExcel} className="flex items-center gap-1.5 px-3 py-2 text-emerald-600 hover:bg-emerald-50 transition-colors border-r border-slate-200" title="Export as Excel spreadsheet">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Excel</span>
+                <span className="text-[10px] font-bold tracking-wider hidden sm:inline">Excel</span>
               </button>
               <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-2 text-rose-600 hover:bg-rose-50 transition-colors" title="Export as PDF document">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">PDF</span>
+                <span className="text-[10px] font-bold tracking-wider hidden sm:inline">PDF</span>
               </button>
             </div>
           </div>
@@ -1058,7 +1058,7 @@ const Teachers = () => {
                 }}
                 className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 hover:text-slate-700"
               >
-                <div className={`w-4 h-4 border-2 flex items-center justify-center transition-colors ${
+                <div className={`w-4 h-4 border flex items-center justify-center transition-colors ${
                   selectedIds.length === filteredTeachers.length && filteredTeachers.length > 0
                     ? 'bg-violet-600 border-violet-600'
                     : selectedIds.length > 0
@@ -1090,7 +1090,7 @@ const Teachers = () => {
                   }}
                   className="absolute top-2 left-2 z-10"
                 >
-                  <div className={`w-4.5 h-4.5 border-2 flex items-center justify-center transition-colors ${
+                  <div className={`w-4.5 h-4.5 border flex items-center justify-center transition-colors ${
                     isSelected ? 'bg-violet-600 border-violet-600' : 'border-white/60 bg-black/20 hover:border-white'
                   }`} style={{ width: '18px', height: '18px' }}>
                     {isSelected && (
@@ -1105,22 +1105,22 @@ const Teachers = () => {
 
                 {/* ── Info ── */}
                 <div className="px-3 pt-2.5 pb-2 flex flex-col flex-1">
-                  <h3 className="text-[11px] font-black text-slate-900 leading-tight uppercase tracking-wide line-clamp-2 mb-1">
+                  <h3 className="text-[11px] font-bold text-slate-900 leading-tight tracking-wide line-clamp-2 mb-1">
                     {teacher.profile?.title} {teacher.first_name} {teacher.last_name}
                   </h3>
 
                   {/* Role badges */}
                   <div className="flex flex-wrap gap-1 mb-2">
                     {teacher.is_admin && (
-                      <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded uppercase">
+                      <span className="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
                         Admin
                       </span>
                     )}
-                    <span className="text-[9px] font-bold text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded uppercase">
+                    <span className="text-[9px] font-bold text-violet-700 bg-violet-50 border border-violet-100 px-1.5 py-0.5 rounded">
                       {STAFF_TITLES.find(t => t.value === teacher.staff_title)?.label || teacher.staff_title || 'Staff'}
                     </span>
                     {(teacher.additional_roles || '').split(',').filter(Boolean).map(r => (
-                      <span key={r} className="text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded uppercase">
+                      <span key={r} className="text-[9px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded">
                         {STAFF_TITLES.find(t => t.value === r)?.label || r}
                       </span>
                     ))}
@@ -1135,7 +1135,7 @@ const Teachers = () => {
                   {teacher.is_adviser && (
                     <div className="flex items-center gap-1 mb-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                      <span className="text-[9px] font-bold text-emerald-600 uppercase truncate">
+                      <span className="text-[9px] font-bold text-emerald-600 truncate">
                         {getTeacherClassrooms(teacher.id).find(c => c.teacher === teacher.id)?.name || 'Advisory'}
                       </span>
                     </div>
@@ -1143,7 +1143,7 @@ const Teachers = () => {
 
                   {/* Pending password warning */}
                   {teacher.must_change_password && (
-                    <span className="text-[8px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded uppercase mb-1.5 self-start">
+                    <span className="text-[8px] font-bold text-amber-600 bg-amber-50 border border-amber-100 px-1.5 py-0.5 rounded mb-1.5 self-start">
                       Temp password
                     </span>
                   )}
@@ -1222,10 +1222,10 @@ const Teachers = () => {
                             )}
 
                             <div className="border-t border-slate-100 mt-1 pt-1 px-3 py-1.5">
-                              <label className="text-[8px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">Status</label>
+                              <label className="text-[8px] font-bold text-slate-400 tracking-wide mb-1 block">Status</label>
                               <select value={teacher.account_status}
                                 onChange={(e) => { setActiveMenu(null); handleToggleStatus(teacher, e.target.value); }}
-                                className="w-full text-[10px] font-bold px-2 py-1 border border-slate-200 rounded bg-white focus:ring-1 focus:ring-violet-500 cursor-pointer uppercase">
+                                className="w-full text-[10px] font-bold px-2 py-1 border border-slate-200 rounded bg-white focus:ring-1 focus:ring-violet-500 cursor-pointer">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                                 <option value="suspended">Suspended</option>
@@ -1404,7 +1404,7 @@ const Teachers = () => {
           <ModalTitle title="Bulk Import Teachers" subtitle="Upload Excel or CSV" />
         </ModalHeader>
         <ModalBody className="space-y-5">
-          <div className="border-2 border-dashed border-gray-300 rounded p-6 sm:p-10 text-center hover:border-violet-400 transition-all group relative">
+          <div className="border border-dashed border-gray-300 rounded p-6 sm:p-10 text-center hover:border-violet-400 transition-all group relative">
             <input type="file" accept=".csv, .xlsx, .xls" onChange={handleImportExcel}
               className="absolute inset-0 opacity-0 cursor-pointer z-10" />
             <div className="space-y-4">
@@ -1414,8 +1414,8 @@ const Teachers = () => {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-black text-gray-700 uppercase tracking-tight">Click or drag file here</p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Supports CSV, XLSX</p>
+                <p className="text-sm font-bold text-slate-700 tracking-tight">Click or drag file here</p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em] mt-1">Supports CSV, XLSX</p>
               </div>
             </div>
           </div>
@@ -1425,8 +1425,8 @@ const Teachers = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest mb-1">Important Note</p>
-                <p className="text-[9px] font-bold text-amber-700 leading-relaxed uppercase tracking-tight">
+                <p className="text-[10px] font-bold text-amber-800 tracking-[0.1em] mb-1">Important Note</p>
+                <p className="text-[9px] font-bold text-amber-700 leading-relaxed tracking-tight">
                   Ensure your file follows the official template format to avoid errors.
                 </p>
               </div>

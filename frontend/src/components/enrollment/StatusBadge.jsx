@@ -62,7 +62,7 @@ const STATUS_MAP = {
   },
   cancelled: {
     label: 'Cancelled',
-    bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-200', dot: 'bg-gray-400',
+    bg: 'bg-gray-100', text: 'text-slate-600', border: 'border-gray-200', dot: 'bg-gray-400',
     icon: (
       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />

@@ -10,7 +10,7 @@ import { Skeleton, Button } from '../components/ui';
 import toast from 'react-hot-toast';
 
 const getGradeColor = (score) => {
-  if (score === null || score === undefined) return 'text-gray-400';
+  if (score === null || score === undefined) return 'text-slate-400';
   if (score >= 90) return 'text-emerald-700';
   if (score >= 85) return 'text-blue-700';
   if (score >= 80) return 'text-green-700';
@@ -438,8 +438,8 @@ export default function MasterSheet() {
     <div className="space-y-4 px-3 sm:px-0">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Master Sheet</h2>
-          <p className="text-sm text-gray-500">DepEd-style master sheet per student</p>
+          <h2 className="text-lg font-bold text-slate-900">Master Sheet</h2>
+          <p className="text-sm text-slate-500">DepEd-style master sheet per student</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={handlePrint} disabled={!showContent}>
@@ -457,7 +457,7 @@ export default function MasterSheet() {
       <div className="bg-white rounded-xl border border-gray-200 px-3 sm:px-4 py-3">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2.5">
           <div className="w-full sm:min-w-[160px]">
-            <label className="flex items-center gap-1 text-[9px] font-bold text-gray-500 uppercase mb-0.5">Section <span className="text-red-400">*</span></label>
+            <label className="flex items-center gap-1 text-[9px] font-bold text-slate-500 mb-0.5">Section <span className="text-red-400">*</span></label>
             <select value={selectedClassroom} onChange={e => { setSelectedClassroom(e.target.value); setSelectedStudentId('all'); setAllStudentData([]); }}
               className="w-full rounded-lg border border-gray-300 px-2.5 py-[7px] text-xs bg-white focus:outline-none focus:ring-2 focus:ring-violet-500">
               <option value="">Select section...</option>
@@ -465,9 +465,9 @@ export default function MasterSheet() {
             </select>
           </div>
           <div className="w-full sm:min-w-[200px]">
-            <label className="flex items-center gap-1 text-[9px] font-bold text-gray-500 uppercase mb-0.5">Student <span className="text-red-400">*</span></label>
+            <label className="flex items-center gap-1 text-[9px] font-bold text-slate-500 mb-0.5">Student <span className="text-red-400">*</span></label>
             <select value={selectedStudentId} onChange={e => setSelectedStudentId(e.target.value)} disabled={!selectedClassroom}
-              className="w-full rounded-lg border border-gray-300 px-2.5 py-[7px] text-xs bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-gray-50 disabled:text-gray-400">
+              className="w-full rounded-lg border border-gray-300 px-2.5 py-[7px] text-xs bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:bg-gray-50 disabled:text-slate-400">
               <option value="">Select student...</option>
               <option value="all">All Students</option>
               {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -497,8 +497,8 @@ export default function MasterSheet() {
         </div>
       ) : !showContent ? (
         <div className="flex flex-col items-center justify-center py-10 sm:py-16 bg-white rounded-xl border border-gray-200 text-center gap-3 px-4">
-          <Search className="w-10 h-10 text-gray-300" />
-          <p className="text-sm text-gray-500">Select a section and student to view the master sheet</p>
+          <Search className="w-10 h-10 text-slate-300" />
+          <p className="text-sm text-slate-500">Select a section and student to view the master sheet</p>
         </div>
       ) : isAll ? (
         <div ref={printRef} data-master-sheet className="space-y-6">
@@ -552,20 +552,20 @@ function StudentSheet({ profile, grades, attendance, classroom, teacher, myAssig
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
       <div className="px-3 sm:px-5 py-3 border-b border-gray-200 bg-gray-50">
         <div className="text-center mb-2">
-          <p className="text-[10px] text-gray-500">Republic of the Philippines</p>
-          <p className="text-[11px] font-bold text-gray-700">Department of Education</p>
-          <p className="text-[10px] text-gray-500">Region X - Iligan City · Division of Lanao del Norte</p>
+          <p className="text-[10px] text-slate-500">Republic of the Philippines</p>
+          <p className="text-[11px] font-bold text-slate-700">Department of Education</p>
+          <p className="text-[10px] text-slate-500">Region X - Iligan City · Division of Lanao del Norte</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1 text-[11px]">
-          <div><span className="text-gray-500">Name:</span> <span className="font-semibold">{profile ? `${profile.last_name || ''}, ${profile.first_name || ''} ${profile.middle_name || ''}` : '-'}</span></div>
-          <div><span className="text-gray-500">LRN:</span> <span className="font-mono">{p.lrn || '-'}</span></div>
-          <div><span className="text-gray-500">Sex:</span> <span className="font-semibold">{p.sex ? p.sex.charAt(0).toUpperCase() + p.sex.slice(1) : '-'}</span></div>
-          <div><span className="text-gray-500">Birthday:</span> <span className="font-semibold">{p.date_of_birth || '-'}</span></div>
-          <div><span className="text-gray-500">Age:</span> <span className="font-semibold">{calculateAge(p.date_of_birth) || '-'}</span></div>
-          <div><span className="text-gray-500">Address:</span> <span className="font-semibold">{p.address || '-'}</span></div>
-          <div><span className="text-gray-500">Section:</span> <span className="font-semibold">{classroom?.name || '-'}</span></div>
-          <div><span className="text-gray-500">Adviser:</span> <span className="font-semibold">{teacherName}</span></div>
-          <div><span className="text-gray-500">School Year:</span> <span className="font-semibold">{classroom?.academic_year_name || '-'}</span></div>
+          <div><span className="text-slate-500">Name:</span> <span className="font-semibold">{profile ? `${profile.last_name || ''}, ${profile.first_name || ''} ${profile.middle_name || ''}` : '-'}</span></div>
+          <div><span className="text-slate-500">LRN:</span> <span className="font-mono">{p.lrn || '-'}</span></div>
+          <div><span className="text-slate-500">Sex:</span> <span className="font-semibold">{p.sex ? p.sex.charAt(0).toUpperCase() + p.sex.slice(1) : '-'}</span></div>
+          <div><span className="text-slate-500">Birthday:</span> <span className="font-semibold">{p.date_of_birth || '-'}</span></div>
+          <div><span className="text-slate-500">Age:</span> <span className="font-semibold">{calculateAge(p.date_of_birth) || '-'}</span></div>
+          <div><span className="text-slate-500">Address:</span> <span className="font-semibold">{p.address || '-'}</span></div>
+          <div><span className="text-slate-500">Section:</span> <span className="font-semibold">{classroom?.name || '-'}</span></div>
+          <div><span className="text-slate-500">Adviser:</span> <span className="font-semibold">{teacherName}</span></div>
+          <div><span className="text-slate-500">School Year:</span> <span className="font-semibold">{classroom?.academic_year_name || '-'}</span></div>
         </div>
       </div>
 
@@ -587,20 +587,20 @@ function AttendanceSidebar({ months, total }) {
   const totalDays = total.present + total.late + total.absent + total.excused;
   return (
     <div className="text-[10px] min-h-full">
-      <div className="bg-violet-600 text-white font-bold text-center py-2 px-2 uppercase tracking-widest text-[9px]">
+      <div className="bg-violet-600 text-white font-bold text-center py-2 px-2 tracking-[0.1em] text-[9px]">
         Attendance
       </div>
       <div className="grid grid-cols-4 border-b border-gray-200 bg-gray-50">
-        <div className="px-1.5 py-1 font-bold text-gray-500 border-r border-gray-200">Month</div>
-        <div className="px-1 py-1 font-bold text-gray-500 text-center border-r border-gray-200">P</div>
-        <div className="px-1 py-1 font-bold text-gray-500 text-center border-r border-gray-200">L</div>
-        <div className="px-1 py-1 font-bold text-gray-500 text-center">A</div>
+        <div className="px-1.5 py-1 font-bold text-slate-500 border-r border-gray-200">Month</div>
+        <div className="px-1 py-1 font-bold text-slate-500 text-center border-r border-gray-200">P</div>
+        <div className="px-1 py-1 font-bold text-slate-500 text-center border-r border-gray-200">L</div>
+        <div className="px-1 py-1 font-bold text-slate-500 text-center">A</div>
       </div>
       {months.length === 0 ? (
-        <div className="px-2 py-4 text-center text-gray-400 italic">No data</div>
+        <div className="px-2 py-4 text-center text-slate-400 italic">No data</div>
       ) : months.map((m, i) => (
         <div key={m.key} className={`grid grid-cols-4 border-b border-gray-100 ${i % 2 === 0 ? 'bg-white' : 'bg-violet-50/30'}`}>
-          <div className="px-1.5 py-1 border-r border-gray-200 font-medium text-gray-700 truncate">{m.label}</div>
+          <div className="px-1.5 py-1 border-r border-gray-200 font-medium text-slate-700 truncate">{m.label}</div>
           <div className="px-1 py-1 text-center border-r border-gray-200 text-emerald-700 font-semibold">{m.present}</div>
           <div className="px-1 py-1 text-center border-r border-gray-200 text-amber-600 font-semibold">{m.late}</div>
           <div className="px-1 py-1 text-center text-red-500 font-semibold">{m.absent}</div>
@@ -608,20 +608,20 @@ function AttendanceSidebar({ months, total }) {
       ))}
       {months.length > 0 && (
         <>
-          <div className="grid grid-cols-4 bg-violet-100 font-bold border-t-2 border-violet-300">
+          <div className="grid grid-cols-4 bg-violet-100 font-bold border-t border-violet-300">
             <div className="px-1.5 py-1.5 border-r border-violet-300 text-violet-800">Total</div>
             <div className="px-1 py-1.5 text-center border-r border-violet-300 text-emerald-800">{total.present}</div>
             <div className="px-1 py-1.5 text-center border-r border-violet-300 text-amber-800">{total.late}</div>
             <div className="px-1 py-1.5 text-center text-red-700">{total.absent}</div>
           </div>
           <div className="px-2 py-1.5 bg-gray-50 border-t border-gray-200 space-y-0.5">
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-slate-600">
               <span>School Days:</span><span className="font-bold">{totalDays}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-slate-600">
               <span>Days Attended:</span><span className="font-bold text-emerald-700">{total.present + total.late}</span>
             </div>
-            <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-slate-600">
               <span>Attendance Rate:</span>
               <span className={`font-bold ${totalDays > 0 && ((total.present + total.late) / totalDays * 100) >= 85 ? 'text-emerald-700' : 'text-red-600'}`}>
                 {totalDays > 0 ? ((total.present + total.late) / totalDays * 100).toFixed(0) : 0}%
@@ -669,8 +669,8 @@ function GradesTable({ matchedSubjects, termGrades, termAverages }) {
         })}
       </tbody>
       <tfoot>
-        <tr className="bg-gray-100 border-t-2 border-gray-300 font-bold">
-          <td className="px-3 py-2 text-right text-gray-600 border-r border-gray-300">Average</td>
+        <tr className="bg-gray-100 border-t border-gray-300 font-bold">
+          <td className="px-3 py-2 text-right text-slate-600 border-r border-gray-300">Average</td>
           {[1, 2, 3].map(q => (
             <td key={q} className="px-3 py-2 text-center text-violet-700 border-r border-gray-300">
               {termAverages[q] !== null ? termAverages[q].toFixed(1) : '-'}

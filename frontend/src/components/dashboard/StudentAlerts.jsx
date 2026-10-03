@@ -80,7 +80,7 @@ const StudentAlerts = memo(() => {
           </svg>
         </div>
         <div>
-          <h3 className="text-sm font-extrabold text-slate-900">Student Alerts</h3>
+          <h3 className="text-sm font-bold text-slate-900">Student Alerts</h3>
           <p className="text-[10px] text-slate-500 font-medium">Today&apos;s attendance exceptions</p>
         </div>
       </div>

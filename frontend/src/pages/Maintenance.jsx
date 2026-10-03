@@ -31,7 +31,7 @@ const Maintenance = ({ message }) => {
           </div>
           
           <div className="mt-8 space-y-3">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight leading-tight">
               Portal Under <br />
               <span className="text-rose-600">Maintenance</span>
             </h1>
@@ -45,12 +45,12 @@ const Maintenance = ({ message }) => {
         <div className="space-y-4 relative">
           <button
             onClick={handleAction}
-            className="w-full py-4 bg-slate-900 text-white font-black rounded-2xl hover:bg-black transition-all shadow-xl shadow-slate-200 active:scale-[0.98]"
+            className="w-full py-4 bg-slate-900 text-white font-bold rounded-lg hover:bg-black transition-all shadow-xl shadow-slate-200 active:scale-[0.98]"
           >
             {user ? 'Sign Out and Exit' : 'Back to Home'}
           </button>
           
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+          <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em]">
             Official School Portal · System v2.0
           </p>
         </div>

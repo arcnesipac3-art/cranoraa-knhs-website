@@ -198,7 +198,7 @@ const Notifications = () => {
       showCancelButton: true,
       confirmButtonText: 'Yes, mark all read',
       confirmButtonColor: '#7c3aed',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     setProcessing(true);
@@ -230,7 +230,7 @@ const Notifications = () => {
       showCancelButton: true,
       confirmButtonText: 'Yes, delete',
       confirmButtonColor: '#ef4444',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     setProcessing(true);
@@ -270,10 +270,10 @@ const Notifications = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Notifications</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Notifications</h1>
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-100">
               <div className={`w-2 h-2 rounded-full ${realtimeConnected ? 'bg-green-500' : isPolling ? 'bg-amber-400 animate-pulse' : 'bg-red-400'}`} />
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              <span className="text-[10px] font-bold text-slate-500 tracking-wider">
                 {realtimeConnected ? 'Live' : isPolling ? 'Polling' : 'Offline'}
               </span>
             </div>
@@ -281,7 +281,7 @@ const Notifications = () => {
           <p className="text-sm text-slate-500 mt-0.5">
             {totalCount > 0 ? `${totalCount} total` : 'Your activity feed'}
             {unreadCount > 0 && (
-              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-black uppercase tracking-wider">
+              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-bold tracking-wider">
                 {unreadCount} unread
               </span>
             )}
@@ -329,9 +329,9 @@ const Notifications = () => {
 
       {/* ── Notification Preferences Panel ── */}
       {showPrefs && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 sm:p-5 space-y-4 animate-fade-in">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-3 sm:p-5 space-y-4 animate-fade-in">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Notification Preferences</h2>
+            <h2 className="text-sm font-bold text-slate-900 tracking-wider">Notification Preferences</h2>
             {prefsSaving && <span className="text-xs text-violet-500 font-medium">Saving...</span>}
           </div>
 
@@ -343,7 +343,7 @@ const Notifications = () => {
             <>
               {/* Delivery channels */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Delivery Channels</p>
+                <p className="text-xs font-bold text-slate-500 tracking-wider">Delivery Channels</p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   {[
                     { key: 'push_enabled', label: 'Push Notifications', desc: 'Browser push via FCM' },
@@ -385,7 +385,7 @@ const Notifications = () => {
 
               {/* Per-type toggles */}
               <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Notification Types</p>
+                <p className="text-xs font-bold text-slate-500 tracking-wider">Notification Types</p>
                 <div className="grid grid-cols-1 gap-2">
                   {Object.entries(TYPE_LABELS).map(([key, label]) => {
                     const dotColor = key === 'announcement' ? 'bg-violet-500' : key === 'grade' ? 'bg-emerald-500' : key === 'attendance' ? 'bg-amber-500' : key === 'fee' ? 'bg-red-500' : key === 'message' ? 'bg-blue-500' : 'bg-indigo-500';
@@ -425,7 +425,7 @@ const Notifications = () => {
       )}
 
       {/* ── Filters ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm p-3 sm:p-4">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-3 sm:p-4">
         <div className="flex flex-col gap-3">
           {/* Search */}
           <div className="relative flex-1">
@@ -504,7 +504,7 @@ const Notifications = () => {
       </div>
 
       {/* ── Notification List ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
 
         {/* Table header (desktop) */}
         <div className="hidden md:flex items-center gap-4 px-5 py-3 bg-slate-50 border-b border-slate-200">
@@ -515,7 +515,7 @@ const Notifications = () => {
               onChange={handleSelectAll}
               className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500 cursor-pointer"
             />
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">
               {allSelected ? 'Deselect all' : 'Select all'}
             </span>
           </label>
@@ -576,12 +576,12 @@ const Notifications = () => {
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className={`ui-badge ${cfg.badge} text-[10px] py-0.5 px-1.5`}>{cfg.label}</span>
                         {!n.is_read && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-violet-600 text-white text-[9px] font-black uppercase tracking-wider">
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-violet-600 text-white text-[9px] font-bold tracking-wider">
                             New
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] font-bold text-slate-400 flex-shrink-0 uppercase tracking-wider">
+                      <span className="text-[10px] font-bold text-slate-400 flex-shrink-0 tracking-wider">
                         {formatTime(n.created_at)}
                       </span>
                     </div>
@@ -634,7 +634,7 @@ const Notifications = () => {
               </svg>
               Previous
             </button>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            <span className="text-xs font-bold text-slate-500 tracking-[0.1em]">
               Page {page} of {totalPages}
             </span>
             <button

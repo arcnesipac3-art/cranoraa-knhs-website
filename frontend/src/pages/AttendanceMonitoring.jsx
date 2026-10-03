@@ -75,7 +75,7 @@ const AttendanceMonitoring = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-slate-900">Attendance Monitoring</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Attendance Monitoring</h1>
             <p className="text-sm text-slate-500 mt-1">
               <Calendar className="w-4 h-4 inline mr-1" />
               {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -113,7 +113,7 @@ const AttendanceMonitoring = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Attendance Monitoring</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Attendance Monitoring</h1>
           <p className="text-sm text-slate-500 mt-1">
             <Calendar className="w-4 h-4 inline mr-1" />
             {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -275,13 +275,13 @@ const AttendanceMonitoring = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
+                <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Teacher</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Classes</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Submitted</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Pending</th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Teacher</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700">Classes</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700">Submitted</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700">Pending</th>
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700">Status</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">

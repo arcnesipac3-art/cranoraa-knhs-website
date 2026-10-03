@@ -204,11 +204,11 @@ export default function ContextActions({
             </button>
 
             <div className="border-t border-slate-100 mt-1 pt-1 px-3 py-2">
-              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">Status</label>
+              <label className="text-[9px] font-bold text-slate-400 tracking-wide mb-1 block">Status</label>
               <select 
                 value={user.account_status} 
                 onChange={(e) => handleToggleStatus(e.target.value)}
-                className="w-full text-xs font-bold px-2 py-1.5 border border-slate-200 rounded bg-white focus:ring-1 focus:ring-violet-500 cursor-pointer uppercase tracking-wide"
+                className="w-full text-xs font-bold px-2 py-1.5 border border-slate-200 rounded bg-white focus:ring-1 focus:ring-violet-500 cursor-pointer tracking-wide"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>

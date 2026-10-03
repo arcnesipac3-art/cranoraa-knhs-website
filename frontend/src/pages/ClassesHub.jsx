@@ -41,7 +41,7 @@ function AdviserAvatar({ name, photo }) {
       {showPhoto ? (
         <img src={src} alt={name} className="w-full h-full object-cover object-top" onError={() => setImgError(true)} />
       ) : (
-        <span className="text-[8px] font-black text-violet-600 select-none">{initials}</span>
+        <span className="text-[8px] font-bold text-violet-600 select-none">{initials}</span>
       )}
     </div>
   );
@@ -266,22 +266,22 @@ export default function ClassesHub() {
               </svg>
             </div>
             <div>
-              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">Classes Hub</h1>
-              <p className="text-xs font-semibold text-violet-600 uppercase tracking-wide">Classroom sections & subject assignments</p>
+              <h1 className="text-xl font-bold text-slate-900 tracking-tight">Classes Hub</h1>
+              <p className="text-xs font-semibold text-violet-600 tracking-wide">Classroom sections & subject assignments</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5">
-              <span className="text-lg font-black text-slate-800">{classes.length}</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase hidden sm:inline">Sections</span>
+              <span className="text-lg font-bold text-slate-800">{classes.length}</span>
+              <span className="text-[10px] font-bold text-slate-400 hidden sm:inline">Sections</span>
             </div>
             <div className="flex items-center gap-1.5 bg-violet-50 border border-violet-200 rounded-lg px-3 py-1.5">
-              <span className="text-sm font-black text-violet-700">{sortedGrades.length}</span>
-              <span className="text-[10px] font-bold text-violet-500 uppercase hidden sm:inline">Grade Levels</span>
+              <span className="text-sm font-bold text-violet-700">{sortedGrades.length}</span>
+              <span className="text-[10px] font-bold text-violet-500 hidden sm:inline">Grade Levels</span>
             </div>
             <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
-              <span className="text-sm font-black text-emerald-700">{classes.reduce((sum, c) => sum + (c.student_count ?? 0), 0)}</span>
-              <span className="text-[10px] font-bold text-emerald-500 uppercase hidden sm:inline">Students</span>
+              <span className="text-sm font-bold text-emerald-700">{classes.reduce((sum, c) => sum + (c.student_count ?? 0), 0)}</span>
+              <span className="text-[10px] font-bold text-emerald-500 hidden sm:inline">Students</span>
             </div>
           </div>
         </div>
@@ -446,7 +446,7 @@ export default function ClassesHub() {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowModal(false)} role="dialog" aria-modal="true" aria-label={editingClass ? 'Edit Section' : 'New Section'}>
           <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
+            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b border-violet-900">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0" aria-hidden="true">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -454,8 +454,8 @@ export default function ClassesHub() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">{editingClass ? 'Edit Section' : 'New Section'}</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">Classroom Management</p>
+                  <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">{editingClass ? 'Edit Section' : 'New Section'}</h2>
+                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium tracking-wide">Classroom Management</p>
                 </div>
               </div>
               <button type="button" onClick={() => setShowModal(false)} aria-label="Close dialog"
@@ -490,11 +490,11 @@ export default function ClassesHub() {
               </div>
               <div className="px-4 sm:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
                 <button type="button" onClick={() => setShowModal(false)}
-                  className="px-4 sm:px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
+                  className="px-4 sm:px-6 py-2.5 bg-white text-slate-700 text-xs font-bold tracking-[0.1em] border border-gray-300 hover:bg-gray-100 rounded-sm">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving}
-                  className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm disabled:opacity-50">
+                  className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-bold tracking-[0.1em] hover:bg-violet-700 rounded-sm disabled:opacity-50">
                   {saving ? 'Saving...' : editingClass ? 'Save Changes' : 'Create Section'}
                 </button>
               </div>

@@ -113,7 +113,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
 
   const Field = ({ label, value, mono = false }) => (
     <div className="py-2 border-b border-slate-100 last:border-0">
-      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
+      <p className="text-[9px] font-bold text-slate-400 tracking-[0.1em] mb-0.5">{label}</p>
       <p className={`text-sm font-semibold text-slate-800 ${mono ? 'font-mono' : ''}`}>{value || '—'}</p>
     </div>
   );
@@ -139,14 +139,14 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
 
         {/* Header */}
         <div className="bg-[#5e2a84] px-3 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4 flex-shrink-0">
-          <div className="w-12 h-12 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center flex-shrink-0">
-            <span className="text-lg font-black text-white">{initials}</span>
+          <div className="w-12 h-12 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-lg font-bold text-white">{initials}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-black text-white uppercase tracking-wide leading-tight truncate">{fullName}</h2>
+            <h2 className="text-base font-bold text-white tracking-wide leading-tight truncate">{fullName}</h2>
             <p className="text-violet-200 text-xs mt-0.5 font-mono">LRN: {lrn}</p>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${
+              <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
                 student.account_status === 'active'    ? 'bg-emerald-400/20 text-emerald-200 border border-emerald-400/30' :
                 student.account_status === 'suspended' ? 'bg-rose-400/20 text-rose-200 border border-rose-400/30' :
                 'bg-white/10 text-white/70 border border-white/20'
@@ -194,7 +194,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
         <div className="bg-white border-b border-slate-200 px-2 sm:px-4 flex gap-0 flex-shrink-0 overflow-x-auto">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`px-3 sm:px-4 py-3 text-[10px] sm:text-xs font-bold whitespace-nowrap border-b-2 transition-colors ${
+              className={`px-3 sm:px-4 py-3 text-[10px] sm:text-xs font-bold whitespace-nowrap border-b transition-colors ${
                 tab === t.id ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}>
               {t.label}
@@ -206,7 +206,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
         <div className="flex-1 overflow-y-auto bg-slate-50">
           {loadingData && tab !== 'personal' ? (
             <div className="flex items-center justify-center h-32">
-              <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border border-violet-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <div className="p-3 sm:p-5 space-y-1">
@@ -215,7 +215,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
               {tab === 'personal' && (
                 <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                   <div className="px-4 py-3 bg-slate-50">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Personal Information</p>
+                    <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Personal Information</p>
                   </div>
                   <div className="px-4">
                     <Field label="Full Name" value={fullName} />
@@ -237,7 +237,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                 <div className="space-y-4">
                   <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                     <div className="px-4 py-3 bg-slate-50">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Enrollment Info</p>
+                      <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Enrollment Info</p>
                     </div>
                     <div className="px-4">
                       <Field label="Grade Level" value={grade} />
@@ -251,7 +251,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                   {/* Attendance summary */}
                   <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                     <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Attendance Summary</p>
+                      <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Attendance Summary</p>
                     </div>
                     <div className="p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                       {[
@@ -261,8 +261,8 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                         { label: 'Rate',    val: attRate !== null ? `${attRate}%` : '—', color: 'text-violet-700 bg-violet-50 border-violet-200' },
                       ].map(s => (
                         <div key={s.label} className={`border rounded-lg p-2 sm:p-3 text-center ${s.color}`}>
-                          <p className="text-xl font-black">{s.val}</p>
-                          <p className="text-[9px] font-bold uppercase tracking-wider mt-0.5">{s.label}</p>
+                          <p className="text-xl font-bold">{s.val}</p>
+                          <p className="text-[9px] font-bold tracking-wider mt-0.5">{s.label}</p>
                         </div>
                       ))}
                     </div>
@@ -272,8 +272,8 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                   {finalGrades.length > 0 && (
                     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                       <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Subject Grades</p>
-                        {overallAvg && <span className="text-sm font-black text-violet-700">Avg: {overallAvg}</span>}
+                        <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Subject Grades</p>
+                        {overallAvg && <span className="text-sm font-bold text-violet-700">Avg: {overallAvg}</span>}
                       </div>
                       <div className="divide-y divide-slate-100">
                         {finalGrades.map(g => (
@@ -282,7 +282,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                               <p className="text-sm font-bold text-slate-900">{g.subject_name}</p>
                               <p className="text-[10px] text-slate-400">T{g.quarter} · {g.academic_year}</p>
                             </div>
-                            <span className={`text-sm font-black px-3 py-1 rounded-lg border ${
+                            <span className={`text-sm font-bold px-3 py-1 rounded-lg border ${
                               parseFloat(g.raw_score) >= 90 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
                               parseFloat(g.raw_score) >= 75 ? 'text-blue-700 bg-blue-50 border-blue-200' :
                               'text-rose-700 bg-rose-50 border-rose-200'
@@ -308,7 +308,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                   ].map(({ title, color, textColor, fields }) => (
                     <div key={title} className={`rounded-xl border ${color} overflow-hidden`}>
                       <div className={`px-4 py-3 ${color}`}>
-                        <p className={`text-[10px] font-black uppercase tracking-widest ${textColor}`}>{title}</p>
+                        <p className={`text-[10px] font-bold tracking-[0.1em] ${textColor}`}>{title}</p>
                       </div>
                       <div className="px-4 bg-white divide-y divide-slate-100">
                         {fields.map(([label, val]) => val ? <Field key={label} label={label} value={val} /> : null)}
@@ -352,7 +352,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                             </div>
                             <div className="min-w-0">
                               <p className="text-sm font-bold text-slate-900 truncate">{doc.document_type_display || docTypeLabel[doc.document_type] || doc.document_type}</p>
-                              <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
                                 doc.verification_status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
                                 doc.verification_status === 'rejected' ? 'bg-rose-100 text-rose-700' :
                                 doc.verification_status === 'missing' ? 'bg-amber-100 text-amber-700' :
@@ -394,7 +394,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                   {records.length > 0 ? (
                     <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                       <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Document Requests</p>
+                        <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Document Requests</p>
                       </div>
                       {records.map(r => (
                         <div key={r.id} className="flex items-center justify-between px-4 py-3">
@@ -402,7 +402,7 @@ function StudentProfileDrawer({ student, classrooms, onClose, onResetPassword, o
                             <p className="text-sm font-bold text-slate-900">{r.record_type_display || r.record_type}</p>
                             <p className="text-[10px] text-slate-400">{r.purpose || ''} · {new Date(r.created_at).toLocaleDateString()}</p>
                           </div>
-                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase ${
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded border ${
                             r.status === 'approved' || r.status === 'released' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                             r.status === 'pending'  ? 'bg-amber-50 text-amber-700 border-amber-200' :
                             'bg-slate-100 text-slate-600 border-slate-200'
@@ -999,7 +999,7 @@ setSelectedIds([]);
 
   const ProfileField = ({ label, value }) => (
     <div className="py-1 sm:py-2 border-b border-slate-100 last:border-0">
-      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
+      <p className="text-[9px] font-bold text-slate-400 tracking-[0.1em] mb-0.5">{label}</p>
       <p className="text-xs font-bold text-slate-700 truncate">{value || '—'}</p>
     </div>
   );
@@ -1037,12 +1037,12 @@ setSelectedIds([]);
         </div>
       </td>
       <td className="px-3 py-2 md:px-4 md:py-3 max-w-[140px] sm:max-w-none">
-        <p className="text-xs font-bold text-slate-800 truncate uppercase">
+        <p className="text-xs font-bold text-slate-800 truncate">
           {student.last_name}, {student.first_name}
         </p>
       </td>
       <td className="hidden sm:table-cell px-4 py-3">
-        <span className="text-[10px] font-bold text-slate-500 uppercase">{student.profile?.sex || '—'}</span>
+        <span className="text-[10px] font-bold text-slate-500">{student.profile?.sex || '—'}</span>
       </td>
       <td className="hidden lg:table-cell px-4 py-3">
         <span className={`text-[10px] font-bold px-2 py-0.5 border ${
@@ -1063,7 +1063,7 @@ setSelectedIds([]);
         <select 
           value={student.account_status} 
           onChange={(e) => handleToggleStatus(student, e.target.value)}
-          className={`text-[10px] font-bold px-1.5 py-0.5 border uppercase tracking-wide cursor-pointer focus:ring-1 focus:ring-violet-500 ${
+          className={`text-[10px] font-bold px-1.5 py-0.5 border tracking-wide cursor-pointer focus:ring-1 focus:ring-violet-500 ${
             student.account_status === 'active' ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 
             student.account_status === 'suspended' ? 'text-rose-600 bg-rose-50 border-rose-200' : 
             'text-slate-500 bg-slate-50 border-slate-200'
@@ -1138,7 +1138,7 @@ setSelectedIds([]);
   return (
     <div className="page-bottom-safe bg-slate-50">
       {/* Official Header */}
-      <div className="bg-white border-b-2 border-slate-200 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 mb-4">
+      <div className="bg-white border-b border-slate-200 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 md:py-4 mb-4">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 bg-[#5e2a84] flex items-center justify-center shrink-0">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1146,10 +1146,10 @@ setSelectedIds([]);
             </svg>
           </div>
           <div>
-            <h1 className="text-sm sm:text-base md:text-lg font-black text-slate-900 uppercase tracking-wide">
+            <h1 className="text-sm sm:text-base md:text-lg font-bold text-slate-900 tracking-wide">
               {user?.role === 'staff' ? 'Advisory Class' : 'Student Records'}
             </h1>
-            <p className="text-[9px] sm:text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            <p className="text-[9px] sm:text-[10px] md:text-xs font-bold text-slate-400 tracking-[0.1em] mt-0.5">
               {user?.role === 'staff' ? 'Manage Advisory Students' : 'Student Management System'}
             </p>
           </div>
@@ -1164,14 +1164,14 @@ setSelectedIds([]);
         <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5">
           <button 
             onClick={() => setShowAddModal(true)}
-            className="bg-[#5e2a84] text-white px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 border border-violet-800 hover:bg-violet-700 flex items-center gap-1.5 transition-colors text-[10px] sm:text-xs font-bold uppercase tracking-wide"
+            className="bg-[#5e2a84] text-white px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 border border-violet-800 hover:bg-violet-700 flex items-center gap-1.5 transition-colors text-[10px] sm:text-xs font-bold tracking-wide"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" /></svg>
             Add Student
           </button>
           <button 
             onClick={() => setShowImportModal(true)}
-            className="bg-white border border-slate-200 text-slate-700 px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 hover:bg-slate-50 flex items-center gap-1.5 transition-colors text-[10px] sm:text-xs font-bold uppercase tracking-wide"
+            className="bg-white border border-slate-200 text-slate-700 px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 hover:bg-slate-50 flex items-center gap-1.5 transition-colors text-[10px] sm:text-xs font-bold tracking-wide"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
             Import
@@ -1206,7 +1206,7 @@ setSelectedIds([]);
                 XLSX.writeFile(wb, "KNHS_Student_Import_Template.xlsx");
                 toast.success('Template downloaded');
               }}
-              className="bg-white border border-slate-200 text-slate-700 px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 hover:bg-slate-50 flex items-center gap-1.5 transition-colors text-[10px] sm:text-xs font-bold uppercase tracking-wide"
+              className="bg-white border border-slate-200 text-slate-700 px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 hover:bg-slate-50 flex items-center gap-1.5 transition-colors text-[10px] sm:text-xs font-bold tracking-wide"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
               <span className="hidden sm:inline">Template</span>
@@ -1217,7 +1217,7 @@ setSelectedIds([]);
                 ?
               </button>
               <div className="absolute top-full right-0 mt-2 w-64 p-4 bg-slate-900 text-white rounded shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all z-[110]">
-                <h4 className="text-[10px] font-bold uppercase tracking-wide text-violet-400 mb-3 border-b border-white/10 pb-2">Import Instructions</h4>
+                <h4 className="text-[10px] font-bold tracking-wide text-violet-400 mb-3 border-b border-white/10 pb-2">Import Instructions</h4>
                 <ul className="space-y-2">
                   <li className="flex gap-2">
                     <span className="text-violet-400 font-bold text-[10px]">01</span>
@@ -1247,7 +1247,7 @@ setSelectedIds([]);
               title="Export as Excel spreadsheet"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-              <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">Excel</span>
+              <span className="text-[10px] font-bold tracking-wider hidden sm:inline">Excel</span>
             </button>
             <button 
               onClick={handleExportPDF}
@@ -1255,15 +1255,15 @@ setSelectedIds([]);
               title="Export as PDF document"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-              <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">PDF</span>
+              <span className="text-[10px] font-bold tracking-wider hidden sm:inline">PDF</span>
             </button>
           </div>
           <div className="bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 md:px-4 md:py-2 border border-slate-200 flex items-center gap-2">
             <div>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+              <p className="text-[9px] font-bold text-slate-400 tracking-[0.1em]">
                 {user?.role === 'staff' ? 'Advisory Students' : 'Total Students'}
               </p>
-              <p className="text-sm font-black text-slate-800 leading-none">{students.length}</p>
+              <p className="text-sm font-bold text-slate-800 leading-none">{students.length}</p>
             </div>
           </div>
         </div>
@@ -1300,19 +1300,19 @@ setSelectedIds([]);
 
           {selectedIds.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-1 border border-violet-200 uppercase tracking-wide">
+              <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-1 border border-violet-200 tracking-wide">
                 {selectedIds.length} Selected
               </span>
               <button 
                 onClick={handleBulkDelete}
-                className="bg-rose-500 text-white px-2 py-1.5 sm:px-3 border border-rose-600 hover:bg-rose-600 flex items-center gap-1.5 transition-colors text-[10px] sm:text-xs font-bold uppercase tracking-wide"
+                className="bg-rose-500 text-white px-2 py-1.5 sm:px-3 border border-rose-600 hover:bg-rose-600 flex items-center gap-1.5 transition-colors text-[10px] sm:text-xs font-bold tracking-wide"
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 Bulk Delete
               </button>
               <button 
                 onClick={() => setSelectedIds([])}
-                className="text-slate-400 hover:text-slate-600 text-[10px] font-bold uppercase tracking-wide"
+                className="text-slate-400 hover:text-slate-600 text-[10px] font-bold tracking-wide"
               >
                 Clear
               </button>
@@ -1330,15 +1330,15 @@ setSelectedIds([]);
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
               </svg>
             </div>
-            <h3 className="text-sm font-black text-slate-700 mb-1 uppercase tracking-wide">No Students Found</h3>
-            <p className="text-xs text-slate-400 font-medium uppercase tracking-widest">Try a different search.</p>
+            <h3 className="text-sm font-bold text-slate-700 mb-1 tracking-wide">No Students Found</h3>
+            <p className="text-xs text-slate-400 font-medium tracking-[0.1em]">Try a different search.</p>
           </div>
         ) : (
           organizedData.map((gradeGroup) => (
             <div key={gradeGroup.grade} className="space-y-1.5 sm:space-y-2 md:space-y-4">
               {user?.role === 'admin' && (
                 <div className="flex items-center gap-2 px-1">
-                  <h2 className="text-xs font-black text-slate-800 uppercase tracking-wide">{gradeGroup.grade}</h2>
+                  <h2 className="text-xs font-bold text-slate-800 tracking-wide">{gradeGroup.grade}</h2>
                   <div className="h-px flex-1 bg-slate-200"></div>
                 </div>
               )}
@@ -1353,9 +1353,9 @@ setSelectedIds([]);
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                           </svg>
                         </div>
-                        <h3 className="font-black text-slate-700 text-xs uppercase tracking-wide">{cls.name}</h3>
+                        <h3 className="font-bold text-slate-700 text-xs tracking-wide">{cls.name}</h3>
                       </div>
-                      <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 sm:px-2 py-0.5 border border-slate-200 uppercase tracking-widest whitespace-nowrap">
+                      <span className="text-[8px] sm:text-[9px] font-bold text-slate-500 bg-slate-100 px-1.5 sm:px-2 py-0.5 border border-slate-200 tracking-[0.1em] whitespace-nowrap">
                         {cls.totalCount} Students
                       </span>
                     </div>
@@ -1363,7 +1363,7 @@ setSelectedIds([]);
                     <div className="w-full overflow-x-auto">
                       <table className="w-full text-left min-w-[320px]">
                         <thead>
-                          <tr className="text-[9px] font-bold text-white uppercase tracking-widest bg-[#5e2a84]">
+                          <tr className="text-[9px] font-bold text-white tracking-[0.1em] bg-[#5e2a84]">
                             <th className="px-2.5 py-2 sm:px-3 md:px-4 md:py-2.5 w-10">
                               <div className="flex items-center gap-2">
                                 <input 
@@ -1388,7 +1388,7 @@ setSelectedIds([]);
                           {/* Male Students */}
                           {cls.male.length > 0 && (
                             <tr className="bg-blue-50">
-                              <td colSpan="7" className="px-4 py-1.5 text-[9px] font-bold text-blue-600 uppercase tracking-widest border-y border-blue-100">
+                              <td colSpan="7" className="px-4 py-1.5 text-[9px] font-bold text-blue-600 tracking-[0.1em] border-y border-blue-100">
                                 <div className="flex items-center gap-1.5">
                                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 9H5v2h4v4h2v-4h4V9h-4V5H9v4z" /></svg>
                                   Male ({cls.male.length})
@@ -1403,7 +1403,7 @@ setSelectedIds([]);
                           {/* Female Students */}
                           {cls.female.length > 0 && (
                             <tr className="bg-rose-50">
-                              <td colSpan="7" className="px-4 py-1.5 text-[9px] font-bold text-rose-600 uppercase tracking-widest border-y border-rose-100">
+                              <td colSpan="7" className="px-4 py-1.5 text-[9px] font-bold text-rose-600 tracking-[0.1em] border-y border-rose-100">
                                 <div className="flex items-center gap-1.5">
                                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 9H5v2h4v4h2v-4h4V9h-4V5H9v4z" /></svg>
                                   Female ({cls.female.length})
@@ -1496,7 +1496,7 @@ setSelectedIds([]);
           <ModalTitle title="Import Students" subtitle="Upload Excel File" />
         </ModalHeader>
         <ModalBody>
-          <div className={`border-2 border-dashed p-6 sm:p-8 text-center transition-colors ${
+          <div className={`border border-dashed p-6 sm:p-8 text-center transition-colors ${
             isDragging ? 'border-violet-500 bg-violet-50' : 'border-slate-300 hover:border-slate-400'
           }`}
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -1516,7 +1516,7 @@ setSelectedIds([]);
             <input type="file" accept=".xlsx,.xls,.csv" onChange={handleImportExcel}
               className="hidden" id="import-input" />
             <label htmlFor="import-input"
-              className="mt-4 inline-block px-4 py-2 bg-[#5e2a84] text-white text-xs font-bold uppercase tracking-wider hover:bg-violet-700 cursor-pointer transition-colors">
+              className="mt-4 inline-block px-4 py-2 bg-[#5e2a84] text-white text-xs font-bold tracking-wider hover:bg-violet-700 cursor-pointer transition-colors">
               Select File
             </label>
           </div>

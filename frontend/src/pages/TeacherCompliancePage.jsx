@@ -399,7 +399,7 @@ export default function TeacherCompliancePage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-extrabold text-slate-900">My Compliance</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">My Compliance</h1>
           {myData?.academic_year && (
             <p className="text-sm text-slate-500 mt-0.5">
               SY {myData.academic_year.name}
@@ -436,8 +436,8 @@ export default function TeacherCompliancePage() {
             { label: 'Overdue', value: summary.overdue, color: 'text-red-700', bg: 'bg-red-50 border-red-200' },
           ].map(s => (
             <div key={s.label} className={`rounded-xl border p-3 text-center ${s.bg}`}>
-              <p className={`text-2xl font-extrabold ${s.color}`}>{s.value}</p>
-              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">{s.label}</p>
+              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <p className="text-[10px] font-bold text-slate-500 tracking-wider mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
@@ -448,7 +448,7 @@ export default function TeacherCompliancePage() {
         <div className="bg-white border border-slate-200 rounded-xl p-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-700">Overall Compliance Rate</span>
-            <span className={`text-sm font-extrabold ${summary.rate >= 80 ? 'text-emerald-700' : summary.rate >= 50 ? 'text-amber-700' : 'text-red-700'}`}>
+            <span className={`text-sm font-bold ${summary.rate >= 80 ? 'text-emerald-700' : summary.rate >= 50 ? 'text-amber-700' : 'text-red-700'}`}>
               {summary.rate}%
             </span>
           </div>
@@ -476,7 +476,7 @@ export default function TeacherCompliancePage() {
       <div className="space-y-4">
         {filteredAssignments.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-            <div className="w-14 h-14 bg-violet-50 rounded-2xl flex items-center justify-center mx-auto mb-3 border border-violet-100">
+            <div className="w-14 h-14 bg-violet-50 rounded-lg flex items-center justify-center mx-auto mb-3 border border-violet-100">
               <svg className="w-7 h-7 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>

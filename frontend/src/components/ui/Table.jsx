@@ -82,7 +82,7 @@ export const TableHead = ({ children, className = '', ...props }) => {
   return (
     <th
       className={cn(
-        'px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider',
+        'px-4 py-3 text-left text-xs font-semibold text-slate-700 tracking-wider',
         className
       )}
       {...props}

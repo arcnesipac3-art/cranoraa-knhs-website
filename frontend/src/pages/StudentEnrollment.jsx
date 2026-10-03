@@ -176,17 +176,17 @@ const StudentEnrollment = () => {
   return (
     <div className="p-1.5 md:p-6 space-y-2 md:space-y-6 bg-slate-50/50 max-w-full">
       <div className="mb-2 md:mb-6 text-center md:text-left">
-        <h1 className="text-lg md:text-3xl font-black text-slate-800 tracking-tight uppercase">Student Enrollment</h1>
-        <p className="text-slate-500 text-[8px] md:text-base mt-0.5 font-medium uppercase tracking-widest">Enroll students per classroom</p>
+        <h1 className="text-lg md:text-3xl font-bold text-slate-800 tracking-tight">Student Enrollment</h1>
+        <p className="text-slate-500 text-[8px] md:text-base mt-0.5 font-medium tracking-[0.1em]">Enroll students per classroom</p>
       </div>
 
       {/* Classroom picker */}
       <div className="space-y-2 md:space-y-3">
-        <label className="block text-[10px] md:text-sm font-bold text-slate-700 uppercase tracking-wider">Select Classroom</label>
+        <label className="block text-[10px] md:text-sm font-bold text-slate-700 tracking-wider">Select Classroom</label>
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-xl border-2 border-slate-200 bg-white p-3 md:p-4">
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-3 md:p-4">
                 <div className="skeleton-shimmer w-7 h-7 md:w-8 md:h-8 rounded-lg bg-slate-200 mb-2" />
                 <div className="skeleton-shimmer h-3.5 w-20 rounded bg-slate-200 mb-2" />
                 <div className="skeleton-shimmer h-2.5 w-12 rounded bg-slate-200" />
@@ -215,7 +215,7 @@ const StudentEnrollment = () => {
                 <button
                   key={c.id}
                   onClick={() => setSelectedClassroom(isSelected ? '' : c.id)}
-                  className={`relative text-left rounded-xl border-2 transition-all duration-200 p-3 md:p-4 group
+                  className={`relative text-left rounded-xl border transition-all duration-200 p-3 md:p-4 group
                     ${isSelected
                       ? 'border-violet-500 bg-violet-50 shadow-md ring-2 ring-violet-200'
                       : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
@@ -229,9 +229,9 @@ const StudentEnrollment = () => {
                     </div>
                   )}
                   <div className={`w-7 h-7 md:w-8 md:h-8 rounded-lg bg-gradient-to-br ${gradient} flex items-center justify-center mb-2`}>
-                    <span className="text-white text-[10px] md:text-xs font-black">{gradeNum || '?'}</span>
+                    <span className="text-white text-[10px] md:text-xs font-bold">{gradeNum || '?'}</span>
                   </div>
-                  <p className={`text-[10px] md:text-sm font-black uppercase tracking-tight truncate leading-tight ${isSelected ? 'text-violet-900' : 'text-slate-800'}`}>
+                  <p className={`text-[10px] md:text-sm font-bold tracking-tight truncate leading-tight ${isSelected ? 'text-violet-900' : 'text-slate-800'}`}>
                     {c.name}
                   </p>
                   <p className={`text-[8px] md:text-[11px] font-semibold mt-0.5 ${isSelected ? 'text-violet-600' : 'text-slate-400'}`}>
@@ -248,7 +248,7 @@ const StudentEnrollment = () => {
       {selectedClassroom && (
         <div className="bg-white border border-slate-200 rounded-lg md:rounded-xl shadow-sm overflow-hidden min-w-0">
           <div className="flex items-center justify-between px-2 py-1 md:px-6 md:py-4 border-b border-slate-100 bg-[#2D1B4D]">
-            <h2 className="font-black text-[9px] md:text-base uppercase tracking-tight !text-white flex items-center gap-1">
+            <h2 className="font-bold text-[9px] md:text-base tracking-tight !text-white flex items-center gap-1">
               ENROLLED
               <span className="text-[7px] md:text-sm font-bold !text-white">
                 ({enrollments.length}{classrooms.find(c => String(c.id) === String(selectedClassroom)) ? ` / ${classrooms.find(c => String(c.id) === String(selectedClassroom)).capacity || 40}` : ''})
@@ -256,7 +256,7 @@ const StudentEnrollment = () => {
             </h2>
             <button
               onClick={openModal}
-              className="flex items-center gap-1 bg-violet-600 hover:bg-violet-700 text-white text-[7px] md:text-sm font-black py-0.5 px-1.5 md:py-2 md:px-3 rounded md:rounded-lg transition-all active:scale-95 uppercase tracking-widest shadow-sm"
+              className="flex items-center gap-1 bg-violet-600 hover:bg-violet-700 text-white text-[7px] md:text-sm font-bold py-0.5 px-1.5 md:py-2 md:px-3 rounded md:rounded-lg transition-all active:scale-95 tracking-[0.1em] shadow-sm"
             >
               <svg className="w-2.5 h-2.5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -266,14 +266,14 @@ const StudentEnrollment = () => {
           </div>
 
           {enrollments.length === 0 ? (
-            <div className="text-center py-6 md:py-12 text-slate-400 font-bold text-[9px] md:text-sm uppercase tracking-widest">
+            <div className="text-center py-6 md:py-12 text-slate-400 font-bold text-[9px] md:text-sm tracking-[0.1em]">
               No students enrolled yet.
             </div>
           ) : (
             <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 max-w-full">
               <table className="w-full min-w-[320px] md:min-w-full">
                 <thead className="bg-slate-50">
-                  <tr className="text-[6px] md:text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                  <tr className="text-[6px] md:text-xs font-bold text-slate-400 tracking-[0.1em] border-b border-slate-100">
                     <th className="text-left px-2 py-1 md:px-6 md:py-3">Student</th>
                     <th className="text-center px-1 py-1 md:px-6 md:py-3" title="Term 1">T1</th>
                     <th className="text-center px-1 py-1 md:px-6 md:py-3" title="Term 2">T2</th>
@@ -288,7 +288,7 @@ const StudentEnrollment = () => {
                     return (
                       <tr key={e.id} className="hover:bg-violet-50 transition-colors">
                         <td className="px-2 py-1 md:px-6 md:py-4">
-                          <div className="font-black text-slate-800 text-[8px] md:text-sm uppercase tracking-tighter truncate max-w-[100px] md:max-w-none">{e.student_name}</div>
+                          <div className="font-bold text-slate-800 text-[8px] md:text-sm tracking-tighter truncate max-w-[100px] md:max-w-none">{e.student_name}</div>
                           <div className="text-[6px] md:text-xs text-slate-400 font-bold truncate max-w-[100px] md:max-w-none leading-none">{e.student_email}</div>
                           {e.student_lrn && <div className="text-[5px] md:text-[10px] text-slate-300 font-bold">LRN: {e.student_lrn}</div>}
                         </td>
@@ -299,7 +299,7 @@ const StudentEnrollment = () => {
                         ))}
                         <td className="px-1 py-1 md:px-6 md:py-4 text-center">
                           {remarks ? (
-                            <span className={`inline-flex items-center justify-center min-w-[18px] md:min-w-[32px] px-1 py-0 rounded-full text-[7px] md:text-xs font-black shadow-inner ${remarks.color}`}>
+                            <span className={`inline-flex items-center justify-center min-w-[18px] md:min-w-[32px] px-1 py-0 rounded-full text-[7px] md:text-xs font-bold shadow-inner ${remarks.color}`}>
                               {e.general_average || e.gpa}
                             </span>
                           ) : (
@@ -309,7 +309,7 @@ const StudentEnrollment = () => {
                         <td className="px-2 py-1 md:px-6 md:py-4 text-center">
                           <button
                             onClick={() => handleRemove(e)}
-                            className="p-0.5 md:px-3 md:py-1.5 text-[7px] md:text-xs font-black text-red-700 bg-red-100 hover:bg-red-200 rounded transition-all active:scale-90 uppercase tracking-widest"
+                            className="p-0.5 md:px-3 md:py-1.5 text-[7px] md:text-xs font-bold text-red-700 bg-red-100 hover:bg-red-200 rounded transition-all active:scale-90 tracking-[0.1em]"
                             title="Remove student from this section"
                           >
                             Remove
@@ -329,7 +329,7 @@ const StudentEnrollment = () => {
       {showModal && (
         <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-2 md:p-4 animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-md border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
+            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b border-violet-900">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,8 +337,8 @@ const StudentEnrollment = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Enroll Student</h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">
+                  <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">Enroll Student</h2>
+                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium tracking-wide">
                     Classroom: {classrooms.find(c => String(c.id) === String(selectedClassroom))?.name || ''}
                   </p>
                 </div>
@@ -353,24 +353,24 @@ const StudentEnrollment = () => {
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
               <div className="px-4 md:px-6 py-4 md:py-5 overflow-y-auto flex-1 space-y-3 md:space-y-4">
                 <div>
-                  <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
                     Select Student
-                    <span className="ml-2 text-[10px] font-bold text-gray-400 normal-case tracking-normal">
+                    <span className="ml-2 text-[10px] font-bold text-slate-400 normal-case tracking-normal">
                       ({filteredStudents.length} available)
                     </span>
                   </label>
 
                   {/* Search */}
                   <div className="relative mb-2">
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     <input type="text" placeholder="Search name, email, or LRN..." value={studentSearch}
                       onChange={e => setStudentSearch(e.target.value)}
-                      className="w-full pl-9 pr-9 py-1.5 md:py-2.5 border border-gray-300 rounded-sm bg-white text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
+                      className="w-full pl-9 pr-9 py-1.5 md:py-2.5 border border-gray-300 rounded-sm bg-white text-[10px] md:text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" />
                     {studentSearch && (
                       <button type="button" onClick={() => setStudentSearch('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
                         <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -381,7 +381,7 @@ const StudentEnrollment = () => {
                   {/* Student card list */}
                   <div className="border border-gray-200 rounded-sm overflow-hidden shadow-sm">
                     {filteredStudents.length === 0 ? (
-                      <div className="py-6 md:py-8 text-center text-gray-400 text-[10px] md:text-sm font-bold uppercase tracking-widest">
+                      <div className="py-6 md:py-8 text-center text-slate-400 text-[10px] md:text-sm font-bold tracking-[0.1em]">
                         <svg className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-2 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
@@ -395,7 +395,7 @@ const StudentEnrollment = () => {
                           const isSelected = selectedStudents.includes(s.id);
                           return (
                             <button key={s.id} type="button" onClick={() => toggleStudentSelection(s.id)}
-                              className={`w-full flex items-center gap-2 md:gap-3 px-3 py-2 md:px-4 md:py-3 text-left transition-colors border-l-2 md:border-l-4 ${
+                              className={`w-full flex items-center gap-2 md:gap-3 px-3 py-2 md:px-4 md:py-3 text-left transition-colors border-l md:border-l-4 ${
                                 isSelected ? 'bg-violet-50 border-violet-500' : 'hover:bg-gray-50 border-transparent'
                               }`}>
                               <div className={`w-3.5 h-3.5 md:w-5 md:h-5 rounded border flex items-center justify-center transition-colors ${
@@ -407,13 +407,13 @@ const StudentEnrollment = () => {
                                   </svg>
                                 )}
                               </div>
-                              <div className={`w-7 h-7 md:w-9 md:h-9 rounded flex items-center justify-center text-[8px] md:text-sm font-black flex-shrink-0 shadow-sm ${
+                              <div className={`w-7 h-7 md:w-9 md:h-9 rounded flex items-center justify-center text-[8px] md:text-sm font-bold flex-shrink-0 shadow-sm ${
                                 isSelected ? 'bg-violet-600 text-white' : 'bg-gradient-to-br from-violet-400 to-indigo-500 text-white'
                               }`}>{initials}</div>
                               <div className="flex-1 min-w-0 leading-tight">
-                                <div className={`text-[9px] md:text-sm font-black truncate uppercase tracking-tighter ${isSelected ? 'text-violet-800' : 'text-gray-800'}`}>{fullName}</div>
-                                <div className="text-[7px] md:text-xs text-gray-400 truncate font-bold">{s.email}</div>
-                                {s.profile?.lrn && <div className="text-[6px] md:text-[10px] text-gray-300 font-bold">LRN: {s.profile.lrn}</div>}
+                                <div className={`text-[9px] md:text-sm font-bold truncate tracking-tighter ${isSelected ? 'text-violet-800' : 'text-slate-800'}`}>{fullName}</div>
+                                <div className="text-[7px] md:text-xs text-slate-400 truncate font-bold">{s.email}</div>
+                                {s.profile?.lrn && <div className="text-[6px] md:text-[10px] text-slate-300 font-bold">LRN: {s.profile.lrn}</div>}
                               </div>
                             </button>
                           );
@@ -423,7 +423,7 @@ const StudentEnrollment = () => {
                   </div>
 
                   {selectedStudents.length > 0 && (
-                    <div className="mt-1.5 flex items-center justify-between text-[8px] md:text-xs text-violet-700 bg-violet-50 border border-violet-200 rounded px-2 py-1 md:px-3 md:py-2 font-bold uppercase tracking-widest">
+                    <div className="mt-1.5 flex items-center justify-between text-[8px] md:text-xs text-violet-700 bg-violet-50 border border-violet-200 rounded px-2 py-1 md:px-3 md:py-2 font-bold tracking-[0.1em]">
                       <div className="flex items-center gap-1.5">
                         <svg className="w-2.5 h-2.5 md:w-3.5 md:h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
@@ -437,11 +437,11 @@ const StudentEnrollment = () => {
               </div>
               <div className="px-4 md:px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
                 <button type="button" onClick={() => setShowModal(false)}
-                  className="px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
+                  className="px-6 py-2.5 bg-white text-slate-700 text-xs font-bold tracking-[0.1em] border border-gray-300 hover:bg-gray-100 rounded-sm">
                   Cancel
                 </button>
                 <button type="submit" disabled={saving || selectedStudents.length === 0}
-                  className="px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm disabled:opacity-60">
+                  className="px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-bold tracking-[0.1em] hover:bg-violet-700 rounded-sm disabled:opacity-60">
                   {saving ? 'Enrolling...' : `Enroll ${selectedStudents.length || ''}`}
                 </button>
               </div>
@@ -462,7 +462,7 @@ const StudentEnrollment = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Remove Student</h2>
+                  <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">Remove Student</h2>
                   <p className="text-red-200 text-[10px] mt-0.5 font-medium truncate max-w-[200px]">
                     {withdrawStudent.student_name}
                   </p>
@@ -484,19 +484,19 @@ const StudentEnrollment = () => {
 
               {/* Reason Type */}
               <div>
-                <label className="block text-[10px] font-black text-slate-700 uppercase tracking-widest mb-2">Reason Type</label>
+                <label className="block text-[10px] font-bold text-slate-700 tracking-[0.1em] mb-2">Reason Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   {REASON_TYPES.map(rt => (
                     <button
                       key={rt.value}
                       onClick={() => setWithdrawReasonType(rt.value)}
-                      className={`text-left p-2.5 rounded-lg border-2 transition-all ${
+                      className={`text-left p-2.5 rounded-lg border transition-all ${
                         withdrawReasonType === rt.value
                           ? 'border-red-500 bg-red-50'
                           : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                     >
-                      <p className={`text-[10px] font-black uppercase tracking-tight ${withdrawReasonType === rt.value ? 'text-red-700' : 'text-slate-700'}`}>
+                      <p className={`text-[10px] font-bold tracking-tight ${withdrawReasonType === rt.value ? 'text-red-700' : 'text-slate-700'}`}>
                         {rt.label}
                       </p>
                       <p className="text-[9px] text-slate-400 mt-0.5 leading-tight">{rt.description}</p>
@@ -507,7 +507,7 @@ const StudentEnrollment = () => {
 
               {/* Reason Text */}
               <div>
-                <label className="block text-[10px] font-black text-slate-700 uppercase tracking-widest mb-1.5">
+                <label className="block text-[10px] font-bold text-slate-700 tracking-[0.1em] mb-1.5">
                   Details <span className="text-red-400">*</span>
                 </label>
                 <textarea
@@ -526,14 +526,14 @@ const StudentEnrollment = () => {
                 type="button"
                 onClick={() => { setShowWithdrawModal(false); setWithdrawStudent(null); }}
                 disabled={withdrawing}
-                className="px-4 py-2 text-xs font-black text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 uppercase tracking-widest"
+                className="px-4 py-2 text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors disabled:opacity-50 tracking-[0.1em]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleWithdrawConfirm}
                 disabled={withdrawing || !withdrawReason.trim()}
-                className="px-4 py-2 text-xs font-black text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 uppercase tracking-widest"
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 tracking-[0.1em]"
               >
                 {withdrawing ? 'Removing...' : 'Confirm Remove'}
               </button>

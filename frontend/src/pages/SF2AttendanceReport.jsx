@@ -71,7 +71,7 @@ function SF2Page() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">SF2 - Daily Attendance Report</h1>
+          <h1 className="text-2xl font-bold text-slate-900">SF2 - Daily Attendance Report</h1>
           <p className="text-sm text-slate-500 mt-1">Attendance sheets with summaries</p>
         </div>
         <div className="flex gap-2">
@@ -94,19 +94,19 @@ function SF2Page() {
       </Card>
 
       {isLoading ? (
-        <Card><CardBody><div className="flex items-center justify-center py-12"><div className="w-8 h-8 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" /></div></CardBody></Card>
+        <Card><CardBody><div className="flex items-center justify-center py-12"><div className="w-8 h-8 border border-slate-200 border-t-violet-600 rounded-full animate-spin" /></div></CardBody></Card>
       ) : (
         <>
           <Card className="mb-6">
             <CardHeader><h3 className="font-bold text-slate-900">Summary</h3></CardHeader>
             <CardBody>
               <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
-                <div className="text-center"><p className="text-2xl font-extrabold text-slate-900">{summary.total_students || 0}</p><p className="text-xs text-slate-500">Students</p></div>
-                <div className="text-center"><p className="text-2xl font-extrabold text-emerald-600">{summary.present || 0}</p><p className="text-xs text-slate-500">Present</p></div>
-                <div className="text-center"><p className="text-2xl font-extrabold text-red-600">{summary.absent || 0}</p><p className="text-xs text-slate-500">Absent</p></div>
-                <div className="text-center"><p className="text-2xl font-extrabold text-amber-600">{summary.late || 0}</p><p className="text-xs text-slate-500">Late</p></div>
-                <div className="text-center"><p className="text-2xl font-extrabold text-slate-600">{summary.excused || 0}</p><p className="text-xs text-slate-500">Excused</p></div>
-                <div className="text-center"><p className="text-2xl font-extrabold text-violet-600">{summary.attendance_rate || 0}%</p><p className="text-xs text-slate-500">Rate</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-slate-900">{summary.total_students || 0}</p><p className="text-xs text-slate-500">Students</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-emerald-600">{summary.present || 0}</p><p className="text-xs text-slate-500">Present</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-red-600">{summary.absent || 0}</p><p className="text-xs text-slate-500">Absent</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-amber-600">{summary.late || 0}</p><p className="text-xs text-slate-500">Late</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-slate-600">{summary.excused || 0}</p><p className="text-xs text-slate-500">Excused</p></div>
+                <div className="text-center"><p className="text-2xl font-bold text-violet-600">{summary.attendance_rate || 0}%</p><p className="text-xs text-slate-500">Rate</p></div>
               </div>
             </CardBody>
           </Card>

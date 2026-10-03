@@ -89,7 +89,7 @@ export default function UserFormModal({
     <>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
             {isTeacher ? 'Title *' : 'Title'}
           </label>
           <select required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })}
@@ -98,34 +98,34 @@ export default function UserFormModal({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
             First Name *
           </label>
           <input type="text" required value={formData.first_name} onChange={e => setFormData({ ...formData, first_name: e.target.value })}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" />
         </div>
         <div>
-          <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
             Last Name *
           </label>
           <input type="text" required value={formData.last_name} onChange={e => setFormData({ ...formData, last_name: e.target.value })}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
             Email Address *
           </label>
           <input type="email" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" />
+            className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" />
           <p className="text-[10px] text-slate-400 mt-1">{isParent ? 'This will also be their username for login.' : ''}</p>
         </div>
 
         {isTeacher && (
           <div>
-            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
               Sex *
             </label>
             <select required value={formData.sex} onChange={e => setFormData({ ...formData, sex: e.target.value })}
@@ -139,22 +139,22 @@ export default function UserFormModal({
 
         {isStudent && (
           <div>
-            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
               LRN / Student ID *
             </label>
             <input type="text" required value={formData.lrn || formData.username} onChange={e => setFormData({ ...formData, lrn: e.target.value, username: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" 
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" 
               placeholder="12-digit LRN" />
           </div>
         )}
 
         {isParent && (
           <div>
-            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
               Password (optional)
             </label>
             <input type="text" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-gray-400" 
+              className="w-full px-3 py-2.5 border border-gray-300 rounded-sm bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" 
               placeholder="Leave blank to auto-generate" />
             <p className="text-[10px] text-slate-400 mt-1">This will also be their username for login.</p>
           </div>
@@ -162,7 +162,7 @@ export default function UserFormModal({
 
         {!isParent && !isStudent && (
           <div>
-            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
               Sex *
             </label>
             <select required value={formData.sex} onChange={e => setFormData({ ...formData, sex: e.target.value })}
@@ -176,7 +176,7 @@ export default function UserFormModal({
 
         {isStudent && (
           <div>
-            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
               Grade Level *
             </label>
             <select required value={formData.grade_level} onChange={e => setFormData({ ...formData, grade_level: e.target.value })}
@@ -191,7 +191,7 @@ export default function UserFormModal({
 
         {isTeacher && (
           <div>
-            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
               Primary Role *
             </label>
             <select required value={formData.staff_title} onChange={e => setFormData({ ...formData, staff_title: e.target.value })}
@@ -203,7 +203,7 @@ export default function UserFormModal({
 
         {isTeacher && (
           <div>
-            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-1.5">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
               Advisory Class
             </label>
             <select value={formData.advisory_class_id || ''} onChange={e => setFormData({ ...formData, advisory_class_id: e.target.value })}
@@ -216,7 +216,7 @@ export default function UserFormModal({
 
         {isTeacher && (
           <div>
-            <label className="block text-xs font-black text-gray-700 uppercase tracking-wider mb-2">Additional Roles</label>
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-2">Additional Roles</label>
             <p className="text-[10px] text-slate-400 mb-2">Click to toggle. Staff with multiple roles appear in multiple departments.</p>
             <div className="flex flex-wrap gap-2">
               {STAFF_TITLES.filter(t => t.value !== formData.staff_title).map(t => {
@@ -254,7 +254,7 @@ export default function UserFormModal({
   return (
     <div className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-2 sm:p-3 md:p-4 animate-in fade-in duration-300">
       <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-        <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
+        <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b border-violet-900">
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,8 +262,8 @@ export default function UserFormModal({
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">{mode === 'add' ? 'Add' : 'Edit'} {title}</h2>
-              <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">{subtitle}</p>
+              <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">{mode === 'add' ? 'Add' : 'Edit'} {title}</h2>
+              <p className="text-violet-200 text-[10px] mt-0.5 font-medium tracking-wide">{subtitle}</p>
             </div>
           </div>
           <button type="button" onClick={onClose}
@@ -279,11 +279,11 @@ export default function UserFormModal({
           </div>
           <div className="px-4 sm:px-6 py-3 md:py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3 flex-shrink-0">
             <button type="button" onClick={onClose}
-              className="px-4 sm:px-6 py-2.5 bg-white text-gray-700 text-xs font-black uppercase tracking-widest border border-gray-300 hover:bg-gray-100 rounded-sm">
+              className="px-4 sm:px-6 py-2.5 bg-white text-slate-700 text-xs font-bold tracking-[0.1em] border border-gray-300 hover:bg-gray-100 rounded-sm">
               Cancel
             </button>
             <button type="submit" disabled={submitting}
-              className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm disabled:opacity-50">
+              className="px-4 sm:px-6 py-2.5 bg-[#5e2a84] text-white text-xs font-bold tracking-[0.1em] hover:bg-violet-700 rounded-sm disabled:opacity-50">
               {submitting ? (mode === 'add' ? 'Creating...' : 'Saving...') : (mode === 'add' ? 'Create Account' : 'Save Changes')}
             </button>
           </div>

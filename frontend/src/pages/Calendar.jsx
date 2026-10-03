@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import api, { MEDIA_ROOT } from '../utils/api';
+import api from '../utils/api';
 import { useCurrentUser } from '../hooks/useCurrentUser';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import CalendarEventModal from '../components/calendar/CalendarEventModal';
+import { PageHero } from '../components/public';
 
 const CATEGORY_CONFIG = {
   general:      { label: 'General',      color: 'bg-slate-100 text-slate-700 border-slate-200',   dot: 'bg-slate-400',    hex: '#94a3b8' },
@@ -71,7 +72,7 @@ const Calendar = ({ mode = 'public' }) => {
   const canManage = user?.role === 'admin' || user?.role === 'staff';
 
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState(['all']);
   const [viewMode, setViewMode] = useState('month');
   const [selectedDate, setSelectedDate] = useState(null);
@@ -260,7 +261,7 @@ const Calendar = ({ mode = 'public' }) => {
       title: 'Delete Event?', text: "This will remove the event from the calendar.", icon: 'warning',
       showCancelButton: true, confirmButtonText: 'Yes, delete',
       confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (result.isConfirmed) {
       try {
@@ -314,43 +315,52 @@ const Calendar = ({ mode = 'public' }) => {
   return (
     <div className={`animate-fade-in page-bottom-safe min-h-screen ${isPortal ? 'bg-transparent' : 'bg-slate-50'}`}>
       {/* ── Header ── */}
-      <div className="bg-white border-b-2 border-slate-200 sticky top-0 z-30">
+      {!isPortal && (
+        <PageHero
+          breadcrumb={[{ label: 'Home', to: '/' }, { label: 'Calendar' }]}
+          kicker="School year"
+          title="School calendar"
+          lead="Browse classes, examinations, school events and holidays for the school year, and filter the list by category."
+        />
+      )}
+      {(isPortal || canManage) && (
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-30">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-3 md:py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
+            {isPortal && (
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-violet-600 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <div className="h-9 w-9 rounded-lg border border-violet-200 bg-violet-50 text-violet-700 flex items-center justify-center shrink-0">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
               <div>
-                <h1 className="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight">School Calendar</h1>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Events & Academic Schedule</p>
+                <h1 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight">School calendar</h1>
+                <p className="text-xs text-slate-500">Events &amp; academic schedule</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            )}
+            <div className={`flex items-center gap-2 ${isPortal ? '' : 'ml-auto'}`}>
               {canManage && activeTab === 'events' && (
-                <button onClick={openCreateEvent}
-                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-sm">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <button onClick={openCreateEvent} className="public-btn-primary">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 4v16m8-8H4" />
                   </svg>
-                  <span className="hidden sm:inline">New Event</span>
+                  <span className="hidden sm:inline">New event</span>
                 </button>
               )}
               {canManage && activeTab === 'school-dates' && (
-                <button onClick={openAddSchoolEntry}
-                  className="flex items-center gap-2 px-4 py-2 bg-violet-600 text-white text-sm font-bold rounded-xl hover:bg-violet-700 transition-colors shadow-sm">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <button onClick={openAddSchoolEntry} className="public-btn-primary">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 4v16m8-8H4" />
                   </svg>
-                  <span className="hidden sm:inline">Add Entry</span>
+                  <span className="hidden sm:inline">Add entry</span>
                 </button>
               )}
               {!isPortal && (
-                <Link to="/" className="hidden md:flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl hover:bg-slate-50 transition-colors">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                <Link to="/" className="hidden md:flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
                   Website
                 </Link>
@@ -358,24 +368,24 @@ const Calendar = ({ mode = 'public' }) => {
             </div>
           </div>
           {canManage && (
-            <div className="flex gap-1 mt-3 bg-slate-100 rounded-xl p-1 w-fit">
+            <div className="flex gap-1 mt-3 bg-slate-100 rounded-lg p-1 w-fit">
               <button onClick={() => setActiveTab('events')}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                   activeTab === 'events' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}>
                 Events
               </button>
               <button onClick={() => setActiveTab('school-dates')}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                   activeTab === 'school-dates' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}>
-                School Dates
+                School dates
               </button>
             </div>
           )}
         </div>
       </div>
-
+      )}
       <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6">
         {activeTab === 'events' && (<>
           {/* ── Summary Cards ── */}
@@ -386,16 +396,16 @@ const Calendar = ({ mode = 'public' }) => {
             { label: 'Examinations', value: stats.exams, icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', color: 'bg-purple-100 text-purple-700' },
             { label: 'Holidays', value: stats.holidays, icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', color: 'bg-emerald-100 text-emerald-700' },
           ].map((card, i) => (
-            <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+            <div key={i} className="public-card p-4">
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl ${card.color} flex items-center justify-center shrink-0`}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={card.icon} />
+                <div className={`h-9 w-9 rounded-lg ${card.color} flex items-center justify-center shrink-0`}>
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d={card.icon} />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-2xl font-black text-slate-900 leading-none">{card.value}</p>
-                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">{card.label}</p>
+                  <p className="text-2xl font-bold text-slate-900 leading-none">{card.value}</p>
+                  <p className="text-[11px] font-semibold text-slate-500 tracking-[0.1em] mt-1">{card.label}</p>
                 </div>
               </div>
             </div>
@@ -409,9 +419,9 @@ const Calendar = ({ mode = 'public' }) => {
               const isActive = activeFilters.includes(f.id);
               return (
                 <button key={f.id} onClick={() => toggleFilter(f.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all border ${
                     isActive
-                      ? 'bg-violet-600 text-white border-violet-600 shadow-sm'
+                      ? 'bg-violet-700 text-white border-violet-700 shadow-sm'
                       : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
                   }`}>
                   {f.label}
@@ -419,11 +429,11 @@ const Calendar = ({ mode = 'public' }) => {
               );
             })}
           </div>
-          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-xl p-1">
+          <div className="flex items-center gap-1 bg-white border border-slate-200 rounded-lg p-1">
             {['month', 'week', 'agenda'].map(v => (
               <button key={v} onClick={() => setViewMode(v)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
-                  viewMode === v ? 'bg-violet-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+                  viewMode === v ? 'bg-violet-700 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'
                 }`}>
                 {v}
               </button>
@@ -437,15 +447,15 @@ const Calendar = ({ mode = 'public' }) => {
 
             {/* ── Month View ── */}
             {viewMode === 'month' && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="public-card overflow-hidden">
                 {/* Month Nav */}
                 <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
-                    <h2 className="text-lg md:text-xl font-black text-slate-900">
-                      {MONTH_NAMES[currentMonth.getMonth()]} <span className="text-violet-600">{currentMonth.getFullYear()}</span>
+                    <h2 className="text-lg md:text-xl font-bold text-slate-900">
+                      {MONTH_NAMES[currentMonth.getMonth()]} <span className="text-violet-700">{currentMonth.getFullYear()}</span>
                     </h2>
                     <button onClick={goToToday}
-                      className="px-3 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-bold hover:bg-violet-100 transition-colors border border-violet-200">
+                      className="px-3 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 transition-colors border border-violet-200">
                       Today
                     </button>
                   </div>
@@ -462,7 +472,7 @@ const Calendar = ({ mode = 'public' }) => {
                 {/* Day Headers */}
                 <div className="grid grid-cols-7 border-b border-slate-100">
                   {DAY_NAMES.map(d => (
-                    <div key={d} className="text-center py-2.5 text-[10px] font-black text-slate-500 uppercase tracking-widest">{d}</div>
+                    <div key={d} className="text-center py-2.5 text-[10px] font-semibold text-slate-500 tracking-[0.1em]">{d}</div>
                   ))}
                 </div>
 
@@ -490,7 +500,7 @@ const Calendar = ({ mode = 'public' }) => {
                                 {day}
                               </span>
                               {hasEvents && (
-                                <span className="text-[9px] font-bold text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-full">
+                                <span className="text-[9px] font-semibold text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-full">
                                   {dayEvents.length}
                                 </span>
                               )}
@@ -501,14 +511,14 @@ const Calendar = ({ mode = 'public' }) => {
                                 return (
                                   <div key={eIdx}
                                     onClick={(e) => { e.stopPropagation(); openEventDetail(event); }}
-                                    className="text-[8px] md:text-[10px] font-semibold px-1.5 py-0.5 rounded truncate border-l-2 transition-colors hover:opacity-80"
+                                    className="text-[8px] md:text-[10px] font-semibold px-1.5 py-0.5 rounded truncate border-l transition-colors hover:opacity-80"
                                     style={{ borderLeftColor: cat.hex, backgroundColor: `${cat.hex}15`, color: cat.hex }}>
                                     {event.title}
                                   </div>
                                 );
                               })}
                               {dayEvents.length > 3 && (
-                                <p className="text-[8px] font-bold text-slate-400 pl-1">+{dayEvents.length - 3} more</p>
+                                <p className="text-[8px] font-semibold text-slate-400 pl-1">+{dayEvents.length - 3} more</p>
                               )}
                             </div>
                           </>
@@ -522,13 +532,13 @@ const Calendar = ({ mode = 'public' }) => {
 
             {/* ── Week View ── */}
             {viewMode === 'week' && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="public-card overflow-hidden">
                 <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-slate-100">
-                  <h2 className="text-lg font-black text-slate-900">
+                  <h2 className="text-lg font-bold text-slate-900">
                     Week of {formatDate(new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate || new Date().getDate()))}
                   </h2>
                   <button onClick={goToToday}
-                    className="px-3 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-bold hover:bg-violet-100 transition-colors border border-violet-200">
+                    className="px-3 py-1 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 transition-colors border border-violet-200">
                     Today
                   </button>
                 </div>
@@ -543,8 +553,8 @@ const Calendar = ({ mode = 'public' }) => {
                     return (
                       <div key={i} className={`flex items-stretch min-h-[80px] ${today ? 'bg-violet-50/50' : ''}`}>
                         <div className="w-20 md:w-24 flex flex-col items-center justify-center border-r border-slate-100 shrink-0 py-3">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">{DAY_NAMES[baseDate.getDay()]}</span>
-                          <span className={`text-xl font-black ${today ? 'text-violet-600' : 'text-slate-800'}`}>{day}</span>
+                          <span className="text-[10px] font-semibold text-slate-400">{DAY_NAMES[baseDate.getDay()]}</span>
+                          <span className={`text-xl font-bold ${today ? 'text-violet-700' : 'text-slate-800'}`}>{day}</span>
                         </div>
                         <div className="flex-1 p-3 space-y-2">
                           {dayEvents.length > 0 ? dayEvents.map((event, eIdx) => {
@@ -557,7 +567,7 @@ const Calendar = ({ mode = 'public' }) => {
                                   <p className="text-sm font-bold text-slate-800 truncate">{event.title}</p>
                                   <p className="text-[11px] text-slate-400">{formatTime(event.date)}</p>
                                 </div>
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cat.color}`}>{cat.label}</span>
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cat.color}`}>{cat.label}</span>
                               </div>
                             );
                           }) : (
@@ -575,11 +585,11 @@ const Calendar = ({ mode = 'public' }) => {
             {viewMode === 'agenda' && (
               <div className="space-y-3">
                 {upcomingEvents.length === 0 ? (
-                  <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
+                  <div className="public-card p-12 text-center">
                     <svg className="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <p className="text-sm font-bold text-slate-400">No upcoming events</p>
+                    <p className="text-sm font-medium text-slate-400">No upcoming events</p>
                   </div>
                 ) : (
                   upcomingEvents.map((event, idx) => {
@@ -592,24 +602,24 @@ const Calendar = ({ mode = 'public' }) => {
                       <div key={event.id || idx}>
                         {!isSameDay && (
                           <div className="flex items-center gap-3 mt-4 mb-2">
-                            <span className="text-sm font-black text-slate-900">{formatDate(event.date)}</span>
+                            <span className="text-sm font-bold text-slate-900">{formatDate(event.date)}</span>
                             <span className="flex-1 h-px bg-slate-200" />
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">{upcomingEvents.filter(e => formatDate(e.date) === formatDate(event.date)).length} events</span>
+                            <span className="text-[11px] font-medium text-slate-500">{upcomingEvents.filter(e => formatDate(e.date) === formatDate(event.date)).length} events</span>
                           </div>
                         )}
                         <div onClick={() => openEventDetail(event)}
-                          className={`bg-white rounded-xl border border-slate-200 p-4 hover:border-violet-200 hover:shadow-md cursor-pointer transition-all ${pri.color ? `border-l-4 ${pri.color}` : ''}`}>
+                          className={`public-card p-4 hover:border-violet-200 hover:shadow-md cursor-pointer transition-all ${pri.color ? `border-l-4 ${pri.color}` : ''}`}>
                           <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-violet-50 flex flex-col items-center justify-center shrink-0 border border-violet-100">
-                              <span className="text-[9px] font-bold text-violet-600 uppercase leading-none">
+                            <div className="w-11 h-11 rounded-lg bg-violet-50 flex flex-col items-center justify-center shrink-0 border border-violet-200">
+                              <span className="text-[9px] font-semibold text-violet-700 leading-none">
                                 {eventDate.toLocaleDateString('en-US', { month: 'short' })}
                               </span>
-                              <span className="text-lg font-black text-violet-700 leading-tight">{eventDate.getDate()}</span>
+                              <span className="text-lg font-bold text-violet-700 leading-tight">{eventDate.getDate()}</span>
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <h3 className="text-sm font-bold text-slate-900 truncate">{event.title}</h3>
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cat.color}`}>{cat.label}</span>
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cat.color}`}>{cat.label}</span>
                               </div>
                               <div className="flex items-center gap-3 text-xs text-slate-400">
                                 <span className="flex items-center gap-1">
@@ -637,8 +647,8 @@ const Calendar = ({ mode = 'public' }) => {
           {/* ── Right Sidebar ── */}
           <aside className="hidden lg:block w-80 shrink-0 space-y-4">
             {/* Legend */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-              <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Event Types</h3>
+            <div className="public-card p-4">
+              <h3 className="public-kicker-muted mb-3">Event types</h3>
               <div className="space-y-2">
                 {Object.entries(CATEGORY_CONFIG).filter(([k]) => !['general', 'system_update', 'exam', 'other'].includes(k)).map(([key, cfg]) => (
                   <div key={key} className="flex items-center gap-2.5">
@@ -651,7 +661,7 @@ const Calendar = ({ mode = 'public' }) => {
 
             {/* Selected Date Events */}
             {selectedDate && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="public-card overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
                   <h3 className="text-sm font-bold text-slate-900">
                     {new Date(currentMonth.getFullYear(), currentMonth.getMonth(), selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
@@ -685,10 +695,10 @@ const Calendar = ({ mode = 'public' }) => {
             )}
 
             {/* Upcoming Events */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="public-card overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-                <span className="w-2 h-2 bg-violet-600 rounded-full animate-pulse" />
-                <h3 className="text-sm font-bold text-slate-900">Upcoming Events</h3>
+                <span className="w-2 h-2 bg-violet-700 rounded-full animate-pulse" />
+                <h3 className="text-sm font-bold text-slate-900">Upcoming events</h3>
               </div>
               <div className="divide-y divide-slate-50 max-h-[400px] overflow-y-auto">
                 {upcomingEvents.length > 0 ? upcomingEvents.map((event, idx) => {
@@ -699,18 +709,18 @@ const Calendar = ({ mode = 'public' }) => {
                     <div key={idx} onClick={() => openEventDetail(event)}
                       className={`px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors ${pri.color ? `border-l-3 border-l-${pri.dot.replace('bg-', '')}` : ''}`}>
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-violet-50 flex flex-col items-center justify-center shrink-0 border border-violet-100">
-                          <span className="text-[8px] font-bold text-violet-600 uppercase leading-none">
+                        <div className="w-10 h-10 rounded-lg bg-violet-50 flex flex-col items-center justify-center shrink-0 border border-violet-200">
+                          <span className="text-[9px] font-semibold text-violet-700 leading-none">
                             {eventDate.toLocaleDateString('en-US', { month: 'short' })}
                           </span>
-                          <span className="text-sm font-black text-violet-700 leading-tight">{eventDate.getDate()}</span>
+                          <span className="text-sm font-bold text-violet-700 leading-tight">{eventDate.getDate()}</span>
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-bold text-slate-800 truncate">{event.title}</p>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${cat.color}`}>{cat.label}</span>
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${cat.color}`}>{cat.label}</span>
                             {event.priority === 'critical' && (
-                              <span className="text-[10px] font-bold text-red-600">Urgent</span>
+                              <span className="text-[10px] font-semibold text-red-600">Urgent</span>
                             )}
                           </div>
                         </div>
@@ -731,9 +741,9 @@ const Calendar = ({ mode = 'public' }) => {
         {activeTab === 'school-dates' && canManage && (
           <div className="space-y-4">
             {showSchoolForm && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="public-card overflow-hidden">
                 <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-slate-900">{editingSchoolEntry ? 'Edit Entry' : 'New Entry'}</h3>
+                  <h3 className="text-sm font-bold text-slate-900">{editingSchoolEntry ? 'Edit entry' : 'New entry'}</h3>
                   <button onClick={() => setShowSchoolForm(false)} className="text-slate-400 hover:text-slate-600">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
@@ -743,12 +753,12 @@ const Calendar = ({ mode = 'public' }) => {
                     <div>
                       <label className="block text-xs font-medium text-slate-600 mb-1">Date *</label>
                       <input type="date" value={schoolForm.date} onChange={e => setSchoolForm(p => ({ ...p, date: e.target.value }))}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" />
+                        className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
                       <select value={schoolForm.type} onChange={e => setSchoolForm(p => ({ ...p, type: e.target.value }))}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+                        className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
                         {SCHOOL_DATE_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                       </select>
                     </div>
@@ -757,17 +767,17 @@ const Calendar = ({ mode = 'public' }) => {
                     <label className="block text-xs font-medium text-slate-600 mb-1">Title *</label>
                     <input type="text" value={schoolForm.title} onChange={e => setSchoolForm(p => ({ ...p, title: e.target.value }))}
                       placeholder="e.g. Christmas Day, Typhoon Suspension"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" />
+                      className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-slate-600 mb-1">Description</label>
                     <textarea value={schoolForm.description} onChange={e => setSchoolForm(p => ({ ...p, description: e.target.value }))}
-                      rows={2} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" />
+                      rows={2} className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none" />
                   </div>
                   <div className="flex justify-end gap-2">
-                    <button onClick={() => setShowSchoolForm(false)} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-colors">Cancel</button>
+                    <button onClick={() => setShowSchoolForm(false)} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors">Cancel</button>
                     <button onClick={handleSaveSchoolEntry} disabled={savingSchool}
-                      className="px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-colors disabled:opacity-50">
+                      className="px-3 py-1.5 rounded-lg bg-violet-700 text-white text-xs font-semibold hover:bg-violet-800 transition-colors disabled:opacity-50">
                       {savingSchool ? 'Saving...' : editingSchoolEntry ? 'Update' : 'Add'}
                     </button>
                   </div>
@@ -777,21 +787,21 @@ const Calendar = ({ mode = 'public' }) => {
 
             {schoolLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-2 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border border-violet-600 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : schoolEntries.length === 0 ? (
-              <div className="bg-white rounded-xl border border-slate-200 p-12 text-center shadow-sm">
+              <div className="public-card p-12 text-center">
                 <svg className="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <p className="text-sm font-bold text-slate-400">No school calendar entries yet</p>
+                <p className="text-sm font-medium text-slate-400">No school calendar entries yet</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {schoolEntries.map(entry => {
                   const typeInfo = SCHOOL_DATE_TYPES.find(t => t.value === entry.type) || SCHOOL_DATE_TYPES[3];
                   return (
-                    <div key={entry.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 hover:border-slate-300 transition-colors">
+                    <div key={entry.id} className="public-card p-4 hover:border-slate-300 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span className={`text-xl ${typeInfo.color}`}>{typeInfo.icon}</span>
@@ -821,18 +831,17 @@ const Calendar = ({ mode = 'public' }) => {
           </div>
         )}
       </div>
-
       {/* ── Event Detail Modal ── */}
       {selectedEvent && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col border border-slate-200 animate-in zoom-in-95 duration-200 overflow-hidden">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col border border-slate-200 animate-in zoom-in-95 duration-200 overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
               <div className="flex items-center gap-2">
                 {(() => {
                   const cat = CATEGORY_CONFIG[selectedEvent.category] || CATEGORY_CONFIG.general;
-                  return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${cat.color}`}>{cat.label}</span>;
+                  return <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cat.color}`}>{cat.label}</span>;
                 })()}
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                   selectedEvent.type === 'event'
                     ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
                     : 'bg-violet-50 text-violet-700 border-violet-200'
@@ -840,10 +849,10 @@ const Calendar = ({ mode = 'public' }) => {
                   {selectedEvent.type === 'event' ? 'School Event' : 'Announcement'}
                 </span>
                 {selectedEvent.priority === 'critical' && (
-                  <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Urgent</span>
+                  <span className="text-[10px] font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">Urgent</span>
                 )}
               </div>
-              <button onClick={() => setSelectedEvent(null)} className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
+              <button onClick={() => setSelectedEvent(null)} className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -875,8 +884,8 @@ const Calendar = ({ mode = 'public' }) => {
                 <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap mb-4">{selectedEvent.description}</div>
               )}
               {selectedEvent.type === 'event' && (
-                <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">RSVP</p>
+                <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="text-[11px] font-semibold text-slate-500 tracking-[0.1em] mb-3">RSVP</p>
                   <div className="flex items-center gap-2">
                     {['going', 'maybe', 'not_going'].map(s => (
                       <button key={s} onClick={async () => {
@@ -886,7 +895,7 @@ const Calendar = ({ mode = 'public' }) => {
                           setSelectedEvent(prev => ({ ...prev, my_rsvp: s, rsvp_going_count: r.data.going, rsvp_maybe_count: r.data.maybe, rsvp_not_going_count: r.data.not_going }));
                           toast.success(`RSVP: ${s === 'not_going' ? 'Not Going' : s.charAt(0).toUpperCase() + s.slice(1)}`);
                         } catch { toast.error('Failed to RSVP'); }
-                      }} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                      }} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                         selectedEvent.my_rsvp === s
                           ? s === 'going' ? 'bg-emerald-500 text-white' : s === 'maybe' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white'
                           : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
@@ -908,36 +917,35 @@ const Calendar = ({ mode = 'public' }) => {
                 {canManage && selectedEvent.type !== 'event' && (
                   <>
                     <button onClick={() => openEditEvent(selectedEvent)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-colors">
+                      className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors">
                       Edit
                     </button>
                     <button onClick={() => handleDeleteEvent(selectedEvent)}
-                      className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors">
+                      className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition-colors">
                       Delete
                     </button>
                     <button onClick={() => handleDuplicateEvent(selectedEvent)}
-                      className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold hover:bg-slate-200 transition-colors">
+                      className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors">
                       Duplicate
                     </button>
                   </>
                 )}
                 {canManage && selectedEvent.type === 'event' && (
                   <button onClick={() => handleDeleteEvent(selectedEvent)}
-                    className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors">
+                    className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition-colors">
                     Delete
                   </button>
                 )}
               </div>
               {selectedEvent.type !== 'event' && (
-                <Link to={`/announcements`} className="px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-bold hover:bg-violet-100 transition-colors">
-                  View in Announcements →
+                <Link to={`/announcements`} className="px-3 py-1.5 rounded-lg bg-violet-50 text-violet-700 text-xs font-semibold hover:bg-violet-100 transition-colors">
+                  View in announcements →
                 </Link>
               )}
             </div>
           </div>
         </div>
       )}
-
       {/* ── Event Modal ── */}
       {canManage && (
         <CalendarEventModal

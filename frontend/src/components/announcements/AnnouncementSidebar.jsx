@@ -66,12 +66,12 @@ const AnnouncementSidebar = ({ announcements = [] }) => {
             </div>
             <h3 className="text-sm font-bold text-slate-900">Upcoming Events</h3>
           </div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">This Month</span>
+          <span className="text-[10px] font-bold text-slate-400 tracking-wider">This Month</span>
         </div>
         <div className="divide-y divide-slate-50">
           {loadingEvents ? (
             <div className="px-4 py-6 text-center">
-              <div className="w-5 h-5 border-2 border-violet-300 border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="w-5 h-5 border border-violet-300 border-t-transparent rounded-full animate-spin mx-auto" />
               <p className="text-xs text-slate-400 mt-2">Loading events...</p>
             </div>
           ) : calendarEvents.length > 0 ? (
@@ -85,10 +85,10 @@ const AnnouncementSidebar = ({ announcements = [] }) => {
                   className="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors group"
                 >
                   <div className="w-10 h-10 rounded-lg bg-violet-50 flex flex-col items-center justify-center shrink-0 border border-violet-100 group-hover:bg-violet-100 transition-colors">
-                    <span className="text-[9px] font-bold text-violet-600 uppercase leading-none">
+                    <span className="text-[9px] font-bold text-violet-600 leading-none">
                       {eventDate.toLocaleDateString('en-US', { month: 'short' })}
                     </span>
-                    <span className="text-sm font-black text-violet-700 leading-none mt-0.5">
+                    <span className="text-sm font-bold text-violet-700 leading-none mt-0.5">
                       {eventDate.getDate()}
                     </span>
                   </div>
@@ -97,7 +97,7 @@ const AnnouncementSidebar = ({ announcements = [] }) => {
                       {event.title}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${catColor}`}>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${catColor}`}>
                         {event.category || 'Event'}
                       </span>
                       {event.end_date && (
@@ -120,7 +120,7 @@ const AnnouncementSidebar = ({ announcements = [] }) => {
           )}
         </div>
         <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50/50">
-          <a href="/portal-calendar" className="text-[11px] font-bold text-violet-600 hover:text-violet-800 uppercase tracking-wider transition-colors">
+          <a href="/portal-calendar" className="text-[11px] font-bold text-violet-600 hover:text-violet-800 tracking-wider transition-colors">
             View Full Calendar →
           </a>
         </div>

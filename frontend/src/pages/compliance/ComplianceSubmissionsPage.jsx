@@ -32,7 +32,7 @@ function FreqBadge({ frequency }) {
     yearly:    'bg-emerald-50 text-emerald-600 border-emerald-200',
   };
   return (
-    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md border text-[10px] font-black flex-shrink-0 ${map[frequency] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md border text-[10px] font-bold flex-shrink-0 ${map[frequency] || 'bg-slate-50 text-slate-500 border-slate-200'}`}>
       {FREQUENCY_ICONS[frequency] || '?'}
     </span>
   );
@@ -239,7 +239,7 @@ export default function ComplianceSubmissionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-extrabold text-slate-900">Submissions</h2>
+          <h2 className="text-lg font-bold text-slate-900">Submissions</h2>
           <p className="text-sm text-slate-500 mt-0.5">{submissions.length} total submission{submissions.length !== 1 ? 's' : ''}</p>
         </div>
       </div>
@@ -251,7 +251,7 @@ export default function ComplianceSubmissionsPage() {
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
             </svg>
-            <span className="text-xs font-bold uppercase tracking-wider">Filter</span>
+            <span className="text-xs font-bold tracking-wider">Filter</span>
           </div>
 
           {/* Status */}
@@ -364,7 +364,7 @@ export default function ComplianceSubmissionsPage() {
         </div>
       ) : submissions.length === 0 ? (
         <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-          <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -384,14 +384,14 @@ export default function ComplianceSubmissionsPage() {
               onChange={toggleSelectAll}
               className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500"
             />
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex-1">Teacher</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-32 hidden md:block">Type</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-36 hidden lg:block">Subject / Class</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-24">Period</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-20 hidden lg:block">Submitted</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-16 text-center">Files</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-24">Status</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-28 text-right">Action</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em] flex-1">Teacher</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em] w-32 hidden md:block">Type</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em] w-36 hidden lg:block">Subject / Class</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em] w-24">Period</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em] w-20 hidden lg:block">Submitted</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em] w-16 text-center">Files</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em] w-24">Status</span>
+            <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em] w-28 text-right">Action</span>
           </div>
 
           {/* Rows */}
@@ -532,7 +532,7 @@ export default function ComplianceSubmissionsPage() {
                 {/* Files */}
                 {reviewingSubmission.file_count > 0 && (
                   <div>
-                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                    <h4 className="text-xs font-bold text-slate-400 tracking-[0.1em] mb-2">
                       Submitted Files
                       <span className="ml-2 text-violet-500 normal-case font-bold">{reviewingSubmission.file_count}</span>
                     </h4>
@@ -588,18 +588,18 @@ export default function ComplianceSubmissionsPage() {
                 {/* Previous rejection */}
                 {reviewingSubmission.remarks && reviewingSubmission.status === 'rejected' && (
                   <div className="p-3 bg-red-50 border border-red-100 rounded-lg">
-                    <p className="text-xs font-bold text-red-600 uppercase tracking-wider mb-1">Previous Rejection</p>
+                    <p className="text-xs font-bold text-red-600 tracking-wider mb-1">Previous Rejection</p>
                     <p className="text-sm text-red-700">{reviewingSubmission.remarks}</p>
                   </div>
                 )}
 
                 {/* Decision */}
                 <div>
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Decision</h4>
+                  <h4 className="text-xs font-bold text-slate-400 tracking-[0.1em] mb-3">Decision</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       onClick={() => setReviewForm(prev => ({ ...prev, status: 'reviewed' }))}
-                      className={`py-3 rounded-xl text-sm font-bold border-2 transition-all ${
+                      className={`py-3 rounded-xl text-sm font-bold border transition-all ${
                         reviewForm.status === 'reviewed'
                           ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm'
                           : 'border-slate-200 text-slate-600 hover:border-slate-300'
@@ -614,7 +614,7 @@ export default function ComplianceSubmissionsPage() {
                     </button>
                     <button
                       onClick={() => setReviewForm(prev => ({ ...prev, status: 'rejected' }))}
-                      className={`py-3 rounded-xl text-sm font-bold border-2 transition-all ${
+                      className={`py-3 rounded-xl text-sm font-bold border transition-all ${
                         reviewForm.status === 'rejected'
                           ? 'border-red-500 bg-red-50 text-red-700 shadow-sm'
                           : 'border-slate-200 text-slate-600 hover:border-slate-300'
@@ -647,14 +647,14 @@ export default function ComplianceSubmissionsPage() {
 
                 {/* Inline Comments */}
                 <div>
-                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                  <h4 className="text-xs font-bold text-slate-400 tracking-[0.1em] mb-2">
                     Comments
                     {comments.length > 0 && <span className="ml-2 text-violet-500 font-bold">{comments.length}</span>}
                   </h4>
 
                   {loadingComments ? (
                     <div className="flex items-center gap-2 py-3 text-xs text-slate-400">
-                      <div className="w-4 h-4 border-2 border-slate-200 border-t-violet-400 rounded-full animate-spin" />
+                      <div className="w-4 h-4 border border-slate-200 border-t-violet-400 rounded-full animate-spin" />
                       Loading comments…
                     </div>
                   ) : comments.length > 0 ? (
@@ -691,7 +691,7 @@ export default function ComplianceSubmissionsPage() {
                       className="px-3 py-2 bg-violet-600 text-white text-xs font-bold rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                     >
                       {submittingComment ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin" />
                       ) : (
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -705,7 +705,7 @@ export default function ComplianceSubmissionsPage() {
                   <div>
                     <button
                       onClick={() => setShowAudit(p => !p)}
-                      className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600 transition-colors"
+                      className="flex items-center gap-2 text-xs font-bold text-slate-400 tracking-[0.1em] hover:text-slate-600 transition-colors"
                     >
                       <svg className={`w-3.5 h-3.5 transition-transform ${showAudit ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -842,7 +842,7 @@ export default function ComplianceSubmissionsPage() {
             {/* Error / unsupported fallback */}
             {(previewFile.iframeError || previewFile.type === 'other') && (
               <div className="flex flex-col items-center justify-center bg-slate-50 rounded-xl border border-slate-200 py-16 space-y-4">
-                <div className="w-16 h-16 bg-white rounded-2xl border border-slate-200 flex items-center justify-center shadow-sm">
+                <div className="w-16 h-16 bg-white rounded-lg border border-slate-200 flex items-center justify-center shadow-sm">
                   <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>

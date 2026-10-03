@@ -38,7 +38,7 @@ const PasswordReset = () => {
 
   const PasswordInput = ({ label, field, show, onToggle }) => (
     <div className="space-y-1.5">
-      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+      <label className="block text-xs font-bold text-slate-600 tracking-wider">
         {label}
       </label>
       <div className="relative">
@@ -75,12 +75,12 @@ const PasswordReset = () => {
     <div className="max-w-lg mx-auto space-y-4 sm:space-y-5 animate-fade-in page-bottom-safe px-0.5 sm:px-0">
       {/* Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Change Password</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Change Password</h1>
         <p className="text-sm text-slate-500 mt-0.5">Update your account password to keep it secure.</p>
       </div>
 
       {/* Form card */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
           <PasswordInput
             label="Current Password"
@@ -118,11 +118,11 @@ const PasswordReset = () => {
               <svg className="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <h3 className="text-xs font-bold text-amber-800 uppercase tracking-wider">Password Requirements</h3>
+              <h3 className="text-xs font-bold text-amber-800 tracking-wider">Password Requirements</h3>
             </div>
             <ul className="text-xs text-amber-700 space-y-1 ml-6">
               <li>At least 8 characters long</li>
-              <li>Mix of uppercase and lowercase letters</li>
+              <li>Mix of and lowercase letters</li>
               <li>At least one number</li>
               <li>At least one special character</li>
             </ul>

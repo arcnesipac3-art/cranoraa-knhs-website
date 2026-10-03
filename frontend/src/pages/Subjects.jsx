@@ -129,13 +129,13 @@ const Subjects = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-violet-700 uppercase tracking-wide mb-1.5 sm:mb-2">
+          <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold text-violet-700 tracking-wide mb-1.5 sm:mb-2">
             <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
             </svg>
             <span>Curriculum Management</span>
           </div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
             Subjects
           </h1>
           <p className="text-[10px] sm:text-xs text-slate-600 mt-0.5 sm:mt-1 font-semibold">
@@ -212,12 +212,12 @@ const Subjects = () => {
               <Card key={level} className="border-l-4 border-l-violet-500">
                 <CardHeader divider className="bg-slate-50">
                   <div className="flex items-center gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-violet-100 flex items-center justify-center font-extrabold text-xs sm:text-sm text-violet-700 border border-violet-200 flex-shrink-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-md bg-violet-100 flex items-center justify-center font-bold text-xs sm:text-sm text-violet-700 border border-violet-200 flex-shrink-0">
                       {parseInt(level.replace(/\D/g, '')) || level.charAt(0)}
                     </div>
                     <div>
                       <CardTitle className="text-sm sm:text-base">{level}</CardTitle>
-                      <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wide">{items.length} Subjects</p>
+                      <p className="text-[10px] sm:text-xs font-bold text-slate-500 tracking-wide">{items.length} Subjects</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -264,10 +264,10 @@ const Subjects = () => {
                     <table className="w-full text-left">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                          <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider w-32">Code</th>
-                          <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Subject Name</th>
-                          <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Description</th>
-                          <th className="px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider text-center w-28">Actions</th>
+                          <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider w-32">Code</th>
+                          <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Subject Name</th>
+                          <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Description</th>
+                          <th className="px-4 py-3 text-xs font-bold text-slate-700 tracking-wider text-center w-28">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -341,7 +341,7 @@ const Subjects = () => {
                     value={form.code}
                     onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
                     placeholder="e.g. MATH7"
-                    className={modalInputCls + ' uppercase font-mono'}
+                    className={modalInputCls + ' font-mono'}
                     required
                   />
                 </ModalField>

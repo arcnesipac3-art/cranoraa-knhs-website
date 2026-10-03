@@ -24,7 +24,7 @@ import MyClassesWidget from '../../components/dashboard/MyClassesWidget';
 const Section = ({ label, children, className = '' }) => (
   <div className={className}>
     {label && (
-      <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3 px-0.5">{label}</p>
+      <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em] mb-3 px-0.5">{label}</p>
     )}
     {children}
   </div>
@@ -158,13 +158,13 @@ const TeacherDashboard = () => {
   // ── Error ─────────────────────────────────────────────────────────────────
   if (error && !data) return (
     <div className="page-bottom-safe max-w-[1800px] mx-auto bg-slate-50 px-4 py-6 md:px-6 flex items-center justify-center min-h-[60vh]">
-      <div className="max-w-sm w-full bg-white rounded-2xl border border-red-200 border-l-4 border-l-red-500 shadow-sm p-6 text-center">
-        <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
+      <div className="max-w-sm w-full bg-white rounded-lg border border-red-200 border-l-4 border-l-red-500 shadow-sm p-6 text-center">
+        <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center mx-auto mb-3">
           <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h3 className="text-sm font-extrabold text-slate-900 mb-1">Dashboard Unavailable</h3>
+        <h3 className="text-sm font-bold text-slate-900 mb-1">Dashboard Unavailable</h3>
         <p className="text-xs text-slate-600 mb-4">{error}</p>
         <button onClick={load}
           className="px-5 py-2 rounded-lg bg-violet-600 text-white text-xs font-bold hover:bg-violet-700 transition-colors">

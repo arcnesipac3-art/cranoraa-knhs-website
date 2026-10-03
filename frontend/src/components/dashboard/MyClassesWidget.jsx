@@ -39,12 +39,12 @@ const MyClassesWidget = memo(({ classrooms = [], todayAttMap = {}, classroomSubj
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">My Classes</h3>
+            <h3 className="text-sm font-bold text-slate-900">My Classes</h3>
             <p className="text-[10px] text-slate-500 font-medium">No classes assigned yet</p>
           </div>
         </div>
         <div className="px-5 py-10 text-center">
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+          <div className="w-14 h-14 rounded-lg bg-slate-100 flex items-center justify-center mx-auto mb-3">
             <svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
@@ -70,12 +70,12 @@ const MyClassesWidget = memo(({ classrooms = [], todayAttMap = {}, classroomSubj
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">My Classes</h3>
+            <h3 className="text-sm font-bold text-slate-900">My Classes</h3>
             <p className="text-[10px] text-slate-500 font-medium">{classrooms.length} section{classrooms.length !== 1 ? 's' : ''} assigned</p>
           </div>
         </div>
         <button onClick={() => navigate('/my-classes')}
-          className="text-[11px] font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide transition-colors">
+          className="text-[11px] font-bold text-violet-600 hover:text-violet-700 tracking-wide transition-colors">
           View All
         </button>
       </div>
@@ -101,12 +101,12 @@ const MyClassesWidget = memo(({ classrooms = [], todayAttMap = {}, classroomSubj
                   {/* Header */}
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-extrabold text-slate-900 truncate group-hover:text-violet-700 transition-colors">
+                      <h4 className="text-sm font-bold text-slate-900 truncate group-hover:text-violet-700 transition-colors">
                         {c.name}
                       </h4>
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {codes.slice(0, 3).map(code => (
-                          <span key={code} className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-violet-50 text-violet-600 border border-violet-100 uppercase tracking-wide">
+                          <span key={code} className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-violet-50 text-violet-600 border border-violet-100 tracking-wide">
                             {code}
                           </span>
                         ))}

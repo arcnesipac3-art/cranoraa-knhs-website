@@ -403,7 +403,7 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
               )}
               {loadingMembers ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-5 h-5 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+                  <div className="w-5 h-5 border border-slate-200 border-t-violet-600 rounded-full animate-spin" />
                 </div>
               ) : members.length === 0 ? (
                 <p className="text-center text-xs text-slate-400 py-8">No members found</p>
@@ -418,7 +418,7 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
                           {getInitials(member.user_name)}
                         </div>
                       )}
-                      <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${member.is_online ? 'bg-emerald-400' : 'bg-slate-300'}`} />
+                      <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white ${member.is_online ? 'bg-emerald-400' : 'bg-slate-300'}`} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
@@ -470,7 +470,7 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
             <div className="py-2">
               {loadingContent ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-5 h-5 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+                  <div className="w-5 h-5 border border-slate-200 border-t-violet-600 rounded-full animate-spin" />
                 </div>
               ) : (
                 <>
@@ -531,7 +531,7 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
         {/* Add People Modal */}
         {showAddPeople && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => { setShowAddPeople(false); setAddPeopleSelected([]); setAddPeopleSearch(''); setAddPeopleResults([]); }}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-md mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <h3 className="text-base font-bold text-slate-900">Add People</h3>
                 <button onClick={() => { setShowAddPeople(false); setAddPeopleSelected([]); setAddPeopleSearch(''); setAddPeopleResults([]); }} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -551,7 +551,7 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
               <div className="flex-1 overflow-y-auto px-5 pb-3">
                 {addPeopleLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="w-5 h-5 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+                    <div className="w-5 h-5 border border-slate-200 border-t-violet-600 rounded-full animate-spin" />
                   </div>
                 ) : addPeopleResults.length === 0 ? (
                   <p className="text-center text-xs text-slate-400 py-8">
@@ -580,9 +580,9 @@ export default function SettingsDrawer({ isOpen, onClose, room, userId, onRoomUp
                           <p className="text-[11px] text-slate-400 truncate">{user.email}</p>
                         </div>
                         {alreadyMember ? (
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">In group</span>
+                          <span className="text-[10px] font-bold text-slate-400">In group</span>
                         ) : (
-                          <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${isSelected ? 'border-violet-500 bg-violet-500' : 'border-slate-300'}`}>
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? 'border-violet-500 bg-violet-500' : 'border-slate-300'}`}>
                             {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                           </div>
                         )}

@@ -43,7 +43,7 @@ export default function Offline() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
       <div className="text-center max-w-md">
-        <div className="mx-auto mb-6 w-20 h-20 rounded-2xl bg-amber-100 flex items-center justify-center">
+        <div className="mx-auto mb-6 w-20 h-20 rounded-lg bg-amber-100 flex items-center justify-center">
           <svg
             className="w-10 h-10 text-amber-600"
             fill="none"

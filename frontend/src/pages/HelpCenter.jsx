@@ -204,14 +204,14 @@ const HelpCenter = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-extrabold text-slate-900">Help Center</h1>
+              <h1 className="text-2xl font-bold text-slate-900">Help Center</h1>
               <p className="text-sm text-slate-500">Find answers to common questions and troubleshoot issues</p>
             </div>
           </div>
         </div>
 
         {/* Quick Contact */}
-        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-2xl p-5 mb-8 text-white">
+        <div className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg p-5 mb-8 text-white">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,7 +247,7 @@ const HelpCenter = () => {
                 <svg className="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={section.icon} />
                 </svg>
-                <h2 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider">{section.title}</h2>
+                <h2 className="text-sm font-bold text-slate-900 tracking-wider">{section.title}</h2>
               </div>
               <div className="space-y-2">
                 {section.items.map((item, i) => (

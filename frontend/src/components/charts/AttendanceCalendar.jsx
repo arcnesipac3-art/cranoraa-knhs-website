@@ -209,7 +209,7 @@ export const AttendanceCalendar = ({
         {weekDays.map((day) => (
           <div
             key={day}
-            className="text-center text-xs font-semibold text-slate-600 uppercase"
+            className="text-center text-xs font-semibold text-slate-600"
           >
             {day}
           </div>
@@ -236,7 +236,7 @@ export const AttendanceCalendar = ({
                   <button
                     onClick={() => handleDayClick(dayData)}
                     className={cn(
-                      'w-full h-full rounded-lg border-2 transition-all relative',
+                      'w-full h-full rounded-lg border transition-all relative',
                       'focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2',
                       config
                         ? `${config.color} ${config.borderColor} text-white hover:opacity-90`
@@ -271,13 +271,13 @@ export const AttendanceCalendar = ({
 
       {/* Legend */}
       <div className="mt-6 pt-6 border-t border-slate-200">
-        <p className="text-xs font-semibold text-slate-600 uppercase mb-3">Legend</p>
+        <p className="text-xs font-semibold text-slate-600 mb-3">Legend</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
           {Object.entries(statusConfig).map(([key, config]) => (
             <div key={key} className="flex items-center gap-2">
               <div
                 className={cn(
-                  'w-4 h-4 rounded border-2 flex items-center justify-center',
+                  'w-4 h-4 rounded border flex items-center justify-center',
                   config.color,
                   config.borderColor
                 )}

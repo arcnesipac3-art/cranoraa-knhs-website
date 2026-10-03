@@ -14,7 +14,7 @@ function getPasswordStrength(pw) {
   if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
   if (/[^a-zA-Z0-9]/.test(pw)) score++;
 
-  if (score <= 1) return { score, label: 'Weak', color: 'rose', bars: 1, tip: 'Try adding numbers or mixing uppercase and lowercase' };
+  if (score <= 1) return { score, label: 'Weak', color: 'rose', bars: 1, tip: 'Try adding numbers or mixing and lowercase' };
   if (score <= 2) return { score, label: 'Fair', color: 'amber', bars: 2, tip: 'Add uppercase, lowercase, or special characters' };
   if (score <= 3) return { score, label: 'Good', color: 'blue', bars: 3, tip: 'Almost there — mix in special characters for extra security' };
   return { score, label: 'Strong', color: 'emerald', bars: 4, tip: 'Excellent password strength' };
@@ -195,14 +195,14 @@ const ForcePasswordChange = () => {
         <div className="w-full max-w-lg">
 
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-lg shadow-sm border border-slate-200 mb-4">
               <img src="/icons/school-logo-source.png" alt="KNHS" className="w-10 h-10 object-contain" loading="lazy" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Welcome to KNHS PRISM Portal</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome to KNHS PRISM Portal</h1>
             <p className="text-sm text-slate-500 mt-1.5">Before you continue, please review and accept our policies.</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-lg shadow-slate-200/50 p-6 sm:p-8 space-y-5">
+          <div className="bg-white rounded-lg border border-slate-200 shadow-lg shadow-slate-200/50 p-6 sm:p-8 space-y-5">
 
             <div className="space-y-3">
               <button
@@ -248,7 +248,7 @@ const ForcePasswordChange = () => {
                     onChange={(e) => setPrivacyAgreed(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-5 h-5 rounded-md border-2 border-slate-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-md border border-slate-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
                     {privacyAgreed && (
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -306,7 +306,7 @@ const ForcePasswordChange = () => {
                     onChange={(e) => setTermsAgreed(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-5 h-5 rounded-md border-2 border-slate-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                  <div className="w-5 h-5 rounded-md border border-slate-300 peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
                     {termsAgreed && (
                       <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
@@ -324,7 +324,7 @@ const ForcePasswordChange = () => {
               type="button"
               disabled={!privacyAgreed || !termsAgreed}
               onClick={() => setStep('password')}
-              className={`w-full py-3 rounded-lg text-sm font-black uppercase tracking-widest transition-all ${
+              className={`w-full py-3 rounded-lg text-sm font-bold tracking-[0.1em] transition-all ${
                 privacyAgreed && termsAgreed
                   ? 'bg-[#5e2a84] text-white hover:bg-violet-700 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -345,20 +345,20 @@ const ForcePasswordChange = () => {
       <div className="w-full max-w-md">
 
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-sm border border-slate-200 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-lg shadow-sm border border-slate-200 mb-4">
             <img src="/icons/school-logo-source.png" alt="KNHS" className="w-10 h-10 object-contain" loading="lazy" />
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Set New Password</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Set New Password</h1>
           <p className="text-sm text-slate-500 mt-1.5">Your temporary password has expired. Create a new one.</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-lg shadow-slate-200/50 p-6 sm:p-8">
+        <div className="bg-white rounded-lg border border-slate-200 shadow-lg shadow-slate-200/50 p-6 sm:p-8">
 
           {password && (
             <div className="mb-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Password Strength</span>
-                <span className={`text-xs font-black ${STRENGTH_STYLES[strength.color].text}`}>{strength.label}</span>
+                <span className="text-[10px] font-bold text-slate-400 tracking-[0.1em]">Password Strength</span>
+                <span className={`text-xs font-bold ${STRENGTH_STYLES[strength.color].text}`}>{strength.label}</span>
               </div>
               <div className="flex gap-1.5">
                 {[1, 2, 3, 4].map(i => (
@@ -376,7 +376,7 @@ const ForcePasswordChange = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
                 New Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -399,14 +399,14 @@ const ForcePasswordChange = () => {
             <div className={`rounded-lg border p-3 transition-colors ${
               allReqsMet ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'
             }`}>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Requirements</p>
+              <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em] mb-2">Requirements</p>
               <div className="space-y-1.5">
                 {requirements.map((req, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
                       req.met
                         ? 'bg-emerald-500 text-white'
-                        : 'bg-white border-2 border-slate-300'
+                        : 'bg-white border border-slate-300'
                     }`}>
                       {req.met && (
                         <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -426,7 +426,7 @@ const ForcePasswordChange = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
                 Confirm Password <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -472,14 +472,14 @@ const ForcePasswordChange = () => {
                 Back
               </button>
               <button type="submit" disabled={!canSubmit}
-                className={`flex-1 py-3 rounded-lg text-sm font-black uppercase tracking-widest transition-all ${
+                className={`flex-1 py-3 rounded-lg text-sm font-bold tracking-[0.1em] transition-all ${
                   canSubmit
                     ? 'bg-[#5e2a84] text-white hover:bg-violet-700 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40'
                     : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 }`}>
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin" />
                     Updating...
                   </span>
                 ) : (

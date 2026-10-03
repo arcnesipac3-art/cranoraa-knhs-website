@@ -12,7 +12,7 @@ const STATUS_CONFIG = {
   pending_requirements: { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Pending Req' },
   approved: { color: 'bg-emerald-100 text-emerald-800 border-emerald-200', label: 'Approved' },
   rejected: { color: 'bg-rose-100 text-rose-800 border-rose-200', label: 'Rejected' },
-  cancelled: { color: 'bg-gray-100 text-gray-700 border-gray-200', label: 'Cancelled' },
+  cancelled: { color: 'bg-gray-100 text-slate-700 border-gray-200', label: 'Cancelled' },
   enrolled: { color: 'bg-violet-100 text-violet-800 border-violet-200', label: 'Enrolled' },
   withdrawn: { color: 'bg-orange-100 text-orange-800 border-orange-200', label: 'Withdrawn' },
 };
@@ -384,7 +384,7 @@ const EnrollmentManagement = () => {
   return (
     <div className="page-bottom-safe bg-slate-50/50">
       <div className="mb-4 md:mb-6">
-        <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">Admissions Management</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Admissions Management</h1>
         <p className="text-xs text-slate-500 mt-1">SY {new Date().getFullYear()}-{new Date().getFullYear() + 1} Enrollment Applications</p>
       </div>
       <div className="hidden lg:flex items-center gap-2 mb-4 md:mb-6">
@@ -436,8 +436,8 @@ const EnrollmentManagement = () => {
             { label: 'Rejected', value: analytics.rejected, color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
           ].map(s => (
             <div key={s.label} className={`${s.bg} border rounded-xl p-4`}>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">{s.label}</p>
-              <p className={`text-2xl font-black mt-1 ${s.color}`}>{s.value}</p>
+              <p className="text-[10px] font-bold text-slate-400 tracking-wide">{s.label}</p>
+              <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
             </div>
           ))}
         </div>
@@ -494,7 +494,7 @@ const EnrollmentManagement = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left">
-            <thead className="bg-slate-50/50 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+            <thead className="bg-slate-50/50 text-[10px] font-bold text-slate-400 tracking-wider border-b border-slate-100">
               <tr>
                 <th className="px-3 py-3 w-8"><input type="checkbox" onChange={e => setSelectedIds(e.target.checked ? filtered.map(a => a.id) : [])} checked={selectedIds.length === filtered.length && filtered.length > 0} className="w-4 h-4 text-violet-600 rounded" /></th>
                 <th className="px-3 py-3">Applicant</th>
@@ -525,7 +525,7 @@ const EnrollmentManagement = () => {
                   </td>
                   <td className="px-3 py-3 text-[10px] text-slate-500 font-semibold">{app.enrollment_type?.replace('_', ' ') || '—'}</td>
                   <td className="px-3 py-3">
-                    <span className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border ${(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).color}`}>
+                    <span className={`px-2 py-0.5 text-[9px] font-bold rounded-md border ${(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).color}`}>
                       {(STATUS_CONFIG[app.status] || STATUS_CONFIG.pending).label}
                     </span>
                   </td>
@@ -606,7 +606,7 @@ const EnrollmentManagement = () => {
             return (
               <div key={status} className="bg-slate-50 border border-slate-200 rounded-xl p-3">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-bold text-slate-700 uppercase">{STATUS_CONFIG[status]?.label || status}</h3>
+                  <h3 className="text-xs font-bold text-slate-700">{STATUS_CONFIG[status]?.label || status}</h3>
                   <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded-full">{statusApps.length}</span>
                 </div>
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
@@ -632,7 +632,7 @@ const EnrollmentManagement = () => {
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
           <div className="bg-white w-full max-w-3xl border border-gray-300 shadow-2xl rounded-sm flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
-            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b-2 border-violet-900">
+            <div className="bg-[#5e2a84] flex items-center justify-between px-5 py-3 flex-shrink-0 border-b border-violet-900">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -640,10 +640,10 @@ const EnrollmentManagement = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">
+                  <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">
                     {selected.full_name || `${selected.first_name} ${selected.last_name}`}
                   </h2>
-                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium uppercase tracking-wide">
+                  <p className="text-violet-200 text-[10px] mt-0.5 font-medium tracking-wide">
                     {selected.enrollment_number} — Enrollment Application
                   </p>
                 </div>
@@ -657,34 +657,34 @@ const EnrollmentManagement = () => {
             </div>
             <div className="flex-1 overflow-y-auto p-5 space-y-6">
               <div className="flex items-center justify-between">
-                <span className={`px-3 py-1 text-xs font-bold uppercase rounded-lg border ${(STATUS_CONFIG[selected.status] || STATUS_CONFIG.pending).color}`}>
+                <span className={`px-3 py-1 text-xs font-bold rounded-lg border ${(STATUS_CONFIG[selected.status] || STATUS_CONFIG.pending).color}`}>
                   {(STATUS_CONFIG[selected.status] || STATUS_CONFIG.pending).label}
                 </span>
                 {selected.assigned_classroom_name && <span className="text-xs font-bold text-violet-600">Section: {selected.assigned_classroom_name}</span>}
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">Type</p><p className="font-bold text-slate-800">{selected.enrollment_type?.replace('_', ' ') || 'New'}</p></div>
-                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">Grade</p><p className="font-bold text-slate-800">Grade {selected.grade_level}{selected.strand ? ` - ${selected.strand}` : ''}</p></div>
-                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">School Year</p><p className="font-bold text-slate-800">{selected.school_year || 'N/A'}</p></div>
-                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">Sex</p><p className="font-bold text-slate-800">{selected.sex}</p></div>
-                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">DOB</p><p className="font-bold text-slate-800">{selected.date_of_birth} ({selected.age || '?'} yrs)</p></div>
-                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">LRN</p><p className="font-bold text-slate-800">{selected.lrn || (selected.lrn_request_reason ? `Requested: ${selected.lrn_request_reason.replace(/_/g, ' ')}` : 'N/A')}</p></div>
-                <div className="col-span-2 bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400 uppercase">Address</p><p className="font-bold text-slate-800">{selected.street_address}, {selected.barangay}, {selected.city_municipality}, {selected.province}</p></div>
+                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400">Type</p><p className="font-bold text-slate-800">{selected.enrollment_type?.replace('_', ' ') || 'New'}</p></div>
+                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400">Grade</p><p className="font-bold text-slate-800">Grade {selected.grade_level}{selected.strand ? ` - ${selected.strand}` : ''}</p></div>
+                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400">School Year</p><p className="font-bold text-slate-800">{selected.school_year || 'N/A'}</p></div>
+                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400">Sex</p><p className="font-bold text-slate-800">{selected.sex}</p></div>
+                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400">DOB</p><p className="font-bold text-slate-800">{selected.date_of_birth} ({selected.age || '?'} yrs)</p></div>
+                <div className="bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400">LRN</p><p className="font-bold text-slate-800">{selected.lrn || (selected.lrn_request_reason ? `Requested: ${selected.lrn_request_reason.replace(/_/g, ' ')}` : 'N/A')}</p></div>
+                <div className="col-span-2 bg-slate-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-slate-400">Address</p><p className="font-bold text-slate-800">{selected.street_address}, {selected.barangay}, {selected.city_municipality}, {selected.province}</p></div>
               </div>
 
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Parents / Guardian</p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-wide mb-2">Parents / Guardian</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div className="bg-emerald-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-emerald-600 uppercase">Father</p><p className="font-bold text-slate-800">{selected.father_name || 'N/A'}</p><p className="text-xs text-slate-500">{selected.father_contact || ''}</p>{selected.father_email && <p className="text-[10px] text-slate-400">{selected.father_email}</p>}</div>
-                  <div className="bg-rose-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-rose-600 uppercase">Mother</p><p className="font-bold text-slate-800">{selected.mother_name || 'N/A'}</p><p className="text-xs text-slate-500">{selected.mother_contact || ''}</p>{selected.mother_email && <p className="text-[10px] text-slate-400">{selected.mother_email}</p>}</div>
-                  {selected.guardian_name && <div className="bg-amber-50 p-3 rounded-xl col-span-2"><p className="text-[9px] font-bold text-amber-600 uppercase">Guardian</p><p className="font-bold text-slate-800">{selected.guardian_name} ({selected.guardian_relationship})</p><p className="text-xs text-slate-500">{selected.guardian_contact || ''}</p></div>}
-                  {selected.linked_parent_email && <div className="bg-violet-50 p-3 rounded-xl col-span-2 border border-violet-200"><p className="text-[9px] font-bold text-violet-600 uppercase">Linked Parent Account</p><p className="text-xs text-violet-700 font-semibold">{selected.linked_parent_email}</p></div>}
+                  <div className="bg-emerald-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-emerald-600">Father</p><p className="font-bold text-slate-800">{selected.father_name || 'N/A'}</p><p className="text-xs text-slate-500">{selected.father_contact || ''}</p>{selected.father_email && <p className="text-[10px] text-slate-400">{selected.father_email}</p>}</div>
+                  <div className="bg-rose-50 p-3 rounded-xl"><p className="text-[9px] font-bold text-rose-600">Mother</p><p className="font-bold text-slate-800">{selected.mother_name || 'N/A'}</p><p className="text-xs text-slate-500">{selected.mother_contact || ''}</p>{selected.mother_email && <p className="text-[10px] text-slate-400">{selected.mother_email}</p>}</div>
+                  {selected.guardian_name && <div className="bg-amber-50 p-3 rounded-xl col-span-2"><p className="text-[9px] font-bold text-amber-600">Guardian</p><p className="font-bold text-slate-800">{selected.guardian_name} ({selected.guardian_relationship})</p><p className="text-xs text-slate-500">{selected.guardian_contact || ''}</p></div>}
+                  {selected.linked_parent_email && <div className="bg-violet-50 p-3 rounded-xl col-span-2 border border-violet-200"><p className="text-[9px] font-bold text-violet-600">Linked Parent Account</p><p className="text-xs text-violet-700 font-semibold">{selected.linked_parent_email}</p></div>}
                 </div>
               </div>
 
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Documents</p>
+                <p className="text-[10px] font-bold text-slate-400 tracking-wide mb-2">Documents</p>
                 {(() => {
                   const docs = getAppDocs(selected);
                   return (
@@ -742,7 +742,7 @@ const EnrollmentManagement = () => {
 
               {checklist && (
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-2">Enrollment Checklist</p>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wide mb-2">Enrollment Checklist</p>
                   <div className="bg-slate-50 p-4 rounded-xl space-y-2">
                     {[
                       { key: 'documents_complete', label: 'All Documents Verified' },
@@ -769,12 +769,12 @@ const EnrollmentManagement = () => {
 
               {selected.status_history && selected.status_history.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-3">Status Timeline</p>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wide mb-3">Status Timeline</p>
                   <div className="space-y-0">
                     {selected.status_history.map((h, i) => (
                       <div key={h.id} className="flex gap-3">
                         <div className="flex flex-col items-center">
-                          <div className={`w-4 h-4 rounded-full border-2 ${i === 0 ? 'bg-violet-500 border-violet-500' : 'bg-white border-slate-300'}`} />
+                          <div className={`w-4 h-4 rounded-full border ${i === 0 ? 'bg-violet-500 border-violet-500' : 'bg-white border-slate-300'}`} />
                           {i < selected.status_history.length - 1 && <div className="w-0.5 h-6 bg-slate-200" />}
                         </div>
                         <div className="pb-3">
@@ -790,22 +790,22 @@ const EnrollmentManagement = () => {
 
               {selected.remarks && (
                 <div className="bg-slate-50 p-4 rounded-xl">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">Remarks</p>
+                  <p className="text-[9px] font-bold text-slate-400">Remarks</p>
                   <p className="text-sm text-slate-700 mt-1">{selected.remarks}</p>
                 </div>
               )}
             </div>
             <div className="px-5 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between gap-2 flex-shrink-0">
               <div className="flex gap-2">
-                <button onClick={() => promptRequestDocs(selected.id)} className="px-4 py-2 border border-amber-300 bg-amber-50 text-amber-700 text-xs font-black uppercase tracking-widest hover:bg-amber-100 rounded-sm">Request Docs</button>
-                <button onClick={() => assignSection(selected.id, selected.grade_level)} className="px-4 py-2 border border-violet-300 bg-violet-50 text-violet-700 text-xs font-black uppercase tracking-widest hover:bg-violet-100 rounded-sm">Set Section</button>
+                <button onClick={() => promptRequestDocs(selected.id)} className="px-4 py-2 border border-amber-300 bg-amber-50 text-amber-700 text-xs font-bold tracking-[0.1em] hover:bg-amber-100 rounded-sm">Request Docs</button>
+                <button onClick={() => assignSection(selected.id, selected.grade_level)} className="px-4 py-2 border border-violet-300 bg-violet-50 text-violet-700 text-xs font-bold tracking-[0.1em] hover:bg-violet-100 rounded-sm">Set Section</button>
                 <a href={`/api/enrollment-applications/export-form-pdf/?id=${selected.id}`} target="_blank" rel="noreferrer"
-                  className="px-4 py-2 border border-gray-300 bg-white text-gray-700 text-xs font-black uppercase tracking-widest hover:bg-gray-100 rounded-sm">Print Form</a>
+                  className="px-4 py-2 border border-gray-300 bg-white text-slate-700 text-xs font-bold tracking-[0.1em] hover:bg-gray-100 rounded-sm">Print Form</a>
               </div>
               <div className="flex gap-2">
                 {(selected.status === 'pending' || selected.status === 'under_review') && (
                   <>
-                    <button onClick={() => { promptReject(selected.id); }} className="px-4 py-2 border border-red-300 bg-white text-red-600 text-xs font-black uppercase tracking-widest hover:bg-red-50 rounded-sm">Reject</button>
+                    <button onClick={() => { promptReject(selected.id); }} className="px-4 py-2 border border-red-300 bg-white text-red-600 text-xs font-bold tracking-[0.1em] hover:bg-red-50 rounded-sm">Reject</button>
                     {selected.status === 'under_review' && (() => {
                       const selDocs = getAppDocs(selected);
                       const allDocsVerified = selDocs.length === 0 ||
@@ -814,10 +814,10 @@ const EnrollmentManagement = () => {
                         <button
                           onClick={() => { if (allDocsVerified) promptApproveApplication(selected.id); }}
                           disabled={!allDocsVerified}
-                          className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-sm ${
+                          className={`px-4 py-2 text-xs font-bold tracking-[0.1em] rounded-sm ${
                             allDocsVerified
                               ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              : 'bg-gray-200 text-slate-400 cursor-not-allowed'
                           }`}
                           title={allDocsVerified ? 'Approve' : 'Verify all documents first'}
                         >
@@ -828,12 +828,12 @@ const EnrollmentManagement = () => {
                   </>
                 )}
                 {selected.status === 'approved' && (
-                  <button onClick={() => { setEnrollApp(selected); setShowEnrollModal(true); }} className="px-4 py-2 bg-[#5e2a84] text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 rounded-sm">Enroll Student</button>
+                  <button onClick={() => { setEnrollApp(selected); setShowEnrollModal(true); }} className="px-4 py-2 bg-[#5e2a84] text-white text-xs font-bold tracking-[0.1em] hover:bg-violet-700 rounded-sm">Enroll Student</button>
                 )}
                 {selected.status !== 'enrolled' && (
-                  <button onClick={() => promptDelete(selected.id, selected.full_name || `${selected.first_name} ${selected.last_name}`)} className="px-4 py-2 border border-red-300 bg-white text-red-600 text-xs font-black uppercase tracking-widest hover:bg-red-50 rounded-sm">Delete</button>
+                  <button onClick={() => promptDelete(selected.id, selected.full_name || `${selected.first_name} ${selected.last_name}`)} className="px-4 py-2 border border-red-300 bg-white text-red-600 text-xs font-bold tracking-[0.1em] hover:bg-red-50 rounded-sm">Delete</button>
                 )}
-                <button onClick={() => setSelected(null)} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-xs font-black uppercase tracking-widest hover:bg-gray-100 rounded-sm">Close</button>
+                <button onClick={() => setSelected(null)} className="px-4 py-2 bg-white border border-gray-300 text-slate-700 text-xs font-bold tracking-[0.1em] hover:bg-gray-100 rounded-sm">Close</button>
               </div>
             </div>
           </div>
@@ -852,7 +852,7 @@ const EnrollmentManagement = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">Enroll Student</h2>
+                  <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">Enroll Student</h2>
                   <p className="text-violet-200 text-[11px] mt-1 font-medium">
                     {enrollApp?.first_name} {enrollApp?.last_name}
                     {enrollApp?.grade_level && <span className="text-violet-300 ml-1.5">· Grade {enrollApp.grade_level}</span>}
@@ -869,7 +869,7 @@ const EnrollmentManagement = () => {
 
             {/* ── Body ── */}
             <div className="px-6 pt-5 pb-2 flex-1 overflow-y-auto">
-              <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+              <label className="block text-[10px] font-bold text-slate-500 tracking-[0.1em] mb-2">
                 Select a section for Grade {enrollApp?.grade_level || '—'}
               </label>
 
@@ -907,7 +907,7 @@ const EnrollmentManagement = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-bold text-slate-800">{c.name}</span>
                           {isFull && (
-                            <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded border border-rose-200">Full</span>
+                            <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded border border-rose-200">Full</span>
                           )}
                         </div>
                         <div className="flex items-center gap-2 mt-1">
@@ -933,7 +933,7 @@ const EnrollmentManagement = () => {
               </div>
 
               <div className="mt-4">
-                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Parent Email (optional)</label>
+                <label className="block text-[10px] font-bold text-slate-500 tracking-[0.1em] mb-2">Parent Email (optional)</label>
                 <input type="email" value={enrollParentEmail} onChange={e => setEnrollParentEmail(e.target.value)}
                   placeholder="parent@email.com"
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-lg bg-white text-sm focus:outline-none focus:ring-1 focus:ring-violet-500 focus:border-violet-500 placeholder:text-slate-400" />
@@ -952,11 +952,11 @@ const EnrollmentManagement = () => {
             <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl flex-shrink-0">
               <button type="button"
                 onClick={() => { setShowEnrollModal(false); setEnrollApp(null); setEnrollClassroom(''); setEnrollParentEmail(''); }}
-                className="px-6 py-2.5 bg-white text-slate-600 text-[11px] font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors">
+                className="px-6 py-2.5 bg-white text-slate-600 text-[11px] font-bold tracking-[0.1em] border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors">
                 Cancel
               </button>
               <button type="button" onClick={enrollStudent} disabled={enrolling}
-                className="px-6 py-2.5 bg-[#5e2a84] text-white text-[11px] font-black uppercase tracking-widest hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                className="px-6 py-2.5 bg-[#5e2a84] text-white text-[11px] font-bold tracking-[0.1em] hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                 {enrolling ? 'Enrolling...' : 'Enroll Now'}
               </button>
             </div>

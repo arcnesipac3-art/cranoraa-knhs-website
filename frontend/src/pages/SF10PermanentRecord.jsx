@@ -56,7 +56,7 @@ function SF10Page() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900">SF10 - Permanent Academic Record</h1>
+          <h1 className="text-2xl font-bold text-slate-900">SF10 - Permanent Academic Record</h1>
           <p className="text-sm text-slate-500 mt-1">Complete academic history</p>
         </div>
         <div className="flex gap-2">
@@ -76,7 +76,7 @@ function SF10Page() {
       </Card>
 
       {isLoading ? (
-        <Card><CardBody><div className="flex items-center justify-center py-12"><div className="w-8 h-8 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" /></div></CardBody></Card>
+        <Card><CardBody><div className="flex items-center justify-center py-12"><div className="w-8 h-8 border border-slate-200 border-t-violet-600 rounded-full animate-spin" /></div></CardBody></Card>
       ) : promotionHistory.length > 0 ? (
         <>
           <Card className="mb-6">

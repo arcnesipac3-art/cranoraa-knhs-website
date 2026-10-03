@@ -51,8 +51,8 @@ function GaugeCard({ icon: Icon, label, value, max, unit, color, status }) {
           </ResponsiveContainer>
         </div>
         <div>
-          <p className="text-2xl font-extrabold text-slate-900 tracking-tight">{value}{unit}</p>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{label}</p>
+          <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}{unit}</p>
+          <p className="text-[10px] font-bold text-slate-500 tracking-wider">{label}</p>
           {max && <p className="text-[10px] text-slate-400">of {max}{unit}</p>}
         </div>
       </div>
@@ -80,7 +80,7 @@ function ServiceCard({ icon: Icon, name, status, detail, responseTime, color }) 
           <Badge variant={s.badge} size="sm">{s.label}</Badge>
         </div>
       </div>
-      <h3 className="text-sm font-extrabold text-slate-900">{name}</h3>
+      <h3 className="text-sm font-bold text-slate-900">{name}</h3>
       <p className="text-xs text-slate-500 mt-0.5">{detail}</p>
       {responseTime !== undefined && (
         <p className="text-[10px] text-slate-400 font-semibold mt-1">Response: {responseTime}ms</p>
@@ -98,12 +98,12 @@ function MetricRow({ icon: Icon, label, value, sub, color, trend }) {
           <Icon className="w-4 h-4" />
         </div>
         <div>
-          <span className="text-xs font-bold uppercase tracking-wide">{label}</span>
+          <span className="text-xs font-bold tracking-wide">{label}</span>
           {sub && <p className="text-[10px] text-slate-400 font-medium">{sub}</p>}
         </div>
       </div>
       <div className="text-right">
-        <span className="text-lg font-extrabold">{value}</span>
+        <span className="text-lg font-bold">{value}</span>
         {trend !== undefined && (
           <div className={`flex items-center gap-0.5 text-[10px] font-bold ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
             {trend >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -201,11 +201,11 @@ const SystemHealth = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1.5">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-violet-600 tracking-[0.2em] mb-1.5">
             <HeartPulse className="w-3.5 h-3.5" />
             <span>System Monitoring</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">System Health</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">System Health</h1>
           <p className="text-xs text-slate-500 mt-1 font-semibold">
             Last updated: {lastRefresh.toLocaleTimeString()}
             {apiLatency != null && <span className="ml-2">API: {apiLatency}ms</span>}
@@ -228,7 +228,7 @@ const SystemHealth = () => {
             <CheckCircle2 className="w-7 h-7 text-emerald-600" />
           </div>
           <div className="flex-1">
-            <h2 className="text-lg font-extrabold text-slate-900">All Systems Operational</h2>
+            <h2 className="text-lg font-bold text-slate-900">All Systems Operational</h2>
             <p className="text-sm text-slate-600 font-semibold">
               Supabase PostgreSQL · Django REST API · React Frontend
             </p>
@@ -239,7 +239,7 @@ const SystemHealth = () => {
 
       {/* Performance Gauges */}
       <div>
-        <h2 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-3">Performance</h2>
+        <h2 className="text-xs font-bold text-slate-700 tracking-wider mb-3">Performance</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <GaugeCard icon={HardDrive} label="Storage" value={storagePercent} max={100} unit="%" color={storageColor} status={storageStatus} />
           <GaugeCard icon={Users} label="Active Sessions" value={activeSessions} max={50} unit="" color="#8b5cf6" status={activeSessions > 40 ? 'warning' : 'good'} />
@@ -250,7 +250,7 @@ const SystemHealth = () => {
 
       {/* Core Services */}
       <div>
-        <h2 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-3">Core Services</h2>
+        <h2 className="text-xs font-bold text-slate-700 tracking-wider mb-3">Core Services</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {services.map(s => (
             <ServiceCard key={s.name} {...s} />
@@ -263,7 +263,7 @@ const SystemHealth = () => {
         {/* User Activity */}
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           <div className="px-4 py-3.5 border-b border-slate-200 bg-slate-50">
-            <h3 className="text-sm font-extrabold text-slate-900">User Activity</h3>
+            <h3 className="text-sm font-bold text-slate-900">User Activity</h3>
             <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Portal usage metrics</p>
           </div>
           <div className="p-4 space-y-2">
@@ -279,7 +279,7 @@ const SystemHealth = () => {
         {/* School Statistics */}
         <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
           <div className="px-4 py-3.5 border-b border-slate-200 bg-slate-50">
-            <h3 className="text-sm font-extrabold text-slate-900">School Statistics</h3>
+            <h3 className="text-sm font-bold text-slate-900">School Statistics</h3>
             <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Real-time school data</p>
           </div>
           <div className="p-4 space-y-2">
@@ -289,7 +289,7 @@ const SystemHealth = () => {
                   <p className="text-sm font-semibold text-slate-700">{row.label}</p>
                   <p className="text-[10px] text-slate-400 font-medium">{row.sub}</p>
                 </div>
-                <span className={`text-lg font-extrabold ${row.color}`}>{row.value}</span>
+                <span className={`text-lg font-bold ${row.color}`}>{row.value}</span>
               </div>
             ))}
           </div>
@@ -300,7 +300,7 @@ const SystemHealth = () => {
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="px-4 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">Maintenance Feed</h3>
+            <h3 className="text-sm font-bold text-slate-900">Maintenance Feed</h3>
             <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Recent system events</p>
           </div>
           <Activity className="w-4 h-4 text-slate-400" />

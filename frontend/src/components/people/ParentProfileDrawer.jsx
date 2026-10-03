@@ -3,7 +3,7 @@ import api from '../../utils/api';
 
 const Field = ({ label, value, mono = false }) => (
   <div className="py-2 border-b border-slate-100 last:border-0">
-    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
+    <p className="text-[9px] font-bold text-slate-400 tracking-[0.1em] mb-0.5">{label}</p>
     <p className={`text-sm font-semibold text-slate-800 ${mono ? 'font-mono' : ''}`}>{value || '—'}</p>
   </div>
 );
@@ -48,14 +48,14 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
 
         {/* Header */}
         <div className="bg-[#5e2a84] px-4 sm:px-5 py-3 sm:py-4 flex items-start gap-3 sm:gap-4 flex-shrink-0">
-          <div className="w-12 h-12 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center flex-shrink-0">
-            <span className="text-lg font-black text-white">{initials}</span>
+          <div className="w-12 h-12 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
+            <span className="text-lg font-bold text-white">{initials}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-base font-black text-white uppercase tracking-wide leading-tight truncate">{fullName}</h2>
+            <h2 className="text-base font-bold text-white tracking-wide leading-tight truncate">{fullName}</h2>
             <p className="text-violet-200 text-xs mt-0.5 font-mono">{parent.email}</p>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${
+              <span className={`text-[9px] font-bold px-2 py-0.5 rounded ${
                 parent.account_status === 'active' ? 'bg-emerald-400/20 text-emerald-200 border border-emerald-400/30' :
                 parent.account_status === 'suspended' ? 'bg-rose-400/20 text-rose-200 border border-rose-400/30' :
                 'bg-white/10 text-white/70 border border-white/20'
@@ -86,8 +86,8 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
         {completeness && (
           <div className="bg-white px-4 sm:px-5 py-2.5 border-b border-slate-200 flex-shrink-0">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Profile Completeness</span>
-              <span className={`text-[10px] font-black ${completeness.percentage === 100 ? 'text-emerald-600' : completeness.percentage >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
+              <span className="text-[9px] font-bold text-slate-500 tracking-[0.1em]">Profile Completeness</span>
+              <span className={`text-[10px] font-bold ${completeness.percentage === 100 ? 'text-emerald-600' : completeness.percentage >= 60 ? 'text-amber-600' : 'text-rose-600'}`}>
                 {completeness.percentage}%
               </span>
             </div>
@@ -106,7 +106,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
         <div className="bg-white border-b border-slate-200 px-3 sm:px-4 flex gap-0 flex-shrink-0 overflow-x-auto">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`px-4 py-3 text-xs font-bold whitespace-nowrap border-b-2 transition-colors ${
+              className={`px-4 py-3 text-xs font-bold whitespace-nowrap border-b transition-colors ${
                 tab === t.id ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}>
               {t.label}
@@ -118,7 +118,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
         <div className="flex-1 overflow-y-auto bg-slate-50">
           {loadingData && tab === 'activity' ? (
             <div className="flex items-center justify-center h-32">
-              <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border border-violet-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
             <div className="p-3 sm:p-5 space-y-1">
@@ -127,7 +127,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
               {tab === 'personal' && (
                 <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                   <div className="px-4 py-3 bg-slate-50">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Personal Information</p>
+                    <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Personal Information</p>
                   </div>
                   <div className="px-4">
                     <Field label="Full Name" value={fullName} />
@@ -145,7 +145,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
                 <div className="space-y-3">
                   <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                     <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Linked Students ({linkedStudents.length})</p>
+                      <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Linked Students ({linkedStudents.length})</p>
                     </div>
                     {linkedStudents.length === 0 ? (
                       <div className="p-8 text-center">
@@ -158,7 +158,7 @@ export default function ParentProfileDrawer({ parent, students, onClose, onReset
                         {linkedStudents.map(s => (
                           <div key={s.id} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
                             <div className="w-9 h-9 bg-violet-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-black text-violet-600">
+                              <span className="text-xs font-bold text-violet-600">
                                 {s.first_name?.[0]}{s.last_name?.[0]}
                               </span>
                             </div>

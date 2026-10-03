@@ -301,7 +301,7 @@ const QuizManagement = () => {
   };
 
   const tabButtonCls = (tab) =>
-    `px-4 py-2.5 text-xs font-extrabold uppercase tracking-widest transition-all rounded-lg ${
+    `px-4 py-2.5 text-xs font-bold tracking-[0.1em] transition-all rounded-lg ${
       activeTab === tab
         ? 'bg-violet-600 text-white shadow-md'
         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -317,11 +317,11 @@ const QuizManagement = () => {
       {/* PAGE HEADER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 uppercase tracking-wide mb-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 tracking-wide mb-2">
             <BarChart3 className="w-4 h-4" />
             <span>Assessment</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
             Quiz Management
           </h1>
           <p className="text-xs text-slate-600 mt-1 font-semibold">
@@ -713,7 +713,7 @@ const QuizManagement = () => {
                   {/* MC choices */}
                   {questionForm.question_type === 'mc' && (
                     <div className="space-y-2">
-                      <label className="block text-xs font-black text-gray-700 uppercase tracking-wider">Choices</label>
+                      <label className="block text-xs font-bold text-slate-700 tracking-wider">Choices</label>
                       {questionForm.choices.map((choice, i) => (
                         <div key={i} className="flex items-center gap-2">
                           <input type="radio" name="correct_mc"

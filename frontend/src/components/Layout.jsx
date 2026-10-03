@@ -25,7 +25,7 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
         target="_blank"
         rel="noopener noreferrer"
         onClick={onClick}
-        className={`flex items-center ${iconMode ? 'justify-center px-0 py-1.5' : 'px-2.5 py-1.5'} rounded-md transition-all duration-150 mb-[1px] text-[11px] group text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold relative`}
+        className={`flex items-center ${iconMode ? 'justify-center px-0 py-2' : 'px-2.5 py-1.5'} rounded-md transition-all duration-150 mb-[1px] text-[13px] group text-purple-100/75 hover:bg-white/5 hover:text-white font-medium relative`}
         title={iconMode ? label : undefined}
       >
         <svg
@@ -53,10 +53,10 @@ const NavItem = ({ to, label, isActive, icon, onClick, href, external, iconMode,
       onClick={onClick}
       aria-current={isActive(to) ? 'page' : undefined}
       title={iconMode ? label : undefined}
-      className={`flex items-center ${iconMode ? 'justify-center px-0 py-1.5' : 'px-2.5 py-1.5'} rounded-md transition-all duration-150 mb-[1px] text-[11px] group relative ${
+      className={`flex items-center ${iconMode ? 'justify-center px-0 py-2' : 'px-2.5 py-1.5'} rounded-md transition-all duration-150 mb-[1px] text-[13px] group relative ${
         isActive(to)
-          ? 'bg-gradient-to-r from-violet-500/90 to-purple-500/90 text-white font-bold shadow-lg shadow-purple-900/30 ring-1 ring-white/10'
-          : 'text-purple-200/80 hover:bg-white/5 hover:text-white font-semibold'
+          ? 'bg-white/10 text-white font-semibold'
+          : 'text-purple-100/75 hover:bg-white/5 hover:text-white font-medium'
       }`}
     >
       <svg
@@ -88,7 +88,7 @@ const SectionLabel = ({ label, collapsed, onToggle }) => (
     onClick={onToggle}
     className="mt-2 mb-0.5 px-2.5 first:mt-0 flex items-center justify-between w-full group/section cursor-pointer select-none rounded-md hover:bg-white/5 transition-colors duration-150"
   >
-    <p className="text-[10px] font-extrabold text-purple-400/60 uppercase tracking-widest group-hover/section:text-purple-300/80 transition-colors duration-150">{label}</p>
+    <p className="text-[11px] font-medium text-purple-300/70 group-hover/section:text-purple-200 transition-colors duration-150">{label}</p>
     <svg
       className={`w-3 h-3 text-purple-400/40 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] group-hover/section:text-purple-300/60 ${collapsed ? '' : 'rotate-90'}`}
       fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -170,8 +170,8 @@ const showInstallInstructions = () => {
     confirmButtonColor: '#7c3aed',
     background: '#ffffff',
     customClass: {
-      popup: 'rounded-2xl border border-slate-100 shadow-2xl',
-      confirmButton: 'rounded-xl font-bold uppercase tracking-widest text-xs px-6 py-3'
+      popup: 'rounded-lg border border-slate-100 shadow-2xl',
+      confirmButton: 'rounded-lg font-semibold text-sm px-6 py-2.5'
     }
   });
 };
@@ -248,7 +248,7 @@ const Layout = () => {
       const next = { ...prev };
       const key = `${role}_${idx}`;
       next[key] = !next[key];
-      try { localStorage.setItem('sidebar_collapsed', JSON.stringify(next)); } catch {}
+      try { localStorage.setItem('sidebar_collapsed', JSON.stringify(next)); } catch { /* storage unavailable */ }
       return next;
     });
   };
@@ -260,7 +260,7 @@ const Layout = () => {
   const toggleIconMode = () => {
     setIconMode(prev => {
       const next = !prev;
-      try { localStorage.setItem('sidebar_icon_mode', String(next)); } catch {}
+      try { localStorage.setItem('sidebar_icon_mode', String(next)); } catch { /* storage unavailable */ }
       return next;
     });
   };
@@ -271,13 +271,13 @@ const Layout = () => {
     try {
       const saved = localStorage.getItem('portal_mode');
       if (saved === 'admin' || saved === 'teacher') return saved;
-    } catch {}
+    } catch { /* storage unavailable */ }
     return 'admin';
   });
   const togglePortalMode = () => {
     setPortalMode(prev => {
       const next = prev === 'admin' ? 'teacher' : 'admin';
-      try { localStorage.setItem('portal_mode', next); } catch {}
+      try { localStorage.setItem('portal_mode', next); } catch { /* storage unavailable */ }
       return next;
     });
   };
@@ -292,7 +292,7 @@ const Layout = () => {
   const togglePinned = (path) => {
     setPinnedItems(prev => {
       const next = prev.includes(path) ? prev.filter(p => p !== path) : [...prev, path];
-      try { localStorage.setItem('sidebar_pinned', JSON.stringify(next)); } catch {}
+      try { localStorage.setItem('sidebar_pinned', JSON.stringify(next)); } catch { /* storage unavailable */ }
       return next;
     });
   };
@@ -403,9 +403,9 @@ const Layout = () => {
       confirmButtonText: 'Yes, logout!',
       background: '#ffffff',
       customClass: {
-        popup: 'rounded-2xl border border-slate-100 shadow-2xl',
-        confirmButton: 'rounded-xl font-bold uppercase tracking-widest text-xs px-6 py-3',
-        cancelButton: 'rounded-xl font-bold uppercase tracking-widest text-xs px-6 py-3'
+        popup: 'rounded-lg border border-slate-100 shadow-2xl',
+        confirmButton: 'rounded-lg font-semibold text-sm px-6 py-2.5',
+        cancelButton: 'rounded-lg font-semibold text-sm px-6 py-2.5'
       }
     });
 
@@ -450,6 +450,7 @@ const Layout = () => {
     if (path === '/enrollment') return 'Enrollment';
     if (path === '/classes') return 'Classes';
     if (path === '/people') return 'People';
+    if (path === '/departments') return 'Departments';
     if (path === '/subjects') return 'Subjects';
     if (path === '/schedules') return 'Schedules';
     if (path === '/my-classes') return 'My Classes';
@@ -538,6 +539,7 @@ const Layout = () => {
         { label: 'Enrollment', path: '/enrollment?tab=applications', category: 'Management', description: 'Enrollment applications' },
         { label: 'Schedules', path: '/schedules', category: 'Management', description: 'Manage schedules' },
         { label: 'Students', path: '/people?tab=students', category: 'Directory', description: 'Student directory' },
+        { label: 'Departments', path: '/departments', category: 'Directory', description: 'View departments and their members' },
         { label: 'Announcements', path: '/announcements', category: 'Communication', description: 'Post announcements' },
       ],
       admin: [
@@ -551,6 +553,7 @@ const Layout = () => {
         { label: 'Teachers', path: '/people?tab=teachers', category: 'Directory', description: 'Teacher directory' },
         { label: 'Students', path: '/people?tab=students', category: 'Directory', description: 'Student directory' },
         { label: 'Parents', path: '/people?tab=parents', category: 'Directory', description: 'Parent directory' },
+        { label: 'Departments', path: '/departments', category: 'Directory', description: 'Manage departments and their members' },
         { label: 'Audit Logs', path: '/system-admin?tab=audit-logs', category: 'System', description: 'System audit logs' },
         { label: 'Backups', path: '/system-admin?tab=backups', category: 'System', description: 'System backups' },
         { label: 'Website Editor', path: '/system-admin?tab=website-editor', category: 'System', description: 'Edit website content' },
@@ -595,6 +598,9 @@ const Layout = () => {
         header: 'Directory',
         items: [
           { to: '/people', label: 'People Directory', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+          // READ-only for staff: the page hides all write controls unless
+          // the user is an admin (Decision 2 — READ IsAdminOrStaff / WRITE IsAdmin).
+          { to: '/departments', label: 'Departments', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
         ]
       },
       {
@@ -659,6 +665,7 @@ const Layout = () => {
         header: 'People',
         items: [
           { to: '/people', label: 'People Directory', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' },
+          { to: '/departments', label: 'Departments', icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' },
         ]
       },
       {
@@ -744,7 +751,6 @@ const Layout = () => {
     <Fragment>
       {/* Skip to main content link - WCAG 2.1 AA compliance */}
       <SkipLink targetId="main-content" label="Skip to main content" />
-      
       {/* ARIA live region for screen reader announcements */}
       <div
         id="screen-reader-announcer"
@@ -765,7 +771,7 @@ const Layout = () => {
         )}
 
         {/* ── Sidebar ── */}
-        <aside aria-label="Portal sidebar" data-tour="portal-sidebar" className={`fixed inset-y-0 left-0 z-[120] flex h-screen ${iconMode ? 'w-[68px]' : 'w-64'} transform flex-col overflow-hidden border-r border-purple-800/30 bg-gradient-to-b from-[#1a0a2e] via-[#1e1145] to-[#150d2e] shadow-2xl transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <aside aria-label="Portal sidebar" data-tour="portal-sidebar" className={`fixed inset-y-0 left-0 z-[120] flex h-screen ${iconMode ? 'w-[68px]' : 'w-64'} transform flex-col overflow-hidden border-r border-purple-800/30 bg-[#1A0B2E] transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:static lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
           {/* School Header */}
           <div className={`flex items-center ${iconMode ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'} border-b border-white/5 bg-black/20`}>
@@ -774,8 +780,8 @@ const Layout = () => {
             </div>
             {!iconMode && (
               <div className="flex flex-col min-w-0">
-                <span className="text-sm font-extrabold tracking-tight leading-none text-white uppercase">Kiwalan NHS</span>
-                <span className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider mt-0.5">Digital Campus</span>
+                <span className="font-display text-sm font-semibold tracking-tight leading-none text-white">Kiwalan NHS</span>
+                <span className="text-[11px] font-medium text-purple-300/70 mt-0.5">Digital Campus</span>
               </div>
             )}
           </div>
@@ -783,7 +789,7 @@ const Layout = () => {
           {/* Academic Year Info */}
           {!iconMode && (
             <div className="flex-shrink-0 px-3 py-2 bg-black/20 border-b border-white/5">
-              <div className="flex items-center justify-between text-[10px] font-bold text-purple-300/80 uppercase tracking-wider">
+              <div className="flex items-center justify-between text-[11px] font-medium text-purple-300/80">
                 <span>{academicYear ? `SY ${academicYear}` : 'No Year Set'}</span>
                 <span className="text-purple-200/60">{sysSettings?.current_term || 'Term'}</span>
               </div>
@@ -794,7 +800,7 @@ const Layout = () => {
           <div className={`flex-shrink-0 ${iconMode ? 'px-2 py-2' : 'px-3 py-2'} border-b border-white/5`}>
             <div data-tour="sidebar-profile" onClick={() => navigate('/settings')}
               className={`flex ${iconMode ? 'justify-center' : 'items-center gap-3'} p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-purple-400/20 transition-all cursor-pointer group`}>
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold shadow-lg shadow-purple-900/40 group-hover:scale-105 transition-transform uppercase overflow-hidden border-2 border-purple-400/30 shrink-0">
+              <div className="h-10 w-10 rounded-lg bg-violet-600 flex items-center justify-center text-white font-semibold shadow-sm overflow-hidden border border-violet-400/30 shrink-0">
                 {user?.profile_picture ? (
                   <img src={user.profile_picture} alt="Avatar" className="w-full h-full object-cover" loading="lazy" />
                 ) : (
@@ -803,8 +809,8 @@ const Layout = () => {
               </div>
               {!iconMode && (
                 <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold truncate text-white">{user?.first_name} {user?.last_name}</span>
-                  <span className="text-[10px] font-bold text-purple-300/70 uppercase tracking-wider">
+                  <span className="text-xs font-semibold truncate text-white">{user?.first_name} {user?.last_name}</span>
+                  <span className="text-[11px] font-medium text-purple-300/70 capitalize">
                     {isDualRole ? (portalMode === 'admin' ? 'Admin' : 'Teacher') : user?.role}
                   </span>
                 </div>
@@ -829,8 +835,8 @@ const Layout = () => {
                   )}
                 </div>
                 <div className="flex flex-col items-start min-w-0">
-                  <span className="text-[10px] font-bold text-purple-300/60 uppercase tracking-wider">Switch to</span>
-                  <span className="text-xs font-bold text-white">{portalMode === 'admin' ? 'Teacher Portal' : 'Admin Portal'}</span>
+                  <span className="text-[11px] font-medium text-purple-300/70">Switch to</span>
+                  <span className="text-xs font-semibold text-white">{portalMode === 'admin' ? 'Teacher Portal' : 'Admin Portal'}</span>
                 </div>
                 <svg className="w-4 h-4 ml-auto text-purple-400/50 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
               </button>
@@ -861,7 +867,7 @@ const Layout = () => {
             {!iconMode && pinnedItems.length > 0 && (
               <div className="mb-1">
                 <div className="flex items-center justify-between mb-0.5 px-2.5">
-                  <p className="text-[9px] font-extrabold text-amber-400/60 uppercase tracking-widest">Quick Access</p>
+                  <p className="text-[11px] font-medium text-amber-400/70">Quick access</p>
                 </div>
                 <div className="space-y-px">
                   {pinnedItems.map(path => {
@@ -970,7 +976,7 @@ const Layout = () => {
           {...(isMobile ? sidebarSwipeHandlers : {})}
         >
           {/* Top bar */}
-          <header data-tour="portal-header" className="sticky top-0 z-[80] flex items-center justify-between border-b-2 border-slate-200 bg-white px-4 py-2 shadow-sm lg:px-6">
+          <header data-tour="portal-header" className="sticky top-0 z-[80] flex items-center justify-between border-b border-slate-200 bg-white/95 backdrop-blur px-4 py-2.5 lg:px-6">
             <div className="flex items-center gap-4 lg:gap-6">
               <button 
                 onClick={() => { playSound('click'); setSidebarOpen(!sidebarOpen); }} 
@@ -986,11 +992,11 @@ const Layout = () => {
               {/* Breadcrumbs */}
               <div className="hidden sm:block">
                 <Breadcrumb items={breadcrumbItems} maxItems={5} className="mb-1" />
-                <h1 className="text-lg font-extrabold text-slate-900 tracking-tight leading-none">{pageTitle}</h1>
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight leading-none">{pageTitle}</h1>
               </div>
 
               {/* Mobile Title */}
-              <h1 className="text-base font-extrabold text-slate-900 sm:hidden tracking-tight">{pageTitle}</h1>
+              <h1 className="text-base font-bold text-slate-900 sm:hidden tracking-tight">{pageTitle}</h1>
 
 
             </div>
@@ -1031,27 +1037,27 @@ const Layout = () => {
                   {unreadCount > 0 && (
                     <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border-2 border-white"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500 border border-white"></span>
                     </span>
                   )}
                 </button>
 
                 {showNotifications && (
                   <div
-                    className="fixed w-72 max-w-[calc(100vw-1.5rem)] sm:w-96 sm:max-w-[calc(100vw-2rem)] rounded-xl sm:rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+                    className="fixed w-72 max-w-[calc(100vw-1.5rem)] sm:w-96 sm:max-w-[calc(100vw-2rem)] rounded-xl sm:rounded-lg border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
                     style={{ top: notifDropdownPos.top, right: notifDropdownPos.right }}
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between px-3 sm:px-5 py-2.5 sm:py-4 bg-gradient-to-r from-[#1A0B2E] to-[#2D1452] text-white">
+                    <div className="flex items-center justify-between border-b border-slate-200 px-3 sm:px-5 py-2.5 sm:py-4 bg-white">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-xs sm:text-sm tracking-tight">Notifications</h3>
+                        <h3 className="font-semibold text-xs sm:text-sm text-slate-900 tracking-tight">Notifications</h3>
                         {unreadCount > 0 && (
-                          <span className="bg-rose-500 text-white text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full uppercase">{unreadCount} New</span>
+                          <span className="bg-violet-100 text-violet-800 border border-violet-200 text-[10px] sm:text-[11px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full">{unreadCount} new</span>
                         )}
                       </div>
                       <div className="hidden sm:flex items-center gap-1.5">
                         <div className={`w-2 h-2 rounded-full ${realtimeConnected ? 'bg-green-400' : isPolling ? 'bg-amber-400 animate-pulse' : 'bg-rose-400'}`}></div>
-                        <span className="text-[10px] text-violet-200 font-black uppercase tracking-widest">
+                        <span className="text-[11px] text-slate-500 font-medium">
                           {realtimeConnected ? 'Live' : isPolling ? 'Polling' : 'Offline'}
                         </span>
                       </div>
@@ -1061,12 +1067,12 @@ const Layout = () => {
                     <div className="max-h-[40vh] sm:max-h-[400px] overflow-y-auto divide-y divide-slate-50 scrollbar-thin">
                       {notifications.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-6 sm:py-12 text-slate-300">
-                          <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-violet-50 flex items-center justify-center mb-2 sm:mb-4">
+                          <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-xl sm:rounded-lg bg-violet-50 flex items-center justify-center mb-2 sm:mb-4">
                             <svg className="w-5 h-5 sm:w-8 sm:h-8 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
                           </div>
-                          <p className="text-xs sm:text-sm font-bold text-slate-400">All caught up!</p>
+                          <p className="text-xs sm:text-sm font-semibold text-slate-400">All caught up!</p>
                           <p className="text-[10px] sm:text-xs text-slate-300 mt-0.5">No new notifications</p>
                         </div>
                       ) : (
@@ -1094,7 +1100,7 @@ const Layout = () => {
                                   {n.title}
                                 </p>
                                 <p className="text-[10px] sm:text-xs text-slate-500 line-clamp-1 sm:line-clamp-2 mb-1 sm:mb-2">{n.message}</p>
-                                <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatTime(n.created_at)}</p>
+                                <p className="text-[10px] sm:text-[11px] font-medium text-slate-400">{formatTime(n.created_at)}</p>
                               </div>
                               {!n.is_read && (
                                 <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-violet-600 flex-shrink-0 mt-1.5 shadow-sm shadow-violet-200" />
@@ -1109,14 +1115,14 @@ const Layout = () => {
                     <div className="border-t border-slate-100 px-3 sm:px-5 py-2 sm:py-3 bg-slate-50 flex items-center justify-between">
                       <button 
                         onClick={markAllAsRead}
-                        className="text-[9px] sm:text-[10px] font-black text-violet-600 hover:text-violet-800 uppercase tracking-widest transition-colors"
+                        className="text-[11px] font-semibold text-violet-700 hover:text-violet-900 transition-colors"
                       >
                         Mark all as read
                       </button>
                       <Link 
                         to="/notifications" 
                         onClick={() => setShowNotifications(false)}
-                        className="text-[9px] sm:text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors"
+                        className="text-[11px] font-semibold text-slate-500 hover:text-slate-700 transition-colors"
                       >
                         View all
                       </Link>
@@ -1134,8 +1140,8 @@ const Layout = () => {
               {/* User Profile Summary (Desktop) */}
               <div className="hidden md:flex items-center gap-3 pl-1" ref={userMenuRef}>
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-bold text-slate-900 leading-none">{user?.first_name}</span>
-                  <span className="text-[10px] font-bold text-violet-600 uppercase tracking-widest mt-1">{user?.role}</span>
+                  <span className="text-sm font-semibold text-slate-900 leading-none">{user?.first_name}</span>
+                  <span className="text-[11px] font-medium text-violet-600 capitalize mt-1">{user?.role}</span>
                 </div>
                 <div className="relative">
                   <button
@@ -1149,17 +1155,17 @@ const Layout = () => {
                       }
                       setShowUserMenu(!showUserMenu);
                     }}
-                    className={`h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white shadow-lg transition-all overflow-hidden border-2 ${showUserMenu ? 'border-violet-400 scale-95' : 'border-slate-200 hover:rotate-3 hover:scale-105'}`}
+                    className={`h-9 w-9 rounded-full bg-violet-700 flex items-center justify-center text-white shadow-sm transition-all overflow-hidden border ${showUserMenu ? 'border-violet-400 ring-2 ring-violet-100' : 'border-slate-200 hover:border-violet-300'}`}
                   >
                     {user?.profile_picture ? (
                       <img src={user.profile_picture} alt="Avatar" className="w-full h-full object-cover" loading="lazy" />
                     ) : (
-                      <span className="text-sm font-black uppercase tracking-tighter">
+                      <span className="text-sm font-semibold tracking-normal">
                         {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
                       </span>
                     )}
                   </button>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border border-white rounded-full shadow-sm"></div>
 
                   {/* Dropdown Menu */}
                   {showUserMenu && (
@@ -1168,9 +1174,9 @@ const Layout = () => {
                       style={{ top: userMenuPos.top, right: userMenuPos.right }}
                     >
                       {/* User Info */}
-                      <div className="px-4 py-3 bg-gradient-to-r from-[#1A0B2E] to-[#2D1452]">
-                        <p className="text-sm font-bold text-white truncate">{user?.first_name} {user?.last_name}</p>
-                        <p className="text-[10px] font-bold text-violet-300 uppercase tracking-widest mt-0.5">{user?.email}</p>
+                      <div className="border-b border-slate-200 px-4 py-3 bg-slate-50">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{user?.first_name} {user?.last_name}</p>
+                        <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{user?.email}</p>
                       </div>
 
                       {/* Menu Items */}
@@ -1240,7 +1246,7 @@ const Layout = () => {
             <svg className="w-5 h-5" fill={isHomeActive ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isHomeActive ? 0 : 2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            <span className={`text-[9px] font-bold uppercase tracking-wide ${isHomeActive ? 'text-violet-600' : 'text-slate-400'}`}>Home</span>
+            <span className={`text-[10px] font-medium ${isHomeActive ? 'text-violet-600' : 'text-slate-400'}`}>Home</span>
           </Link>
 
           {/* News */}
@@ -1253,7 +1259,7 @@ const Layout = () => {
             <svg className="w-5 h-5" fill={isActive('/announcements') ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('/announcements') ? 0 : 2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
             </svg>
-            <span className={`text-[9px] font-bold uppercase tracking-wide ${isActive('/announcements') ? 'text-violet-600' : 'text-slate-400'}`}>News</span>
+            <span className={`text-[10px] font-medium ${isActive('/announcements') ? 'text-violet-600' : 'text-slate-400'}`}>News</span>
           </Link>
 
           {/* Messages (students/teachers) or Calendar (parents) */}
@@ -1267,7 +1273,7 @@ const Layout = () => {
               <svg className="w-5 h-5" fill={isActive('/portal-calendar') ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('/portal-calendar') ? 0 : 2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className={`text-[9px] font-bold uppercase tracking-wide ${isActive('/portal-calendar') ? 'text-violet-600' : 'text-slate-400'}`}>Cal</span>
+              <span className={`text-[10px] font-medium ${isActive('/portal-calendar') ? 'text-violet-600' : 'text-slate-400'}`}>Cal</span>
             </Link>
           ) : (
             <Link
@@ -1279,7 +1285,7 @@ const Layout = () => {
               <svg className="w-5 h-5" fill={isCommunicationTabActive('inbox') ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isCommunicationTabActive('inbox') ? 0 : 2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
-              <span className={`text-[9px] font-bold uppercase tracking-wide ${isCommunicationTabActive('inbox') ? 'text-violet-600' : 'text-slate-400'}`}>Chat</span>
+              <span className={`text-[10px] font-medium ${isCommunicationTabActive('inbox') ? 'text-violet-600' : 'text-slate-400'}`}>Chat</span>
             </Link>
           )}
 
@@ -1295,12 +1301,12 @@ const Layout = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={isActive('/notifications') ? 0 : 2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white border border-white">
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white border border-white">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
             </div>
-            <span className={`text-[9px] font-bold uppercase tracking-wide ${isActive('/notifications') ? 'text-violet-600' : 'text-slate-400'}`}>Alerts</span>
+            <span className={`text-[10px] font-medium ${isActive('/notifications') ? 'text-violet-600' : 'text-slate-400'}`}>Alerts</span>
           </Link>
 
           {/* Menu (opens sidebar) */}
@@ -1312,7 +1318,7 @@ const Layout = () => {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
-            <span className="text-[9px] font-bold uppercase tracking-wide">Menu</span>
+            <span className="text-[10px] font-medium">Menu</span>
           </button>
 
           {/* Profile (mobile) */}
@@ -1326,18 +1332,18 @@ const Layout = () => {
                 {user?.profile_picture ? (
                   <img src={user.profile_picture} alt="" className="w-full h-full object-cover" loading="lazy" />
                 ) : (
-                  <span className="text-[8px] font-black uppercase">{user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}</span>
+                  <span className="text-[9px] font-semibold">{user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}</span>
                 )}
               </div>
-              <span className="text-[9px] font-bold uppercase tracking-wide text-slate-400">You</span>
+              <span className="text-[10px] font-medium text-slate-400">You</span>
             </button>
 
             {/* Mobile User Menu Dropdown */}
             {showMobileUserMenu && (
               <div className="absolute bottom-full right-0 mb-2 w-52 rounded-xl border border-slate-200 bg-white shadow-2xl overflow-hidden z-[100]">
-                <div className="px-4 py-3 bg-gradient-to-r from-[#1A0B2E] to-[#2D1452]">
-                  <p className="text-sm font-bold text-white truncate">{user?.first_name} {user?.last_name}</p>
-                  <p className="text-[10px] font-bold text-violet-300 uppercase tracking-widest mt-0.5">{user?.role}</p>
+                <div className="border-b border-slate-200 px-4 py-3 bg-slate-50">
+                  <p className="text-sm font-semibold text-slate-900 truncate">{user?.first_name} {user?.last_name}</p>
+                  <p className="text-[11px] font-medium text-violet-700 capitalize mt-0.5">{user?.role}</p>
                 </div>
                 <div className="py-1">
                   <button

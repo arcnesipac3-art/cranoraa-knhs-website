@@ -86,7 +86,7 @@ const PostComposerModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-[9999] p-0 sm:p-4">
-      <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
+      <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] flex flex-col rounded-t-2xl sm:rounded-lg shadow-2xl border border-slate-200 overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-violet-700 to-indigo-700 flex items-center justify-between px-5 py-4 flex-shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -96,10 +96,10 @@ const PostComposerModal = ({
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">
+              <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">
                 {isEditing ? 'Edit Announcement' : 'New Announcement'}
               </h2>
-              <p className="text-violet-200 text-[10px] mt-1 font-medium uppercase tracking-wide">
+              <p className="text-violet-200 text-[10px] mt-1 font-medium tracking-wide">
                 Share with the school community
               </p>
             </div>
@@ -123,7 +123,7 @@ const PostComposerModal = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-3 text-xs font-bold uppercase tracking-wider transition-colors border-b-2 -mb-px ${
+              className={`px-4 py-3 text-xs font-bold tracking-wider transition-colors border-b -mb-px ${
                 activeTab === tab.id
                   ? 'text-violet-700 border-violet-600'
                   : 'text-slate-500 border-transparent hover:text-slate-700'
@@ -151,7 +151,7 @@ const PostComposerModal = ({
 
               {/* Title */}
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Title</label>
+                <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">Title</label>
                 <input
                   type="text"
                   value={form.title}
@@ -166,7 +166,7 @@ const PostComposerModal = ({
 
               {/* Content */}
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">Content</label>
+                <label className="text-xs font-bold text-slate-600 tracking-wider mb-1.5 block">Content</label>
                 <textarea
                   value={form.content}
                   onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
@@ -179,7 +179,7 @@ const PostComposerModal = ({
 
               {/* Attachments */}
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Attachments</label>
+                <label className="text-xs font-bold text-slate-600 tracking-wider mb-2 block">Attachments</label>
                 <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" multiple className="hidden"
                   onChange={e => { addFiles(e.target.files); e.target.value = ''; }} />
                 <input ref={imageInputRef} type="file" accept=".jpg,.jpeg,.png,.gif,.webp" multiple className="hidden"
@@ -211,7 +211,7 @@ const PostComposerModal = ({
                           <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" onLoad={(e) => URL.revokeObjectURL(e.target.src)} />
                         ) : (
                           <div className="w-full h-full flex flex-col items-center justify-center p-2 text-center">
-                            <span className="text-[10px] font-bold text-violet-600 uppercase mb-1">{getFileTypeLabel(file)}</span>
+                            <span className="text-[10px] font-bold text-violet-600 mb-1">{getFileTypeLabel(file)}</span>
                             <span className="text-[10px] text-slate-500 truncate w-full">{file.name}</span>
                           </div>
                         )}
@@ -224,14 +224,14 @@ const PostComposerModal = ({
 
                 <div className="flex gap-2">
                   <button type="button" onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-500 hover:border-violet-300 hover:bg-violet-50/50 hover:text-violet-700 transition-colors rounded-xl">
+                    className="flex-1 flex items-center justify-center gap-2 py-3 border border-dashed border-slate-200 text-sm font-semibold text-slate-500 hover:border-violet-300 hover:bg-violet-50/50 hover:text-violet-700 transition-colors rounded-xl">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                     </svg>
                     Attach File
                   </button>
                   <button type="button" onClick={() => imageInputRef.current?.click()}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-200 text-sm font-semibold text-slate-500 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-700 transition-colors rounded-xl">
+                    className="flex-1 flex items-center justify-center gap-2 py-3 border border-dashed border-slate-200 text-sm font-semibold text-slate-500 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-700 transition-colors rounded-xl">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -246,14 +246,14 @@ const PostComposerModal = ({
           {activeTab === 'audience' && (
             <div className="p-5 space-y-5">
               <div>
-                <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 block">Target Audience</label>
+                <label className="text-xs font-bold text-slate-600 tracking-wider mb-3 block">Target Audience</label>
                 <div className="grid grid-cols-2 gap-2">
                   {AUDIENCE_OPTIONS.map(opt => (
                     <button
                       key={opt.value}
                       type="button"
                       onClick={() => setForm(f => ({ ...f, target_audience: opt.value }))}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-left ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all text-left ${
                         form.target_audience === opt.value
                           ? 'border-violet-500 bg-violet-50 text-violet-700'
                           : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
@@ -270,7 +270,7 @@ const PostComposerModal = ({
 
               {classrooms.length > 0 && (
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">
+                  <label className="text-xs font-bold text-slate-600 tracking-wider mb-2 block">
                     Specific Sections
                     <span className="text-slate-400 font-medium normal-case ml-1">(optional)</span>
                   </label>
@@ -301,7 +301,7 @@ const PostComposerModal = ({
             <div className="p-5 space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Category</label>
+                  <label className="text-xs font-bold text-slate-600 tracking-wider mb-2 block">Category</label>
                   <select
                     value={form.category}
                     onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
@@ -313,7 +313,7 @@ const PostComposerModal = ({
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Priority</label>
+                  <label className="text-xs font-bold text-slate-600 tracking-wider mb-2 block">Priority</label>
                   <select
                     value={form.priority}
                     onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
@@ -328,7 +328,7 @@ const PostComposerModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Status</label>
+                  <label className="text-xs font-bold text-slate-600 tracking-wider mb-2 block">Status</label>
                   <select
                     value={form.status}
                     onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
@@ -369,7 +369,7 @@ const PostComposerModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Schedule Post</label>
+                  <label className="text-xs font-bold text-slate-600 tracking-wider mb-2 block">Schedule Post</label>
                   <input
                     type="datetime-local"
                     value={form.event_date}
@@ -379,7 +379,7 @@ const PostComposerModal = ({
                   <p className="text-[10px] text-slate-400 mt-1">Optional: set a future date</p>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2 block">Expires</label>
+                  <label className="text-xs font-bold text-slate-600 tracking-wider mb-2 block">Expires</label>
                   <input
                     type="datetime-local"
                     value={form.end_date}
@@ -395,13 +395,13 @@ const PostComposerModal = ({
           {/* Footer */}
           <div className="sticky bottom-0 flex gap-3 px-5 py-4 border-t border-slate-200 bg-slate-50 flex-shrink-0">
             <button type="button" onClick={onClose}
-              className="px-5 py-2.5 bg-white text-slate-700 text-xs font-bold uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-xl transition-colors">
+              className="px-5 py-2.5 bg-white text-slate-700 text-xs font-bold tracking-[0.1em] border border-slate-300 hover:bg-slate-100 rounded-xl transition-colors">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="flex-[2] py-2.5 bg-violet-600 text-white text-xs font-bold uppercase tracking-widest hover:bg-violet-700 disabled:opacity-60 flex items-center justify-center gap-2 rounded-xl transition-colors shadow-sm">
+              className="flex-[2] py-2.5 bg-violet-600 text-white text-xs font-bold tracking-[0.1em] hover:bg-violet-700 disabled:opacity-60 flex items-center justify-center gap-2 rounded-xl transition-colors shadow-sm">
               {saving ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin" />
               ) : isEditing ? (
                 'Save Changes'
               ) : (

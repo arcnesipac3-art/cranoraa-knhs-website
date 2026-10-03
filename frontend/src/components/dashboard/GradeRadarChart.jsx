@@ -13,7 +13,7 @@ const GradeRadarChart = memo(({ data, title, height = 200 }) => {
   return (
     <div className="w-full">
       {title && (
-        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">{title}</p>
+        <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em] mb-2">{title}</p>
       )}
       <ResponsiveContainer width="100%" height={height}>
         <RadarChart data={chartData} cx="50%" cy="50%" outerRadius="70%">

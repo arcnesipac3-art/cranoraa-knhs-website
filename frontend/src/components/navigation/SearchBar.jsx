@@ -235,7 +235,7 @@ export const SearchBar = ({
           {categories.map((category, categoryIndex) => (
             <div key={category}>
               {/* Category Header */}
-              <div className="px-4 py-2 text-xs font-semibold text-slate-500 uppercase bg-slate-50 border-b border-slate-100">
+              <div className="px-4 py-2 text-xs font-semibold text-slate-500 bg-slate-50 border-b border-slate-100">
                 {category}
               </div>
 

@@ -16,7 +16,7 @@ const STATUS_STYLES = {
   scheduled: { bg: 'bg-blue-100', text: 'text-blue-800', dot: 'bg-blue-500' },
   open: { bg: 'bg-green-100', text: 'text-green-800', dot: 'bg-green-500' },
   closing_soon: { bg: 'bg-amber-100', text: 'text-amber-800', dot: 'bg-amber-500' },
-  closed: { bg: 'bg-gray-100', text: 'text-gray-800', dot: 'bg-gray-500' },
+  closed: { bg: 'bg-gray-100', text: 'text-slate-800', dot: 'bg-gray-500' },
   locked: { bg: 'bg-purple-100', text: 'text-purple-800', dot: 'bg-purple-500' },
 };
 
@@ -69,8 +69,8 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onUnlock, onExtend
         <div className="flex items-center gap-3">
           <QuarterBadge quarter={period.quarter} />
           <div>
-            <h3 className="font-semibold text-gray-900">{period.academic_year_name}</h3>
-            <p className="text-sm text-gray-500">{period.quarter_display}</p>
+            <h3 className="font-semibold text-slate-900">{period.academic_year_name}</h3>
+            <p className="text-sm text-slate-500">{period.quarter_display}</p>
           </div>
         </div>
         <StatusBadge status={period.status} display={period.status_display} />
@@ -84,7 +84,7 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onUnlock, onExtend
           ? 'bg-blue-50 text-blue-800 border border-blue-200'
           : period.status === 'locked'
           ? 'bg-purple-50 text-purple-800 border border-purple-200'
-          : 'bg-gray-50 text-gray-700 border border-gray-200'
+          : 'bg-gray-50 text-slate-700 border border-gray-200'
       }`}>
         {period.status === 'scheduled' && '⏳ Not yet open — teachers cannot submit grades.'}
         {period.status === 'open' && '✅ Open — teachers can now submit grades.'}
@@ -95,17 +95,17 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onUnlock, onExtend
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="text-sm">
-          <span className="text-gray-500">Start:</span>
-          <span className="ml-2 font-medium text-gray-700">{period.start_date}</span>
+          <span className="text-slate-500">Start:</span>
+          <span className="ml-2 font-medium text-slate-700">{period.start_date}</span>
         </div>
         <div className="text-sm">
-          <span className="text-gray-500">Deadline:</span>
-          <span className="ml-2 font-medium text-gray-700">{period.submission_deadline}</span>
+          <span className="text-slate-500">Deadline:</span>
+          <span className="ml-2 font-medium text-slate-700">{period.submission_deadline}</span>
         </div>
         {period.grace_period_days > 0 && (
           <div className="text-sm sm:col-span-2">
-            <span className="text-gray-500">Grace Period:</span>
-            <span className="ml-2 font-medium text-gray-700">+{period.grace_period_days} days (effective: {period.effective_deadline})</span>
+            <span className="text-slate-500">Grace Period:</span>
+            <span className="ml-2 font-medium text-slate-700">+{period.grace_period_days} days (effective: {period.effective_deadline})</span>
           </div>
         )}
       </div>
@@ -115,7 +115,7 @@ const GradingPeriodCard = ({ period, onOpen, onClose, onLock, onUnlock, onExtend
       </div>
 
       {period.description && (
-        <p className="mt-3 text-sm text-gray-600 bg-gray-50 rounded-lg p-2">{period.description}</p>
+        <p className="mt-3 text-sm text-slate-600 bg-gray-50 rounded-lg p-2">{period.description}</p>
       )}
 
       <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100 flex-wrap">
@@ -277,7 +277,7 @@ const CreatePeriodModal = ({ isOpen, onClose, onSave, academicYear, academicYear
 
           {editingPeriod && (editingPeriod.status === 'locked' || editingPeriod.status === 'closed' || editingPeriod.status === 'scheduled') && (
             <div className="border-t border-gray-200 pt-4 mt-4 space-y-3">
-              <p className="text-xs font-black text-red-500 uppercase tracking-widest">Danger Zone</p>
+              <p className="text-xs font-bold text-red-500 tracking-[0.1em]">Danger Zone</p>
               {(editingPeriod.status === 'scheduled' || editingPeriod.status === 'closed') && (
                 <button
                   type="button"
@@ -377,7 +377,7 @@ const ExtendDeadlineModal = ({ isOpen, onClose, period, onExtend }) => {
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalHeader>Extend Deadline</ModalHeader>
       <ModalBody>
-        <p className="text-sm text-gray-600 mb-4">
+        <p className="text-sm text-slate-600 mb-4">
           Current deadline: <strong>{period.submission_deadline}</strong> (effective: {period.effective_deadline})
         </p>
         <FormField label="Extend by (days)">
@@ -389,7 +389,7 @@ const ExtendDeadlineModal = ({ isOpen, onClose, period, onExtend }) => {
             onChange={(e) => setDays(parseInt(e.target.value) || 1)}
           />
         </FormField>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-sm text-slate-500 mt-2">
           New effective deadline: {(() => {
             const d = new Date(period.effective_deadline);
             d.setDate(d.getDate() + days);
@@ -567,8 +567,8 @@ export default function GradingPeriodManagement() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Grading Period Management</h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">Control when teachers can submit grades for each term</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-slate-900">Grading Period Management</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Control when teachers can submit grades for each term</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           <Button variant="outline" size="sm" onClick={handleBulkUpdate} className="text-xs sm:text-sm">
@@ -585,7 +585,7 @@ export default function GradingPeriodManagement() {
 
       {/* Workflow explanation */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 sm:px-5 py-3 sm:py-4">
-        <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-3">Admin Workflow</p>
+        <p className="text-xs font-bold text-slate-500 tracking-[0.1em] mb-3">Admin Workflow</p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {[
             { label: '1. Create Period', color: 'bg-blue-100 text-blue-800', hint: 'Sets dates & deadline' },
@@ -609,7 +609,7 @@ export default function GradingPeriodManagement() {
             className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
               filterStatus === status
                 ? 'bg-brand-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-gray-100 text-slate-600 hover:bg-gray-200'
             }`}
           >
             {status === 'all' ? 'All' : status.replace('_', ' ')}
@@ -633,7 +633,7 @@ export default function GradingPeriodManagement() {
           title="No Grading Periods"
           description="Create a grading period to start managing grade submissions."
           icon={
-            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           }

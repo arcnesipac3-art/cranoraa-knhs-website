@@ -94,7 +94,7 @@ const QuickActionCards = memo(({ pendingGrades = 0, unmarkedCount = 0 }) => {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Quick Actions</h2>
+        <h2 className="text-xs font-bold text-slate-700 tracking-wider">Quick Actions</h2>
         {(unmarkedCount > 0 || pendingGrades > 0) && (
           <div className="flex items-center gap-2">
             {unmarkedCount > 0 && (
@@ -127,7 +127,7 @@ const QuickActionCards = memo(({ pendingGrades = 0, unmarkedCount = 0 }) => {
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate(action.path)}
             className={cn(
-              'group relative flex flex-col items-start p-3.5 rounded-xl border-2 bg-white text-left transition-all duration-200',
+              'group relative flex flex-col items-start p-3.5 rounded-xl border bg-white text-left transition-all duration-200',
               action.border,
               action.hoverBorder,
               'hover:shadow-md focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-1'
@@ -137,7 +137,7 @@ const QuickActionCards = memo(({ pendingGrades = 0, unmarkedCount = 0 }) => {
             <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center mb-2.5 shadow-sm', action.bg, action.text)}>
               {action.icon}
             </div>
-            <h3 className="text-sm font-extrabold text-slate-900 leading-tight group-hover:text-violet-700 transition-colors">
+            <h3 className="text-sm font-bold text-slate-900 leading-tight group-hover:text-violet-700 transition-colors">
               {action.title}
             </h3>
             <p className="text-[11px] text-slate-500 font-medium mt-1 leading-snug line-clamp-2">

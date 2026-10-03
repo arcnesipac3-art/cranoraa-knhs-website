@@ -42,8 +42,8 @@ export default function GradeManagementAdmin() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Grade Management</h1>
-        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+        <h1 className="text-lg sm:text-2xl font-bold text-slate-900">Grade Management</h1>
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
           {isTeacher ? 'View master sheet for your assigned sections' : 'Manage grading periods, monitor submissions, and generate reports'}
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function GradeManagementAdmin() {
             className={`relative flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
               activeTab === tab.id
                 ? 'text-brand-600'
-                : 'text-gray-500 hover:text-gray-700'
+                : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

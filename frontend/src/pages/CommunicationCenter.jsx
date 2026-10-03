@@ -247,7 +247,7 @@ function PeopleDirectory({ onSelectPerson, currentUserId, searchRef }) {
   return (
     <div className="w-full h-full flex flex-col bg-white">
       <div className="px-4 sm:px-5 py-4 border-b border-slate-100">
-        <h2 className="text-xs font-extrabold text-slate-900 uppercase tracking-tight mb-3">Directory</h2>
+        <h2 className="text-xs font-bold text-slate-900 tracking-tight mb-3">Directory</h2>
         <div className="relative">
           <SearchIcon size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
@@ -263,7 +263,7 @@ function PeopleDirectory({ onSelectPerson, currentUserId, searchRef }) {
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex items-center justify-center h-24">
-            <div className="w-5 h-5 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+            <div className="w-5 h-5 border border-slate-200 border-t-violet-600 rounded-full animate-spin" />
           </div>
         ) : (
           <div className="py-2">
@@ -287,7 +287,7 @@ function PeopleDirectory({ onSelectPerson, currentUserId, searchRef }) {
                   <div key={group.key} className="mb-1">
                     <button
                       onClick={() => setExpandedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
-                      className="w-full flex items-center justify-between px-5 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:bg-slate-50 transition-colors"
+                      className="w-full flex items-center justify-between px-5 py-2 text-[10px] font-bold text-slate-400 tracking-wider hover:bg-slate-50 transition-colors"
                     >
                       <span>{group.label}</span>
                       <span className="text-slate-300">{list.length}</span>
@@ -302,7 +302,7 @@ function PeopleDirectory({ onSelectPerson, currentUserId, searchRef }) {
                           >
                             <div className="relative flex-shrink-0">
                               <Avatar name={`${person.first_name || ''} ${person.last_name || ''}`} size="sm" profilePicture={person.profile?.profile_picture} />
-                              <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${
+                              <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white ${
                                 person.is_online ? 'bg-emerald-400' : 'bg-slate-300'
                               }`} />
                             </div>
@@ -375,7 +375,7 @@ const ChatMessage = memo(function ChatMessage({ msg, i, chatMessages, userId, sh
       <div className={`max-w-[70%] min-w-0 flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
         {showAvatar && !isOwn && <span className="text-[11px] font-semibold text-slate-500 mb-0.5 ml-1">{msg.sender_name}</span>}
         {msg.parent_message_details && (
-          <div className={`text-[11px] px-2.5 py-1 mb-0.5 rounded-t-lg border-l-2 min-w-0 max-w-full overflow-hidden cursor-pointer hover:brightness-95 transition-all ${isOwn ? 'bg-violet-50 border-violet-400 text-violet-700' : 'bg-slate-50 border-slate-300 text-slate-600'}`}>
+          <div className={`text-[11px] px-2.5 py-1 mb-0.5 rounded-t-lg border-l min-w-0 max-w-full overflow-hidden cursor-pointer hover:brightness-95 transition-all ${isOwn ? 'bg-violet-50 border-violet-400 text-violet-700' : 'bg-slate-50 border-slate-300 text-slate-600'}`}>
             <span className="font-semibold">{msg.parent_message_details.sender_name}</span>: <span className="break-all">{typeof msg.parent_message_details.content === 'string' ? msg.parent_message_details.content.slice(0, 60) : ''}</span>
           </div>
         )}
@@ -395,7 +395,7 @@ const ChatMessage = memo(function ChatMessage({ msg, i, chatMessages, userId, sh
               <DownloadIcon size={14} className="text-slate-400 flex-shrink-0" />
             </a>
           ) : (
-            <div className={`px-3 py-2 rounded-2xl min-w-0 max-w-full overflow-hidden transition-shadow hover:shadow-md ${isOwn ? 'bg-violet-600 text-white rounded-br-md' : 'bg-white text-slate-800 border border-slate-200 shadow-sm rounded-bl-md'}`}>
+            <div className={`px-3 py-2 rounded-lg min-w-0 max-w-full overflow-hidden transition-shadow hover:shadow-md ${isOwn ? 'bg-violet-600 text-white rounded-br-md' : 'bg-white text-slate-800 border border-slate-200 shadow-sm rounded-bl-md'}`}>
               <p className="text-sm whitespace-pre-wrap break-all">{renderContentWithMentions(typeof msg.content === 'string' ? msg.content : '', isOwn, allRoomMembers)}</p>
             </div>
           )}
@@ -971,7 +971,7 @@ export default function CommunicationCenter() {
         <div className="flex-1 overflow-y-auto">
           {chatLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="w-5 h-5 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+              <div className="w-5 h-5 border border-slate-200 border-t-violet-600 rounded-full animate-spin" />
             </div>
           ) : filteredChatRooms.length === 0 ? (
             <div className="text-center py-12 px-4">
@@ -998,7 +998,7 @@ export default function CommunicationCenter() {
                   key={room.id}
                   onClick={() => handleSelectRoom(room)}
                   className={`w-full flex items-center gap-2 sm:gap-3 px-3 py-2.5 sm:px-4 sm:py-3 text-left transition-colors relative ${
-                    isActive ? 'bg-violet-50 border-r-2 border-violet-600' : 'hover:bg-slate-50 border-r-2 border-transparent'
+                    isActive ? 'bg-violet-50 border-r border-violet-600' : 'hover:bg-slate-50 border-r border-transparent'
                   }`}
                 >
                   <div className="relative flex-shrink-0">
@@ -1018,7 +1018,7 @@ export default function CommunicationCenter() {
                       </div>
                     )}
                     {isOnline && (
-                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border border-white rounded-full" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1028,7 +1028,7 @@ export default function CommunicationCenter() {
                           {displayName}
                         </span>
                         {isSystem && (
-                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-bold uppercase flex-shrink-0">
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[9px] font-bold flex-shrink-0">
                             <LockIcon size={8} />
                             {getSystemGroupLabel(room.source_type)}
                           </span>
@@ -1140,7 +1140,7 @@ export default function CommunicationCenter() {
                 onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
               >
                 {isDragging && (
-                  <div className="absolute inset-0 bg-violet-50/90 border-2 border-dashed border-violet-400 rounded-xl z-30 flex items-center justify-center pointer-events-none">
+                  <div className="absolute inset-0 bg-violet-50/90 border border-dashed border-violet-400 rounded-xl z-30 flex items-center justify-center pointer-events-none">
                     <div className="text-center">
                       <div className="w-12 h-12 bg-violet-100 rounded-full flex items-center justify-center mx-auto mb-2">
                         <PaperclipIcon size={24} className="text-violet-500" />
@@ -1170,7 +1170,7 @@ export default function CommunicationCenter() {
                       {shouldShowDateSeparator(chatMessages, chatMessages.indexOf(msg)) && <DateSeparator ts={msg.timestamp} />}
                       {editingMsgId === msg.id ? (
                         <div className={`flex ${msg.sender === userId ? 'justify-end' : 'justify-start'} mb-2`}>
-                          <div className={`max-w-[80%] min-w-0 px-3 py-2 rounded-xl border-2 border-violet-400 bg-white shadow-lg`}>
+                          <div className={`max-w-[80%] min-w-0 px-3 py-2 rounded-xl border border-violet-400 bg-white shadow-lg`}>
                             <textarea data-edit-input={msg.id} value={editingContent} onChange={e => setEditingContent(e.target.value)}
                               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleInlineEditSave(); } if (e.key === 'Escape') setEditingMsgId(null); }}
                               className="w-full text-sm bg-transparent focus:outline-none resize-none" rows={2} />
@@ -1203,7 +1203,7 @@ export default function CommunicationCenter() {
                 {uploadingFile && (
                   <div className="flex justify-end mb-2 chat-msg-enter">
                     <div className="max-w-[70%] min-w-0 flex flex-col items-end">
-                      <div className="px-3 py-2 rounded-2xl rounded-br-md bg-violet-600 text-white">
+                      <div className="px-3 py-2 rounded-lg rounded-br-md bg-violet-600 text-white">
                         {uploadingFile.type?.startsWith('image/') ? (
                           <div className="w-[200px] h-[140px] bg-violet-500/30 rounded-xl flex items-center justify-center">
                             <LoaderIcon size={24} className="text-white animate-spin" />
@@ -1366,7 +1366,7 @@ export default function CommunicationCenter() {
           <div className="fixed bottom-0 left-0 right-0 z-[91] bg-white border-t border-slate-200 rounded-t-2xl shadow-2xl p-2 lg:hidden animate-slide-up max-w-lg mx-auto">
             <div className="w-10 h-1 bg-slate-200 rounded-full mx-auto mb-3" />
             {longPressMsg.parent_message_details && (
-              <div className="px-3 py-2 mb-1 rounded-lg bg-slate-50 border-l-2 border-slate-300">
+              <div className="px-3 py-2 mb-1 rounded-lg bg-slate-50 border-l border-slate-300">
                 <p className="text-[10px] font-semibold text-slate-500">{longPressMsg.parent_message_details.sender_name}</p>
                 <p className="text-xs text-slate-600 truncate">{typeof longPressMsg.parent_message_details.content === 'string' ? longPressMsg.parent_message_details.content : ''}</p>
               </div>

@@ -142,7 +142,7 @@ export default function CreateGroupModal({ isOpen, onClose, onGroupCreated }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label="Create group">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden flex flex-col" style={{ maxHeight: '85vh' }}>
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg mx-4 overflow-hidden flex flex-col" style={{ maxHeight: '85vh' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
           <div className="flex items-center gap-3">
@@ -174,9 +174,9 @@ export default function CreateGroupModal({ isOpen, onClose, onGroupCreated }) {
                 aria-label="Change group avatar"
               >
                 {avatarPreview ? (
-                  <img src={avatarPreview} alt="" className="w-20 h-20 rounded-full object-cover border-2 border-slate-200" />
+                  <img src={avatarPreview} alt="" className="w-20 h-20 rounded-full object-cover border border-slate-200" />
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-violet-100 flex items-center justify-center border-2 border-dashed border-violet-300 group-hover:border-violet-500 transition-colors">
+                  <div className="w-20 h-20 rounded-full bg-violet-100 flex items-center justify-center border border-dashed border-violet-300 group-hover:border-violet-500 transition-colors">
                     <CameraIcon size={24} className="text-violet-400" />
                   </div>
                 )}
@@ -259,7 +259,7 @@ export default function CreateGroupModal({ isOpen, onClose, onGroupCreated }) {
             <div className="flex-1 overflow-y-auto px-2">
               {loadingUsers ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="w-5 h-5 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+                  <div className="w-5 h-5 border border-slate-200 border-t-violet-600 rounded-full animate-spin" />
                 </div>
               ) : filteredUsers.length === 0 ? (
                 <div className="text-center py-8 px-4">
@@ -291,7 +291,7 @@ export default function CreateGroupModal({ isOpen, onClose, onGroupCreated }) {
                               {getInitials(name)}
                             </div>
                           )}
-                          <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${person.is_online ? 'bg-emerald-400' : 'bg-slate-300'}`} />
+                          <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white ${person.is_online ? 'bg-emerald-400' : 'bg-slate-300'}`} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-slate-800 truncate">{name}</p>
@@ -302,7 +302,7 @@ export default function CreateGroupModal({ isOpen, onClose, onGroupCreated }) {
                               : (person.profile?.classroom_name || 'Student')}
                           </p>
                         </div>
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? 'bg-violet-600 border-violet-600' : 'border-slate-300'}`}>
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 transition-colors ${isSelected ? 'bg-violet-600 border-violet-600' : 'border-slate-300'}`}>
                           {isSelected && <CheckIcon size={12} className="text-white" />}
                         </div>
                       </button>
@@ -342,7 +342,7 @@ export default function CreateGroupModal({ isOpen, onClose, onGroupCreated }) {
                 className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-violet-600 hover:bg-violet-700 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {creating ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <UsersIcon size={14} />
                 )}

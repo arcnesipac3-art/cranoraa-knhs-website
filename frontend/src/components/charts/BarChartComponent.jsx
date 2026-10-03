@@ -66,7 +66,7 @@ export const BarChartComponent = ({
       emptyState || (
         <div
           className={cn(
-            'flex items-center justify-center border-2 border-dashed border-slate-300 rounded-lg bg-slate-50',
+            'flex items-center justify-center border border-dashed border-slate-300 rounded-lg bg-slate-50',
             className
           )}
           style={{ height }}

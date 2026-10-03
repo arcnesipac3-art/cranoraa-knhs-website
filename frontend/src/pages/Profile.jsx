@@ -9,7 +9,7 @@ import { cn } from '../styles/designSystem';
 
 const Field = ({ label, value }) => (
   <div className="min-w-0">
-    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5">{label}</p>
+    <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] mb-1.5">{label}</p>
     <p className="text-[13px] font-bold text-slate-800 truncate">{value || <span className="text-slate-300 font-normal italic">Not set</span>}</p>
   </div>
 );
@@ -146,7 +146,7 @@ const Profile = () => {
       {/* ── Page Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight truncate">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight truncate">
             {studentId ? 'Student Profile' : 'My Profile'}
           </h1>
           <p className="text-[13px] font-medium text-slate-500 mt-1 line-clamp-1">
@@ -178,7 +178,7 @@ const Profile = () => {
 
           <div className="relative flex items-end gap-5 w-full">
             <div className="relative group/avatar flex-shrink-0">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[2rem] bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-black border-4 border-white/20 shadow-2xl mb-[-3.5rem] overflow-hidden">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[2rem] bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-bold border-4 border-white/20 shadow-2xl mb-[-3.5rem] overflow-hidden">
                 {profilePic ? (
                    <img src={profilePic} alt="Profile" className="w-full h-full object-cover" loading="lazy" />
                 ) : initials}
@@ -199,12 +199,12 @@ const Profile = () => {
               )}
             </div>
             <div className="pb-2 min-w-0">
-              <h2 className="text-xl sm:text-2xl font-black text-white truncate leading-tight">{fullName}</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-white truncate leading-tight">{fullName}</h2>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                 <Badge variant="purple" size="sm">{user?.role}</Badge>
                 <span className="text-[11px] font-bold text-violet-300/80 truncate">{profile?.email}</span>
                 {profile?.profile?.registration_number && (
-                  <span className="text-[11px] font-black uppercase tracking-widest text-violet-300/60 hidden xs:inline">LRN: {profile.profile.registration_number}</span>
+                  <span className="text-[11px] font-bold tracking-[0.1em] text-violet-300/60 hidden xs:inline">LRN: {profile.profile.registration_number}</span>
                 )}
               </div>
             </div>
@@ -219,7 +219,7 @@ const Profile = () => {
               {/* Name */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Name Details</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Name Details</h3>
                   <div className="h-px w-full bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
@@ -251,7 +251,7 @@ const Profile = () => {
               {/* Personal */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Personal Information</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Personal Information</h3>
                   <div className="h-px w-full bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -275,7 +275,7 @@ const Profile = () => {
               {/* Family */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Family Details</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Family Details</h3>
                   <div className="h-px w-full bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -287,7 +287,7 @@ const Profile = () => {
               {/* School */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Academic Record</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Academic Record</h3>
                   <div className="h-px w-full bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -299,7 +299,7 @@ const Profile = () => {
               {/* Contact */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Contact Information</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Contact Information</h3>
                   <div className="h-px w-full bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -351,7 +351,7 @@ const Profile = () => {
               {/* Personal */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Personal Information</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Personal Information</h3>
                   <div className="h-px w-full bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-6">
@@ -372,7 +372,7 @@ const Profile = () => {
               {/* Family */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Family Details</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Family Details</h3>
                   <div className="h-px w-full bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-x-8 gap-y-6">
@@ -384,7 +384,7 @@ const Profile = () => {
               {/* Contact */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Contact Information</h3>
+                  <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Contact Information</h3>
                   <div className="h-px w-full bg-slate-100" />
                 </div>
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-x-8 gap-y-6">
@@ -402,7 +402,7 @@ const Profile = () => {
               {(profile?.profile?.registration_number || profile?.profile?.grade_level) && (
                 <div className="space-y-6">
                   <div className="flex items-center gap-4">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] whitespace-nowrap">Academic Record</h3>
+                    <h3 className="text-[10px] font-bold text-slate-400 tracking-[0.3em] whitespace-nowrap">Academic Record</h3>
                     <div className="h-px w-full bg-slate-100" />
                   </div>
                   <div className="grid grid-cols-1 xs:grid-cols-2 gap-x-8 gap-y-6">

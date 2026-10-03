@@ -146,7 +146,7 @@ const Login = () => {
       title: 'Password Reset',
       text: 'Please contact the ICT coordinator for password reset.',
       confirmButtonColor: '#581c87',
-      customClass: { popup: 'rounded-lg', confirmButton: 'rounded-lg uppercase text-xs font-bold tracking-widest px-6 py-3' }
+      customClass: { popup: 'rounded-lg', confirmButton: 'rounded-lg text-xs font-bold tracking-[0.1em] px-6 py-3' }
     });
   }, []);
 
@@ -265,13 +265,13 @@ const Login = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-white tracking-tight">Kiwalan National</h1>
-              <p className="text-slate-400 text-xs font-medium uppercase tracking-wider">High School</p>
+              <p className="text-slate-400 text-xs font-medium tracking-wider">High School</p>
             </div>
           </div>
 
           <div className="flex-1 flex flex-col justify-center max-w-lg">
             <div className="mb-4">
-              <span className="text-slate-400 text-xs font-semibold uppercase tracking-widest">{role.panelTitle}</span>
+              <span className="text-slate-400 text-xs font-semibold tracking-[0.1em]">{role.panelTitle}</span>
             </div>
             <h2 className="text-4xl font-bold text-white mb-4 leading-tight">
               {loginType === 'student' && 'Your Academic Journey Starts Here'}
@@ -322,14 +322,14 @@ const Login = () => {
                <img src="/icons/school-logo-source.png" alt="KNHS" className="w-7 h-7 object-contain" loading="lazy" />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-gray-900">KNHS Portal</h1>
-              <p className="text-gray-500 text-xs">Digital Campus</p>
+              <h1 className="text-sm font-bold text-slate-900">KNHS Portal</h1>
+              <p className="text-slate-500 text-xs">Digital Campus</p>
             </div>
           </div>
           <button
             onClick={() => navigate('/')}
             aria-label="Close login"
-            className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
+            className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors rounded-lg hover:bg-gray-100"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -341,7 +341,7 @@ const Login = () => {
           {/* Back Link — Desktop */}
           <button
             onClick={() => navigate('/')}
-            className="hidden lg:inline-flex items-center gap-2 text-gray-400 hover:text-slate-900 text-xs font-medium mb-6 transition-colors group"
+            className="hidden lg:inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 text-xs font-medium mb-6 transition-colors group"
             aria-label="Go back to home page"
           >
             <svg className="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -361,7 +361,7 @@ const Login = () => {
             </div>
             <div className={`h-0.5 flex-1 rounded-full transition-all duration-300 ${step === 'credentials' ? 'bg-slate-900' : 'bg-gray-200'}`} />
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-              step === 'credentials' ? 'bg-slate-900 text-white' : 'bg-gray-200 text-gray-400'
+              step === 'credentials' ? 'bg-slate-900 text-white' : 'bg-gray-200 text-slate-400'
             }`}>2</div>
           </div>
 
@@ -369,8 +369,8 @@ const Login = () => {
           {step === 'role' && (
             <>
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome</h2>
-                <p className="text-gray-500 text-sm">Select your role to continue</p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">Welcome</h2>
+                <p className="text-slate-500 text-sm">Select your role to continue</p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -378,14 +378,14 @@ const Login = () => {
                   <button
                     key={key}
                     onClick={() => handleRoleSelect(key)}
-                    className="group flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-gray-100 hover:border-slate-900 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+                    className="group flex flex-col items-center gap-3 p-5 rounded-xl border border-gray-100 hover:border-slate-900 hover:bg-slate-50 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
                   >
                     <div className="w-12 h-12 bg-gray-100 group-hover:bg-slate-900 rounded-xl flex items-center justify-center transition-colors duration-200">
-                      <span className="text-gray-500 group-hover:text-white transition-colors duration-200">{r.icon}</span>
+                      <span className="text-slate-500 group-hover:text-white transition-colors duration-200">{r.icon}</span>
                     </div>
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-gray-900">{r.label}</p>
-                      <p className="text-[11px] text-gray-400 mt-0.5">{r.subtitle}</p>
+                      <p className="text-sm font-semibold text-slate-900">{r.label}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{r.subtitle}</p>
                     </div>
                   </button>
                 ))}
@@ -399,7 +399,7 @@ const Login = () => {
               {/* Back to role selection */}
               <button
                 onClick={handleBackToRoles}
-                className="inline-flex items-center gap-1.5 text-gray-400 hover:text-slate-900 text-xs font-medium mb-4 transition-colors group"
+                className="inline-flex items-center gap-1.5 text-slate-400 hover:text-slate-900 text-xs font-medium mb-4 transition-colors group"
               >
                 <svg className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -413,14 +413,14 @@ const Login = () => {
                   <span className="text-white">{role.icon}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900">{role.label}</p>
-                  <p className="text-[11px] text-gray-400">{role.subtitle}</p>
+                  <p className="text-sm font-semibold text-slate-900">{role.label}</p>
+                  <p className="text-[11px] text-slate-400">{role.subtitle}</p>
                 </div>
               </div>
 
               <div className="mb-5">
-                <h2 className="text-2xl font-bold text-gray-900 mb-1">Sign In</h2>
-                <p className="text-gray-500 text-sm">Enter your {role.identifierLabel.toLowerCase()} and password</p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">Sign In</h2>
+                <p className="text-slate-500 text-sm">Enter your {role.identifierLabel.toLowerCase()} and password</p>
               </div>
 
               {/* Form */}
@@ -434,12 +434,12 @@ const Login = () => {
                 <div>
                   <label
                     htmlFor={`identifier-${loginType}`}
-                    className="block text-sm font-semibold text-gray-700 mb-2"
+                    className="block text-sm font-semibold text-slate-700 mb-2"
                   >
                     {role.identifierLabel}
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
@@ -454,7 +454,7 @@ const Login = () => {
                       autoComplete="username"
                       aria-invalid={!!fieldErrors.identifier}
                       aria-describedby={fieldErrors.identifier ? `identifier-error-${loginType}` : undefined}
-                      className={`w-full bg-gray-50 border rounded-lg py-3 pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                      className={`w-full bg-gray-50 border rounded-lg py-3 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
                         fieldErrors.identifier
                           ? 'border-red-300 bg-red-50 focus:ring-red-500/20 focus:border-red-400'
                           : 'border-gray-200 focus:ring-slate-900/20 focus:border-slate-900'
@@ -473,7 +473,7 @@ const Login = () => {
                   <div className="flex items-center justify-between mb-2">
                     <label
                       htmlFor={`password-${loginType}`}
-                      className="text-sm font-semibold text-gray-700"
+                      className="text-sm font-semibold text-slate-700"
                     >
                       Password
                     </label>
@@ -486,7 +486,7 @@ const Login = () => {
                     </button>
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
@@ -500,7 +500,7 @@ const Login = () => {
                       autoComplete="current-password"
                       aria-invalid={!!fieldErrors.password}
                       aria-describedby={fieldErrors.password ? `password-error-${loginType}` : undefined}
-                      className={`w-full bg-gray-50 border rounded-lg py-3 pl-10 pr-11 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 transition-all ${
+                      className={`w-full bg-gray-50 border rounded-lg py-3 pl-10 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 transition-all ${
                         fieldErrors.password
                           ? 'border-red-300 bg-red-50 focus:ring-red-500/20 focus:border-red-400'
                           : 'border-gray-200 focus:ring-slate-900/20 focus:border-slate-900'
@@ -510,7 +510,7 @@ const Login = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                     >
                       {showPassword ? (
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -571,12 +571,12 @@ const Login = () => {
 
               {/* Portal Features — Mobile */}
               <div className="mt-8 pt-6 border-t border-gray-100 lg:hidden">
-                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-3">Portal Features</p>
+                <p className="text-[10px] font-semibold text-slate-400 tracking-wider mb-3">Portal Features</p>
                 <div className="grid grid-cols-2 gap-2">
                   {role.panelFeatures.map((f, i) => (
                     <div key={i} className="flex items-center gap-2">
                       <div className="w-1.5 h-1.5 bg-slate-400 rounded-full flex-shrink-0" aria-hidden="true" />
-                      <span className="text-xs text-gray-600">{f.label}</span>
+                      <span className="text-xs text-slate-600">{f.label}</span>
                     </div>
                   ))}
                 </div>

@@ -89,7 +89,7 @@ export default function SF1Detail() {
       confirmButtonText: 'Yes, Regenerate',
       confirmButtonColor: '#7c3aed',
       cancelButtonColor: '#64748b',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     setActionLoading('regenerate');
@@ -149,11 +149,11 @@ export default function SF1Detail() {
             <ArrowLeft className="w-5 h-5 text-slate-600" />
           </button>
           <div>
-            <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-violet-600 tracking-[0.2em] mb-1">
               <BookOpen className="w-3.5 h-3.5" />
               <span>School Form 1</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
               {sf1.grade_level} — {sf1.section}
             </h1>
             <p className="text-xs text-slate-500 mt-1 font-semibold">
@@ -235,8 +235,8 @@ export default function SF1Detail() {
             <div className={`w-9 h-9 rounded-lg flex items-center justify-center ring-1 ${card.color} mb-2`}>
               <card.icon className="w-4.5 h-4.5" />
             </div>
-            <p className={`font-extrabold ${card.small ? 'text-sm' : 'text-2xl'} text-slate-900`}>{card.value}</p>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{card.label}</p>
+            <p className={`font-bold ${card.small ? 'text-sm' : 'text-2xl'} text-slate-900`}>{card.value}</p>
+            <p className="text-[10px] font-bold text-slate-500 tracking-wider">{card.label}</p>
           </div>
         ))}
       </div>
@@ -248,10 +248,10 @@ export default function SF1Detail() {
         <p className="text-xs text-slate-400">
           Region: {sf1.region || 'N/A'} | Division: {sf1.division || 'N/A'}
         </p>
-        <h2 className="text-lg font-extrabold text-slate-900">{sf1.school_name || 'School Name'}</h2>
+        <h2 className="text-lg font-bold text-slate-900">{sf1.school_name || 'School Name'}</h2>
         <p className="text-xs text-slate-400">School ID: {sf1.school_id || 'N/A'}</p>
         <div className="pt-2 border-t border-slate-100">
-          <p className="text-sm font-extrabold text-slate-900">
+          <p className="text-sm font-bold text-slate-900">
             SCHOOL FORM 1 (SF1) — School Register
           </p>
           <p className="text-xs text-slate-500">
@@ -266,29 +266,29 @@ export default function SF1Detail() {
       {/* Student Table */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <h3 className="text-sm font-extrabold text-slate-900">Learner Information</h3>
+          <h3 className="text-sm font-bold text-slate-900">Learner Information</h3>
           <span className="text-xs font-bold text-slate-500">{students.length} learners</span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">No.</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">LRN</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Last Name</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">First Name</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Middle</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Ext.</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Sex</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Birth Date</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Age</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Mother Tongue</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">IP</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Religion</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Address</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Parent/Guardian</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Contact</th>
-                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500 uppercase">Status</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">No.</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">LRN</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Last Name</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">First Name</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Middle</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Ext.</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Sex</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Birth Date</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Age</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Mother Tongue</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">IP</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Religion</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Address</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Parent/Guardian</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Contact</th>
+                <th className="px-3 py-2 text-left text-[10px] font-bold text-slate-500">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">

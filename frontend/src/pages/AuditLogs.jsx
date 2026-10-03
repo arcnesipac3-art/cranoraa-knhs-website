@@ -108,7 +108,7 @@ function StatCard({ icon: Icon, label, value, trend, trendLabel, color, sub }) {
         )}
       </div>
       <div className="mt-3">
-        <p className="text-2xl font-extrabold text-slate-900 tracking-tight">{value}</p>
+        <p className="text-2xl font-bold text-slate-900 tracking-tight">{value}</p>
         <p className="text-xs font-semibold text-slate-500 mt-0.5">{label}</p>
         {sub && <p className="text-[10px] text-slate-400 mt-0.5">{sub}</p>}
       </div>
@@ -122,10 +122,10 @@ function StatCard({ icon: Icon, label, value, trend, trendLabel, color, sub }) {
 function EmptyStateView({ onRefresh }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-      <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-100 to-violet-50 flex items-center justify-center mb-6 ring-1 ring-violet-200">
+      <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-violet-100 to-violet-50 flex items-center justify-center mb-6 ring-1 ring-violet-200">
         <FileText className="w-10 h-10 text-violet-500" />
       </div>
-      <h3 className="text-lg font-extrabold text-slate-900 mb-2">No log entries yet</h3>
+      <h3 className="text-lg font-bold text-slate-900 mb-2">No log entries yet</h3>
       <p className="text-sm text-slate-500 max-w-md mb-6">
         System activity will appear here as users interact with the portal. 
         Audit logs track all important actions across the school management system.
@@ -185,7 +185,7 @@ function ActivityTimeline({ logs, loading }) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <p className="text-sm font-bold text-slate-800 truncate">{log.user_name || 'System'}</p>
-              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${getActionColor(log.action_type || log.action)}`}>
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold tracking-wider border ${getActionColor(log.action_type || log.action)}`}>
                 {log.action}
               </span>
             </div>
@@ -224,7 +224,7 @@ function FilterPanel({ search, setSearch, actionFilter, setActionFilter, quickFi
 
         {/* Quick Filters */}
         <div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Quick Filters</p>
+          <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-2">Quick Filters</p>
           <div className="flex flex-wrap gap-1.5">
             {QUICK_FILTERS.map(f => (
               <button
@@ -245,7 +245,7 @@ function FilterPanel({ search, setSearch, actionFilter, setActionFilter, quickFi
 
         {/* Action Type */}
         <div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Action Type</p>
+          <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-2">Action Type</p>
           <div className="flex flex-wrap gap-1.5">
             {ACTION_TYPES.map(a => (
               <button
@@ -371,7 +371,7 @@ const AuditLogs = () => {
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
       confirmButtonText: 'Delete',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     try {
@@ -394,7 +394,7 @@ const AuditLogs = () => {
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       confirmButtonText: 'Delete all',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     setDeleting(true);
@@ -416,7 +416,7 @@ const AuditLogs = () => {
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       confirmButtonText: 'Clear all',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     setDeleting(true);
@@ -504,11 +504,11 @@ const AuditLogs = () => {
       {/* ═══════════════════════════ HEADER ═══════════════════════════ */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1.5">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-violet-600 tracking-[0.2em] mb-1.5">
             <Shield className="w-3.5 h-3.5" />
             <span>Security & Monitoring</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Audit Logs</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Audit Logs</h1>
           <p className="text-xs text-slate-500 mt-1 font-semibold">
             {totalCount} total entries
             {storagePercent > 0 && (
@@ -563,7 +563,7 @@ const AuditLogs = () => {
         <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-900">Daily Activity</h3>
+              <h3 className="text-sm font-bold text-slate-900">Daily Activity</h3>
               <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Last 7 days of system activity</p>
             </div>
             <BarChart3 className="w-4 h-4 text-slate-400" />
@@ -597,7 +597,7 @@ const AuditLogs = () => {
         <div className="bg-white border border-slate-200 rounded-xl p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-extrabold text-slate-900">Action Types</h3>
+              <h3 className="text-sm font-bold text-slate-900">Action Types</h3>
               <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Distribution of log actions</p>
             </div>
             <PieIcon className="w-4 h-4 text-slate-400" />
@@ -710,7 +710,7 @@ const AuditLogs = () => {
                         onChange={handleSelectAll}
                         className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500 cursor-pointer"
                       />
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                      <span className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">
                         {selectedIds.length > 0 ? `${selectedIds.length} selected` : 'Select all'}
                       </span>
                     </label>
@@ -735,7 +735,7 @@ const AuditLogs = () => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2 mb-1">
                               <div className="flex items-center gap-2">
-                                <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-black text-[10px] flex-shrink-0">
+                                <div className="w-7 h-7 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-[10px] flex-shrink-0">
                                   {log.user_name?.charAt(0).toUpperCase() || 'S'}
                                 </div>
                                 <p className="text-sm font-bold text-slate-800 truncate">{log.user_name}</p>
@@ -745,11 +745,11 @@ const AuditLogs = () => {
                               </p>
                             </div>
                             <div className="flex items-center gap-2 mb-1 pl-9">
-                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getActionColor(log.action_type || log.action)}`}>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-bold tracking-wider ${getActionColor(log.action_type || log.action)}`}>
                                 {log.action}
                               </span>
                               {log.model_name && (
-                                <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200 uppercase tracking-wider">
+                                <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded-full border border-slate-200 tracking-wider">
                                   {log.model_name}
                                 </span>
                               )}
@@ -792,7 +792,7 @@ const AuditLogs = () => {
                           />
                         </th>
                         <th
-                          className="px-2 py-2.5 text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] whitespace-nowrap cursor-pointer hover:text-violet-600 transition-colors select-none"
+                          className="px-2 py-2.5 text-[9px] font-bold text-slate-500 tracking-[0.15em] whitespace-nowrap cursor-pointer hover:text-violet-600 transition-colors select-none"
                           onClick={() => toggleSort('timestamp')}
                         >
                           <span className="inline-flex items-center gap-0.5">
@@ -801,7 +801,7 @@ const AuditLogs = () => {
                           </span>
                         </th>
                         <th
-                          className="px-2 py-2.5 text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] whitespace-nowrap cursor-pointer hover:text-violet-600 transition-colors select-none"
+                          className="px-2 py-2.5 text-[9px] font-bold text-slate-500 tracking-[0.15em] whitespace-nowrap cursor-pointer hover:text-violet-600 transition-colors select-none"
                           onClick={() => toggleSort('user_name')}
                         >
                           <span className="inline-flex items-center gap-0.5">
@@ -810,7 +810,7 @@ const AuditLogs = () => {
                           </span>
                         </th>
                         <th
-                          className="px-2 py-2.5 text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] whitespace-nowrap cursor-pointer hover:text-violet-600 transition-colors select-none"
+                          className="px-2 py-2.5 text-[9px] font-bold text-slate-500 tracking-[0.15em] whitespace-nowrap cursor-pointer hover:text-violet-600 transition-colors select-none"
                           onClick={() => toggleSort('action')}
                         >
                           <span className="inline-flex items-center gap-0.5">
@@ -818,8 +818,8 @@ const AuditLogs = () => {
                             <ArrowUpDown className="w-2.5 h-2.5" />
                           </span>
                         </th>
-                        <th className="px-2 py-2.5 text-[9px] font-black text-slate-500 uppercase tracking-[0.15em]">Description</th>
-                        <th className="px-2 py-2.5 text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] whitespace-nowrap">Model</th>
+                        <th className="px-2 py-2.5 text-[9px] font-bold text-slate-500 tracking-[0.15em]">Description</th>
+                        <th className="px-2 py-2.5 text-[9px] font-bold text-slate-500 tracking-[0.15em] whitespace-nowrap">Model</th>
                         <th className="px-2 py-2.5 w-15"></th>
                       </tr>
                     </thead>
@@ -844,14 +844,14 @@ const AuditLogs = () => {
                           </td>
                           <td className="px-2 py-2">
                             <div className="flex items-center gap-1.5 min-w-0">
-                              <div className="w-5 h-5 rounded bg-violet-100 flex items-center justify-center text-violet-700 font-black text-[8px] flex-shrink-0">
+                              <div className="w-5 h-5 rounded bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-[8px] flex-shrink-0">
                                 {log.user_name?.charAt(0).toUpperCase() || 'S'}
                               </div>
                               <p className="text-[11px] font-bold text-slate-800 truncate min-w-0">{log.user_name || 'System'}</p>
                             </div>
                           </td>
                           <td className="px-2 py-2">
-                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[9px] font-bold uppercase tracking-wider leading-none ${getActionColor(log.action_type || log.action)}`}>
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full border text-[9px] font-bold tracking-wider leading-none ${getActionColor(log.action_type || log.action)}`}>
                               {log.action}
                             </span>
                           </td>
@@ -928,7 +928,7 @@ const AuditLogs = () => {
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
             <div className="px-4 py-3.5 border-b border-slate-200 bg-slate-50">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-extrabold text-slate-900">Activity Feed</h3>
+                <h3 className="text-sm font-bold text-slate-900">Activity Feed</h3>
                 <Activity className="w-4 h-4 text-slate-400" />
               </div>
               <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Recent system events</p>
@@ -941,7 +941,7 @@ const AuditLogs = () => {
           {/* Storage Widget */}
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-extrabold text-slate-900">Storage</h3>
+              <h3 className="text-sm font-bold text-slate-900">Storage</h3>
               <Database className="w-4 h-4 text-slate-400" />
             </div>
             <ResponsiveContainer width="100%" height={120}>
@@ -957,7 +957,7 @@ const AuditLogs = () => {
               </PieChart>
             </ResponsiveContainer>
             <div className="text-center mt-2">
-              <p className="text-lg font-extrabold text-slate-900">{stats.size_mb || 0}MB</p>
+              <p className="text-lg font-bold text-slate-900">{stats.size_mb || 0}MB</p>
               <p className="text-[10px] text-slate-400 font-semibold">of {stats.max_mb}MB used</p>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden mt-3">
@@ -971,7 +971,7 @@ const AuditLogs = () => {
           {/* Quick Actions */}
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
             <div className="px-4 py-3.5 border-b border-slate-200 bg-slate-50">
-              <h3 className="text-sm font-extrabold text-slate-900">Actions</h3>
+              <h3 className="text-sm font-bold text-slate-900">Actions</h3>
             </div>
             <div className="p-3 space-y-1.5">
               <button
@@ -1014,11 +1014,11 @@ const AuditLogs = () => {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-black text-sm">
+                  <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-sm">
                     {detailLog.user_name?.charAt(0).toUpperCase() || 'S'}
                   </div>
                   <div>
-                    <h3 className="text-sm font-extrabold text-slate-900">Log Detail</h3>
+                    <h3 className="text-sm font-bold text-slate-900">Log Detail</h3>
                     <p className="text-[10px] text-slate-400 font-semibold">{detailLog.id && `#${detailLog.id}`}</p>
                   </div>
                 </div>
@@ -1032,29 +1032,29 @@ const AuditLogs = () => {
               <div className="p-5 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">User</p>
+                    <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">User</p>
                     <p className="text-sm font-bold text-slate-900">{detailLog.user_name || 'System'}</p>
                     <p className="text-xs text-slate-500">{detailLog.user_email || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Action</p>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider ${getActionColor(detailLog.action_type || detailLog.action)}`}>
+                    <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Action</p>
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-[10px] font-bold tracking-wider ${getActionColor(detailLog.action_type || detailLog.action)}`}>
                       {detailLog.action}
                     </span>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Timestamp</p>
+                    <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Timestamp</p>
                     <p className="text-sm font-bold text-slate-900">{new Date(detailLog.timestamp).toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Model</p>
-                    <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 uppercase tracking-wider">
+                    <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Model</p>
+                    <span className="text-xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 tracking-wider">
                       {detailLog.model_name || 'System'}
                     </span>
                   </div>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Description</p>
+                  <p className="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Description</p>
                   <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 rounded-lg p-3 border border-slate-200">
                     {detailLog.description}
                   </p>

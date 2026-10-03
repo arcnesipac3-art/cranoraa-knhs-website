@@ -57,12 +57,12 @@ function StepHero({ icon, color = 'violet', title, desc, badge }) {
   };
   return (
     <div className="text-center max-w-md mx-auto">
-      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${colorMap[color] || colorMap.violet} flex items-center justify-center mx-auto mb-3 shadow-lg`}>
+      <div className={`w-14 h-14 rounded-lg bg-gradient-to-br ${colorMap[color] || colorMap.violet} flex items-center justify-center mx-auto mb-3 shadow-lg`}>
         <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
         </svg>
       </div>
-      <h3 className="text-xl font-extrabold text-slate-900 mb-1">{title}</h3>
+      <h3 className="text-xl font-bold text-slate-900 mb-1">{title}</h3>
       <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
       {badge && (
         <span className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border ${
@@ -288,7 +288,7 @@ const AcademicSetup = () => {
   };
 
   const handleDeleteSemester = async (id) => {
-    const result = await Swal.fire({ title: 'Delete period?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete', customClass: { popup: 'rounded-2xl' } });
+    const result = await Swal.fire({ title: 'Delete period?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete', customClass: { popup: 'rounded-lg' } });
     if (!result.isConfirmed) return;
     try { await api.delete(`/admin/semesters/${id}/`); toast.success('Period deleted'); fetchData(); }
     catch { toast.error('Failed to delete period'); }
@@ -346,21 +346,21 @@ const AcademicSetup = () => {
   };
 
   const handleDeleteSection = async (id, name) => {
-    const result = await Swal.fire({ title: `Delete "${name}"?`, text: 'This will permanently remove the section and all its subject assignments.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete', customClass: { popup: 'rounded-2xl' } });
+    const result = await Swal.fire({ title: `Delete "${name}"?`, text: 'This will permanently remove the section and all its subject assignments.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete', customClass: { popup: 'rounded-lg' } });
     if (!result.isConfirmed) return;
     try { await api.delete(`/classrooms/${id}/`); toast.success('Section deleted'); fetchData(); }
     catch { toast.error('Failed to delete section'); }
   };
 
   const handleDeleteSubject = async (id, name) => {
-    const result = await Swal.fire({ title: `Delete "${name}"?`, text: 'This will permanently remove the subject from the curriculum.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete', customClass: { popup: 'rounded-2xl' } });
+    const result = await Swal.fire({ title: `Delete "${name}"?`, text: 'This will permanently remove the subject from the curriculum.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Delete', customClass: { popup: 'rounded-lg' } });
     if (!result.isConfirmed) return;
     try { await api.delete(`/subjects/${id}/`); toast.success('Subject deleted'); fetchData(); }
     catch { toast.error('Failed to delete subject'); }
   };
 
   const handleRemoveAssignment = async (id) => {
-    const result = await Swal.fire({ title: 'Remove assignment?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Remove', customClass: { popup: 'rounded-2xl' } });
+    const result = await Swal.fire({ title: 'Remove assignment?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'Remove', customClass: { popup: 'rounded-lg' } });
     if (!result.isConfirmed) return;
     try { await api.delete(`/classroom-subjects/${id}/`); toast.success('Assignment removed'); fetchData(); }
     catch { toast.error('Failed to remove assignment'); }
@@ -375,7 +375,7 @@ const AcademicSetup = () => {
       html: `<p class="text-sm text-slate-600">This will activate <strong>SY ${activeAY.name}</strong> and make the configuration live for students and faculty.</p>`,
       icon: 'question', showCancelButton: true,
       confirmButtonText: 'Yes, Publish', confirmButtonColor: '#7c3aed',
-      cancelButtonColor: '#64748b', customClass: { popup: 'rounded-2xl' },
+      cancelButtonColor: '#64748b', customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     setSaving(true);
@@ -440,8 +440,8 @@ const AcademicSetup = () => {
           {academicYears.length > 0 ? (
             <div className="space-y-2 max-w-xl mx-auto">
               {academicYears.map(y => (
-                <div key={y.id} className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${y.is_active ? 'border-violet-400 bg-violet-50' : 'border-slate-200 bg-white'}`}>
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-extrabold text-sm shrink-0 ${y.is_active ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                <div key={y.id} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${y.is_active ? 'border-violet-400 bg-violet-50' : 'border-slate-200 bg-white'}`}>
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 ${y.is_active ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
                     {y.name?.slice(0, 4) || '?'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -492,7 +492,7 @@ const AcademicSetup = () => {
               return (
                 <button key={opt.id} type="button"
                   onClick={() => setEducationLevel(opt.id)}
-                  className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-200 ${borderCls}`}>
+                  className={`relative p-6 rounded-lg border text-left transition-all duration-200 ${borderCls}`}>
                   {active && (
                     <div className={`absolute top-3 right-3 w-6 h-6 rounded-full ${opt.checkBg} flex items-center justify-center`}>
                       <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
@@ -501,7 +501,7 @@ const AcademicSetup = () => {
                   <div className={`w-11 h-11 rounded-xl ${opt.iconBg} flex items-center justify-center mb-3`}>
                     <svg className={`w-6 h-6 ${opt.iconText}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332-.477-4.5-1.253" /></svg>
                   </div>
-                  <h4 className="font-extrabold text-slate-900 mb-0.5">{opt.label}</h4>
+                  <h4 className="font-bold text-slate-900 mb-0.5">{opt.label}</h4>
                   <p className="text-xs text-slate-500 font-semibold">{opt.sub}</p>
                   <div className="mt-2 flex flex-wrap gap-1">
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${opt.badgeBg} ${opt.badgeText}`}>{opt.badge}</span>
@@ -543,7 +543,7 @@ const AcademicSetup = () => {
               <div className="space-y-2 max-w-xl mx-auto">
                 {semesters.map((s, i) => (
                   <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all">
-                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-white font-extrabold text-sm shrink-0 ${isJhs ? 'bg-blue-500' : 'bg-pink-500'}`}>{i + 1}</div>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 ${isJhs ? 'bg-blue-500' : 'bg-pink-500'}`}>{i + 1}</div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm text-slate-900">{s.name}</p>
                       <p className="text-xs text-slate-500">
@@ -612,7 +612,7 @@ const AcademicSetup = () => {
                 {sortedGrades.map(grade => (
                   <div key={grade}>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-black text-slate-700 uppercase tracking-widest">{grade}</span>
+                      <span className="text-xs font-bold text-slate-700 tracking-[0.1em]">{grade}</span>
                       <span className="text-xs font-bold text-slate-400">({byGrade[grade].length})</span>
                     </div>
                     <div className="space-y-2">
@@ -620,7 +620,7 @@ const AcademicSetup = () => {
                         const subjectCount = (classroomSubjectMap[c.id] || []).length;
                         return (
                           <div key={c.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all">
-                            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-extrabold text-sm shrink-0 shadow-sm">
+                            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
                               {c.name?.charAt(0)?.toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">
@@ -725,13 +725,13 @@ const AcademicSetup = () => {
                 {sortedClassNames.map(className => (
                   <div key={className}>
                     <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-black text-slate-700 uppercase tracking-widest">{className}</span>
+                      <span className="text-xs font-bold text-slate-700 tracking-[0.1em]">{className}</span>
                       <span className="text-xs font-bold text-slate-400">({groupedByClassroom[className].length})</span>
                     </div>
                     <div className="space-y-1.5">
                       {groupedByClassroom[className].slice(0, 6).map(cs => (
                         <div key={cs.id} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-all">
-                          <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-extrabold text-xs shrink-0">
+                          <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-xs shrink-0">
                             {cs.subject_code?.slice(0,4) || '—'}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -783,16 +783,16 @@ const AcademicSetup = () => {
             <>
               <div className="grid grid-cols-3 gap-3 max-w-xl mx-auto">
                 <div className="p-3 bg-white border border-slate-200 rounded-xl text-center">
-                  <p className="text-xl font-extrabold text-violet-700">{classrooms.length}</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sections</p>
+                  <p className="text-xl font-bold text-violet-700">{classrooms.length}</p>
+                  <p className="text-[10px] font-bold text-slate-500 tracking-wider">Sections</p>
                 </div>
                 <div className="p-3 bg-white border border-slate-200 rounded-xl text-center">
-                  <p className="text-xl font-extrabold text-emerald-700">{classroomSubjects.length}</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Assignments</p>
+                  <p className="text-xl font-bold text-emerald-700">{classroomSubjects.length}</p>
+                  <p className="text-[10px] font-bold text-slate-500 tracking-wider">Assignments</p>
                 </div>
                 <div className="p-3 bg-white border border-slate-200 rounded-xl text-center">
-                  <p className="text-xl font-extrabold text-sky-700">{subjects.length}</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Subjects</p>
+                  <p className="text-xl font-bold text-sky-700">{subjects.length}</p>
+                  <p className="text-[10px] font-bold text-slate-500 tracking-wider">Subjects</p>
                 </div>
               </div>
             <div className="space-y-3 max-w-2xl mx-auto">
@@ -801,7 +801,7 @@ const AcademicSetup = () => {
                 return (
                   <div key={c.id} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
                     <div className="flex items-center gap-3 px-4 py-3 bg-slate-50 border-b border-slate-100">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white font-extrabold text-xs shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
                         {c.name?.charAt(0)?.toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -895,22 +895,22 @@ const AcademicSetup = () => {
             <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
           </div>
           <div>
-            <h3 className="text-2xl font-extrabold text-slate-900 mb-2">Academic Setup Complete!</h3>
+            <h3 className="text-2xl font-bold text-slate-900 mb-2">Academic Setup Complete!</h3>
             <p className="text-sm text-slate-500 max-w-md mx-auto">
               <span className="font-bold text-violet-700">SY {activeAY?.name}</span> is now active and published.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
             <div className="p-4 bg-violet-50 rounded-xl border border-violet-200">
-              <p className="text-2xl font-extrabold text-violet-700">{classrooms.length}</p>
+              <p className="text-2xl font-bold text-violet-700">{classrooms.length}</p>
               <p className="text-xs font-semibold text-violet-600 mt-1">Sections</p>
             </div>
             <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-              <p className="text-2xl font-extrabold text-emerald-700">{subjects.length}</p>
+              <p className="text-2xl font-bold text-emerald-700">{subjects.length}</p>
               <p className="text-xs font-semibold text-emerald-600 mt-1">Subjects</p>
             </div>
             <div className="p-4 bg-sky-50 rounded-xl border border-sky-200">
-              <p className="text-2xl font-extrabold text-sky-700">{activeTeachers.length}</p>
+              <p className="text-2xl font-bold text-sky-700">{activeTeachers.length}</p>
               <p className="text-xs font-semibold text-sky-600 mt-1">Faculty</p>
             </div>
           </div>
@@ -1143,8 +1143,8 @@ const AcademicSetup = () => {
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-black text-slate-900 tracking-tight leading-none">Academic Setup</h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Setup Wizard</p>
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight leading-none">Academic Setup</h1>
+              <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em] mt-0.5">Setup Wizard</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -1165,7 +1165,7 @@ const AcademicSetup = () => {
       </div>
 
       {/* ── Step progress bar ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3 md:p-4 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-lg p-3 md:p-4 shadow-sm">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           {STEPS.map((step, idx) => {
             const status = getStepStatus(idx);
@@ -1178,7 +1178,7 @@ const AcademicSetup = () => {
                   status === 'completed' ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 cursor-pointer border border-emerald-200' :
                                           'bg-slate-50 text-slate-400 cursor-not-allowed'
                 }`}>
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0 ${
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
                   status === 'completed' ? 'bg-emerald-500 text-white' :
                   status === 'current'   ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-500'
                 }`}>

@@ -235,7 +235,7 @@ const ScheduleAttendanceEntry = ({ scheduleId, date, classroom, onBack }) => {
           <span className="hidden sm:inline">Back</span>
         </Button>
         <div className="flex items-center gap-2">
-          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
             workflowStatus === 'submitted' ? 'bg-green-100 text-green-700' :
             workflowStatus === 'locked' ? 'bg-red-100 text-red-700' :
             'bg-slate-100 text-slate-600'
@@ -385,23 +385,23 @@ const ScheduleAttendanceEntry = ({ scheduleId, date, classroom, onBack }) => {
           <div className="grid grid-cols-5 gap-1.5 md:gap-3 mb-4 md:mb-6">
             <div className="bg-slate-50 rounded-lg p-2 md:p-3 text-center">
               <div className="text-lg md:text-xl font-bold text-slate-700">{stats.total}</div>
-              <div className="text-[9px] md:text-[10px] text-slate-600 uppercase font-semibold">Total</div>
+              <div className="text-[9px] md:text-[10px] text-slate-600 font-semibold">Total</div>
             </div>
             <div className="bg-green-50 rounded-lg p-2 md:p-3 text-center">
               <div className="text-lg md:text-xl font-bold text-green-600">{stats.present}</div>
-              <div className="text-[9px] md:text-[10px] text-green-700 uppercase font-semibold">Present</div>
+              <div className="text-[9px] md:text-[10px] text-green-700 font-semibold">Present</div>
             </div>
             <div className="bg-red-50 rounded-lg p-2 md:p-3 text-center">
               <div className="text-lg md:text-xl font-bold text-red-600">{stats.absent}</div>
-              <div className="text-[9px] md:text-[10px] text-red-700 uppercase font-semibold">Absent</div>
+              <div className="text-[9px] md:text-[10px] text-red-700 font-semibold">Absent</div>
             </div>
             <div className="bg-amber-50 rounded-lg p-2 md:p-3 text-center">
               <div className="text-lg md:text-xl font-bold text-amber-600">{stats.late}</div>
-              <div className="text-[9px] md:text-[10px] text-amber-700 uppercase font-semibold">Late</div>
+              <div className="text-[9px] md:text-[10px] text-amber-700 font-semibold">Late</div>
             </div>
             <div className="bg-blue-50 rounded-lg p-2 md:p-3 text-center">
               <div className="text-lg md:text-xl font-bold text-blue-600">{stats.excused}</div>
-              <div className="text-[9px] md:text-[10px] text-blue-700 uppercase font-semibold">Excused</div>
+              <div className="text-[9px] md:text-[10px] text-blue-700 font-semibold">Excused</div>
             </div>
           </div>
 
@@ -468,12 +468,12 @@ const ScheduleAttendanceEntry = ({ scheduleId, date, classroom, onBack }) => {
                     {/* Desktop: table layout */}
                     <div className="hidden md:block overflow-x-auto">
                       <table className="w-full">
-                        <thead className="bg-slate-50 border-b-2 border-slate-200">
+                        <thead className="bg-slate-50 border-b border-slate-200">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase w-10">#</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Student</th>
-                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase w-48">Remarks</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 w-10">#</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Student</th>
+                            <th className="px-4 py-3 text-center text-xs font-bold text-slate-700">Status</th>
+                            <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 w-48">Remarks</th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-slate-100">

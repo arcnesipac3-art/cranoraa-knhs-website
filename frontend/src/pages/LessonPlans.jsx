@@ -27,7 +27,7 @@ import {
 import toast from 'react-hot-toast';
 
 const statusColors = {
-  draft: 'bg-gray-100 text-gray-800',
+  draft: 'bg-gray-100 text-slate-800',
   submitted: 'bg-blue-100 text-blue-800',
   approved: 'bg-green-100 text-green-800',
   revision_needed: 'bg-yellow-100 text-yellow-800',
@@ -288,7 +288,7 @@ export default function LessonPlans() {
       className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6"
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Lesson Plans</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Lesson Plans</h1>
         <div className="flex items-center gap-2">
           <Button
             variant={calendarView ? 'primary' : 'outline'}
@@ -310,10 +310,10 @@ export default function LessonPlans() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b transition-colors ${
               activeTab === tab.id
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
             }`}
           >
             <tab.icon className="h-4 w-4" />
@@ -395,14 +395,14 @@ export default function LessonPlans() {
                           {plan.status?.replace('_', ' ')}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
+                      <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
                         <span>{plan.plan_type}</span>
                         <span>{plan.date}</span>
                         <span>Q{plan.quarter} W{plan.week}</span>
                       </div>
                     </CardHeader>
                     <CardBody>
-                      <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                      <p className="text-sm text-slate-600 line-clamp-2 mb-3">
                         {plan.objectives || 'No objectives set'}
                       </p>
                       <div className="flex items-center justify-between">
@@ -490,7 +490,7 @@ export default function LessonPlans() {
             </div>
           </CardHeader>
           <CardBody>
-            <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-gray-500 mb-2">
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-slate-500 mb-2">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => (
                 <div key={d} className="py-1">{d}</div>
               ))}
@@ -507,7 +507,7 @@ export default function LessonPlans() {
                   >
                     {day && (
                       <>
-                        <div className="text-xs font-medium text-gray-700 mb-1">{day}</div>
+                        <div className="text-xs font-medium text-slate-700 mb-1">{day}</div>
                         {plans.slice(0, 2).map((plan) => (
                           <div
                             key={plan.id}
@@ -518,7 +518,7 @@ export default function LessonPlans() {
                           </div>
                         ))}
                         {plans.length > 2 && (
-                          <div className="text-[10px] text-gray-500">+{plans.length - 2} more</div>
+                          <div className="text-[10px] text-slate-500">+{plans.length - 2} more</div>
                         )}
                       </>
                     )}
@@ -547,12 +547,12 @@ export default function LessonPlans() {
                 <Card key={plan.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <CardTitle className="text-base">{plan.title}</CardTitle>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-slate-500">
                       Q{plan.quarter} - Week {plan.week}
                     </div>
                   </CardHeader>
                   <CardBody>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-slate-600">
                       {plan.lesson_plans?.length || 0} daily plans
                     </p>
                     <Button
@@ -584,7 +584,7 @@ export default function LessonPlans() {
                 <Card key={std.id}>
                   <CardBody className="py-3">
                     <div className="font-medium text-sm">{std.code}</div>
-                    <p className="text-xs text-gray-600 mt-1">{std.description}</p>
+                    <p className="text-xs text-slate-600 mt-1">{std.description}</p>
                   </CardBody>
                 </Card>
               ))}
@@ -613,7 +613,7 @@ export default function LessonPlans() {
                 <button
                   type="button"
                   onClick={resetForm}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-slate-400 hover:text-slate-600"
                 >
                   <span className="text-xl">&times;</span>
                 </button>
@@ -621,7 +621,7 @@ export default function LessonPlans() {
               <div className="p-6 space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Title *</label>
                     <input
                       type="text"
                       value={formData.title}
@@ -633,7 +633,7 @@ export default function LessonPlans() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Plan Type *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Plan Type *</label>
                     <select
                       value={formData.plan_type}
                       onChange={(e) => handleFormChange('plan_type', e.target.value)}
@@ -645,7 +645,7 @@ export default function LessonPlans() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Classroom *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Classroom *</label>
                     <select
                       value={formData.classroom}
                       onChange={(e) => handleFormChange('classroom', e.target.value)}
@@ -660,7 +660,7 @@ export default function LessonPlans() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Subject *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Subject *</label>
                     <select
                       value={formData.subject}
                       onChange={(e) => handleFormChange('subject', e.target.value)}
@@ -675,7 +675,7 @@ export default function LessonPlans() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Date *</label>
                     <input
                       type="date"
                       value={formData.date}
@@ -686,7 +686,7 @@ export default function LessonPlans() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Term</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Term</label>
                     <select
                       value={formData.quarter}
                       onChange={(e) => handleFormChange('quarter', Number(e.target.value))}
@@ -699,7 +699,7 @@ export default function LessonPlans() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Week</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Week</label>
                     <input
                       type="number"
                       min={1}
@@ -711,7 +711,7 @@ export default function LessonPlans() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Learning Objectives
                   </label>
                   <textarea
@@ -724,7 +724,7 @@ export default function LessonPlans() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Content / Topic</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Content / Topic</label>
                   <textarea
                     value={formData.content}
                     onChange={(e) => handleFormChange('content', e.target.value)}
@@ -735,7 +735,7 @@ export default function LessonPlans() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Materials Needed</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Materials Needed</label>
                   <textarea
                     value={formData.materials}
                     onChange={(e) => handleFormChange('materials', e.target.value)}
@@ -747,7 +747,7 @@ export default function LessonPlans() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">Procedure</label>
+                    <label className="block text-sm font-medium text-slate-700">Procedure</label>
                     <Button type="button" size="sm" variant="ghost" onClick={addProcedureStep}>
                       <Plus className="h-3 w-3 mr-1" />
                       Add Step
@@ -771,7 +771,7 @@ export default function LessonPlans() {
                             rows={2}
                             placeholder="Describe this step..."
                           />
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
                             <Clock className="h-3 w-3" />
                             <input
                               type="number"
@@ -801,7 +801,7 @@ export default function LessonPlans() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Values Integration
                   </label>
                   <textarea
@@ -814,7 +814,7 @@ export default function LessonPlans() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Remarks</label>
                   <textarea
                     value={formData.remarks}
                     onChange={(e) => handleFormChange('remarks', e.target.value)}
@@ -826,7 +826,7 @@ export default function LessonPlans() {
 
                 {standards.length > 0 && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
                       Curriculum Standards
                     </label>
                     <div className="max-h-40 overflow-y-auto border rounded-lg p-3 space-y-2">
@@ -840,7 +840,7 @@ export default function LessonPlans() {
                           />
                           <span className="text-xs">
                             <span className="font-medium">{std.code}</span>
-                            <span className="text-gray-500 ml-1">- {std.description}</span>
+                            <span className="text-slate-500 ml-1">- {std.description}</span>
                           </span>
                         </label>
                       ))}

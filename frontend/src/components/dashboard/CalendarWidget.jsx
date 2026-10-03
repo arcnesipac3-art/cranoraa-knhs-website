@@ -63,13 +63,13 @@ const CalendarWidget = memo(() => {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">Calendar</h3>
+            <h3 className="text-sm font-bold text-slate-900">Calendar</h3>
             <p className="text-[10px] text-slate-500 font-medium">School events</p>
           </div>
         </div>
         <button
           onClick={() => navigate('/portal-calendar')}
-          className="text-[11px] font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide transition-colors"
+          className="text-[11px] font-bold text-violet-600 hover:text-violet-700 tracking-wide transition-colors"
         >
           Full View
         </button>
@@ -82,7 +82,7 @@ const CalendarWidget = memo(() => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <h4 className="text-sm font-extrabold text-slate-900">
+          <h4 className="text-sm font-bold text-slate-900">
             {MONTHS[viewMonth]} {viewYear}
           </h4>
           <button onClick={goToNextMonth} className="w-7 h-7 rounded-md hover:bg-slate-100 flex items-center justify-center transition-colors">
@@ -94,7 +94,7 @@ const CalendarWidget = memo(() => {
 
         <div className="grid grid-cols-7 gap-0.5">
           {DAYS.map(d => (
-            <div key={d} className="text-center text-[10px] font-bold text-slate-400 uppercase py-1">
+            <div key={d} className="text-center text-[10px] font-bold text-slate-400 py-1">
               {d}
             </div>
           ))}

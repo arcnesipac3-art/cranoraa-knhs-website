@@ -123,11 +123,11 @@ const StudentQuizzes = () => {
       className="max-w-6xl mx-auto px-4 py-6 space-y-6"
     >
       <div>
-        <div className="flex items-center gap-2 text-xs font-bold text-blue-700 uppercase tracking-wide mb-2">
+        <div className="flex items-center gap-2 text-xs font-bold text-blue-700 tracking-wide mb-2">
           <BarChart3 className="w-4 h-4" />
           <span>Assessments</span>
         </div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
           My Quizzes
         </h1>
         <p className="text-xs text-slate-600 mt-1 font-semibold">

@@ -303,7 +303,7 @@ const StudentDashboard = () => {
       {classrooms.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">My Enrolled Class{classrooms.length > 1 ? 'es' : ''}</h2>
+            <h2 className="text-xs font-bold text-slate-700 tracking-wider">My Enrolled Class{classrooms.length > 1 ? 'es' : ''}</h2>
             <button onClick={() => navigate('/my-classes')} className="text-xs font-bold text-violet-600 hover:underline">
               Open Classes →
             </button>
@@ -315,12 +315,12 @@ const StudentDashboard = () => {
                 onClick={() => navigate(`/my-classes?classroom=${cls.id}`)}
                 className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 hover:border-violet-300 hover:shadow-md transition-all text-left group"
               >
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white font-extrabold text-sm flex-shrink-0">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                   {cls.name?.charAt(0)?.toUpperCase() || '?'}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-extrabold text-slate-900 truncate">{cls.name}</p>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wide">
+                  <p className="text-sm font-bold text-slate-900 truncate">{cls.name}</p>
+                  <p className="text-[10px] text-slate-400 font-semibold tracking-wide">
                     {cls.grade_level || 'Classroom'}{cls.teacher_name ? ` · ${cls.teacher_name}` : ''}
                   </p>
                 </div>
@@ -426,13 +426,13 @@ const StudentDashboard = () => {
                 <>
                   <div className="flex items-end justify-between mb-4">
                     <div>
-                      <p className="text-3xl font-extrabold text-emerald-600 tabular-nums">{attRateDisplay}</p>
-                      <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">Rate</p>
+                      <p className="text-3xl font-bold text-emerald-600 tabular-nums">{attRateDisplay}</p>
+                      <p className="text-xs font-bold text-slate-600 tracking-wide mt-1">Rate</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">{attRateSub}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-extrabold text-violet-600 tabular-nums">{streak}</p>
-                      <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">Streak</p>
+                      <p className="text-2xl font-bold text-violet-600 tabular-nums">{streak}</p>
+                      <p className="text-xs font-bold text-slate-600 tracking-wide mt-1">Streak</p>
                     </div>
                   </div>
                   <div className="p-2 bg-slate-50 border border-slate-200 rounded-md mb-3">
@@ -440,16 +440,16 @@ const StudentDashboard = () => {
                   </div>
                   <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-auto">
                     <div className="text-center p-2 bg-emerald-50 border border-emerald-200 rounded-md">
-                      <p className="text-lg font-extrabold text-emerald-600">{presentCount}</p>
-                      <p className="text-xs font-bold text-emerald-700 uppercase">Present</p>
+                      <p className="text-lg font-bold text-emerald-600">{presentCount}</p>
+                      <p className="text-xs font-bold text-emerald-700">Present</p>
                     </div>
                     <div className="text-center p-2 bg-amber-50 border border-amber-200 rounded-md">
-                      <p className="text-lg font-extrabold text-amber-600">{lateCount}</p>
-                      <p className="text-xs font-bold text-amber-700 uppercase">Late</p>
+                      <p className="text-lg font-bold text-amber-600">{lateCount}</p>
+                      <p className="text-xs font-bold text-amber-700">Late</p>
                     </div>
                     <div className="text-center p-2 bg-red-50 border border-red-200 rounded-md">
-                      <p className="text-lg font-extrabold text-red-600">{absentCount}</p>
-                      <p className="text-xs font-bold text-red-700 uppercase">Absent</p>
+                      <p className="text-lg font-bold text-red-600">{absentCount}</p>
+                      <p className="text-xs font-bold text-red-700">Absent</p>
                     </div>
                   </div>
                 </>
@@ -478,11 +478,11 @@ const StudentDashboard = () => {
               ) : (
                 <>
                   <div className="mb-4">
-                    <p className="text-3xl font-extrabold text-violet-600 tabular-nums">{overallAvg}</p>
-                    <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">Current Average</p>
+                    <p className="text-3xl font-bold text-violet-600 tabular-nums">{overallAvg}</p>
+                    <p className="text-xs font-bold text-slate-600 tracking-wide mt-1">Current Average</p>
                   </div>
                   <div className="mb-4">
-                    <div className="flex justify-between text-xs font-bold text-slate-600 uppercase mb-2">
+                    <div className="flex justify-between text-xs font-bold text-slate-600 mb-2">
                       <span>Progress</span>
                       <span>{Math.round(parseFloat(overallAvg))}%</span>
                     </div>
@@ -508,7 +508,7 @@ const StudentDashboard = () => {
                   {topSubject && (
                     <div className="flex justify-between items-center gap-2 px-3 py-2 rounded-md bg-emerald-50 border border-emerald-200 mt-auto">
                       <span className="text-xs font-semibold text-slate-700 truncate">Top: {topSubject.name}</span>
-                      <span className="text-sm font-extrabold text-emerald-600">{topSubject.score}</span>
+                      <span className="text-sm font-bold text-emerald-600">{topSubject.score}</span>
                     </div>
                   )}
                 </>
@@ -565,7 +565,7 @@ const StudentDashboard = () => {
                       >
                         <div className="flex items-center justify-between gap-2 mb-2">
                           <p className="text-sm font-bold text-slate-900 truncate">{g.subject_name}</p>
-                          <span className={`text-lg font-extrabold tabular-nums ${textColor}`}>{score}</span>
+                          <span className={`text-lg font-bold tabular-nums ${textColor}`}>{score}</span>
                         </div>
                         <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                           <div className={`h-full rounded-full ${barColor}`} style={{ width: `${Math.min(100, score)}%` }} />
@@ -648,7 +648,7 @@ const StudentDashboard = () => {
             <Download size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-extrabold text-slate-900">Download SF9</p>
+            <p className="text-sm font-bold text-slate-900">Download SF9</p>
             <p className="text-xs text-slate-500 truncate">Report Card (PDF)</p>
           </div>
         </button>
@@ -662,7 +662,7 @@ const StudentDashboard = () => {
             <FileCheck size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-extrabold text-slate-900">Request Certificate</p>
+            <p className="text-sm font-bold text-slate-900">Request Certificate</p>
             <p className="text-xs text-slate-500 truncate">Character / Transfer Cert</p>
           </div>
         </button>
@@ -676,7 +676,7 @@ const StudentDashboard = () => {
             <TrendingUp size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-extrabold text-slate-900">My Progress</p>
+            <p className="text-sm font-bold text-slate-900">My Progress</p>
             <p className="text-xs text-slate-500 truncate">Academic Overview</p>
           </div>
         </button>
@@ -773,7 +773,7 @@ const StudentDashboard = () => {
                     className="flex gap-2.5 px-3 py-2.5 border border-slate-200 rounded-md bg-white hover:bg-slate-50 hover:border-violet-300 cursor-pointer transition-all"
                     onClick={() => navigate('/communication-center')}
                   >
-                    <div className="w-9 h-9 rounded-md bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-extrabold shrink-0">
+                    <div className="w-9 h-9 rounded-md bg-violet-100 text-violet-700 flex items-center justify-center text-sm font-bold shrink-0">
                       {displayInitial}
                     </div>
                     <div className="min-w-0 flex-1">

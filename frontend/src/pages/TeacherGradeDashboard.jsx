@@ -11,7 +11,7 @@ import {
 } from '../components/ui';
 
 const STATUS_STYLES = {
-  draft: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Draft' },
+  draft: { bg: 'bg-gray-100', text: 'text-slate-700', label: 'Draft' },
   in_progress: { bg: 'bg-blue-100', text: 'text-blue-700', label: 'In Progress' },
   submitted: { bg: 'bg-indigo-100', text: 'text-indigo-700', label: 'Submitted' },
   reviewed: { bg: 'bg-cyan-100', text: 'text-cyan-700', label: 'Reviewed' },
@@ -64,8 +64,8 @@ const StatCard = ({ title, value, color, icon }) => (
         )}
       </div>
       <div>
-        <p className="text-xl sm:text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-xs sm:text-sm text-gray-500">{title}</p>
+        <p className="text-xl sm:text-2xl font-bold text-slate-900">{value}</p>
+        <p className="text-xs sm:text-sm text-slate-500">{title}</p>
       </div>
     </div>
   </motion.div>
@@ -104,10 +104,10 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-3">
           <div className="min-w-0 flex-1">
-            <h4 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{submission.subject_name}</h4>
-            <p className="text-xs sm:text-sm text-gray-500 truncate">{submission.classroom_name}</p>
+            <h4 className="font-semibold text-slate-900 truncate text-sm sm:text-base">{submission.subject_name}</h4>
+            <p className="text-xs sm:text-sm text-slate-500 truncate">{submission.classroom_name}</p>
             {submission.grading_period_quarter && (
-              <p className="text-xs text-gray-400 mt-0.5">
+              <p className="text-xs text-slate-400 mt-0.5">
                 Term {submission.grading_period_quarter}
                 {submission.grading_period_deadline && (
                   <span className="ml-1">· Due {new Date(submission.grading_period_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
@@ -122,12 +122,12 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
 
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">Students Graded</span>
+            <span className="text-slate-500">Students Graded</span>
             <span className="font-medium">{submission.graded_count} / {submission.total_students}</span>
           </div>
           <ProgressBar percentage={submission.completion_percentage} />
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">{Math.round(submission.completion_percentage)}% Complete</span>
+            <span className="text-slate-500">{Math.round(submission.completion_percentage)}% Complete</span>
             {submission.missing_count > 0 && (
               <span className="text-red-500 text-xs">{submission.missing_count} missing</span>
             )}
@@ -198,7 +198,7 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
             </Button>
           )}
           {!canEnterGrades && !isLocked && !isApproved && (
-            <span className="text-xs text-gray-400 ml-auto">
+            <span className="text-xs text-slate-400 ml-auto">
               {submission.updated_at && new Date(submission.updated_at).toLocaleDateString()}
             </span>
           )}
@@ -207,7 +207,7 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
         {showGrades && (
           <div className="mt-3 pt-3 border-t border-gray-100">
             {loadingGrades ? (
-              <div className="flex items-center gap-2 text-sm text-gray-400 py-2">
+              <div className="flex items-center gap-2 text-sm text-slate-400 py-2">
                 <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                 Loading grades...
               </div>
@@ -216,23 +216,23 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-1.5 px-2 text-xs font-semibold text-gray-500">Student</th>
-                      <th className="text-right py-1.5 px-2 text-xs font-semibold text-gray-500">Score</th>
-                      <th className="text-center py-1.5 px-2 text-xs font-semibold text-gray-500">Status</th>
+                      <th className="text-left py-1.5 px-2 text-xs font-semibold text-slate-500">Student</th>
+                      <th className="text-right py-1.5 px-2 text-xs font-semibold text-slate-500">Score</th>
+                      <th className="text-center py-1.5 px-2 text-xs font-semibold text-slate-500">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {grades.students.map((s) => (
                       <tr key={s.student_id} className="border-b border-gray-50">
-                        <td className="py-1.5 px-2 text-gray-700">{s.student_name}</td>
-                        <td className="py-1.5 px-2 text-right font-medium text-gray-900">
+                        <td className="py-1.5 px-2 text-slate-700">{s.student_name}</td>
+                        <td className="py-1.5 px-2 text-right font-medium text-slate-900">
                           {s.has_grade ? s.score : '—'}
                         </td>
                         <td className="py-1.5 px-2 text-center">
                           {s.has_grade ? (
-                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-green-100 text-green-700">Graded</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700">Graded</span>
                           ) : (
-                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-100 text-red-700">Missing</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-700">Missing</span>
                           )}
                         </td>
                       </tr>
@@ -241,7 +241,7 @@ const SubmissionCard = ({ submission, onSubmit, onReopen, onEnterGrades, onDelet
                 </table>
               </div>
             ) : (
-              <p className="text-xs text-gray-400 py-2">No grade data available.</p>
+              <p className="text-xs text-slate-400 py-2">No grade data available.</p>
             )}
           </div>
         )}
@@ -259,23 +259,23 @@ const SubmitConfirmationModal = ({ isOpen, onClose, submission, summary, onConfi
       <ModalBody>
         <div className="space-y-4">
           <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-semibold text-gray-900 mb-2">Submission Summary</h4>
+            <h4 className="font-semibold text-slate-900 mb-2">Submission Summary</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div><span className="text-gray-500">Quarter:</span> <span className="font-medium">Q{submission.grading_period_quarter}</span></div>
-              <div><span className="text-gray-500">Subject:</span> <span className="font-medium">{submission.subject_name}</span></div>
-              <div><span className="text-gray-500">Section:</span> <span className="font-medium">{submission.classroom_name}</span></div>
-              <div><span className="text-gray-500">Students:</span> <span className="font-medium">{submission.total_students}</span></div>
+              <div><span className="text-slate-500">Quarter:</span> <span className="font-medium">Q{submission.grading_period_quarter}</span></div>
+              <div><span className="text-slate-500">Subject:</span> <span className="font-medium">{submission.subject_name}</span></div>
+              <div><span className="text-slate-500">Section:</span> <span className="font-medium">{submission.classroom_name}</span></div>
+              <div><span className="text-slate-500">Students:</span> <span className="font-medium">{submission.total_students}</span></div>
             </div>
           </div>
 
           {summary && (
             <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="font-semibold text-gray-900 mb-2">Grade Statistics</h4>
+              <h4 className="font-semibold text-slate-900 mb-2">Grade Statistics</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div><span className="text-gray-500">Average Grade:</span> <span className="font-medium">{summary.average_grade?.toFixed(1) || 'N/A'}</span></div>
-                <div><span className="text-gray-500">Missing Grades:</span> <span className={`font-medium ${summary.missing_grades > 0 ? 'text-red-600' : 'text-green-600'}`}>{summary.missing_grades}</span></div>
-                <div><span className="text-gray-500">Highest:</span> <span className="font-medium">{summary.highest_grade?.toFixed(1) || 'N/A'}</span></div>
-                <div><span className="text-gray-500">Lowest:</span> <span className="font-medium">{summary.lowest_grade?.toFixed(1) || 'N/A'}</span></div>
+                <div><span className="text-slate-500">Average Grade:</span> <span className="font-medium">{summary.average_grade?.toFixed(1) || 'N/A'}</span></div>
+                <div><span className="text-slate-500">Missing Grades:</span> <span className={`font-medium ${summary.missing_grades > 0 ? 'text-red-600' : 'text-green-600'}`}>{summary.missing_grades}</span></div>
+                <div><span className="text-slate-500">Highest:</span> <span className="font-medium">{summary.highest_grade?.toFixed(1) || 'N/A'}</span></div>
+                <div><span className="text-slate-500">Lowest:</span> <span className="font-medium">{summary.lowest_grade?.toFixed(1) || 'N/A'}</span></div>
               </div>
             </div>
           )}
@@ -335,7 +335,7 @@ const ReopeningRequestModal = ({ isOpen, onClose, submission, onSubmit }) => {
       <ModalHeader>Request Grade Reopening</ModalHeader>
       <ModalBody>
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             You are requesting to reopen grades for <strong>{submission.subject_name}</strong> in <strong>{submission.classroom_name}</strong> (Q{submission.grading_period_quarter}).
           </p>
           <FormField label="Reason for Reopening">
@@ -476,8 +476,8 @@ export default function TeacherGradeDashboard() {
     <div className="space-y-4 sm:space-y-6 px-3 sm:px-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Grade Submission Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage and submit grades for your classes</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Grade Submission Dashboard</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage and submit grades for your classes</p>
         </div>
         <Button
           variant="outline"
@@ -517,7 +517,7 @@ export default function TeacherGradeDashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    <span className={`text-xs font-bold tracking-wider px-2 py-0.5 rounded-full ${
                       dashboard.days_remaining < 0
                         ? 'bg-red-100 text-red-700'
                         : dashboard.days_remaining <= 2
@@ -526,14 +526,14 @@ export default function TeacherGradeDashboard() {
                     }`}>
                       {dashboard.days_remaining < 0 ? 'Overdue' : 'Active'}
                     </span>
-                    <span className="text-sm font-semibold text-gray-700">
+                    <span className="text-sm font-semibold text-slate-700">
                       Term {dashboard.active_grading_period.quarter} — {dashboard.active_grading_period.academic_year_name}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-slate-600">
                     Deadline: <strong>{dashboard.submission_deadline}</strong>
                     {dashboard.active_grading_period.description && (
-                      <span className="text-gray-400 ml-2">· {dashboard.active_grading_period.description}</span>
+                      <span className="text-slate-400 ml-2">· {dashboard.active_grading_period.description}</span>
                     )}
                   </p>
                 </div>
@@ -541,7 +541,7 @@ export default function TeacherGradeDashboard() {
                   dashboard.days_remaining < 0 ? 'text-red-600' :
                   dashboard.days_remaining <= 2 ? 'text-amber-600' : 'text-emerald-600'
                 }`}>
-                  <p className="text-xl sm:text-2xl font-extrabold leading-none">
+                  <p className="text-xl sm:text-2xl font-bold leading-none">
                     {dashboard.days_remaining < 0
                       ? `${Math.abs(dashboard.days_remaining)}d overdue`
                       : dashboard.days_remaining === 0
@@ -603,10 +603,10 @@ export default function TeacherGradeDashboard() {
               <button
                 key={key}
                 onClick={() => setFilterTab(key)}
-                className={`px-3 sm:px-4 py-2 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                className={`px-3 sm:px-4 py-2 text-sm font-medium border-b whitespace-nowrap transition-colors ${
                   filterTab === key
                     ? 'border-brand-600 text-brand-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
                 {label}
@@ -615,7 +615,7 @@ export default function TeacherGradeDashboard() {
                     key === 'overdue' ? 'bg-red-100 text-red-700' :
                     key === 'pending' ? 'bg-amber-100 text-amber-700' :
                     key === 'locked' ? 'bg-purple-100 text-purple-700' :
-                    'bg-gray-100 text-gray-600'
+                    'bg-gray-100 text-slate-600'
                   }`}>
                     {count}
                   </span>
@@ -629,7 +629,7 @@ export default function TeacherGradeDashboard() {
               title={`No ${filterTab} submissions`}
               description="There are no submissions matching this filter."
               icon={
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               }

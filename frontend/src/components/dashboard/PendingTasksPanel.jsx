@@ -66,12 +66,12 @@ const PendingTasksPanel = memo(({ unmarkedCount = 0, pendingGrades = 0, classroo
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">Pending Tasks</h3>
+            <h3 className="text-sm font-bold text-slate-900">Pending Tasks</h3>
             <p className="text-[10px] text-slate-500 font-medium">All caught up!</p>
           </div>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-5 py-10">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-3">
+          <div className="w-14 h-14 rounded-lg bg-emerald-50 flex items-center justify-center mb-3">
             <svg className="w-7 h-7 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -97,7 +97,7 @@ const PendingTasksPanel = memo(({ unmarkedCount = 0, pendingGrades = 0, classroo
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">Pending Tasks</h3>
+            <h3 className="text-sm font-bold text-slate-900">Pending Tasks</h3>
             <p className="text-[10px] text-slate-500 font-medium">{tasks.length} item{tasks.length > 1 ? 's' : ''} needing attention</p>
           </div>
         </div>

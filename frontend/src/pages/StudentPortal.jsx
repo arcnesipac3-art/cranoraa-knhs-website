@@ -192,8 +192,8 @@ export default function StudentPortal() {
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Student Portal</h1>
-            <p className="text-xs sm:text-sm text-gray-500">Welcome back, {user?.first_name || 'Student'}</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Student Portal</h1>
+            <p className="text-xs sm:text-sm text-slate-500">Welcome back, {user?.first_name || 'Student'}</p>
           </div>
         </div>
 
@@ -234,8 +234,8 @@ export default function StudentPortal() {
                 <div className={`w-10 h-10 rounded-lg ${feature.color} flex items-center justify-center mb-3`}>
                   <feature.icon className="h-5 w-5 text-white" />
                 </div>
-                <h3 className="font-semibold text-sm sm:text-base text-gray-900">{feature.title}</h3>
-                <p className="text-xs text-gray-500 mt-1">{feature.description}</p>
+                <h3 className="font-semibold text-sm sm:text-base text-slate-900">{feature.title}</h3>
+                <p className="text-xs text-slate-500 mt-1">{feature.description}</p>
               </CardBody>
             </Card>
           </motion.div>
@@ -250,14 +250,14 @@ export default function StudentPortal() {
             </CardHeader>
             <CardBody className="p-3 sm:p-4 pt-0">
               {subjectAverages.length === 0 ? (
-                <p className="text-sm text-gray-500">No grade data available yet.</p>
+                <p className="text-sm text-slate-500">No grade data available yet.</p>
               ) : (
                 <div className="space-y-2 sm:space-y-3">
                   {subjectAverages.map((subject) => (
                     <div key={subject.name}>
                       <div className="flex items-center justify-between text-xs sm:text-sm mb-1">
-                        <span className="font-medium text-gray-700">{subject.name}</span>
-                        <span className="text-gray-500">{subject.average}%</span>
+                        <span className="font-medium text-slate-700">{subject.name}</span>
+                        <span className="text-slate-500">{subject.average}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
                         <div
@@ -315,7 +315,7 @@ export default function StudentPortal() {
             </CardHeader>
 <CardBody className="p-3 sm:p-4">
                 {recentNotifications.length === 0 ? (
-                  <p className="text-sm text-gray-500">No recent notifications.</p>
+                  <p className="text-sm text-slate-500">No recent notifications.</p>
                 ) : (
                   <div className="space-y-2 sm:space-y-3">
                     {recentNotifications.map((notif) => (
@@ -323,9 +323,9 @@ export default function StudentPortal() {
                         key={notif.id}
                         className="p-2 sm:p-3 bg-gray-50 rounded-lg text-sm"
                       >
-                        <p className="font-medium text-gray-800">{notif.title}</p>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notif.message}</p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="font-medium text-slate-800">{notif.title}</p>
+                        <p className="text-xs text-slate-500 mt-1 line-clamp-2">{notif.message}</p>
+                        <p className="text-xs text-slate-400 mt-1">
                           {new Date(notif.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -360,14 +360,14 @@ export default function StudentPortal() {
                 <button
                   type="button"
                   onClick={() => setShowCertRequest(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-slate-400 hover:text-slate-600"
                 >
                   <span className="text-xl">&times;</span>
                 </button>
               </div>
               <div className="p-3 sm:p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
                     Certificate Type
                   </label>
                   <select
@@ -380,7 +380,7 @@ export default function StudentPortal() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Purpose</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Purpose</label>
                   <textarea
                     value={certForm.purpose}
                     onChange={(e) => setCertForm((p) => ({ ...p, purpose: e.target.value }))}

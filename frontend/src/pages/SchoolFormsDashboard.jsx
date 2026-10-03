@@ -80,15 +80,15 @@ export default function SchoolFormsDashboard() {
         className="mb-8"
       >
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-200">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-200">
             <FileText className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">School Forms</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">School Forms</h1>
             <p className="text-sm text-slate-500 mt-0.5">
               Generate official DepEd forms from existing records
               {activeYear && (
-                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-violet-50 text-violet-600 rounded-full text-[10px] font-bold uppercase">
+                <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-violet-50 text-violet-600 rounded-full text-[10px] font-bold">
                   <Star className="w-3 h-3" /> SY {activeYear.name}
                 </span>
               )}
@@ -110,8 +110,8 @@ export default function SchoolFormsDashboard() {
           { label: 'Active Year', value: activeYear?.name || 'N/A', color: 'text-amber-600', bg: 'bg-amber-50', isText: true },
         ].map((stat, i) => (
           <div key={i} className={`${stat.bg} rounded-xl px-4 py-3 border border-white`}>
-            <p className={`text-xl font-extrabold ${stat.color} ${stat.isText ? 'text-sm' : ''}`}>{stat.value}</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
+            <p className={`text-xl font-bold ${stat.color} ${stat.isText ? 'text-sm' : ''}`}>{stat.value}</p>
+            <p className="text-[10px] font-bold text-slate-400 tracking-wider">{stat.label}</p>
           </div>
         ))}
       </motion.div>
@@ -131,7 +131,7 @@ export default function SchoolFormsDashboard() {
             >
               <button
                 onClick={() => navigate(card.path)}
-                className={`w-full text-left bg-white rounded-2xl border border-slate-200 ${card.borderHover} shadow-sm hover:shadow-lg transition-all duration-200 group overflow-hidden`}
+                className={`w-full text-left bg-white rounded-lg border border-slate-200 ${card.borderHover} shadow-sm hover:shadow-lg transition-all duration-200 group overflow-hidden`}
               >
                 {/* Color bar */}
                 <div className={`h-1.5 bg-gradient-to-r ${card.gradient}`} />
@@ -144,7 +144,7 @@ export default function SchoolFormsDashboard() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-violet-700 transition-colors">{card.title}</h3>
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-violet-700 transition-colors">{card.title}</h3>
                         <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold ${status.bg} ${status.text}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                           {status.label}

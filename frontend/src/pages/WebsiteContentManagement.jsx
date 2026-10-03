@@ -149,15 +149,15 @@ const WebsiteContentManagement = () => {
   return (
     <div className="p-1.5 md:p-6 bg-slate-50 min-h-full max-w-full overflow-x-hidden page-bottom-safe">
       <div className="mb-4 md:mb-6">
-        <h1 className="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">Website Content Management</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Website Content Management</h1>
         <p className="text-xs text-slate-500 mt-1">Public Portal Editor</p>
       </div>
 
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-3 md:mb-8 gap-2 md:gap-6 min-w-0">
         <div className="text-left min-w-0">
-          <h1 className="text-lg md:text-3xl font-extrabold text-slate-900 tracking-tight truncate">Mini Website Editor</h1>
-          <p className="text-[8px] md:text-base text-slate-500 mt-0.5 truncate uppercase tracking-wider font-medium">Customize your public portal's content</p>
+          <h1 className="text-lg md:text-3xl font-bold text-slate-900 tracking-tight truncate">Mini Website Editor</h1>
+          <p className="text-[8px] md:text-base text-slate-500 mt-0.5 truncate tracking-wider font-medium">Customize your public portal's content</p>
         </div>
         
         <div className="flex flex-row gap-1 shrink-0">
@@ -186,7 +186,7 @@ const WebsiteContentManagement = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white p-1.5 md:p-4 rounded-xl md:rounded-2xl shadow-sm border border-slate-100 mb-4 md:mb-8 flex flex-col gap-2 md:gap-4 min-w-0">
+      <div className="bg-white p-1.5 md:p-4 rounded-xl md:rounded-lg shadow-sm border border-slate-100 mb-4 md:mb-8 flex flex-col gap-2 md:gap-4 min-w-0">
         <div className="relative w-full">
           <span className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
             <svg className="h-3 w-3 md:h-5 md:w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,16 +223,16 @@ const WebsiteContentManagement = () => {
             <div key={categoryName} className="animate-fadeIn">
               <div className="flex items-center mb-3 md:mb-6">
                 <div className="h-px bg-slate-200 flex-grow"></div>
-                <h2 className="px-2 md:px-4 text-[9px] md:text-sm font-black text-slate-400 uppercase tracking-widest">{categoryName}</h2>
+                <h2 className="px-2 md:px-4 text-[9px] md:text-sm font-bold text-slate-400 tracking-[0.1em]">{categoryName}</h2>
                 <div className="h-px bg-slate-200 flex-grow"></div>
               </div>
               
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-2.5 md:gap-6">
                 {items.map((item) => (
-                  <div key={item.id} className="group bg-white rounded-xl md:rounded-3xl shadow-sm border border-slate-100 hover:shadow-lg md:hover:shadow-xl hover:border-violet-100 transition-all duration-300 overflow-hidden flex flex-col">
+                  <div key={item.id} className="group bg-white rounded-xl md:rounded-lg shadow-sm border border-slate-100 hover:shadow-lg md:hover:shadow-xl hover:border-violet-100 transition-all duration-300 overflow-hidden flex flex-col">
                     <div className="px-2 py-1 md:px-6 md:py-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center group-hover:bg-violet-50/30 transition-colors">
                       <div className="flex items-center min-w-0">
-                        <h3 className="font-bold text-slate-800 text-[8px] md:text-sm truncate uppercase tracking-tight">{item.section_display || item.section}</h3>
+                        <h3 className="font-bold text-slate-800 text-[8px] md:text-sm truncate tracking-tight">{item.section_display || item.section}</h3>
                       </div>
                       <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0 ml-1.5">
                         {editingId === item.id ? (
@@ -259,12 +259,12 @@ const WebsiteContentManagement = () => {
                     
                     <div className="p-2 md:p-6 flex-grow min-w-0">
                       <div className="space-y-1 md:space-y-4 min-w-0">
-                        <label className="block text-[7px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">Text Content</label>
+                        <label className="block text-[7px] md:text-[10px] font-bold text-slate-400 tracking-[0.1em]">Text Content</label>
                         {editingId === item.id ? (
                           <textarea
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
-                            className="w-full px-1.5 py-1 md:px-4 md:py-3 border-2 border-violet-100 rounded-lg md:rounded-2xl focus:ring-2 focus:ring-violet-500 outline-none bg-violet-50/20 text-[9px] md:text-sm"
+                            className="w-full px-1.5 py-1 md:px-4 md:py-3 border border-violet-100 rounded-lg md:rounded-lg focus:ring-2 focus:ring-violet-500 outline-none bg-violet-50/20 text-[9px] md:text-sm"
                             rows={3}
                           />
                         ) : (
@@ -272,7 +272,7 @@ const WebsiteContentManagement = () => {
                         )}
                       </div>
                     </div>
-                    <div className="px-2 py-1 md:px-6 md:py-3 bg-slate-50/30 border-t border-slate-50 flex items-center text-[6px] md:text-[10px] font-bold text-slate-400 uppercase">
+                    <div className="px-2 py-1 md:px-6 md:py-3 bg-slate-50/30 border-t border-slate-50 flex items-center text-[6px] md:text-[10px] font-bold text-slate-400">
                       <span className="mr-auto truncate pr-2">{item.section}</span>
                       {item.updated_by_name && <span className="shrink-0">{item.updated_by_name}</span>}
                     </div>
@@ -282,8 +282,8 @@ const WebsiteContentManagement = () => {
             </div>
           ))
         ) : (
-          <div className="text-center py-10 md:py-20 bg-white rounded-2xl md:rounded-3xl border-2 border-dashed border-slate-100">
-            <h3 className="text-sm md:text-base font-black text-slate-900 tracking-tight">No content found</h3>
+          <div className="text-center py-10 md:py-20 bg-white rounded-lg md:rounded-lg border border-dashed border-slate-100">
+            <h3 className="text-sm md:text-base font-bold text-slate-900 tracking-tight">No content found</h3>
           </div>
         )}
       </div>
@@ -291,16 +291,16 @@ const WebsiteContentManagement = () => {
       {/* Add Section Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl md:rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden animate-slideUp max-h-[90vh] flex flex-col">
+          <div className="bg-white rounded-lg md:rounded-[2rem] shadow-2xl w-full max-w-xl overflow-hidden animate-slideUp max-h-[90vh] flex flex-col">
             <div className="p-4 md:p-8 border-b border-slate-100 flex justify-between items-center bg-violet-50/30 shrink-0">
-              <h2 className="text-lg md:text-2xl font-black text-slate-900">Add New Section</h2>
+              <h2 className="text-lg md:text-2xl font-bold text-slate-900">Add New Section</h2>
               <button onClick={() => setShowAddModal(false)} className="p-1.5 hover:bg-white rounded-full transition-colors" aria-label="Close add section modal"><svg className="w-4 h-4 md:w-6 md:h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
             
             <form onSubmit={handleAddSection} className="p-4 md:p-8 space-y-3 md:space-y-6 overflow-y-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                 <div>
-                  <label className="block text-[9px] md:text-[10px] font-black text-slate-400 uppercase mb-1 md:mb-2 tracking-widest">Category</label>
+                  <label className="block text-[9px] md:text-[10px] font-bold text-slate-400 mb-1 md:mb-2 tracking-[0.1em]">Category</label>
                   <select
                     value={newSection.category}
                     onChange={(e) => setNewSection({ ...newSection, category: e.target.value })}
@@ -310,7 +310,7 @@ const WebsiteContentManagement = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[9px] md:text-[10px] font-black text-slate-400 uppercase mb-1 md:mb-2 tracking-widest">Section Key</label>
+                  <label className="block text-[9px] md:text-[10px] font-bold text-slate-400 mb-1 md:mb-2 tracking-[0.1em]">Section Key</label>
                   <input
                     list="section-suggestions"
                     placeholder="e.g. programs_academic_details"
@@ -325,7 +325,7 @@ const WebsiteContentManagement = () => {
               </div>
 
               <div>
-                <label className="block text-[9px] md:text-[10px] font-black text-slate-400 uppercase mb-1 md:mb-2 tracking-widest">Text Content</label>
+                <label className="block text-[9px] md:text-[10px] font-bold text-slate-400 mb-1 md:mb-2 tracking-[0.1em]">Text Content</label>
                 <textarea
                   placeholder="Enter content..."
                   value={newSection.content}
@@ -336,8 +336,8 @@ const WebsiteContentManagement = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-2 pt-1 md:pt-4">
-                <button type="button" onClick={() => setShowAddModal(false)} className="order-2 sm:order-1 flex-grow py-2.5 md:py-3 bg-slate-100 text-slate-600 font-bold rounded-xl md:rounded-2xl text-xs md:text-base">Cancel</button>
-                <button type="submit" className="order-1 sm:order-2 flex-grow py-2.5 md:py-3 bg-violet-600 text-white font-bold rounded-xl md:rounded-2xl shadow-lg active:scale-95 text-xs md:text-base">Create Section</button>
+                <button type="button" onClick={() => setShowAddModal(false)} className="order-2 sm:order-1 flex-grow py-2.5 md:py-3 bg-slate-100 text-slate-600 font-bold rounded-xl md:rounded-lg text-xs md:text-base">Cancel</button>
+                <button type="submit" className="order-1 sm:order-2 flex-grow py-2.5 md:py-3 bg-violet-600 text-white font-bold rounded-xl md:rounded-lg shadow-lg active:scale-95 text-xs md:text-base">Create Section</button>
               </div>
             </form>
           </div>

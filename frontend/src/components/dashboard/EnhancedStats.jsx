@@ -135,7 +135,7 @@ const EnhancedStats = memo(({ classrooms = [], data = {}, unmarkedCount = 0 }) =
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-xs font-extrabold text-slate-500 uppercase tracking-widest">Overview</h2>
+        <h2 className="text-xs font-bold text-slate-500 tracking-[0.1em]">Overview</h2>
         {(unmarkedCount > 0 || pendingGrades > 0) && (
           <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -175,8 +175,8 @@ const EnhancedStats = memo(({ classrooms = [], data = {}, unmarkedCount = 0 }) =
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={cfg.icon} />
                 </svg>
               </div>
-              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide">{cfg.label}</p>
-              <h3 className="text-2xl font-extrabold text-slate-900 leading-none mt-1">{stat.value}</h3>
+              <p className="text-[10px] font-semibold text-slate-500 tracking-wide">{cfg.label}</p>
+              <h3 className="text-2xl font-bold text-slate-900 leading-none mt-1">{stat.value}</h3>
               <p className="text-[11px] text-slate-500 font-medium mt-1 leading-snug">{stat.sub}</p>
               <ProgressBar value={stat.progress} color={cfg.bar} />
             </motion.button>

@@ -38,7 +38,7 @@ const WelcomeBanner = memo(({ user, classrooms = [], data }) => {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="relative overflow-hidden rounded-2xl border border-violet-200/60 shadow-lg shadow-violet-200/30"
+      className="relative overflow-hidden rounded-lg border border-violet-200/60 shadow-lg shadow-violet-200/30"
       style={{ background: 'linear-gradient(135deg, #4c1d95 0%, #5b21b6 40%, #6d28d9 70%, #7c3aed 100%)' }}
     >
       {/* background glows */}
@@ -53,15 +53,15 @@ const WelcomeBanner = memo(({ user, classrooms = [], data }) => {
 
           {/* Left: identity + greeting */}
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-inner shrink-0 overflow-hidden">
+            <div className="w-14 h-14 md:w-16 md:h-16 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-inner shrink-0 overflow-hidden">
               {user?.profile_picture
                 ? <img src={user.profile_picture} alt="Profile" className="w-full h-full object-cover" loading="lazy" />
-                : <span className="text-xl font-extrabold text-white">{user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}</span>
+                : <span className="text-xl font-bold text-white">{user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}</span>
               }
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl md:text-2xl font-extrabold text-white tracking-tight leading-none">
+                <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight leading-none">
                   {greeting}, {displayName}
                 </h1>
               </div>
@@ -97,7 +97,7 @@ const WelcomeBanner = memo(({ user, classrooms = [], data }) => {
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
               </div>
               <div>
-                <p className="text-lg font-extrabold text-white leading-none">{classrooms.length}</p>
+                <p className="text-lg font-bold text-white leading-none">{classrooms.length}</p>
                 <p className="text-[10px] text-violet-200 font-semibold mt-0.5">Classes</p>
               </div>
             </div>
@@ -107,7 +107,7 @@ const WelcomeBanner = memo(({ user, classrooms = [], data }) => {
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               </div>
               <div>
-                <p className="text-lg font-extrabold text-white leading-none">{totalStudents}</p>
+                <p className="text-lg font-bold text-white leading-none">{totalStudents}</p>
                 <p className="text-[10px] text-violet-200 font-semibold mt-0.5">Students</p>
               </div>
             </div>
@@ -118,7 +118,7 @@ const WelcomeBanner = memo(({ user, classrooms = [], data }) => {
                   <svg className="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                 </div>
                 <div>
-                  <p className="text-sm font-extrabold text-white leading-none truncate max-w-[80px]">{advisoryClass.name}</p>
+                  <p className="text-sm font-bold text-white leading-none truncate max-w-[80px]">{advisoryClass.name}</p>
                   <p className="text-[10px] text-emerald-200 font-semibold mt-0.5">Advisory</p>
                 </div>
               </div>

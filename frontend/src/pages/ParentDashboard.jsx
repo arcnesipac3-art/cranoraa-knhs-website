@@ -16,7 +16,7 @@ const AttBadge = ({ status }) => {
     excused: 'bg-violet-100 text-violet-700',
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-widest ${cfg[status] || 'bg-slate-100 text-slate-500'}`}>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-bold tracking-[0.1em] ${cfg[status] || 'bg-slate-100 text-slate-500'}`}>
       {status}
     </span>
   );
@@ -25,7 +25,7 @@ const AttBadge = ({ status }) => {
 const GradeBadge = ({ score }) => {
   if (score == null) return <span className="text-slate-400">—</span>;
   const color = score >= 90 ? 'text-emerald-600' : score >= 85 ? 'text-violet-600' : score >= 80 ? 'text-violet-600' : score >= 75 ? 'text-amber-600' : 'text-rose-600';
-  return <span className={`font-extrabold text-sm ${color}`}>{score}</span>;
+  return <span className={`font-bold text-sm ${color}`}>{score}</span>;
 };
 
 export default function ParentDashboard() {
@@ -97,7 +97,7 @@ export default function ParentDashboard() {
     <div className="page-bottom-safe flex items-center justify-center min-h-[60vh] px-4">
       <div className="max-w-md w-full bg-white rounded-xl border border-red-200 border-l-4 border-l-red-500 p-6 space-y-4">
         <div>
-          <p className="text-sm font-extrabold text-red-900">Dashboard Unavailable</p>
+          <p className="text-sm font-bold text-red-900">Dashboard Unavailable</p>
           <p className="text-xs text-slate-600 mt-1">{error}</p>
         </div>
         <button onClick={fetchDashboard}
@@ -122,8 +122,8 @@ export default function ParentDashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-32 -mt-32" />
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="space-y-1 min-w-0">
-            <p className="text-[10px] sm:text-xs font-bold text-violet-200 uppercase tracking-widest">{today}</p>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight leading-tight">
+            <p className="text-[10px] sm:text-xs font-bold text-violet-200 tracking-[0.1em]">{today}</p>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight leading-tight">
               Welcome, <span className="text-violet-100">{user?.first_name || 'Parent'}</span>
             </h1>
             <div className="flex flex-wrap gap-2 mt-2">
@@ -171,13 +171,13 @@ export default function ParentDashboard() {
                       ? 'bg-violet-600 border-violet-600 text-white shadow-lg shadow-violet-200'
                       : 'bg-white border-slate-200 text-slate-700 hover:border-violet-300'
                   }`}>
-                  <div className={`w-8 h-8 rounded-md flex items-center justify-center font-extrabold text-xs overflow-hidden ${selectedChild?.id === c.id ? 'bg-white/20' : 'bg-violet-100 text-violet-600'}`}>
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center font-bold text-xs overflow-hidden ${selectedChild?.id === c.id ? 'bg-white/20' : 'bg-violet-100 text-violet-600'}`}>
                     {c.profile_picture
                       ? <img src={c.profile_picture} alt="" className="w-full h-full object-cover" loading="lazy" />
                       : `${c.first_name?.[0] || ''}${c.last_name?.[0] || ''}`}
                   </div>
                   <div className="text-left">
-                    <p className="text-xs font-extrabold leading-none">{c.first_name} {c.last_name}</p>
+                    <p className="text-xs font-bold leading-none">{c.first_name} {c.last_name}</p>
                     <p className={`text-xs font-bold mt-0.5 ${selectedChild?.id === c.id ? 'text-violet-200' : 'text-slate-400'}`}>{c.grade_level || 'Student'}</p>
                   </div>
                 </button>
@@ -186,13 +186,13 @@ export default function ParentDashboard() {
           ) : child && (
             /* Single child — show their name so context is clear */
             <div className="flex items-center gap-3 px-4 py-3 bg-violet-50 border border-violet-200 rounded-lg w-fit">
-              <div className="w-9 h-9 rounded-md bg-violet-200 text-violet-700 flex items-center justify-center font-extrabold text-sm overflow-hidden shrink-0">
+              <div className="w-9 h-9 rounded-md bg-violet-200 text-violet-700 flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
                 {child.profile_picture
                   ? <img src={child.profile_picture} alt="" className="w-full h-full object-cover" loading="lazy" />
                   : `${child.first_name?.[0] || ''}${child.last_name?.[0] || ''}`}
               </div>
               <div>
-                <p className="text-sm font-extrabold text-slate-900 leading-none">{child.first_name} {child.last_name}</p>
+                <p className="text-sm font-bold text-slate-900 leading-none">{child.first_name} {child.last_name}</p>
                 <p className="text-xs font-bold text-violet-600 mt-0.5">{child.grade_level || 'Student'} · {child.classroom_name || ''}</p>
               </div>
             </div>
@@ -206,32 +206,32 @@ export default function ParentDashboard() {
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 flex items-center justify-center mb-2 sm:mb-3">
                     <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 8l2 2 4-4" /></svg>
                   </div>
-                  <p className="text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-widest">Attendance</p>
-                  <p className="text-lg sm:text-2xl font-extrabold text-slate-900 mt-0.5 sm:mt-1">{child.attendance_rate != null ? `${child.attendance_rate}%` : '—'}</p>
+                  <p className="text-[10px] sm:text-xs font-bold text-slate-400 tracking-[0.1em]">Attendance</p>
+                  <p className="text-lg sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1">{child.attendance_rate != null ? `${child.attendance_rate}%` : '—'}</p>
                   <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 line-clamp-2">{child.attendance_present}/{child.attendance_total} days this month</p>
                 </div>
                 <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-all border-l-4 border-l-violet-500">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-violet-50 flex items-center justify-center mb-2 sm:mb-3">
                     <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                   </div>
-                  <p className="text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-widest">General Average</p>
-                  <p className="text-lg sm:text-2xl font-extrabold text-slate-900 mt-0.5 sm:mt-1">{child.general_average ?? '—'}</p>
+                  <p className="text-[10px] sm:text-xs font-bold text-slate-400 tracking-[0.1em]">General Average</p>
+                  <p className="text-lg sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1">{child.general_average ?? '—'}</p>
                   <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{child.grades?.length || 0} subjects graded</p>
                 </div>
                 <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-all border-l-4 border-l-sky-500">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-sky-50 flex items-center justify-center mb-2 sm:mb-3">
                     <svg className="w-5 h-5 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                   </div>
-                  <p className="text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-widest">Classroom</p>
-                  <p className="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5 sm:mt-1 truncate">{child.classroom_name || '—'}</p>
+                  <p className="text-[10px] sm:text-xs font-bold text-slate-400 tracking-[0.1em]">Classroom</p>
+                  <p className="text-xs sm:text-sm font-bold text-slate-900 mt-0.5 sm:mt-1 truncate">{child.classroom_name || '—'}</p>
                   <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5 truncate">Adviser: {child.adviser_name || '—'}</p>
                 </div>
                 <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 hover:shadow-md transition-all border-l-4 border-l-amber-500">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-50 flex items-center justify-center mb-2 sm:mb-3">
                     <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                   </div>
-                  <p className="text-[10px] sm:text-xs font-extrabold text-slate-400 uppercase tracking-widest">Alerts</p>
-                  <p className="text-lg sm:text-2xl font-extrabold text-slate-900 mt-0.5 sm:mt-1">{child.recent_notifications?.length || 0}</p>
+                  <p className="text-[10px] sm:text-xs font-bold text-slate-400 tracking-[0.1em]">Alerts</p>
+                  <p className="text-lg sm:text-2xl font-bold text-slate-900 mt-0.5 sm:mt-1">{child.recent_notifications?.length || 0}</p>
                   <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">Unread notices</p>
                 </div>
               </div>
@@ -246,7 +246,7 @@ export default function ParentDashboard() {
                   { id:'assignments', label:'Assignments' },
                 ].map(t => (
                   <button key={t.id} onClick={() => setActiveTab(t.id)}
-                    className={`flex-shrink-0 px-3 sm:px-4 py-2 rounded-md text-[10px] sm:text-xs font-extrabold uppercase tracking-widest transition-all min-h-[40px] ${
+                    className={`flex-shrink-0 px-3 sm:px-4 py-2 rounded-md text-[10px] sm:text-xs font-bold tracking-[0.1em] transition-all min-h-[40px] ${
                       activeTab === t.id ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
                     }`}>
                     {t.label}
@@ -259,7 +259,7 @@ export default function ParentDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                   {/* Today's Schedule — Fix 5: prefer detail source for consistency with Schedule tab */}
                   <div className="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 md:p-6 shadow-sm">
-                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-tight mb-4">Today's Classes</h3>
+                    <h3 className="text-xs font-bold text-slate-900 tracking-tight mb-4">Today's Classes</h3>
                     {detailLoading ? (
                       <div className="space-y-2">{[1,2,3].map(i => <Skeleton.ScheduleRow key={i} />)}</div>
                     ) : (() => {
@@ -269,7 +269,7 @@ export default function ParentDashboard() {
                         : todaySchedule.map((s, i) => (
                           <div key={i} className="flex gap-3 p-3 rounded-md bg-slate-50 mb-2">
                             <div className="text-center min-w-[52px]">
-                              <p className="text-xs font-extrabold text-violet-600">{s.start_time}</p>
+                              <p className="text-xs font-bold text-violet-600">{s.start_time}</p>
                               <p className="text-xs text-slate-400">{s.end_time}</p>
                             </div>
                             <div className="flex-1 min-w-0">
@@ -291,7 +291,7 @@ export default function ParentDashboard() {
 
                   {/* Recent Attendance */}
                   <div className="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 md:p-6 shadow-sm">
-                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-tight mb-4">Recent Attendance</h3>
+                    <h3 className="text-xs font-bold text-slate-900 tracking-tight mb-4">Recent Attendance</h3>
                     {child.recent_attendance?.length === 0 ? (
                       <p className="text-slate-400 text-xs py-4 text-center">No attendance records</p>
                     ) : (
@@ -308,7 +308,7 @@ export default function ParentDashboard() {
 
                   {/* Recent Grades */}
                   <div className="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 md:p-6 shadow-sm">
-                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-tight mb-4">Recent Grades</h3>
+                    <h3 className="text-xs font-bold text-slate-900 tracking-tight mb-4">Recent Grades</h3>
                     {child.grades?.length === 0 ? (
                       <p className="text-slate-400 text-xs py-4 text-center">No grades yet</p>
                     ) : (
@@ -331,7 +331,7 @@ export default function ParentDashboard() {
 
                   {/* Notifications */}
                   <div className="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 md:p-6 shadow-sm">
-                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-tight mb-4">Recent Alerts</h3>
+                    <h3 className="text-xs font-bold text-slate-900 tracking-tight mb-4">Recent Alerts</h3>
                     {child.recent_notifications?.length === 0 ? (
                       <p className="text-slate-400 text-xs py-4 text-center">No new alerts</p>
                     ) : child.recent_notifications?.map((n, i) => (
@@ -361,9 +361,9 @@ export default function ParentDashboard() {
               {activeTab === 'grades' && (
                 <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                   <div className="p-4 sm:p-6 border-b border-slate-100">
-                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-tight">Grade Report</h3>
+                    <h3 className="text-xs font-bold text-slate-900 tracking-tight">Grade Report</h3>
                     {child.general_average && (
-                      <p className="text-slate-500 text-xs mt-1">General Average: <span className="font-extrabold text-violet-600">{child.general_average}</span></p>
+                      <p className="text-slate-500 text-xs mt-1">General Average: <span className="font-bold text-violet-600">{child.general_average}</span></p>
                     )}
                   </div>
                   {detailLoading ? (
@@ -375,11 +375,11 @@ export default function ParentDashboard() {
                       <table className="w-full text-left border-separate border-spacing-0 min-w-[480px]">
                         <thead className="bg-slate-50 border-b border-slate-200">
                           <tr>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest">Subject</th>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest hidden sm:table-cell">Code</th>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest">Quarter</th>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest">Score</th>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest hidden sm:table-cell">Remarks</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em]">Subject</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em] hidden sm:table-cell">Code</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em]">Quarter</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em]">Score</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em] hidden sm:table-cell">Remarks</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -404,9 +404,9 @@ export default function ParentDashboard() {
               {activeTab === 'attendance' && (
                 <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                   <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3">
-                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-tight">Attendance History</h3>
+                    <h3 className="text-xs font-bold text-slate-900 tracking-tight">Attendance History</h3>
                     {child.attendance_rate != null && (
-                      <span className={`px-3 py-1 rounded-full text-xs font-extrabold w-fit ${child.attendance_rate >= 75 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold w-fit ${child.attendance_rate >= 75 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                         {child.attendance_rate}% This Month
                       </span>
                     )}
@@ -420,10 +420,10 @@ export default function ParentDashboard() {
                       <table className="w-full text-left border-separate border-spacing-0 min-w-[360px]">
                         <thead className="bg-slate-50 border-b border-slate-200">
                           <tr>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest">Date</th>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest hidden sm:table-cell">Day</th>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest">Status</th>
-                            <th className="px-4 py-3 text-xs font-extrabold text-slate-400 uppercase tracking-widest hidden sm:table-cell">Remarks</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em]">Date</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em] hidden sm:table-cell">Day</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em]">Status</th>
+                            <th className="px-4 py-3 text-xs font-bold text-slate-400 tracking-[0.1em] hidden sm:table-cell">Remarks</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -469,13 +469,13 @@ export default function ParentDashboard() {
                       return (
                         <div key={day} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
                           <div className="px-5 py-3 bg-slate-50 border-b border-slate-100">
-                            <p className="text-xs font-extrabold text-slate-700 uppercase tracking-widest">{DAY_FULL[day]}</p>
+                            <p className="text-xs font-bold text-slate-700 tracking-[0.1em]">{DAY_FULL[day]}</p>
                           </div>
                           <div className="divide-y divide-slate-50">
                             {daySchedule.map((s, i) => (
                               <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-4 sm:px-5 py-3">
                                 <div className="flex sm:block items-center gap-3 sm:text-center sm:min-w-[60px]">
-                                  <p className="text-xs font-extrabold text-violet-600">{s.start_time}</p>
+                                  <p className="text-xs font-bold text-violet-600">{s.start_time}</p>
                                   <p className="text-xs text-slate-400 sm:mt-0">– {s.end_time}</p>
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -502,7 +502,7 @@ export default function ParentDashboard() {
               {activeTab === 'assignments' && (
                 <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
                   <div className="p-4 sm:p-6 border-b border-slate-100">
-                    <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-tight">Assignments</h3>
+                    <h3 className="text-xs font-bold text-slate-900 tracking-tight">Assignments</h3>
                   </div>
                   {detailLoading ? (
                     <div className="p-4 space-y-2" aria-busy="true">
@@ -525,7 +525,7 @@ export default function ParentDashboard() {
                               <p className="text-xs text-slate-500">{a.subject} · {a.points} pts</p>
                             </div>
                             <div className="flex sm:block items-center justify-between sm:text-right gap-2 sm:gap-0 flex-shrink-0 sm:ml-auto">
-                              <p className={`text-xs font-extrabold ${isPast ? 'text-rose-500' : 'text-emerald-600'}`}>
+                              <p className={`text-xs font-bold ${isPast ? 'text-rose-500' : 'text-emerald-600'}`}>
                                 {isPast ? 'Past Due' : 'Due'}
                               </p>
                               <p className="text-xs text-slate-400">{due.toLocaleDateString('en-US', { month:'short', day:'numeric' })}</p>
@@ -546,13 +546,13 @@ export default function ParentDashboard() {
       {announcements.length > 0 && (
         <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
           <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between gap-2">
-            <h3 className="text-xs sm:text-xs font-extrabold text-slate-900 uppercase tracking-tight">School Announcements</h3>
-            <button onClick={() => navigate('/announcements')} className="text-[10px] sm:text-xs font-extrabold text-violet-600 uppercase tracking-widest hover:underline shrink-0">View All</button>
+            <h3 className="text-xs sm:text-xs font-bold text-slate-900 tracking-tight">School Announcements</h3>
+            <button onClick={() => navigate('/announcements')} className="text-[10px] sm:text-xs font-bold text-violet-600 tracking-[0.1em] hover:underline shrink-0">View All</button>
           </div>
           <div className="divide-y divide-slate-50">
             {announcements.map(a => (
               <div key={a.id} className="flex gap-3 sm:gap-4 px-4 sm:px-5 py-3 sm:py-4 hover:bg-slate-50 transition-colors">
-                <div className={`w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0 text-xs font-extrabold ${a.priority === 'critical' ? 'bg-rose-100 text-rose-600' : 'bg-violet-100 text-violet-600'}`}>
+                <div className={`w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0 text-xs font-bold ${a.priority === 'critical' ? 'bg-rose-100 text-rose-600' : 'bg-violet-100 text-violet-600'}`}>
                   {new Date(a.created_at).getDate()}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -561,7 +561,7 @@ export default function ParentDashboard() {
                   <p className="text-xs text-slate-400 mt-1">{a.author_name} · {new Date(a.created_at).toLocaleDateString()}</p>
                 </div>
                 {a.priority === 'critical' && (
-                  <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-xs font-extrabold uppercase">Critical</span>
+                  <span className="flex-shrink-0 px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-xs font-bold">Critical</span>
                 )}
               </div>
             ))}

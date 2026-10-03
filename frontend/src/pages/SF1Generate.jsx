@@ -142,17 +142,17 @@ export default function SF1Generate() {
           <ArrowLeft className="w-5 h-5 text-slate-600" />
         </button>
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-violet-600 tracking-[0.2em] mb-1">
             <BookOpen className="w-3.5 h-3.5" />
             <span>School Forms</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Generate SF1</h1>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Generate SF1</h1>
         </div>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
-        <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em]">
+        <div className="flex items-center gap-2 text-[10px] font-bold text-violet-600 tracking-[0.2em]">
           <BookOpen className="w-3.5 h-3.5" />
           <span>Select Section</span>
         </div>
@@ -164,7 +164,7 @@ export default function SF1Generate() {
 
         {/* School Year */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
             School Year *
           </label>
           <select
@@ -187,7 +187,7 @@ export default function SF1Generate() {
 
         {/* Grade Level */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
             Grade Level *
           </label>
           <select
@@ -209,7 +209,7 @@ export default function SF1Generate() {
 
         {/* Section */}
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-bold text-slate-700 tracking-wider mb-1.5">
             Section *
           </label>
           {fetchingClassrooms ? (

@@ -146,7 +146,7 @@ export const ChartTableToggle = ({
 const DataTable = ({ data, columns }) => {
   if (!data || data.length === 0) {
     return (
-      <div className="text-center py-12 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50">
+      <div className="text-center py-12 border border-dashed border-slate-300 rounded-lg bg-slate-50">
         <p className="text-sm font-medium text-slate-600">No data available</p>
       </div>
     );
@@ -161,7 +161,7 @@ const DataTable = ({ data, columns }) => {
               <th
                 key={index}
                 scope="col"
-                className="px-4 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider"
+                className="px-4 py-3 text-left text-xs font-semibold text-slate-700 tracking-wider"
               >
                 {col.label}
               </th>

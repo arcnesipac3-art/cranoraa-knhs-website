@@ -363,13 +363,13 @@ const ClassManagement = () => {
       {/* PAGE HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="w-full">
-          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 uppercase tracking-wide mb-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 tracking-wide mb-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
             <span>Academic Management</span>
           </div>
-          <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">Class Management</h1>
+          <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Class Management</h1>
           <p className="text-xs text-slate-600 mt-1 font-semibold">
             {classes.length} classroom{classes.length !== 1 ? 's' : ''} in{' '}
             <span className="font-bold text-violet-700">{selectedYearName || '…'}</span>
@@ -481,12 +481,12 @@ const ClassManagement = () => {
               <Card key={level} className="border-l-4 border-l-violet-500">
                 <CardHeader divider className="bg-slate-50">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-violet-100 flex items-center justify-center font-extrabold text-xs sm:text-sm text-violet-700 border border-violet-200 flex-shrink-0">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-violet-100 flex items-center justify-center font-bold text-xs sm:text-sm text-violet-700 border border-violet-200 flex-shrink-0">
                       {gradeNum(level) !== 999 ? gradeNum(level) : level.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <CardTitle className="text-sm sm:text-base uppercase">{level}</CardTitle>
-                      <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wide">{items.length} Classes</p>
+                      <CardTitle className="text-sm sm:text-base">{level}</CardTitle>
+                      <p className="text-[10px] sm:text-xs font-bold text-slate-500 tracking-wide">{items.length} Classes</p>
                     </div>
                   </div>
                 </CardHeader>
@@ -498,7 +498,7 @@ const ClassManagement = () => {
                         {/* Top: Grade badge + Section name + Student count */}
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-extrabold text-sm shadow-sm border border-violet-700 flex-shrink-0">
+                            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-sm border border-violet-700 flex-shrink-0">
                               {gradeNum(cls.name) !== 999 ? gradeNum(cls.name) : cls.name.charAt(0).toUpperCase()}
                             </div>
                             <div className="min-w-0">
@@ -514,7 +514,7 @@ const ClassManagement = () => {
                               )}
                             </div>
                           </div>
-                          <Badge variant="violet" size="sm" className="flex-shrink-0 font-extrabold">
+                          <Badge variant="violet" size="sm" className="flex-shrink-0 font-bold">
                             {cls.student_count ?? 0}
                           </Badge>
                         </div>
@@ -547,10 +547,10 @@ const ClassManagement = () => {
                     <table className="w-full">
                       <thead className="bg-slate-50 border-b border-slate-200">
                         <tr>
-                          <th className="text-left px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Class</th>
-                          <th className="text-left px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Adviser</th>
-                          <th className="text-center px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Students</th>
-                          <th className="text-center px-4 py-3 text-xs font-extrabold text-slate-700 uppercase tracking-wider">Actions</th>
+                          <th className="text-left px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Class</th>
+                          <th className="text-left px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Adviser</th>
+                          <th className="text-center px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Students</th>
+                          <th className="text-center px-4 py-3 text-xs font-bold text-slate-700 tracking-wider">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -558,7 +558,7 @@ const ClassManagement = () => {
                           <tr key={cls.id} className="hover:bg-slate-50 transition-colors">
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-extrabold text-sm shadow-sm border border-violet-700">
+                                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-sm border border-violet-700">
                                   {gradeNum(cls.name) !== 999 ? gradeNum(cls.name) : cls.name.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="font-bold text-slate-900 text-sm">{cls.name}</span>
@@ -568,7 +568,7 @@ const ClassManagement = () => {
                               {cls.teacher_name || <span className="text-slate-400 italic">Not assigned</span>}
                             </td>
                             <td className="px-4 py-3 text-center">
-                              <Badge variant="violet" size="md" className="font-extrabold">
+                              <Badge variant="violet" size="md" className="font-bold">
                                 {cls.student_count ?? 0}
                               </Badge>
                             </td>
@@ -661,7 +661,7 @@ const ClassManagement = () => {
             {/* Panel Header */}
             <div className="flex items-center justify-between px-4 sm:px-5 py-3 sm:py-4 border-b border-slate-200 bg-slate-50">
               <div className="min-w-0">
-                <h2 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight truncate">{selectedClass.name}</h2>
+                <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight truncate">{selectedClass.name}</h2>
                 <p className="text-xs text-slate-500 mt-0.5">{assignments.length} subject{assignments.length !== 1 ? 's' : ''} assigned</p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0 ml-3">
@@ -690,12 +690,12 @@ const ClassManagement = () => {
                   {assignments.map(a => (
                     <div key={a.id} className="px-4 sm:px-5 py-3 sm:py-4 hover:bg-slate-50 transition-colors group">
                       <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-extrabold text-xs border border-violet-200 flex-shrink-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-violet-100 flex items-center justify-center text-violet-700 font-bold text-xs border border-violet-200 flex-shrink-0">
                           {a.subject_code?.substring(0, 2).toUpperCase() || 'SB'}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-900 truncate">{a.subject_name}</p>
-                          <p className="text-[10px] font-bold text-violet-600 uppercase tracking-widest mt-0.5">{a.subject_code}</p>
+                          <p className="text-[10px] font-bold text-violet-600 tracking-[0.1em] mt-0.5">{a.subject_code}</p>
                           <p className="text-xs text-slate-500 mt-1 truncate">{a.teacher_name}</p>
                         </div>
                         <div className="flex items-center gap-1.5 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
@@ -724,7 +724,7 @@ const ClassManagement = () => {
           <div className="bg-white w-full max-w-lg border border-gray-300 shadow-2xl rounded-md flex flex-col max-h-[92vh]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-gray-200 bg-slate-50">
               <div className="min-w-0">
-                <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wide">{editingAssignment ? 'Edit Assignment' : 'Assign Subject'}</h2>
+                <h2 className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide">{editingAssignment ? 'Edit Assignment' : 'Assign Subject'}</h2>
                 <p className="text-xs text-slate-500 mt-0.5 truncate">{selectedClass?.name}</p>
               </div>
               <button onClick={() => setShowSubjectModal(false)} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors flex-shrink-0 ml-2">
@@ -734,7 +734,7 @@ const ClassManagement = () => {
             <form onSubmit={handleSubjectSubmit} className="flex flex-col flex-1 overflow-hidden">
               <div className="px-4 sm:px-6 py-4 sm:py-5 overflow-y-auto flex-1 space-y-4 sm:space-y-5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Subject</label>
+                  <label className="block text-xs font-bold text-slate-700 tracking-wide mb-1.5">Subject</label>
                   {!editingAssignment ? (
                     <>
                       <input type="text" placeholder="Search subjects..." value={subjectSearch} onChange={e => setSubjectSearch(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 mb-2" />
@@ -751,7 +751,7 @@ const ClassManagement = () => {
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 text-left text-sm border-b border-slate-100 last:border-0 transition-colors ${isAssigned ? 'opacity-40 cursor-not-allowed bg-slate-50' : isSelected ? 'bg-violet-50 border-violet-200' : 'hover:bg-slate-50'}`}>
                                 <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">{s.code}</span>
                                 <span className="font-medium text-slate-800 truncate">{s.name}</span>
-                                {isAssigned && <span className="ml-auto text-[9px] font-bold text-slate-400 uppercase">Assigned</span>}
+                                {isAssigned && <span className="ml-auto text-[9px] font-bold text-slate-400">Assigned</span>}
                               </button>
                             );
                           })
@@ -765,7 +765,7 @@ const ClassManagement = () => {
                   )}
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Teacher <span className="text-red-500">*</span></label>
+                  <label className="block text-xs font-bold text-slate-700 tracking-wide mb-1.5">Teacher <span className="text-red-500">*</span></label>
                   <select value={subjectForm.teacher} onChange={e => setSubjectForm({ ...subjectForm, teacher: e.target.value })} className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500" required>
                     <option value="">Select a teacher</option>
                     {teachers.map(t => (

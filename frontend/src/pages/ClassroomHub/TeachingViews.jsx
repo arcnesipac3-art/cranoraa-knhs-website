@@ -168,8 +168,8 @@ export const QuizManagementView = ({ classroom }) => {
           { label: 'Active', value: stats.active, color: 'text-blue-700 bg-blue-50 border-blue-200' },
         ].map(s => (
           <div key={s.label} className={`border rounded-lg p-2 text-center ${s.color}`}>
-            <p className="text-lg font-black">{s.value}</p>
-            <p className="text-[8px] font-bold uppercase tracking-wider">{s.label}</p>
+            <p className="text-lg font-bold">{s.value}</p>
+            <p className="text-[8px] font-bold tracking-wider">{s.label}</p>
           </div>
         ))}
       </div>
@@ -251,15 +251,15 @@ export const QuizManagementView = ({ classroom }) => {
                       {/* Quick Stats */}
                       <div className="grid grid-cols-3 gap-2">
                         <div className="bg-violet-50 border border-violet-200 rounded-lg p-2 text-center">
-                          <p className="text-sm font-black text-violet-700">{quiz.question_count || 0}</p>
+                          <p className="text-sm font-bold text-violet-700">{quiz.question_count || 0}</p>
                           <p className="text-[8px] font-bold text-violet-600">Questions</p>
                         </div>
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 text-center">
-                          <p className="text-sm font-black text-blue-700">{quiz.total_points || 0}</p>
+                          <p className="text-sm font-bold text-blue-700">{quiz.total_points || 0}</p>
                           <p className="text-[8px] font-bold text-blue-600">Total Points</p>
                         </div>
                         <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-2 text-center">
-                          <p className="text-sm font-black text-emerald-700">{quiz.time_limit_minutes || '—'}</p>
+                          <p className="text-sm font-bold text-emerald-700">{quiz.time_limit_minutes || '—'}</p>
                           <p className="text-[8px] font-bold text-emerald-600">Minutes</p>
                         </div>
                       </div>
@@ -347,7 +347,7 @@ export const QuizManagementView = ({ classroom }) => {
                   <div className="grid grid-cols-5 gap-2">
                     {QUIZ_TEMPLATES.map(tpl => (
                       <button key={tpl.id} onClick={() => applyTemplate(tpl)}
-                        className={`relative p-3 rounded-xl border-2 text-center transition-all ${
+                        className={`relative p-3 rounded-xl border text-center transition-all ${
                           selectedTemplate === tpl.id
                             ? 'border-violet-500 bg-violet-50 shadow-md'
                             : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
@@ -500,7 +500,7 @@ export const QuizManagementView = ({ classroom }) => {
                   className="px-5 py-2 text-sm font-bold text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2">
                   {saving ? (
                     <>
-                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span className="w-4 h-4 border border-white/30 border-t-white rounded-full animate-spin" />
                       Creating...
                     </>
                   ) : (
@@ -570,7 +570,7 @@ export const StudentQuizzesView = ({ classroom }) => {
           {/* Available Quizzes */}
           {available.length > 0 && (
             <div>
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <h3 className="text-[10px] font-bold text-slate-500 tracking-wider mb-2 flex items-center gap-1">
                 <Play className="w-3 h-3" /> Available Quizzes ({available.length})
               </h3>
               <div className="space-y-2">
@@ -609,7 +609,7 @@ export const StudentQuizzesView = ({ classroom }) => {
           {/* Past / Closed Quizzes */}
           {past.length > 0 && (
             <div>
-              <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <h3 className="text-[10px] font-bold text-slate-500 tracking-wider mb-2 flex items-center gap-1">
                 <Clock className="w-3 h-3" /> Past Quizzes ({past.length})
               </h3>
               <div className="space-y-2">
@@ -941,8 +941,8 @@ export const ClassroomAnalyticsView = ({ classroom }) => {
           { label: 'Highest', value: stats.highest, color: 'text-blue-700 bg-blue-50 border-blue-200' },
         ].map(s => (
           <div key={s.label} className={`border rounded-lg p-2 text-center ${s.color}`}>
-            <p className="text-sm font-black">{s.value}</p>
-            <p className="text-[8px] font-bold uppercase tracking-wider mt-0.5">{s.label}</p>
+            <p className="text-sm font-bold">{s.value}</p>
+            <p className="text-[8px] font-bold tracking-wider mt-0.5">{s.label}</p>
           </div>
         ))}
       </div>

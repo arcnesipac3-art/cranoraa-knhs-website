@@ -391,13 +391,13 @@ const GradeInput = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           {/* Title Section */}
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-violet-700 uppercase tracking-wide mb-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-violet-700 tracking-wide mb-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               <span>Grade Entry</span>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
               Final Grade Input
             </h1>
             <p className="text-xs text-slate-600 mt-1 font-semibold">
@@ -443,7 +443,7 @@ const GradeInput = () => {
           {/* Classroom - Hide selector in embedded mode */}
           {!isEmbedded && (
             <div className="md:col-span-1">
-              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-700 tracking-wider mb-2">
                 Classroom
               </label>
               <select
@@ -465,7 +465,7 @@ const GradeInput = () => {
 
           {/* Subject */}
           <div className={isEmbedded ? "md:col-span-3" : "md:col-span-2"}>
-            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-2">
               Subject
             </label>
             <select
@@ -484,7 +484,7 @@ const GradeInput = () => {
           {/* MAPEH Component Tabs */}
           {selectedSubjectData?.has_components && (
             <div className="md:col-span-2">
-              <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-bold text-slate-700 tracking-wider mb-2">
                 Component
               </label>
               <div className="flex rounded-lg border border-slate-300 overflow-hidden shadow-sm">
@@ -495,7 +495,7 @@ const GradeInput = () => {
                   <button
                     key={comp.value}
                     onClick={() => setSelComponent(comp.value)}
-                    className={`flex-1 px-3 py-3 text-xs font-extrabold uppercase tracking-wide transition-all ${
+                    className={`flex-1 px-3 py-3 text-xs font-bold tracking-wide transition-all ${
                       selComponent === comp.value
                         ? 'bg-violet-600 text-white'
                         : 'bg-white text-slate-600 hover:bg-slate-50'
@@ -510,7 +510,7 @@ const GradeInput = () => {
 
           {/* Grading Period */}
           <div>
-            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-2">
               {periodLabel}
             </label>
             {/* Mobile: dropdown; sm+: segmented button group */}
@@ -537,7 +537,7 @@ const GradeInput = () => {
                     onClick={() => isActive && setSelQuarter(q)}
                     disabled={!isActive}
                     title={!isActive ? 'This period is not open' : ''}
-                    className={`flex-1 px-3 py-3 text-xs font-extrabold uppercase tracking-wide transition-all ${
+                    className={`flex-1 px-3 py-3 text-xs font-bold tracking-wide transition-all ${
                       !isActive
                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed line-through'
                         : selQuarter === q
@@ -559,7 +559,7 @@ const GradeInput = () => {
 
           {/* Academic Year */}
           <div>
-            <label className="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-bold text-slate-700 tracking-wider mb-2">
               Academic Year
             </label>
             <div className="flex items-center border border-slate-300 rounded-md overflow-hidden bg-white shadow-sm">
@@ -637,7 +637,7 @@ const GradeInput = () => {
           ) : (
             <>
               <div className="flex items-center gap-3 flex-wrap">
-                <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
                   activePeriod.days_remaining < 0
                     ? 'bg-red-100 text-red-700'
                     : activePeriod.days_remaining <= 2
@@ -692,42 +692,42 @@ const GradeInput = () => {
         <div className="flex-shrink-0 px-3 sm:px-5 md:px-6 py-2.5 sm:py-4 bg-violet-50 border-b border-violet-100">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-4">
             <div className="text-center">
-              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-violet-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-violet-600">
                 {filled.length}/{students.length}
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 tracking-wide mt-0.5">
                 Encoded
               </div>
             </div>
             <div className="text-center">
-              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-violet-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-violet-600">
                 {avg}
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 tracking-wide mt-0.5">
                 Average
               </div>
             </div>
             <div className="text-center">
-              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-emerald-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-emerald-600">
                 {highest}
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 tracking-wide mt-0.5">
                 Highest
               </div>
             </div>
             <div className="text-center">
-              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-red-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-red-600">
                 {lowest}
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 tracking-wide mt-0.5">
                 Lowest
               </div>
             </div>
             <div className="text-center">
-              <div className="text-lg sm:text-xl md:text-2xl font-extrabold text-violet-600">
+              <div className="text-lg sm:text-xl md:text-2xl font-bold text-violet-600">
                 {passing}/{scores.length}
               </div>
-              <div className="text-[10px] sm:text-xs font-bold text-slate-600 uppercase tracking-wide mt-0.5">
+              <div className="text-[10px] sm:text-xs font-bold text-slate-600 tracking-wide mt-0.5">
                 Passing
               </div>
             </div>
@@ -745,14 +745,14 @@ const GradeInput = () => {
           <div className="p-3 sm:p-5 md:p-6" aria-busy="true" aria-label="Loading students…">
             <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
               {/* Table header */}
-              <div className="hidden sm:grid grid-cols-[2.5rem_1fr_8rem_11rem] gap-0 bg-slate-50 border-b-2 border-slate-200 px-4 py-3">
+              <div className="hidden sm:grid grid-cols-[2.5rem_1fr_8rem_11rem] gap-0 bg-slate-50 border-b border-slate-200 px-4 py-3">
                 <Skeleton className="h-2.5 w-4 rounded" />
                 <Skeleton className="h-2.5 w-24 rounded" />
                 <Skeleton className="h-2.5 w-16 rounded justify-self-center" />
                 <Skeleton className="h-2.5 w-24 rounded justify-self-center" />
               </div>
               {/* Mobile header */}
-              <div className="sm:hidden bg-slate-50 border-b-2 border-slate-200 px-3 py-2 flex items-center justify-between">
+              <div className="sm:hidden bg-slate-50 border-b border-slate-200 px-3 py-2 flex items-center justify-between">
                 <Skeleton className="h-2.5 w-20 rounded" />
                 <Skeleton className="h-2.5 w-16 rounded" />
               </div>
@@ -832,18 +832,18 @@ const GradeInput = () => {
               <CardBody className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-slate-50 border-b-2 border-slate-200 sticky top-0">
+                    <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
                       <tr>
-                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-extrabold text-slate-700 uppercase tracking-wider w-10 sm:w-12">
+                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-bold text-slate-700 tracking-wider w-10 sm:w-12">
                           #
                         </th>
-                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-extrabold text-slate-700 uppercase tracking-wider min-w-[160px] sm:min-w-[200px]">
+                        <th className="px-3 sm:px-4 py-3 text-left text-xs font-bold text-slate-700 tracking-wider min-w-[160px] sm:min-w-[200px]">
                           Student Name
                         </th>
-                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-24 sm:w-32">
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-bold text-slate-700 tracking-wider w-24 sm:w-32">
                           Final Grade
                         </th>
-                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-extrabold text-slate-700 uppercase tracking-wider w-28 sm:w-48">
+                        <th className="px-3 sm:px-4 py-3 text-center text-xs font-bold text-slate-700 tracking-wider w-28 sm:w-48">
                           Performance Level
                         </th>
                       </tr>
@@ -875,7 +875,7 @@ const GradeInput = () => {
                             <Fragment key={s.student}>
                               {showHeader && (
                                 <tr className="bg-slate-100 border-y border-slate-200">
-                                  <td colSpan="4" className="px-4 py-2 text-xs font-extrabold text-slate-600 uppercase tracking-wider">
+                                  <td colSpan="4" className="px-4 py-2 text-xs font-bold text-slate-600 tracking-wider">
                                     <div className="flex items-center gap-2">
                                       <div className={`w-2 h-2 rounded-full ${
                                         currentSex === 'male' ? 'bg-violet-500' :
@@ -902,7 +902,7 @@ const GradeInput = () => {
                                 </td>
                                 <td className="px-3 sm:px-4 py-3">
                                   <div className="flex items-center gap-2 sm:gap-3">
-                                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-md flex items-center justify-center text-white font-extrabold text-xs shadow-sm shrink-0 ${
+                                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-md flex items-center justify-center text-white font-bold text-xs shadow-sm shrink-0 ${
                                       currentSex === 'male' ? 'bg-violet-500 border border-violet-700' :
                                       currentSex === 'female' ? 'bg-rose-500 border border-rose-700' :
                                       'bg-slate-500 border border-slate-700'
@@ -938,7 +938,7 @@ const GradeInput = () => {
                                     onFocus={() => setActive(s.student)}
                                     onKeyDown={e => handleKeyDown(e, s.student)}
                                     placeholder="0-100"
-                                    className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-center font-mono text-xs sm:text-sm font-bold border-2 rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all ${
+                                    className={`w-full px-2 sm:px-3 py-1.5 sm:py-2 text-center font-mono text-xs sm:text-sm font-bold border rounded-md focus:outline-none focus:ring-2 focus:ring-violet-500 transition-all ${
                                       isOver ? 'border-red-500 bg-red-50 text-red-700' :
                                       isActive ? 'border-violet-500 bg-white' :
                                       'border-slate-200 bg-white'
@@ -977,7 +977,7 @@ const GradeInput = () => {
 
             {/* Keyboard Navigation Hint */}
             <div className="mt-3 sm:mt-5 p-2.5 sm:p-4 bg-violet-50 border border-violet-200 rounded-md">
-              <p className="text-[10px] sm:text-xs font-semibold text-violet-700 uppercase tracking-wide">
+              <p className="text-[10px] sm:text-xs font-semibold text-violet-700 tracking-wide">
                 <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 inline mr-1.5 sm:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

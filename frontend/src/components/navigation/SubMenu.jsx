@@ -112,7 +112,7 @@ const SubMenu = ({ label, items = [], icon: Icon, className = '' }) => {
           transition-colors duration-200
           ${hasActiveChild || isOpen
             ? 'text-violet-600 bg-violet-50 dark:text-violet-400 dark:bg-violet-900/20'
-            : 'text-gray-700 hover:text-violet-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-violet-400 dark:hover:bg-gray-800'
+            : 'text-slate-700 hover:text-violet-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:text-violet-400 dark:hover:bg-gray-800'
           }
           focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2
         `}
@@ -150,7 +150,7 @@ const SubMenu = ({ label, items = [], icon: Icon, className = '' }) => {
                     transition-colors duration-150
                     ${isActive
                       ? 'text-violet-600 bg-violet-50 dark:text-violet-400 dark:bg-violet-900/20'
-                      : 'text-gray-700 hover:text-violet-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-violet-400 dark:hover:bg-gray-700'
+                      : 'text-slate-700 hover:text-violet-600 hover:bg-gray-50 dark:text-slate-300 dark:hover:text-violet-400 dark:hover:bg-gray-700'
                     }
                     focus:outline-none focus:ring-2 focus:ring-inset focus:ring-violet-500
                   `}

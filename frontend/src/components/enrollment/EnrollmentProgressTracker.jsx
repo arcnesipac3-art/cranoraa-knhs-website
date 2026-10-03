@@ -51,12 +51,12 @@ const EnrollmentProgressTracker = ({ status, history, className }) => {
             <div key={stage.key} className="flex items-center flex-1 last:flex-none">
               <div className="flex flex-col items-center gap-1.5 min-w-0">
                 <div className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all flex-shrink-0',
+                  'w-10 h-10 rounded-full flex items-center justify-center border transition-all flex-shrink-0',
                   done && !isTerminal && 'bg-emerald-500 border-emerald-500 text-white',
                   active && !isTerminal && 'bg-violet-600 border-violet-600 text-white ring-4 ring-violet-200',
                   upcoming && 'bg-white border-slate-300 text-slate-400',
                   isTerminal && status === 'rejected' && i <= currentIdx && 'bg-rose-100 border-rose-400 text-rose-600',
-                  isTerminal && status === 'cancelled' && i <= currentIdx && 'bg-gray-100 border-gray-400 text-gray-500',
+                  isTerminal && status === 'cancelled' && i <= currentIdx && 'bg-gray-100 border-gray-400 text-slate-500',
                 )}>
                   {done && !isTerminal ? (
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +69,7 @@ const EnrollmentProgressTracker = ({ status, history, className }) => {
                   )}
                 </div>
                 <span className={cn(
-                  'text-[9px] font-bold uppercase tracking-wide text-center',
+                  'text-[9px] font-bold tracking-wide text-center',
                   done && !isTerminal && 'text-emerald-700',
                   active && !isTerminal && 'text-violet-700',
                   upcoming && 'text-slate-400',
@@ -102,7 +102,7 @@ const EnrollmentProgressTracker = ({ status, history, className }) => {
             <div key={stage.key} className="flex items-start gap-3">
               <div className="flex flex-col items-center">
                 <div className={cn(
-                  'w-7 h-7 rounded-full flex items-center justify-center border-2 flex-shrink-0',
+                  'w-7 h-7 rounded-full flex items-center justify-center border flex-shrink-0',
                   done && !isTerminal && 'bg-emerald-500 border-emerald-500 text-white',
                   active && !isTerminal && 'bg-violet-600 border-violet-600 text-white',
                   upcoming && 'bg-white border-slate-300 text-slate-400',
@@ -144,7 +144,7 @@ const EnrollmentProgressTracker = ({ status, history, className }) => {
         <div className={cn(
           'mt-3 px-3 py-2 rounded-lg text-xs font-bold text-center',
           status === 'rejected' && 'bg-rose-50 text-rose-700 border border-rose-200',
-          status === 'cancelled' && 'bg-gray-50 text-gray-600 border border-gray-200',
+          status === 'cancelled' && 'bg-gray-50 text-slate-600 border border-gray-200',
           status === 'withdrawn' && 'bg-amber-50 text-amber-700 border border-amber-200',
         )}>
           Application {status.charAt(0).toUpperCase() + status.slice(1)}

@@ -195,8 +195,8 @@ const StatCard = ({ label, value, icon: Icon, color = 'violet', trend }) => {
               <Icon className={`w-5 h-5 ${c.text}`} />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{label}</p>
-              <p className="text-xl font-extrabold text-slate-900 truncate">{value ?? '—'}</p>
+              <p className="text-xs font-semibold text-slate-500 tracking-wide">{label}</p>
+              <p className="text-xl font-bold text-slate-900 truncate">{value ?? '—'}</p>
               {trend && (
                 <p className={`text-[10px] font-bold ${trend > 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}% vs last period
@@ -212,7 +212,7 @@ const StatCard = ({ label, value, icon: Icon, color = 'violet', trend }) => {
 
 const FilterDropdown = ({ label, value, onChange, options }) => (
   <div className="relative">
-    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">{label}</label>
+    <label className="block text-[10px] font-bold text-slate-500 tracking-wider mb-1">{label}</label>
     <select value={value} onChange={onChange}
       className="w-full h-9 px-3 bg-white border border-slate-200 rounded-lg text-sm text-slate-700 focus:border-violet-400 focus:ring-2 focus:ring-violet-100 outline-none transition-all appearance-none pr-8 cursor-pointer">
       {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -225,7 +225,7 @@ const FilterDropdown = ({ label, value, onChange, options }) => (
 
 const YearSelector = ({ year, onChange }) => (
   <div>
-    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Academic Year</label>
+    <label className="block text-[10px] font-bold text-slate-500 tracking-wider mb-1">Academic Year</label>
     <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden h-9 bg-white">
       <button onClick={() => onChange('prev')} className="px-2.5 h-full hover:bg-slate-50 text-slate-400 border-r border-slate-200 transition-colors">
         <ChevronLeft className="w-3.5 h-3.5" />
@@ -428,8 +428,8 @@ const AttendancePie = ({ data }) => {
                 </RechartsPieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-2xl font-extrabold text-slate-900">{total}</p>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Records</p>
+                <p className="text-2xl font-bold text-slate-900">{total}</p>
+                <p className="text-[10px] font-semibold text-slate-400 tracking-wider">Records</p>
               </div>
             </div>
             <div className="w-1/2 space-y-2.5">
@@ -582,8 +582,8 @@ const GradeDistributionPie = ({ data, total, label }) => {
                 </RechartsPieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <p className="text-2xl font-extrabold text-slate-900">{total}</p>
-                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{label}</p>
+                <p className="text-2xl font-bold text-slate-900">{total}</p>
+                <p className="text-[10px] font-semibold text-slate-400 tracking-wider">{label}</p>
               </div>
             </div>
             <div className="w-1/2 space-y-2.5">
@@ -664,10 +664,10 @@ const TabBanner = ({ title, subtitle, color, children }) => {
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex flex-col md:flex-row md:items-end justify-between gap-4 bg-gradient-to-br ${gradients[color] || gradients.violet} p-6 rounded-2xl text-white`}
+      className={`flex flex-col md:flex-row md:items-end justify-between gap-4 bg-gradient-to-br ${gradients[color] || gradients.violet} p-6 rounded-lg text-white`}
     >
       <div>
-        <h2 className="text-2xl font-extrabold">{title}</h2>
+        <h2 className="text-2xl font-bold">{title}</h2>
         <p className="text-white/70 text-sm mt-1">{subtitle}</p>
       </div>
       {children}
@@ -795,7 +795,7 @@ const Analytics = () => {
             <BarChart3 className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">Analytics</h1>
+            <h1 className="text-xl font-bold text-slate-900 tracking-tight">Analytics</h1>
             <p className="text-sm text-slate-400">Data Intelligence · SY {academicYear}</p>
           </div>
         </div>
@@ -808,7 +808,7 @@ const Analytics = () => {
         >
           {exporting ? (
             <span className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-slate-300 border-t-violet-600 rounded-full animate-spin" />
+              <div className="w-4 h-4 border border-slate-300 border-t-violet-600 rounded-full animate-spin" />
               Exporting...
             </span>
           ) : 'Export PDF'}

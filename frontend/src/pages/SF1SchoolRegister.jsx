@@ -160,13 +160,13 @@ function SF1Page() {
       {/* Header */}
       <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             School Form 1 (SF1) - School Register
           </h1>
           <p className="text-sm text-slate-500 mt-1">
             Official DepEd class register with enrolled students
             {activeYearName && (
-              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-violet-50 text-violet-600 rounded-full text-[10px] font-bold uppercase">
+              <span className="ml-2 inline-flex items-center gap-1 px-2 py-0.5 bg-violet-50 text-violet-600 rounded-full text-[10px] font-bold">
                 SY {activeYearName}
               </span>
             )}
@@ -187,7 +187,7 @@ function SF1Page() {
         <CardBody>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Academic Year</label>
+              <label className="block text-xs font-bold text-slate-500 mb-1">Academic Year</label>
               {filtersLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -204,7 +204,7 @@ function SF1Page() {
               )}
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Grade Level</label>
+              <label className="block text-xs font-bold text-slate-500 mb-1">Grade Level</label>
               {filtersLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -221,7 +221,7 @@ function SF1Page() {
               )}
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Section</label>
+              <label className="block text-xs font-bold text-slate-500 mb-1">Section</label>
               {filtersLoading ? (
                 <Skeleton className="h-10 w-full" />
               ) : (
@@ -252,26 +252,26 @@ function SF1Page() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardBody className="text-center py-3">
-              <p className="text-2xl font-extrabold text-slate-900">{totalStudents}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Total Students</p>
+              <p className="text-2xl font-bold text-slate-900">{totalStudents}</p>
+              <p className="text-[10px] font-bold text-slate-400">Total Students</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="text-center py-3">
-              <p className="text-2xl font-extrabold text-blue-600">{totalMale}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Male Students</p>
+              <p className="text-2xl font-bold text-blue-600">{totalMale}</p>
+              <p className="text-[10px] font-bold text-slate-400">Male Students</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="text-center py-3">
-              <p className="text-2xl font-extrabold text-pink-600">{totalFemale}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Female Students</p>
+              <p className="text-2xl font-bold text-pink-600">{totalFemale}</p>
+              <p className="text-[10px] font-bold text-slate-400">Female Students</p>
             </CardBody>
           </Card>
           <Card>
             <CardBody className="text-center py-3">
-              <p className="text-2xl font-extrabold text-violet-600">{classrooms.length}</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase">Sections</p>
+              <p className="text-2xl font-bold text-violet-600">{classrooms.length}</p>
+              <p className="text-[10px] font-bold text-slate-400">Sections</p>
             </CardBody>
           </Card>
         </div>
@@ -310,7 +310,7 @@ function SF1Page() {
         <Card>
           <CardBody>
             <div className="flex items-center justify-center py-12">
-              <div className="w-8 h-8 border-2 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+              <div className="w-8 h-8 border border-slate-200 border-t-violet-600 rounded-full animate-spin" />
               <span className="ml-3 text-sm text-slate-500">Generating SF1...</span>
             </div>
           </CardBody>
@@ -466,7 +466,7 @@ function SF1PrintPreview({ data, schoolInfo, schoolHead, generatedDate, settings
 
       {/* Header */}
       <div className="text-center mb-4">
-        <h1 className="text-xl font-extrabold">School Form 1 (SF 1) School Register</h1>
+        <h1 className="text-xl font-bold">School Form 1 (SF 1) School Register</h1>
         <p className="text-[10px] text-slate-500 italic">(This replaces Form 1 Master List &amp; SF1-Form 2-Family Background and Profile)</p>
       </div>
 
@@ -559,7 +559,7 @@ function SF1PrintPreview({ data, schoolInfo, schoolHead, generatedDate, settings
             <tr className="bg-green-100 font-bold">
               <td colSpan={20} className="border border-slate-800 px-2">{data.total_female} .... TOTAL FEMALE</td>
             </tr>
-            <tr className="bg-green-200 font-extrabold">
+            <tr className="bg-green-200 font-bold">
               <td colSpan={20} className="border border-slate-800 px-2">{data.total_combined} .... COMBINED</td>
             </tr>
           </tbody>

@@ -59,17 +59,17 @@ const TodayAttendanceWidget = ({ data, navigate }) => {
         <div className="flex items-center justify-between">
           <CardTitle subtitle="School-wide today">Attendance</CardTitle>
           <button onClick={() => navigate('/analytics')}
-            className="text-xs font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide">
+            className="text-xs font-bold text-violet-600 hover:text-violet-700 tracking-wide">
             Details
           </button>
         </div>
       </CardHeader>
       <CardBody>
         <div className={`rounded-md border p-4 mb-4 ${palette.bg}`}>
-          <p className={`text-4xl font-extrabold tabular-nums ${palette.num}`}>
+          <p className={`text-4xl font-bold tabular-nums ${palette.num}`}>
             {rate != null ? `${rate}%` : '—'}
           </p>
-          <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mt-1">Today's Rate</p>
+          <p className="text-xs font-bold text-slate-600 tracking-wide mt-1">Today's Rate</p>
           {total != null && (
             <p className="text-xs text-slate-500 mt-1">
               {present != null ? `${present} / ` : ''}{total} records
@@ -80,7 +80,7 @@ const TodayAttendanceWidget = ({ data, navigate }) => {
         {/* 7-day mini sparkbar */}
         {last7.length > 0 && (
           <div>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide mb-2">
+            <p className="text-[10px] font-bold text-slate-500 tracking-wide mb-2">
               Last 7 school days
             </p>
             <div className="flex items-end gap-1 h-10">
@@ -292,13 +292,13 @@ const AdminDashboard = () => {
       {/* ── PAGE HEADER ───────────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 uppercase tracking-wide mb-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-violet-700 tracking-wide mb-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             <span>Administrative Control</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
             Admin Dashboard
           </h1>
           <p className="text-xs text-slate-600 mt-1 font-semibold">{today}</p>
@@ -343,7 +343,7 @@ const AdminDashboard = () => {
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-extrabold mb-1 ${
+                      <p className={`text-sm font-bold mb-1 ${
                         alert.type === 'warning' ? 'text-amber-900' :
                         alert.type === 'error'   ? 'text-red-900'   : 'text-violet-900'
                       }`}>{alert.title}</p>
@@ -370,7 +370,7 @@ const AdminDashboard = () => {
       {/* Inline shimmer overlay on refresh so cards don't disappear          */}
       <div className={`transition-opacity duration-200 ${statOverlay ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-extrabold text-slate-700 uppercase tracking-wider">School Overview</h2>
+          <h2 className="text-xs font-bold text-slate-700 tracking-wider">School Overview</h2>
           {statOverlay && (
             <span className="text-[10px] font-bold text-violet-600 flex items-center gap-1.5">
               <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -436,22 +436,22 @@ const AdminDashboard = () => {
             <CardBody>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-5 rounded-md bg-violet-50 border border-violet-200">
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Average Grade</p>
-                  <p className="text-4xl font-extrabold text-violet-700">
+                  <p className="text-xs font-bold text-slate-600 tracking-wide mb-2">Average Grade</p>
+                  <p className="text-4xl font-bold text-violet-700">
                     {data?.average_grade != null ? data.average_grade.toFixed(1) : '—'}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">Across all subjects</p>
                 </div>
                 <div className="p-5 rounded-md bg-emerald-50 border border-emerald-200">
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Attendance Rate</p>
-                  <p className="text-4xl font-extrabold text-emerald-700">
+                  <p className="text-xs font-bold text-slate-600 tracking-wide mb-2">Attendance Rate</p>
+                  <p className="text-4xl font-bold text-emerald-700">
                     {todayRate != null ? `${todayRate}%` : '—'}
                   </p>
                   <p className="text-xs text-slate-600 mt-1">Today's school-wide rate</p>
                 </div>
                 <div className="p-5 rounded-md bg-sky-50 border border-sky-200">
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Passing Rate</p>
-                  <p className="text-4xl font-extrabold text-sky-700">
+                  <p className="text-xs font-bold text-slate-600 tracking-wide mb-2">Passing Rate</p>
+                  <p className="text-4xl font-bold text-sky-700">
                     {data?.all_subjects?.total_count > 0
                       ? `${100 - (data?.all_subjects?.below_75_pct ?? 0)}%` : '—'}
                   </p>
@@ -493,7 +493,7 @@ const AdminDashboard = () => {
                     <svg className="w-8 h-8 mx-auto mb-2 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    <p className="text-xs font-bold uppercase tracking-widest">No grade data available</p>
+                    <p className="text-xs font-bold tracking-[0.1em]">No grade data available</p>
                     <p className="text-[10px] mt-1">Grades will appear here once teachers submit records.</p>
                   </div>
                 )}

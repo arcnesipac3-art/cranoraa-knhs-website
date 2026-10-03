@@ -123,7 +123,7 @@ export default function LegacySubmissionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-lg font-extrabold text-slate-900">Legacy Submissions</h2>
+          <h2 className="text-lg font-bold text-slate-900">Legacy Submissions</h2>
           <p className="text-sm text-slate-500 mt-0.5">
             {legacy.length} submission{legacy.length !== 1 ? 's' : ''} without a subject assignment
           </p>
@@ -167,7 +167,7 @@ export default function LegacySubmissionsPage() {
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="grid grid-cols-[1fr_1fr_120px_180px_80px] px-5 py-3 bg-slate-50 border-b border-slate-100 gap-3">
           {['Teacher', 'Compliance Type', 'Period', 'Assign To', ''].map(h => (
-            <span key={h} className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{h}</span>
+            <span key={h} className="text-[10px] font-bold text-slate-400 tracking-wider">{h}</span>
           ))}
         </div>
         <div className="divide-y divide-slate-50">

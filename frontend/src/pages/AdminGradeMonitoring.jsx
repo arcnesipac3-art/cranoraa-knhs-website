@@ -47,9 +47,9 @@ const StatTile = ({ label, value, icon, color, subtitle }) => (
         )}
       </div>
       <div>
-        <p className="text-lg sm:text-2xl font-bold text-gray-900">{value}</p>
-        <p className="text-xs sm:text-sm text-gray-500">{label}</p>
-        {subtitle && <p className="text-[10px] sm:text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+        <p className="text-lg sm:text-2xl font-bold text-slate-900">{value}</p>
+        <p className="text-xs sm:text-sm text-slate-500">{label}</p>
+        {subtitle && <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{subtitle}</p>}
       </div>
     </div>
   </motion.div>
@@ -88,8 +88,8 @@ const CompletionRing = ({ percentage }) => {
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center" style={{ width: radius * 2, height: radius * 2 }}>
-        <span className="text-3xl font-bold text-gray-900">{Math.round(percentage)}%</span>
-        <span className="text-xs text-gray-500">Complete</span>
+        <span className="text-3xl font-bold text-slate-900">{Math.round(percentage)}%</span>
+        <span className="text-xs text-slate-500">Complete</span>
       </div>
     </div>
   );
@@ -98,7 +98,7 @@ const CompletionRing = ({ percentage }) => {
 const TeacherRow = ({ teacher }) => (
   <tr className="hover:bg-gray-50 transition-colors">
     <td className="px-4 py-3">
-      <div className="font-medium text-gray-900">{teacher.name}</div>
+      <div className="font-medium text-slate-900">{teacher.name}</div>
     </td>
     <td className="px-4 py-3 text-sm">{teacher.total_classes}</td>
     <td className="px-4 py-3 text-sm text-green-600">{teacher.submitted}</td>
@@ -114,10 +114,10 @@ const TeacherRow = ({ teacher }) => (
             style={{ width: `${teacher.completion_percentage}%` }}
           />
         </div>
-        <span className="text-xs text-gray-500">{teacher.completion_percentage}%</span>
+        <span className="text-xs text-slate-500">{teacher.completion_percentage}%</span>
       </div>
     </td>
-    <td className="px-4 py-3 text-xs text-gray-500">
+    <td className="px-4 py-3 text-xs text-slate-500">
       {teacher.last_submission ? new Date(teacher.last_submission).toLocaleDateString() : 'N/A'}
     </td>
   </tr>
@@ -189,8 +189,8 @@ export default function AdminGradeMonitoring() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Grade Submission Monitoring</h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">Monitor teacher grade submissions and completion</p>
+          <h1 className="text-lg sm:text-2xl font-bold text-slate-900">Grade Submission Monitoring</h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">Monitor teacher grade submissions and completion</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3">
           {selectedTeachers.length > 0 && (
@@ -231,10 +231,10 @@ export default function AdminGradeMonitoring() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-2.5 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+                className={`px-2.5 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b whitespace-nowrap transition-colors ${
                   activeTab === tab
                     ? 'border-brand-600 text-brand-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    : 'border-transparent text-slate-500 hover:text-slate-700'
                 }`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -257,15 +257,15 @@ export default function AdminGradeMonitoring() {
                   <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-4 text-center">
                     <div>
                       <p className="text-lg font-bold text-green-600">{data.submitted_teachers}</p>
-                      <p className="text-xs text-gray-500">Submitted</p>
+                      <p className="text-xs text-slate-500">Submitted</p>
                     </div>
                     <div>
                       <p className="text-lg font-bold text-amber-600">{data.pending_teachers}</p>
-                      <p className="text-xs text-gray-500">Pending</p>
+                      <p className="text-xs text-slate-500">Pending</p>
                     </div>
                     <div>
                       <p className="text-lg font-bold text-red-600">{data.overdue_teachers}</p>
-                      <p className="text-xs text-gray-500">Overdue</p>
+                      <p className="text-xs text-slate-500">Overdue</p>
                     </div>
                   </div>
                 </CardBody>
@@ -313,12 +313,12 @@ export default function AdminGradeMonitoring() {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Teacher</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Classes</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Pending</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Completion</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Last Submission</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Teacher</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Classes</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Submitted</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Pending</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Completion</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500">Last Submission</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">

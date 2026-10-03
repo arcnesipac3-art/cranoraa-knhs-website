@@ -27,7 +27,7 @@ const CommunicationWidget = memo(({ messages = [], notifUnread = 0 }) => {
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-extrabold text-slate-900">Messages</h3>
+            <h3 className="text-sm font-bold text-slate-900">Messages</h3>
             <p className="text-[10px] text-slate-500 font-medium">Recent conversations</p>
           </div>
         </div>
@@ -39,7 +39,7 @@ const CommunicationWidget = memo(({ messages = [], notifUnread = 0 }) => {
           )}
           <button
             onClick={() => navigate('/communication-center')}
-            className="text-[11px] font-bold text-violet-600 hover:text-violet-700 uppercase tracking-wide transition-colors"
+            className="text-[11px] font-bold text-violet-600 hover:text-violet-700 tracking-wide transition-colors"
           >
             Open
           </button>

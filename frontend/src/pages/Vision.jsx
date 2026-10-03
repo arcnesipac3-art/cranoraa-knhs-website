@@ -1,5 +1,6 @@
 import { useWebsiteContent } from '../hooks/useWebsiteContent';
 import { Skeleton } from '../components/ui';
+import { PageHero, SectionHeading } from '../components/public';
 
 const Vision = () => {
   const { content, loading } = useWebsiteContent();
@@ -16,37 +17,30 @@ const Vision = () => {
 
   return (
     <div className="bg-white">
-      {/* Hero Banner */}
-      <section className="bg-violet-950 py-16 md:py-20 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none opacity-5">
-          <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
-        </div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl">
-              <p className="text-xs font-bold text-violet-200 uppercase tracking-widest mb-4">Our Aspiration</p>
-              <h1 className="text-4xl md:text-5xl font-black text-white leading-tight mb-5 uppercase">
-                {content.about_vision_title?.content || 'Our Vision'}
-              </h1>
-              <p className="text-violet-100 leading-relaxed text-lg">
-                The future we envision for Kiwalan National High School and our community
-              </p>
-            </div>
-        </div>
-      </section>
+      <PageHero
+        breadcrumb={[{ label: 'Home', to: '/' }, { label: 'Vision' }]}
+        kicker="About the school"
+        title={content.about_vision_title?.content || 'Our Vision'}
+        lead="The future we envision for Kiwalan National High School and our community"
+      />
+      {/* ── Vision statement ── */}
+      <section className="public-section">
+        <div className="public-shell-narrow">
+          <SectionHeading
+            kicker="Our aspiration"
+            title="Vision statement"
+            lead="The future we are working toward for every learner in our care."
+          />
 
-      {/* Vision Statement */}
-      <section className="py-16 md:py-20 bg-slate-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white rounded-3xl border-2 border-violet-200 p-8 md:p-12 shadow-lg">
-            <div className="flex items-start gap-6 mb-8">
-              <div className="w-16 h-16 rounded-2xl bg-violet-900 flex items-center justify-center shadow-lg flex-shrink-0">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          <div className="public-card mt-8 p-6 md:p-8">
+            <div className="flex items-start gap-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-violet-200 bg-violet-50 text-violet-700">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
               </div>
-              <div className="flex-1">
-                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-4 uppercase">Vision Statement</h2>
-                <p className="text-gray-700 text-lg leading-relaxed whitespace-pre-line">
+              <div className="public-prose">
+                <p className="whitespace-pre-line md:text-lg">
                   {content.about_vision_content?.content || 'To be a leading educational institution in the region, recognized for academic excellence, innovative teaching methods, and the holistic development of learners who are empowered to contribute meaningfully to society.'}
                 </p>
               </div>
@@ -54,72 +48,82 @@ const Vision = () => {
           </div>
         </div>
       </section>
+      {/* ── Strategic goals ── */}
+      <section className="public-section public-section-alt">
+        <div className="public-shell">
+          <SectionHeading
+            kicker="Roadmap"
+            title="Strategic goals"
+            lead="Our roadmap to achieving our vision."
+          />
 
-      {/* Strategic Goals */}
-      <section className="py-16 md:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-slate-900 mb-3 uppercase">Strategic Goals</h2>
-            <p className="text-gray-600">Our roadmap to achieving our vision</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { year: '2027', title: 'Excellence', desc: 'Achieve 95% student success rate in all academic assessments' },
               { year: '2028', title: 'Innovation', desc: 'Integrate technology-enhanced learning across all grade levels' },
               { year: '2029', title: 'Infrastructure', desc: 'Complete modernization of all school facilities and equipment' },
               { year: '2030', title: 'Community', desc: 'Establish strong partnerships with industry and higher education' }
             ].map((goal, i) => (
-              <div key={i} className="bg-slate-50 rounded-2xl border-2 border-violet-200 p-6 hover:shadow-lg transition-all">
-                <div className="text-5xl font-black text-violet-300 mb-2">{goal.year}</div>
-                <h3 className="text-lg font-black text-slate-900 mb-2 uppercase">{goal.title}</h3>
-                <p className="text-sm text-gray-700 leading-relaxed">{goal.desc}</p>
-              </div>
+              <article key={i} className="public-card p-6">
+                <span className="public-badge">{goal.year}</span>
+                <h3 className="public-subheading mt-3">{goal.title}</h3>
+                <div className="public-rule" aria-hidden="true" />
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">{goal.desc}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
+      {/* ── Future impact ── */}
+      <section className="public-section">
+        <div className="public-shell">
+          <SectionHeading
+            kicker="Our impact"
+            title="The future we&rsquo;re building"
+            lead="Our vision extends beyond classroom walls. We are committed to developing well-rounded individuals who will become leaders, innovators, and responsible citizens."
+          />
 
-      {/* Future Impact */}
-      <section className="py-16 md:py-20 bg-violet-950 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-black mb-6 uppercase">The Future We're Building</h2>
-              <p className="text-violet-100 text-lg leading-relaxed mb-6">
-                Our vision extends beyond classroom walls. We are committed to developing well-rounded individuals who will become leaders, innovators, and responsible citizens.
-              </p>
-              <div className="space-y-4">
+          <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {/* Outcomes */}
+            <div className="public-card p-6 md:p-8">
+              <h3 className="public-subheading">The learners we aim to form</h3>
+              <div className="public-rule" aria-hidden="true" />
+              <ul className="mt-4 space-y-4">
                 {[
                   'Graduates equipped with 21st-century skills',
                   'Strong foundation in academics and technical skills',
                   'Values-driven, socially responsible citizens',
                   'Active contributors to national development'
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-violet-900 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  <li key={i} className="flex items-start gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-violet-200 bg-violet-50 text-violet-700">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M5 13l4 4L19 7" />
                       </svg>
-                    </div>
-                    <p className="text-white">{item}</p>
-                  </div>
+                    </span>
+                    <span className="text-sm leading-relaxed text-slate-600">{item}</span>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
-            <div className="bg-white/10 border-2 border-white/20 rounded-2xl p-8 backdrop-blur-sm">
-              <div className="grid grid-cols-2 gap-6">
+
+            {/* Target figures */}
+            <div className="public-card p-6 md:p-8">
+              <h3 className="public-subheading">Targets we track</h3>
+              <div className="public-rule" aria-hidden="true" />
+              <dl className="mt-4 grid grid-cols-2 gap-4">
                 {[
-                  { val: '100%', label: 'Student Success' },
-                  { val: 'Top 5', label: 'Regional Ranking' },
-                  { val: '50+', label: 'Community Partners' },
-                  { val: '10k+', label: 'Alumni Network' }
+                  { val: '100%', label: 'Student success' },
+                  { val: 'Top 5', label: 'Regional ranking' },
+                  { val: '50+', label: 'Community partners' },
+                  { val: '10k+', label: 'Alumni network' }
                 ].map((stat, i) => (
-                  <div key={i} className="text-center">
-                    <div className="text-3xl font-black text-white mb-1">{stat.val}</div>
-                    <div className="text-xs text-violet-200 uppercase font-bold">{stat.label}</div>
+                  <div key={i} className="public-card-muted px-4 py-5 text-center">
+                    <dt className="text-2xl font-bold tracking-tight text-slate-900">{stat.val}</dt>
+                    <dd className="mt-1 text-[11px] font-medium tracking-[0.1em] text-slate-500">{stat.label}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             </div>
           </div>
         </div>

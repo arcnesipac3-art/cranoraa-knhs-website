@@ -100,7 +100,7 @@ const AttendanceAuditTrail = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Attendance Audit Trail</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Attendance Audit Trail</h1>
           <p className="text-sm text-slate-500 mt-1">Track all attendance changes and modifications</p>
         </div>
         <div className="flex items-center gap-2">
@@ -172,15 +172,15 @@ const AttendanceAuditTrail = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
+                <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Timestamp</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Action</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Classroom</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Status Change</th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">Description</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Timestamp</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">User</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Action</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Classroom</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Date</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Status Change</th>
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">Description</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-100">

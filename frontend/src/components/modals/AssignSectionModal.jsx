@@ -66,7 +66,7 @@ export function AssignSectionModal({
               </svg>
             </div>
             <div>
-              <h2 className="text-sm font-black text-white uppercase tracking-widest leading-none">{title}</h2>
+              <h2 className="text-sm font-bold text-white tracking-[0.1em] leading-none">{title}</h2>
               {student && (
                 <p className="text-violet-200 text-[11px] mt-1 font-medium">
                   {student.first_name} {student.last_name}
@@ -89,18 +89,18 @@ export function AssignSectionModal({
           <div className="px-6 pt-5 pb-2 flex-1 overflow-y-auto">
             {currentSection && (
               <div className="mb-4 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Current:</span>
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider">Current:</span>
                 <span className="text-xs font-bold text-slate-700">{currentSection}</span>
               </div>
             )}
 
-            <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+            <label className="block text-[10px] font-bold text-slate-500 tracking-[0.1em] mb-2">
               Select a section{gradeLabel ? ` for ${gradeLabel}` : ''}
             </label>
 
             {loadingClassrooms ? (
               <div className="flex items-center justify-center py-8 gap-2">
-                <div className="w-4 h-4 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border border-violet-500 border-t-transparent rounded-full animate-spin" />
                 <span className="text-xs text-slate-400 font-medium">Loading sections...</span>
               </div>
             ) : (
@@ -143,7 +143,7 @@ export function AssignSectionModal({
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-bold text-slate-800">{c.name}</span>
                             {isFull && (
-                              <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded border border-rose-200">
+                              <span className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded border border-rose-200">
                                 Full
                               </span>
                             )}
@@ -181,14 +181,14 @@ export function AssignSectionModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 bg-white text-slate-600 text-[11px] font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors"
+              className="px-6 py-2.5 bg-white text-slate-600 text-[11px] font-bold tracking-[0.1em] border border-slate-300 hover:bg-slate-100 rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={!selectedClassroomId || loadingClassrooms}
-              className="px-6 py-2.5 bg-[#5e2a84] text-white text-[11px] font-black uppercase tracking-widest hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 bg-[#5e2a84] text-white text-[11px] font-bold tracking-[0.1em] hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {loadingClassrooms ? 'Loading...' : confirmText}
             </button>

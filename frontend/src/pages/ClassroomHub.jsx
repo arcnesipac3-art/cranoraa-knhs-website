@@ -477,7 +477,7 @@ const ClassroomHub = () => {
       {/* Loading banner — shown while classroom data is being fetched */}
       {loading && (
         <div className="bg-white border-b border-slate-200 px-3 md:px-6 py-2 flex items-center gap-2 text-[10px] text-slate-600">
-          <div className="w-3 h-3 border-2 border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />
+          <div className="w-3 h-3 border border-violet-500 border-t-transparent rounded-full animate-spin shrink-0" />
           <span>Loading…</span>
         </div>
       )}
@@ -503,7 +503,7 @@ const ClassroomHub = () => {
                 <button
                   key={tab.key}
                   onClick={() => handleTabChange(tab.key)}
-                  className={`flex items-center gap-1 px-2.5 py-2 text-[10px] font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                  className={`flex items-center gap-1 px-2.5 py-2 text-[10px] font-semibold border-b transition-colors whitespace-nowrap ${
                     isActive
                       ? 'border-violet-600 text-violet-600'
                       : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
@@ -742,7 +742,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
 
   const Field = ({ label, value, mono = false }) => (
     <div className="py-1.5 border-b border-slate-100 last:border-0">
-      <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
+      <p className="text-[8px] font-bold text-slate-400 tracking-[0.1em] mb-0.5">{label}</p>
       <p className={`text-[10px] font-semibold text-slate-800 ${mono ? 'font-mono' : ''}`}>{value || '—'}</p>
     </div>
   );
@@ -809,14 +809,14 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
       <div className="w-full max-w-xl bg-white shadow-2xl flex flex-col h-full overflow-hidden">
         <div className="bg-[#5e2a84] px-4 py-3 flex items-start gap-3 flex-shrink-0">
           {student.student_profile_picture ? (
-            <img src={student.student_profile_picture} alt="" className="w-10 h-10 rounded-full object-cover border-2 border-white/30 flex-shrink-0" />
+            <img src={student.student_profile_picture} alt="" className="w-10 h-10 rounded-full object-cover border border-white/30 flex-shrink-0" />
           ) : (
-            <div className="w-10 h-10 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-sm font-black text-white">{initials}</span>
+            <div className="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-bold text-white">{initials}</span>
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h2 className="text-xs font-black text-white uppercase tracking-wide leading-tight truncate">{fullName}</h2>
+            <h2 className="text-xs font-bold text-white tracking-wide leading-tight truncate">{fullName}</h2>
             <p className="text-violet-200 text-[9px] mt-0.5 font-mono">LRN: {lrn}</p>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="text-violet-300 text-[9px]">{classroom?.name || ''}</span>
@@ -830,7 +830,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
         <div className="bg-white border-b border-slate-200 px-3 flex gap-0 flex-shrink-0 overflow-x-auto">
           {TABS.map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
-              className={`px-3 py-2 text-[9px] font-bold whitespace-nowrap border-b-2 transition-colors ${
+              className={`px-3 py-2 text-[9px] font-bold whitespace-nowrap border-b transition-colors ${
                 tab === t.id ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500 hover:text-slate-800'
               }`}>
               {t.label}
@@ -848,7 +848,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
               {tab === 'personal' && (
                 <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                   <div className="px-3 py-2 bg-slate-50">
-                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Personal Information</p>
+                    <p className="text-[9px] font-bold text-slate-500 tracking-[0.1em]">Personal Information</p>
                   </div>
                   <div className="px-3">
                     <Field label="Full Name" value={fullName} />
@@ -869,7 +869,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                 <div className="space-y-3">
                   <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                     <div className="px-3 py-2 bg-slate-50">
-                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Enrollment Info</p>
+                      <p className="text-[9px] font-bold text-slate-500 tracking-[0.1em]">Enrollment Info</p>
                     </div>
                     <div className="px-3">
                       <Field label="Grade Level" value={profileData?.profile?.grade_level || appData?.grade_level} />
@@ -883,7 +883,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
 
                   <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                     <div className="px-3 py-2 bg-slate-50 border-b border-slate-100">
-                      <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Attendance Summary</p>
+                      <p className="text-[9px] font-bold text-slate-500 tracking-[0.1em]">Attendance Summary</p>
                     </div>
                     <div className="p-3 grid grid-cols-4 gap-2">
                       {[
@@ -893,8 +893,8 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                         { label: 'Rate', val: attRate !== null ? `${attRate}%` : '—', color: 'text-violet-700 bg-violet-50 border-violet-200' },
                       ].map(s => (
                         <div key={s.label} className={`border rounded-lg p-2 text-center ${s.color}`}>
-                          <p className="text-sm font-black">{s.val}</p>
-                          <p className="text-[8px] font-bold uppercase tracking-wider mt-0.5">{s.label}</p>
+                          <p className="text-sm font-bold">{s.val}</p>
+                          <p className="text-[8px] font-bold tracking-wider mt-0.5">{s.label}</p>
                         </div>
                       ))}
                     </div>
@@ -903,8 +903,8 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                   {finalGrades.length > 0 && (
                     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                       <div className="px-3 py-2 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Subject Grades</p>
-                        {overallAvg && <span className="text-[10px] font-black text-violet-700">Avg: {overallAvg}</span>}
+                        <p className="text-[9px] font-bold text-slate-500 tracking-[0.1em]">Subject Grades</p>
+                        {overallAvg && <span className="text-[10px] font-bold text-violet-700">Avg: {overallAvg}</span>}
                       </div>
                       <div className="divide-y divide-slate-100">
                         {finalGrades.map(g => (
@@ -913,7 +913,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                               <p className="text-[11px] font-bold text-slate-900 truncate">{g.subject_name}</p>
                               <p className="text-[8px] text-slate-400">T{g.quarter} · {g.academic_year}</p>
                             </div>
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded border ${
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
                               parseFloat(g.raw_score) >= 90 ? 'text-emerald-700 bg-emerald-50 border-emerald-200' :
                               parseFloat(g.raw_score) >= 75 ? 'text-blue-700 bg-blue-50 border-blue-200' :
                               'text-rose-700 bg-rose-50 border-rose-200'
@@ -938,7 +938,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                   ].map(({ title, color, textColor, fields }) => (
                     <div key={title} className={`rounded-xl border ${color} overflow-hidden`}>
                       <div className={`px-3 py-2 ${color}`}>
-                        <p className={`text-[9px] font-black uppercase tracking-widest ${textColor}`}>{title}</p>
+                        <p className={`text-[9px] font-bold tracking-[0.1em] ${textColor}`}>{title}</p>
                       </div>
                       <div className="px-3 bg-white divide-y divide-slate-100">
                         {fields.map(([label, val]) => val ? <Field key={label} label={label} value={val} /> : null)}
@@ -951,7 +951,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                   {(profileData?.profile?.emergency_contact_name || profileData?.profile?.emergency_contact_phone) && (
                     <div className="rounded-xl border border-orange-200 overflow-hidden bg-orange-50">
                       <div className="px-3 py-2 bg-orange-50">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-orange-700">Emergency Contact</p>
+                        <p className="text-[9px] font-bold tracking-[0.1em] text-orange-700">Emergency Contact</p>
                       </div>
                       <div className="px-3 bg-white divide-y divide-slate-100">
                         <Field label="Name" value={profileData?.profile?.emergency_contact_name} />
@@ -994,7 +994,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                             </div>
                             <div className="min-w-0">
                               <p className="text-[10px] font-bold text-slate-900 truncate">{doc.document_type_display || docTypeLabel[doc.document_type] || doc.document_type}</p>
-                              <span className={`text-[8px] font-bold uppercase px-1 py-0 rounded ${
+                              <span className={`text-[8px] font-bold px-1 py-0 rounded ${
                                 doc.verification_status === 'verified' ? 'bg-emerald-100 text-emerald-700' :
                                 doc.verification_status === 'rejected' ? 'bg-rose-100 text-rose-700' :
                                 doc.verification_status === 'missing' ? 'bg-amber-100 text-amber-700' :
@@ -1030,7 +1030,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                   {records.length > 0 ? (
                     <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
                       <div className="px-3 py-2 bg-slate-50 border-b border-slate-100">
-                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Document Requests</p>
+                        <p className="text-[9px] font-bold text-slate-500 tracking-[0.1em]">Document Requests</p>
                       </div>
                       {records.map(r => (
                         <div key={r.id} className="flex items-center justify-between px-3 py-2">
@@ -1038,7 +1038,7 @@ const StudentDetailDrawer = ({ student, classroom, onClose }) => {
                             <p className="text-[10px] font-bold text-slate-900 truncate">{r.record_type_display || r.record_type}</p>
                             <p className="text-[8px] text-slate-400">{r.purpose || ''} · {new Date(r.created_at).toLocaleDateString()}</p>
                           </div>
-                          <span className={`text-[8px] font-bold px-1.5 py-0 rounded border uppercase ${
+                          <span className={`text-[8px] font-bold px-1.5 py-0 rounded border ${
                             r.status === 'approved' || r.status === 'released' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                             r.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-200' :
                             'bg-slate-100 text-slate-600 border-slate-200'
@@ -1157,7 +1157,7 @@ const StreamTab = ({ classroom, isTeacher, announcements, classroomSubjects, ann
     {classroomSubjects.length > 0 && (
       <Card>
         <CardBody className="p-3">
-          <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Teachers & Subjects</h3>
+          <h3 className="text-[9px] font-bold text-slate-500 tracking-[0.1em] mb-2">Teachers & Subjects</h3>
           <div className="space-y-1">
             {classroomSubjects.map(cs => (
               <div key={cs.id} className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 transition-colors">
@@ -1467,7 +1467,7 @@ const PeopleTab = ({ classroom, students, isTeacher, loading, peopleSearch, setP
             <div className="space-y-3">
               {maleStudents.length > 0 && (
                 <div>
-                  <h4 className="text-[9px] font-bold text-blue-600 uppercase tracking-widest mb-1 px-1">Male ({maleStudents.length})</h4>
+                  <h4 className="text-[9px] font-bold text-blue-600 tracking-[0.1em] mb-1 px-1">Male ({maleStudents.length})</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0.5">
                     {maleStudents.map(renderStudent)}
                   </div>
@@ -1475,7 +1475,7 @@ const PeopleTab = ({ classroom, students, isTeacher, loading, peopleSearch, setP
               )}
               {femaleStudents.length > 0 && (
                 <div>
-                  <h4 className="text-[9px] font-bold text-pink-600 uppercase tracking-widest mb-1 px-1">Female ({femaleStudents.length})</h4>
+                  <h4 className="text-[9px] font-bold text-pink-600 tracking-[0.1em] mb-1 px-1">Female ({femaleStudents.length})</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0.5">
                     {femaleStudents.map(renderStudent)}
                   </div>
@@ -1483,7 +1483,7 @@ const PeopleTab = ({ classroom, students, isTeacher, loading, peopleSearch, setP
               )}
               {otherStudents.length > 0 && (
                 <div>
-                  <h4 className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1 px-1">Other ({otherStudents.length})</h4>
+                  <h4 className="text-[9px] font-bold text-slate-500 tracking-[0.1em] mb-1 px-1">Other ({otherStudents.length})</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0.5">
                     {otherStudents.map(renderStudent)}
                   </div>
@@ -1650,7 +1650,7 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, activePeriod, onN
                         ))}
                         <td className="text-center py-1.5 px-2">
                           {avg != null ? (
-                            <span className={`font-extrabold ${parseFloat(avg) >= 75 ? 'text-emerald-700' : 'text-red-700'}`}>
+                            <span className={`font-bold ${parseFloat(avg) >= 75 ? 'text-emerald-700' : 'text-red-700'}`}>
                               {avg}
                             </span>
                           ) : (
@@ -1686,7 +1686,7 @@ const OverviewView = ({ classroom, grades, loading, isTeacher, activePeriod, onN
       {activePeriod && periodColor && (
         <div className={`rounded-xl border px-3 py-2.5 flex items-center justify-between gap-2 ${periodColor.bg}`}>
           <div className="flex items-center gap-2 min-w-0">
-            <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full flex-shrink-0 ${periodColor.pill}`}>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${periodColor.pill}`}>
               {periodColor.label}
             </span>
             <span className={`text-xs font-semibold truncate ${periodColor.text}`}>
@@ -1834,20 +1834,20 @@ const GradeOverviewTable = ({ grades, classroom }) => {
           return (
             <>
               <div className="text-center p-2 bg-slate-50 rounded-lg">
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Avg</p>
-                <p className="text-sm font-extrabold text-slate-800">{avg}</p>
+                <p className="text-[10px] font-bold text-slate-400">Avg</p>
+                <p className="text-sm font-bold text-slate-800">{avg}</p>
               </div>
               <div className="text-center p-2 bg-emerald-50 rounded-lg">
-                <p className="text-[10px] font-bold text-emerald-400 uppercase">Highest</p>
-                <p className="text-sm font-extrabold text-emerald-700">{highest}</p>
+                <p className="text-[10px] font-bold text-emerald-400">Highest</p>
+                <p className="text-sm font-bold text-emerald-700">{highest}</p>
               </div>
               <div className="text-center p-2 bg-red-50 rounded-lg">
-                <p className="text-[10px] font-bold text-red-400 uppercase">Lowest</p>
-                <p className="text-sm font-extrabold text-red-700">{lowest}</p>
+                <p className="text-[10px] font-bold text-red-400">Lowest</p>
+                <p className="text-sm font-bold text-red-700">{lowest}</p>
               </div>
               <div className="text-center p-2 bg-violet-50 rounded-lg">
-                <p className="text-[10px] font-bold text-violet-400 uppercase">Passing</p>
-                <p className="text-sm font-extrabold text-violet-700">{passing}%</p>
+                <p className="text-[10px] font-bold text-violet-400">Passing</p>
+                <p className="text-sm font-bold text-violet-700">{passing}%</p>
               </div>
             </>
           );
@@ -2221,7 +2221,7 @@ const GradeInputView = ({ classroom, onBack }) => {
           Back to Overview
         </Button>
         <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-slate-200 text-center gap-4">
-          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${
+          <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${
             isLocked ? 'bg-purple-50' : isClosed ? 'bg-amber-50' : isScheduled ? 'bg-blue-50' : 'bg-slate-50'
           }`}>
             <Lock className={`w-8 h-8 ${
@@ -2423,18 +2423,18 @@ const GradeInputView = ({ classroom, onBack }) => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b-2 border-slate-200">
+                <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">
                       #
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700 uppercase">
+                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-700">
                       Student Name
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase w-32">
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 w-32">
                       New Grade (0-100)
                     </th>
-                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 uppercase w-32">
+                    <th className="px-4 py-3 text-center text-xs font-bold text-slate-700 w-32">
                       Current
                     </th>
                   </tr>

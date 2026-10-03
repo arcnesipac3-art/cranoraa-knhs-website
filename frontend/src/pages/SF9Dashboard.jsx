@@ -115,11 +115,11 @@ export default function SF9Dashboard() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1.5">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-violet-600 tracking-[0.2em] mb-1.5">
             <BookOpen className="w-3.5 h-3.5" />
             <span>School Forms</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
             School Form 9 (SF9)
           </h1>
           <p className="text-xs text-slate-500 mt-1 font-semibold">
@@ -198,14 +198,14 @@ export default function SF9Dashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">School Year</th>
-                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Grade</th>
-                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Section</th>
-                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Adviser</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Learners</th>
-                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Generated</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Status</th>
-                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs uppercase tracking-wider">Actions</th>
+                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">School Year</th>
+                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Grade</th>
+                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Section</th>
+                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Adviser</th>
+                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Learners</th>
+                  <th className="text-left px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Generated</th>
+                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Status</th>
+                  <th className="text-center px-4 py-3 font-bold text-slate-600 text-xs tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -218,7 +218,7 @@ export default function SF9Dashboard() {
                       <td className="px-4 py-3 text-slate-700">{record.grade_level}</td>
                       <td className="px-4 py-3 text-slate-700">{record.section}</td>
                       <td className="px-4 py-3 text-slate-600">{record.adviser_name || '—'}</td>
-                      <td className="px-4 py-3 text-center font-extrabold text-slate-900">{record.total_learners}</td>
+                      <td className="px-4 py-3 text-center font-bold text-slate-900">{record.total_learners}</td>
                       <td className="px-4 py-3 text-slate-500 text-xs">
                         {new Date(record.generated_at).toLocaleDateString()}
                       </td>

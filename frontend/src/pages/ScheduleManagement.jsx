@@ -70,7 +70,7 @@ const emptyForm = { classroom:'', subject:'', teacher:'', room:'', time_slot:'',
 
 const Field = ({ label, required, children }) => (
   <div className="space-y-1.5">
-    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest">
+    <label className="block text-[10px] font-bold text-slate-500 tracking-[0.1em]">
       {label}{required && <span className="text-rose-400 ml-0.5">*</span>}
     </label>
     {children}
@@ -383,7 +383,7 @@ export default function ScheduleManagement() {
   };
 
   const handleDelete = async (id, name) => {
-    const r = await fireStackedAlert({ title:'Delete schedule?', text:name||'This cannot be undone.', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete', customClass:{popup:'rounded-2xl'} });
+    const r = await fireStackedAlert({ title:'Delete schedule?', text:name||'This cannot be undone.', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete', customClass:{popup:'rounded-lg'} });
     if (!r.isConfirmed) return;
     try { await api.delete(`/schedules/${id}/`); toast.success('Deleted'); fetchAll(); }
     catch { toast.error('Failed to delete'); }
@@ -393,7 +393,7 @@ export default function ScheduleManagement() {
     const section = classrooms.find(c => String(c.id) === filterClassroom);
     const sectionName = section?.name || 'this section';
     const count = filtered.length;
-    const r = await fireStackedAlert({ title:`Clear all classes in ${sectionName}?`, text:`This will remove ${count} schedule assignment${count === 1 ? '' : 's'}. This cannot be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Clear All', customClass:{popup:'rounded-2xl'} });
+    const r = await fireStackedAlert({ title:`Clear all classes in ${sectionName}?`, text:`This will remove ${count} schedule assignment${count === 1 ? '' : 's'}. This cannot be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Clear All', customClass:{popup:'rounded-lg'} });
     if (!r.isConfirmed) return;
     setSaving(true);
     try {
@@ -408,7 +408,7 @@ export default function ScheduleManagement() {
   const clearAllTimeSlots = async () => {
     const count = timeSlots.length;
     if (!count) return;
-    const r = await fireStackedAlert({ title:'Delete all time slots?', text:`This will remove ${count} time slot${count === 1 ? '' : 's'} and any linked schedules. This cannot be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete All', customClass:{popup:'rounded-2xl'} });
+    const r = await fireStackedAlert({ title:'Delete all time slots?', text:`This will remove ${count} time slot${count === 1 ? '' : 's'} and any linked schedules. This cannot be undone.`, icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete All', customClass:{popup:'rounded-lg'} });
     if (!r.isConfirmed) return;
     setSavingSlot(true);
     try {
@@ -499,7 +499,7 @@ export default function ScheduleManagement() {
   };
 
   const deleteSlot = async (id, label) => {
-    const r = await fireStackedAlert({ title:`Delete "${label}"?`, text:'Schedules using this slot will be affected.', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete', customClass:{popup:'rounded-2xl'} });
+    const r = await fireStackedAlert({ title:`Delete "${label}"?`, text:'Schedules using this slot will be affected.', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete', customClass:{popup:'rounded-lg'} });
     if (!r.isConfirmed) return;
     try {
       await api.delete(`/time-slots/${id}/`);
@@ -518,7 +518,7 @@ export default function ScheduleManagement() {
   };
 
   const deleteRoom = async (id, name) => {
-    const r = await fireStackedAlert({ title:`Delete "${name}"?`, text:'Schedules using this room will lose their assignment.', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete', customClass:{popup:'rounded-2xl'} });
+    const r = await fireStackedAlert({ title:`Delete "${name}"?`, text:'Schedules using this room will lose their assignment.', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444', confirmButtonText:'Delete', customClass:{popup:'rounded-lg'} });
     if (!r.isConfirmed) return;
     try { await api.delete(`/rooms/${id}/`); toast.success('Deleted'); fetchAll(); }
     catch { toast.error('Failed to delete'); }
@@ -622,8 +622,8 @@ export default function ScheduleManagement() {
               </svg>
             </div>
             <div>
-              <h1 className="text-lg font-black text-slate-900 tracking-tight leading-none">Academic Scheduling</h1>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+              <h1 className="text-lg font-bold text-slate-900 tracking-tight leading-none">Academic Scheduling</h1>
+              <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em] mt-0.5">
                 Bell Schedules · Rooms · Timetables
               </p>
             </div>
@@ -685,7 +685,7 @@ export default function ScheduleManagement() {
 
       {/* ── Setup Wizard (only when incomplete) ── */}
       {!isSetupComplete && (
-        <div className="bg-gradient-to-r from-violet-50 to-violet-100 border border-violet-200 rounded-2xl p-5 md:p-6">
+        <div className="bg-gradient-to-r from-violet-50 to-violet-100 border border-violet-200 rounded-lg p-5 md:p-6">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -697,9 +697,9 @@ export default function ScheduleManagement() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Step 1: Bell Schedule */}
-            <div className={`relative p-4 rounded-xl border-2 transition-all ${needsTimeSlots ? 'border-violet-400 bg-white shadow-md' : 'border-emerald-200 bg-emerald-50'}`}>
+            <div className={`relative p-4 rounded-xl border transition-all ${needsTimeSlots ? 'border-violet-400 bg-white shadow-md' : 'border-emerald-200 bg-emerald-50'}`}>
               <div className="flex items-center gap-2 mb-2">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${needsTimeSlots ? 'bg-violet-600 text-white' : 'bg-emerald-500 text-white'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${needsTimeSlots ? 'bg-violet-600 text-white' : 'bg-emerald-500 text-white'}`}>
                   {needsTimeSlots ? '1' : '\u2713'}
                 </div>
                 <span className={`text-xs font-bold ${needsTimeSlots ? 'text-violet-800' : 'text-emerald-700'}`}>Bell Schedule</span>
@@ -716,9 +716,9 @@ export default function ScheduleManagement() {
             </div>
 
             {/* Step 2: Classrooms */}
-            <div className={`relative p-4 rounded-xl border-2 transition-all ${needsClassrooms ? 'border-slate-300 bg-white' : 'border-emerald-200 bg-emerald-50'}`}>
+            <div className={`relative p-4 rounded-xl border transition-all ${needsClassrooms ? 'border-slate-300 bg-white' : 'border-emerald-200 bg-emerald-50'}`}>
               <div className="flex items-center gap-2 mb-2">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${needsClassrooms && !needsTimeSlots ? 'bg-violet-600 text-white' : needsClassrooms ? 'bg-slate-300 text-white' : 'bg-emerald-500 text-white'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${needsClassrooms && !needsTimeSlots ? 'bg-violet-600 text-white' : needsClassrooms ? 'bg-slate-300 text-white' : 'bg-emerald-500 text-white'}`}>
                   {needsClassrooms ? (needsTimeSlots ? '2' : '\u2713') : '\u2713'}
                 </div>
                 <span className={`text-xs font-bold ${needsClassrooms ? 'text-slate-600' : 'text-emerald-700'}`}>Sections</span>
@@ -732,9 +732,9 @@ export default function ScheduleManagement() {
             </div>
 
             {/* Step 3: Start Assigning */}
-            <div className={`relative p-4 rounded-xl border-2 transition-all ${isSetupComplete ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}>
+            <div className={`relative p-4 rounded-xl border transition-all ${isSetupComplete ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}>
               <div className="flex items-center gap-2 mb-2">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${isSetupComplete ? 'bg-emerald-500 text-white' : 'bg-slate-300 text-white'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isSetupComplete ? 'bg-emerald-500 text-white' : 'bg-slate-300 text-white'}`}>
                   {isSetupComplete ? '\u2713' : '3'}
                 </div>
                 <span className={`text-xs font-bold ${isSetupComplete ? 'text-emerald-700' : 'text-slate-500'}`}>Assign Classes</span>
@@ -785,7 +785,7 @@ export default function ScheduleManagement() {
 
       {/* ── Main Content: Section Picker or Timetable Grid ── */}
       {!filterClassroom ? (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm">
           <div className="px-5 py-4 border-b border-slate-100">
             <h2 className="text-sm font-bold text-slate-900">Choose a Section</h2>
             <p className="text-xs text-slate-500 mt-0.5">Select a classroom section to view or edit its weekly timetable</p>
@@ -793,7 +793,7 @@ export default function ScheduleManagement() {
           <div className="p-5">
             {classrooms.length === 0 ? (
               <div className="text-center py-12">
-                <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
+                <div className="w-14 h-14 rounded-lg bg-slate-100 flex items-center justify-center mx-auto mb-3">
                   <svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                 </div>
                 <p className="text-sm font-bold text-slate-600">No sections found</p>
@@ -805,7 +805,7 @@ export default function ScheduleManagement() {
                   const count = classroomScheduleCounts[c.id] || 0;
                   return (
                     <button key={c.id} type="button" onClick={() => setFilterClassroom(String(c.id))}
-                      className="text-left p-4 rounded-xl border-2 border-slate-200 hover:border-violet-400 hover:bg-violet-50/50 hover:shadow-md transition-all group">
+                      className="text-left p-4 rounded-xl border border-slate-200 hover:border-violet-400 hover:bg-violet-50/50 hover:shadow-md transition-all group">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-bold text-slate-900 group-hover:text-violet-800">{c.name}</span>
                         {count > 0 && (
@@ -823,8 +823,8 @@ export default function ScheduleManagement() {
           </div>
         </div>
       ) : uniquePeriods.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm py-16 text-center px-4">
-          <div className="w-14 h-14 rounded-2xl bg-violet-100 flex items-center justify-center mx-auto mb-3">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm py-16 text-center px-4">
+          <div className="w-14 h-14 rounded-lg bg-violet-100 flex items-center justify-center mx-auto mb-3">
             <svg className="w-7 h-7 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
           <p className="text-sm font-bold text-slate-800">No bell periods configured</p>
@@ -841,13 +841,13 @@ export default function ScheduleManagement() {
           </div>
         </div>
       ) : (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
           {/* Section header with filter controls */}
           <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/80 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <div>
                 <p className="text-sm font-bold text-slate-900">{classrooms.find(c => String(c.id) === filterClassroom)?.name}</p>
-                <p className="text-[10px] text-slate-500 uppercase tracking-wide font-semibold">Weekly Timetable</p>
+                <p className="text-[10px] text-slate-500 tracking-wide font-semibold">Weekly Timetable</p>
               </div>
               <button type="button" onClick={() => setFilterClassroom('')}
                 className="text-[10px] font-bold text-violet-600 hover:text-violet-800 px-2 py-1 rounded-lg hover:bg-violet-50 transition-colors">
@@ -883,7 +883,7 @@ export default function ScheduleManagement() {
               <div className="flex gap-1.5 min-w-max">
                 {DAYS.map(d => (
                   <button key={d} type="button" onClick={() => setMobileSelectedDay(d)}
-                    className={`px-3 sm:px-4 py-2 rounded-t-lg text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap ${
+                    className={`px-3 sm:px-4 py-2 rounded-t-lg text-xs font-bold tracking-wide transition-all whitespace-nowrap ${
                       mobileSelectedDay === d
                         ? 'bg-violet-600 text-white shadow-sm'
                         : 'bg-slate-100 text-slate-500 hover:bg-slate-200 active:bg-slate-300'
@@ -905,7 +905,7 @@ export default function ScheduleManagement() {
                 if (isBreak) {
                   return (
                     <div key={cellKey} className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ border: `1.5px dashed ${typeStyle.barBorder}`, background: typeStyle.barBg }}>
-                      <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
+                      <span className="text-[9px] font-bold tracking-[0.1em]" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
                       <div className="flex-1 h-px" style={{ background: typeStyle.barText, opacity: 0.2 }} />
                       <span className="text-[9px] font-bold text-slate-400">{period.start_display} – {period.end_display}</span>
                     </div>
@@ -926,7 +926,7 @@ export default function ScheduleManagement() {
                     <div className="text-[10px] font-bold text-slate-500 w-14 shrink-0 pt-2 leading-tight">{period.start_display}</div>
                     <div className="flex-1 min-w-0">
                       <div className={`p-2.5 rounded-lg border ${subjectColorMap[s.subject] || COLORS[0]} relative shadow-sm`}>
-                        <p className="text-[10px] font-bold uppercase tracking-tight leading-none">{s.subject_code}</p>
+                        <p className="text-[10px] font-bold tracking-tight leading-none">{s.subject_code}</p>
                         <p className="text-[11px] font-bold leading-tight line-clamp-1">{s.subject_name}</p>
                         {s.teacher_name && <p className="text-[9px] opacity-60 truncate">{s.teacher_name}</p>}
                         <div className="absolute top-1 right-1 flex gap-0.5">
@@ -951,11 +951,11 @@ export default function ScheduleManagement() {
               <thead>
                 <tr className="bg-slate-800">
                   <th className="px-3 py-2.5 text-left w-24 border-r border-slate-700">
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Period</span>
+                    <span className="text-[10px] font-bold text-slate-300 tracking-wide">Period</span>
                   </th>
                   {(filterDay ? [filterDay] : DAYS).map(d => (
                     <th key={d} className="px-2 py-2.5 text-left border-r border-slate-700/50 min-w-[120px]">
-                      <span className="text-[10px] font-bold text-slate-200 uppercase tracking-wide">{DAY_SHORT[d]}</span>
+                      <span className="text-[10px] font-bold text-slate-200 tracking-wide">{DAY_SHORT[d]}</span>
                     </th>
                   ))}
                 </tr>
@@ -971,12 +971,12 @@ export default function ScheduleManagement() {
                       <tr key={`${period.start_time}-${period.end_time}`}>
                         <td colSpan={colCount + 1} className="px-0 py-0" style={{ borderTop: `2px dashed ${typeStyle.barBorder}`, borderBottom: `2px dashed ${typeStyle.barBorder}`, background: typeStyle.barBg }}>
                           <div className="flex items-center gap-3 px-4 py-2">
-                            <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
+                            <span className="text-[9px] font-bold tracking-[0.1em]" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
                             <div className="flex-1 h-px" style={{ background: typeStyle.barText, opacity: 0.2 }} />
                             <span className="text-[9px] font-bold text-slate-400">{period.start_display} – {period.end_display}</span>
-                            {period.label && <span className="text-[8px] font-bold text-slate-400 uppercase">{period.label}</span>}
+                            {period.label && <span className="text-[8px] font-bold text-slate-400">{period.label}</span>}
                             <div className="flex-1 h-px" style={{ background: typeStyle.barText, opacity: 0.2 }} />
-                            <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
+                            <span className="text-[9px] font-bold tracking-[0.1em]" style={{ color: typeStyle.barText }}>{typeStyle.label}</span>
                           </div>
                         </td>
                       </tr>
@@ -988,7 +988,7 @@ export default function ScheduleManagement() {
                     <td className="px-3 py-2 border-r border-slate-100 align-top">
                       <p className="text-xs font-bold text-slate-800">{period.start_display}</p>
                       <p className="text-[10px] text-slate-400">{period.end_display}</p>
-                      {period.label && <span className="mt-1 inline-block text-[9px] font-bold text-violet-600 uppercase">{period.label}</span>}
+                      {period.label && <span className="mt-1 inline-block text-[9px] font-bold text-violet-600">{period.label}</span>}
                     </td>
                     {(filterDay ? [filterDay] : DAYS).map(d => {
                       const entries = getCellSchedules(d, period);
@@ -1002,7 +1002,7 @@ export default function ScheduleManagement() {
                               <div key={s.id}
                                 className={`p-2 rounded-lg border ${subjectColorMap[s.subject] || COLORS[0]} relative group shadow-sm hover:shadow-md transition-all cursor-pointer`}
                                 onClick={() => openEdit(s)}>
-                                <p className="text-[9px] font-bold uppercase tracking-tight leading-none">{s.subject_code}</p>
+                                <p className="text-[9px] font-bold tracking-tight leading-none">{s.subject_code}</p>
                                 <p className="text-[10px] font-bold leading-tight line-clamp-1">{s.subject_name}</p>
                                 {s.teacher_name && <p className="text-[9px] opacity-60 truncate">{s.teacher_name}</p>}
                                 <button type="button" onClick={(e) => { e.stopPropagation(); handleDelete(s.id, `${s.subject_name} — ${s.classroom_name}`); }}
@@ -1014,7 +1014,7 @@ export default function ScheduleManagement() {
                             {entries.length === 0 && !isBreak && (
                               <button type="button" onClick={() => openCreateAtCell(d, period)} disabled={isAdding}
                                 title={ready ? 'Assign class' : 'Enable period & assign'}
-                                className={`w-full py-1.5 border border-dashed rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all text-[9px] font-bold uppercase tracking-wide ${
+                                className={`w-full py-1.5 border border-dashed rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all text-[9px] font-bold tracking-wide ${
                                   isAdding ? 'opacity-50 cursor-wait border-violet-200 text-violet-400' :
                                   ready ? 'text-slate-300 hover:border-violet-300 hover:text-violet-500 hover:bg-violet-50/40 opacity-60 hover:opacity-100' :
                                   'border-amber-200 text-amber-600 bg-amber-50/50 hover:border-amber-400 opacity-80 hover:opacity-100'
@@ -1046,7 +1046,7 @@ export default function ScheduleManagement() {
             {/* Section + Time Slot */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-bold text-slate-600 tracking-wider mb-1.5">
                   Section / Class <span className="text-red-600">*</span>
                 </label>
                 <select value={form.classroom} onChange={e => setForm(f => ({...f, classroom: e.target.value, subject:'', teacher:''}))}
@@ -1056,7 +1056,7 @@ export default function ScheduleManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-bold text-slate-600 tracking-wider mb-1.5">
                   Day & Time Slot <span className="text-red-600">*</span>
                 </label>
                 <select value={form.time_slot} onChange={e => setForm(f => ({...f, time_slot: e.target.value}))}
@@ -1098,7 +1098,7 @@ export default function ScheduleManagement() {
             {/* Subject */}
             {!form.is_vacant && (
             <div>
-              <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
+              <label className="block text-[10px] font-bold text-slate-600 tracking-wider mb-1.5">
                 Subject <span className="text-red-600">*</span>
               </label>
               {loadingAssignments ? (
@@ -1138,7 +1138,7 @@ export default function ScheduleManagement() {
             {!form.is_vacant && (
 <div>
                <div className="flex items-center justify-between mb-1.5">
-                 <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider">
+                 <label className="block text-[10px] font-bold text-slate-600 tracking-wider">
                    Teacher <span className="text-red-600">*</span>
                  </label>
                  {teacherLocked && (
@@ -1164,7 +1164,7 @@ export default function ScheduleManagement() {
 
             {/* Room */}
             <div>
-              <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Room (optional)</label>
+              <label className="block text-[10px] font-bold text-slate-600 tracking-wider mb-1.5">Room (optional)</label>
               <select value={form.room} onChange={e => setForm(f => ({...f, room: e.target.value}))}
                 className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                 <option value="">— No Room Assigned —</option>
@@ -1175,7 +1175,7 @@ export default function ScheduleManagement() {
             {/* Academic Year + Semester */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
               <div>
-                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">
+                <label className="block text-[10px] font-bold text-slate-600 tracking-wider mb-1.5">
                   Academic Year <span className="text-red-600">*</span>
                 </label>
                 <select value={form.academic_year} onChange={e => setForm(f => ({...f, academic_year: e.target.value, semester:''}))}
@@ -1185,7 +1185,7 @@ export default function ScheduleManagement() {
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Semester (optional)</label>
+                <label className="block text-[10px] font-bold text-slate-600 tracking-wider mb-1.5">Semester (optional)</label>
                 <select value={form.semester} onChange={e => setForm(f => ({...f, semester: e.target.value}))}
                   className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500">
                   <option value="">None</option>
@@ -1196,7 +1196,7 @@ export default function ScheduleManagement() {
 
             {/* Notes */}
             <div>
-              <label className="block text-[10px] font-black text-slate-600 uppercase tracking-wider mb-1.5">Notes (optional)</label>
+              <label className="block text-[10px] font-bold text-slate-600 tracking-wider mb-1.5">Notes (optional)</label>
               <textarea value={form.notes} onChange={e => setForm(f => ({...f, notes: e.target.value}))}
                 rows={2} placeholder="Additional notes..."
                 className="w-full px-3 py-2.5 border border-slate-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-100 focus:border-violet-500 resize-none placeholder:text-slate-400" />
@@ -1206,11 +1206,11 @@ export default function ScheduleManagement() {
           {/* Footer */}
           <div className="px-4 md:px-6 py-4 border-t border-slate-200 bg-slate-50 flex flex-col-reverse sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 flex-shrink-0">
             <button type="button" onClick={() => setShowForm(false)}
-              className="w-full sm:w-auto px-6 py-2.5 bg-white text-slate-700 text-xs font-black uppercase tracking-widest border border-slate-300 hover:bg-slate-100 rounded-lg">
+              className="w-full sm:w-auto px-6 py-2.5 bg-white text-slate-700 text-xs font-bold tracking-[0.1em] border border-slate-300 hover:bg-slate-100 rounded-lg">
               Cancel
             </button>
             <button type="submit" disabled={saving}
-              className="w-full sm:w-auto px-8 py-2.5 bg-violet-600 text-white text-xs font-black uppercase tracking-widest hover:bg-violet-700 disabled:opacity-50 flex items-center justify-center gap-2 rounded-lg">
+              className="w-full sm:w-auto px-8 py-2.5 bg-violet-600 text-white text-xs font-bold tracking-[0.1em] hover:bg-violet-700 disabled:opacity-50 flex items-center justify-center gap-2 rounded-lg">
               {saving && <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>}
               {saving ? 'Saving...' : editItem ? 'Save Changes' : 'Assign Class'}
             </button>
@@ -1262,7 +1262,7 @@ export default function ScheduleManagement() {
         <div className="flex-1 overflow-hidden flex flex-col md:flex-row min-h-0 max-h-[75vh]">
           <div className="w-full md:w-[320px] p-6 border-b md:border-b-0 md:border-r border-slate-100 bg-slate-50/50 overflow-y-auto shrink-0">
             <form onSubmit={saveRoom} className="space-y-4">
-              <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Add Room</p>
+              <p className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">Add Room</p>
               <Field label="Room Name" required>
                 <input required value={roomForm.name} onChange={e => setRoomForm(f => ({...f, name: e.target.value}))}
                   placeholder="e.g. Room 204"
@@ -1294,7 +1294,7 @@ export default function ScheduleManagement() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-white">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Registered Rooms</p>
+            <p className="text-[10px] font-bold text-slate-400 tracking-[0.1em] mb-3">Registered Rooms</p>
             {rooms.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-slate-400 text-xs font-bold">No rooms registered yet</p>
@@ -1306,7 +1306,7 @@ export default function ScheduleManagement() {
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-slate-900 truncate">{r.name}</p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-[9px] font-bold uppercase text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-md">{r.room_type}</span>
+                        <span className="text-[9px] font-bold text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-md">{r.room_type}</span>
                         {r.building && <span className="text-[10px] text-slate-400 font-medium">{r.building}</span>}
                       </div>
                       <p className="text-[10px] text-slate-400 mt-1">Capacity: {r.capacity}</p>

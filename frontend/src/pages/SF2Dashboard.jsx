@@ -13,10 +13,10 @@ const MONTHS = [
 ];
 const DAY_ABBR = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const STATUS_COLORS = {
-  P: 'bg-green-100 text-green-700 font-black',
-  A: 'bg-red-100 text-red-700 font-black',
-  L: 'bg-amber-100 text-amber-700 font-black',
-  E: 'bg-blue-100 text-blue-700 font-black',
+  P: 'bg-green-100 text-green-700 font-bold',
+  A: 'bg-red-100 text-red-700 font-bold',
+  L: 'bg-amber-100 text-amber-700 font-bold',
+  E: 'bg-blue-100 text-blue-700 font-bold',
 };
 
 export default function SF2Dashboard() {
@@ -222,22 +222,22 @@ export default function SF2Dashboard() {
         <td className="px-2 py-1.5 text-[10px] font-bold text-red-700 text-center border-l border-slate-200 bg-red-50/50">{st.abs}</td>
         <td className="px-2 py-1.5 text-[10px] font-bold text-amber-700 text-center border-l border-slate-200 bg-amber-50/50">{st.late}</td>
         <td className="px-2 py-1.5 text-[10px] font-bold text-blue-700 text-center border-l border-slate-200 bg-blue-50/50">{st.exc}</td>
-        <td className="px-2 py-1.5 text-[10px] font-black text-slate-700 text-center border-l border-slate-200 bg-slate-50">{st.pct}%</td>
+        <td className="px-2 py-1.5 text-[10px] font-bold text-slate-700 text-center border-l border-slate-200 bg-slate-50">{st.pct}%</td>
       </tr>
     );
   });
 
   const renderTotalsRow = (label, totals, count, isGrand = false) => (
-    <tr className={isGrand ? 'bg-slate-100 font-black' : 'bg-slate-50'}>
+    <tr className={isGrand ? 'bg-slate-100 font-bold' : 'bg-slate-50'}>
       <td colSpan={4} className={`px-2 py-1.5 text-[10px] border-r border-slate-200 sticky left-0 ${isGrand ? 'bg-slate-100' : 'bg-slate-50'} z-10`}>
-        <span className="font-bold text-slate-700 uppercase">{label}</span>
+        <span className="font-bold text-slate-700">{label}</span>
         <span className="text-slate-400 ml-1">({count})</span>
       </td>
       <td className="px-2 py-1.5 text-[10px] font-bold text-green-700 text-center border-l border-slate-200">{totals.prs}</td>
       <td className="px-2 py-1.5 text-[10px] font-bold text-red-700 text-center border-l border-slate-200">{totals.abs}</td>
       <td className="px-2 py-1.5 text-[10px] font-bold text-amber-700 text-center border-l border-slate-200">{totals.late}</td>
       <td className="px-2 py-1.5 text-[10px] font-bold text-blue-700 text-center border-l border-slate-200">{totals.exc}</td>
-      <td className="px-2 py-1.5 text-[10px] font-black text-slate-700 text-center border-l border-slate-200">{totals.pct}%</td>
+      <td className="px-2 py-1.5 text-[10px] font-bold text-slate-700 text-center border-l border-slate-200">{totals.pct}%</td>
     </tr>
   );
 
@@ -264,7 +264,7 @@ export default function SF2Dashboard() {
         <div className="print-only text-center mb-4">
           <p className="text-[10px] text-slate-600">Republic of the Philippines</p>
           <p className="text-[10px] text-slate-600">Department of Education</p>
-          <p className="text-sm font-black text-slate-900">{overviewData?.school_name || 'School Name'}</p>
+          <p className="text-sm font-bold text-slate-900">{overviewData?.school_name || 'School Name'}</p>
           <p className="text-[10px] text-slate-600">
             School ID: {overviewData?.school_id || '—'} | {overviewData?.region || '—'} | {overviewData?.division || '—'}
           </p>
@@ -277,7 +277,7 @@ export default function SF2Dashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 no-print">
           <div>
-            <h1 className="text-xl font-black text-slate-900">SF2 — Daily Attendance Report</h1>
+            <h1 className="text-xl font-bold text-slate-900">SF2 — Daily Attendance Report</h1>
             <p className="text-xs text-slate-500 mt-0.5">{monthName} {selectedYear} | {formData.grade_level} {formData.section}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -298,7 +298,7 @@ export default function SF2Dashboard() {
         {/* Filters */}
         <div className="flex flex-wrap items-end gap-3 p-4 bg-white border border-slate-200 rounded-xl no-print">
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Month</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1">Month</label>
             <div className="flex items-center gap-1">
               <button onClick={() => navMonth(-1)} className="p-1 rounded hover:bg-slate-100 transition-colors">
                 <ChevronLeft className="w-4 h-4 text-slate-500" />
@@ -313,7 +313,7 @@ export default function SF2Dashboard() {
             </div>
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Grade Level</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1">Grade Level</label>
             <select value={formData.grade_level} onChange={e => handleFieldChange('grade_level', e.target.value)}
               className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 min-w-[100px]">
               <option value="">All</option>
@@ -321,7 +321,7 @@ export default function SF2Dashboard() {
             </select>
           </div>
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Section</label>
+            <label className="block text-[10px] font-bold text-slate-500 mb-1">Section</label>
             <select value={formData.section} onChange={e => handleFieldChange('section', e.target.value)}
               disabled={!formData.grade_level}
               className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-violet-500 min-w-[120px] disabled:opacity-50">
@@ -391,7 +391,7 @@ export default function SF2Dashboard() {
                 ['E', 'Excused', 'bg-blue-100 text-blue-700'],
               ].map(([code, label, cls]) => (
                 <span key={code} className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded ${cls}`}>
-                  <span className="font-black">{code}</span> = {label}
+                  <span className="font-bold">{code}</span> = {label}
                 </span>
               ))}
               <span className="text-slate-300">— = Not recorded</span>
@@ -403,38 +403,38 @@ export default function SF2Dashboard() {
                 <table className="w-full border-collapse" style={{ minWidth: `${tableMinWidth}px` }}>
                   <thead className="bg-[#2D1B4D] text-white sticky top-0 z-20">
                     <tr>
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-r border-violet-700 sticky left-0 bg-[#2D1B4D] z-30 w-8">No.</th>
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-r border-violet-700 sticky left-8 bg-[#2D1B4D] z-30 w-24">LRN</th>
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-left border-r border-violet-700 sticky left-[8rem] bg-[#2D1B4D] z-30 min-w-[140px]">Name of Learner</th>
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-r border-violet-700 sticky left-[calc(8rem+140px)] bg-[#2D1B4D] z-30 w-8">S</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-r border-violet-700 sticky left-0 bg-[#2D1B4D] z-30 w-8">No.</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-r border-violet-700 sticky left-8 bg-[#2D1B4D] z-30 w-24">LRN</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-left border-r border-violet-700 sticky left-[8rem] bg-[#2D1B4D] z-30 min-w-[140px]">Name of Learner</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-r border-violet-700 sticky left-[calc(8rem+140px)] bg-[#2D1B4D] z-30 w-8">S</th>
                       {weekdayDates.map(wd => (
                         <th key={wd.dateStr} className="px-1 py-2 text-center border-r border-violet-700 w-7" title={`${wd.dayAbbr} ${wd.dayNum}`}>
                           <div className="text-[8px] text-violet-300 leading-none">{wd.dayAbbr}</div>
-                          <div className="text-[10px] font-black leading-tight">{wd.dayNum}</div>
+                          <div className="text-[10px] font-bold leading-tight">{wd.dayNum}</div>
                         </th>
                       ))}
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-green-800 w-14">Prs</th>
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-red-800 w-14">Abs</th>
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-amber-800 w-14">Late</th>
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-blue-800 w-14">Exc</th>
-                      <th className="px-2 py-2 text-[9px] font-bold uppercase tracking-wider text-center border-l border-violet-700 bg-slate-700 w-14">%</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-green-800 w-14">Prs</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-red-800 w-14">Abs</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-amber-800 w-14">Late</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-blue-800 w-14">Exc</th>
+                      <th className="px-2 py-2 text-[9px] font-bold tracking-wider text-center border-l border-violet-700 bg-slate-700 w-14">%</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {maleStudents.length > 0 && (
                       <>
-                        <tr><td colSpan={colSpan} className="px-3 py-1 bg-blue-50 text-[9px] font-bold text-blue-700 uppercase tracking-widest border-b border-blue-100">Male ({maleStudents.length})</td></tr>
+                        <tr><td colSpan={colSpan} className="px-3 py-1 bg-blue-50 text-[9px] font-bold text-blue-700 tracking-[0.1em] border-b border-blue-100">Male ({maleStudents.length})</td></tr>
                         {renderStudentRows(maleStudents, 0)}
                       </>
                     )}
                     {femaleStudents.length > 0 && (
                       <>
-                        <tr><td colSpan={colSpan} className="px-3 py-1 bg-pink-50 text-[9px] font-bold text-pink-700 uppercase tracking-widest border-b border-pink-100">Female ({femaleStudents.length})</td></tr>
+                        <tr><td colSpan={colSpan} className="px-3 py-1 bg-pink-50 text-[9px] font-bold text-pink-700 tracking-[0.1em] border-b border-pink-100">Female ({femaleStudents.length})</td></tr>
                         {renderStudentRows(femaleStudents, maleStudents.length)}
                       </>
                     )}
                   </tbody>
-                  <tfoot className="bg-slate-100 border-t-2 border-slate-300 sticky bottom-0 z-20">
+                  <tfoot className="bg-slate-100 border-t border-slate-300 sticky bottom-0 z-20">
                     {maleStudents.length > 0 && renderTotalsRow('Male Total', maleTotals, maleStudents.length)}
                     {femaleStudents.length > 0 && renderTotalsRow('Female Total', femaleTotals, femaleStudents.length)}
                     {renderTotalsRow('Grand Total', grandTotals, filteredStudents.length, true)}

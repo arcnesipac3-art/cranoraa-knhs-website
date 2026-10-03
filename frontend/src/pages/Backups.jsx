@@ -45,7 +45,7 @@ const Backups = () => {
       showCancelButton: true,
       confirmButtonText: 'Create backup',
       confirmButtonColor: '#7c3aed',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     setCreating(true);
@@ -66,7 +66,7 @@ const Backups = () => {
       showCancelButton: true,
       confirmButtonText: 'Restore',
       confirmButtonColor: '#ef4444',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     try {
@@ -86,7 +86,7 @@ const Backups = () => {
       showCancelButton: true,
       confirmButtonText: 'Delete',
       confirmButtonColor: '#ef4444',
-      customClass: { popup: 'rounded-2xl' },
+      customClass: { popup: 'rounded-lg' },
     });
     if (!result.isConfirmed) return;
     try {
@@ -131,11 +131,11 @@ const Backups = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-[10px] font-black text-violet-600 uppercase tracking-[0.2em] mb-1.5">
+          <div className="flex items-center gap-2 text-[10px] font-bold text-violet-600 tracking-[0.2em] mb-1.5">
             <HardDrive className="w-3.5 h-3.5" />
             <span>Data Protection</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Database Backups</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Database Backups</h1>
           <p className="text-xs text-slate-500 mt-1 font-semibold">
             {Array.isArray(backups) ? backups.length : 0} backups &middot; {totalSize} total
           </p>
@@ -184,8 +184,8 @@ const Backups = () => {
             <div className={`w-9 h-9 rounded-lg ${stat.color} flex items-center justify-center ring-1 mb-3`}>
               <stat.icon className="w-4.5 h-4.5" />
             </div>
-            <p className="text-lg font-extrabold text-slate-900 tracking-tight">{stat.value}</p>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-0.5">{stat.label}</p>
+            <p className="text-lg font-bold text-slate-900 tracking-tight">{stat.value}</p>
+            <p className="text-[10px] font-bold text-slate-500 tracking-wider mt-0.5">{stat.label}</p>
           </motion.div>
         ))}
       </div>
@@ -206,10 +206,10 @@ const Backups = () => {
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         {sortedBackups.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-100 to-violet-50 flex items-center justify-center mb-6 ring-1 ring-violet-200">
+            <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-violet-100 to-violet-50 flex items-center justify-center mb-6 ring-1 ring-violet-200">
               <HardDrive className="w-10 h-10 text-violet-500" />
             </div>
-            <h3 className="text-lg font-extrabold text-slate-900 mb-2">No backups yet</h3>
+            <h3 className="text-lg font-bold text-slate-900 mb-2">No backups yet</h3>
             <p className="text-sm text-slate-500 max-w-md mb-6">
               Create your first backup to protect your school data. Backups capture the entire database state.
             </p>
@@ -227,7 +227,7 @@ const Backups = () => {
             {/* Mobile cards */}
             <div className="md:hidden">
               <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{sortedBackups.length} backups</span>
+                <span className="text-[10px] font-bold text-slate-500 tracking-[0.1em]">{sortedBackups.length} backups</span>
                 <button
                   onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
                   className="inline-flex items-center gap-1 text-[10px] font-bold text-slate-500 hover:text-violet-600 transition-colors"
@@ -292,9 +292,9 @@ const Backups = () => {
               <table className="w-full text-left">
                 <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
                   <tr>
-                    <th className="px-5 py-3.5 text-[10px] font-black text-slate-500 uppercase tracking-[0.15em]">Filename</th>
+                    <th className="px-5 py-3.5 text-[10px] font-bold text-slate-500 tracking-[0.15em]">Filename</th>
                     <th
-                      className="px-5 py-3.5 text-[10px] font-black text-slate-500 uppercase tracking-[0.15em] whitespace-nowrap cursor-pointer hover:text-violet-600 transition-colors select-none"
+                      className="px-5 py-3.5 text-[10px] font-bold text-slate-500 tracking-[0.15em] whitespace-nowrap cursor-pointer hover:text-violet-600 transition-colors select-none"
                       onClick={() => setSortDir(d => d === 'desc' ? 'asc' : 'desc')}
                     >
                       <span className="inline-flex items-center gap-1">
@@ -302,8 +302,8 @@ const Backups = () => {
                         <ArrowUpDown className="w-3 h-3" />
                       </span>
                     </th>
-                    <th className="px-5 py-3.5 text-[10px] font-black text-slate-500 uppercase tracking-[0.15em]">Size</th>
-                    <th className="px-5 py-3.5 text-[10px] font-black text-slate-500 uppercase tracking-[0.15em] text-center">Actions</th>
+                    <th className="px-5 py-3.5 text-[10px] font-bold text-slate-500 tracking-[0.15em]">Size</th>
+                    <th className="px-5 py-3.5 text-[10px] font-bold text-slate-500 tracking-[0.15em] text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
