@@ -48,9 +48,20 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='student', db_index=True)
     staff_title = models.CharField(max_length=30, choices=STAFF_TITLE_CHOICES, null=True, blank=True, db_index=True)
     additional_roles = models.TextField(blank=True, default='', help_text="Comma-separated additional staff titles e.g. teacher,guidance_counselor")
+    # ── Department membership ────────────────────────────────────────────────
+    # `departments` (M2M) is the canonical relationship: a user may belong to
+    # many departments. `department` (FK) is a deprecated single-value mirror
+    # kept for rollback safety and older clients — it always tracks the first
+    # entry of `departments`. Neither field ever affects `role` / permissions.
+    departments = models.ManyToManyField(
+        'Department', related_name='members', blank=True,
+        help_text="Departments this account belongs to. Purely organisational "
+                  "membership — it never alters role, account type or base permissions."
+    )
     department = models.ForeignKey(
         'Department', on_delete=models.SET_NULL, null=True, blank=True,
-        related_name='members', help_text="Organizational department for admin/staff accounts"
+        related_name='legacy_members',
+        help_text="Deprecated. Tracks the first of `departments` for legacy readers."
     )
     is_verified = models.BooleanField(default=False)
     is_approved = models.BooleanField(default=False)
@@ -92,6 +103,33 @@ class User(AbstractUser):
         import datetime
         now = timezone.now()
         return self.last_activity > now - datetime.timedelta(minutes=5)
+
+    # ── Department membership helpers ────────────────────────────────────────
+
+    def sync_legacy_department(self):
+        """Point the deprecated single-department FK at `departments`' first entry.
+
+        `departments` (M2M) is the source of truth; `department` (FK) is only a
+        mirror for legacy readers (`department_name`, older clients). Returns
+        True when the mirror actually changed so callers can narrow `update_fields`.
+
+        Purely organisational — never touches `role`, `is_admin` or permissions.
+        """
+        first = (
+            self.departments.order_by('name').values_list('pk', flat=True).first()
+        )
+        if self.department_id != first:
+            self.department_id = first
+            return True
+        return False
+
+    def set_departments(self, departments, save=True):
+        """Replace department membership in one call and refresh the FK mirror."""
+        self.departments.set(departments)
+        changed = self.sync_legacy_department()
+        if changed and save:
+            self.save(update_fields=['department'])
+        return changed
 
 
 class OTP(models.Model):

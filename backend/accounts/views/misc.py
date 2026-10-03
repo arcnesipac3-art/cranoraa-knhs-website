@@ -363,22 +363,42 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         if not member.is_active:
             return Response({'error': 'User account is not active'}, status=400)
 
-        old_dept = member.department
-        member.department = dept
-        member.save(update_fields=['department'])
+        # M2M membership: a user may belong to several departments, so this
+        # ADDS to the set instead of replacing it (the old FK behaviour).
+        already = member.departments.filter(pk=dept.pk).exists()
+        old_depts = list(member.departments.values_list('name', flat=True))
+        member.departments.add(dept)
+        mirror_changed = member.sync_legacy_department()
+        if mirror_changed:
+            member.save(update_fields=['department'])
         try:
             from ..utils import log_audit_action
-            log_audit_action(request.user, 'update', 'Department',
+            log_audit_action(
+                request.user, 'update', 'Department',
                 object_id=dept.id, object_repr=str(dept),
-                description=f'Assigned {member.get_full_name() or member.username} to {dept.name} (was: {old_dept})',
-                request=request)
+                description=(
+                    f'Assigned {member.get_full_name() or member.username} to {dept.name} '
+                    f'(departments: {", ".join(old_depts) or "none"} -> '
+                    f'{", ".join(member.departments.values_list("name", flat=True))})'
+                ),
+                request=request,
+            )
         except Exception:
             pass
-        return Response({'status': 'assigned', 'user_id': member.id, 'department': dept.id})
+        return Response({
+            'status': 'assigned' if not already else 'already_assigned',
+            'user_id': member.id,
+            'department': dept.id,
+            'departments': list(member.departments.values_list('id', flat=True)),
+        })
 
     @action(detail=True, methods=['post'])
     def remove_member(self, request, pk=None):
-        """Remove a user from this department. Body: {user_id: int}"""
+        """Remove a user from this department. Body: {user_id: int}
+
+        Only this department is dropped — the user keeps any other departments
+        they belong to. Role and permissions are never touched.
+        """
         from django.contrib.auth import get_user_model
         User = get_user_model()
         dept = self.get_object()
@@ -386,20 +406,32 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         if not user_id:
             return Response({'error': 'user_id is required'}, status=400)
         try:
-            member = User.objects.get(pk=user_id, department=dept)
+            member = User.objects.get(pk=user_id)
         except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+        if not member.departments.filter(pk=dept.pk).exists():
             return Response({'error': 'User not in this department'}, status=404)
-        member.department = None
-        member.save(update_fields=['department'])
+        member.departments.remove(dept)
+        mirror_changed = member.sync_legacy_department()
+        if mirror_changed:
+            member.save(update_fields=['department'])
         try:
             from ..utils import log_audit_action
             log_audit_action(request.user, 'update', 'Department',
                 object_id=dept.id, object_repr=str(dept),
-                description=f'Removed {member.get_full_name() or member.username} from {dept.name}',
+                description=(
+                    f'Removed {member.get_full_name() or member.username} from {dept.name} '
+                    f'(still in: '
+                    f'{", ".join(member.departments.values_list("name", flat=True)) or "none"})'
+                ),
                 request=request)
         except Exception:
             pass
-        return Response({'status': 'removed', 'user_id': member.id})
+        return Response({
+            'status': 'removed',
+            'user_id': member.id,
+            'departments': list(member.departments.values_list('id', flat=True)),
+        })
 
     @action(detail=True, methods=['get'])
     def members(self, request, pk=None):
@@ -407,7 +439,7 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         from django.contrib.auth import get_user_model
         from ..serializers import UserSerializer
         dept = self.get_object()
-        members = dept.members.select_related('profile').filter(is_active=True)
+        members = dept.members.select_related('profile').prefetch_related('departments').filter(is_active=True)
         serializer = UserSerializer(members, many=True, context={'request': request})
         return Response(serializer.data)
 

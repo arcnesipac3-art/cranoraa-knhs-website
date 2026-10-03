@@ -164,7 +164,7 @@ class UserViewSet(viewsets.ModelViewSet):
         try:
             user = self.request.user
             role = self.request.query_params.get('role')
-            queryset = User.objects.all().select_related('profile').order_by('-date_joined')
+            queryset = User.objects.all().select_related('profile').prefetch_related('departments').order_by('-date_joined')
 
             is_user_admin = (
                 user.role == 'admin'
