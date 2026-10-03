@@ -102,6 +102,19 @@ function TeacherAvatar({ teacher, size = 'card' }) {
   );
 }
 
+/**
+ * Human label for a person's department membership.
+ *
+ * A person may belong to several departments at once, so `department_names`
+ * (every membership) is preferred. `department_name` is the legacy single-FK
+ * mirror — now just the first membership — and remains as the fallback.
+ */
+const deptLabel = (person) => {
+  const names = person?.department_names;
+  if (Array.isArray(names) && names.length) return names.join(', ');
+  return person?.department_name || '';
+};
+
 const Teachers = () => {
   const { user } = useCurrentUser();
   const navigate = useNavigate();
@@ -151,12 +164,15 @@ const Teachers = () => {
   const [departments, setDepartments] = useState([]);
 
   // Only admins may change department membership, so only admins fetch the list.
+  // The full list is fetched (not just active) so an archived department that a
+  // teacher is already in can still be shown and removed — archived ones are
+  // simply never offered as a NEW choice in the modal.
   useEffect(() => {
     if (!isAdminUser) return undefined;
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await api.get('/departments/', { params: { status: 'active' } });
+        const { data } = await api.get('/departments/');
         if (!cancelled) setDepartments(Array.isArray(data) ? data : data?.results || []);
       } catch {
         // Department list is optional; the edit modal degrades to "No department".
@@ -164,6 +180,26 @@ const Teachers = () => {
     })();
     return () => { cancelled = true; };
   }, [isAdminUser]);
+
+  // A teacher's department membership is a many-to-many: they may belong to
+  // several departments at once, and their access is the union of them.
+  const selectedDeptIds = (editingTeacher?.departments
+    ?? (editingTeacher?.department ? [editingTeacher.department] : [])) || [];
+  // Archived departments stay visible when already assigned (so the assignment
+  // can be removed) but are excluded from the list of new choices.
+  const selectableDepartments = departments.filter((d) => d.is_active !== false);
+  const assignedArchived = departments.filter(
+    (d) => d.is_active === false && selectedDeptIds.includes(d.id),
+  );
+
+  const toggleDept = (id) => setEditingTeacher((prev) => {
+    const current = prev.departments
+      ?? (prev.department ? [prev.department] : []);
+    const next = current.includes(id)
+      ? current.filter((x) => x !== id)
+      : [...current, id];
+    return { ...prev, departments: next };
+  });
 
   const STAFF_TITLES = [
     // ── DepEd teaching ranks ──────────────────────────────────────────────
@@ -255,10 +291,11 @@ const Teachers = () => {
           sex: editingTeacher.profile?.sex
         }
       };
-      // Department is organizational only and admin-writable (Decision 2).
+      // Department membership is organizational only and admin-writable.
       // It is never sent for non-admins so a no-op payload can't trip the
-      // serializer's permission guard.
-      if (isAdminUser) payload.department = editingTeacher.department ?? null;
+      // serializer's permission guard. Only `departments` is sent — the legacy
+      // single-FK mirror is derived server-side from the first membership.
+      if (isAdminUser) payload.departments = selectedDeptIds;
 
       await api.patch(`/users/${editingTeacher.id}/`, payload);
       setShowEditModal(false);
@@ -269,7 +306,7 @@ const Teachers = () => {
       console.error('Failed to update teacher:', err);
       const data = err.response?.data;
       toast.error(
-        data?.department?.[0] || data?.detail || data?.error || 'Failed to update teacher'
+        data?.departments?.[0] || data?.department?.[0] || data?.detail || data?.error || 'Failed to update teacher'
       );
     }
   };
@@ -442,7 +479,7 @@ const Teachers = () => {
         'First Name': sanitizeForExport(t.first_name),
         'Email': t.email,
         'Phone': t.profile?.phone_number || '',
-        'Department': sanitizeForExport(t.department_name || ''),
+        'Department': sanitizeForExport(deptLabel(t) || ''),
         'Position': sanitizeForExport(t.staff_title || ''),
         'Employee ID': t.profile?.employee_id || '',
         'Status': t.account_status,
@@ -696,7 +733,7 @@ const Teachers = () => {
         x += colWidths[3];
         
         // Department
-        doc.text(sanitizeForExport(t.department_name || '—').substring(0, 20), x + 2, y);
+        doc.text(sanitizeForExport(deptLabel(t) || '—').substring(0, 20), x + 2, y);
         x += colWidths[4];
         
         // Status
@@ -1159,8 +1196,8 @@ const Teachers = () => {
                     <svg className="w-3 h-3 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    <span className={`text-[9px] truncate ${teacher.department_name ? 'text-slate-500' : 'text-slate-400 italic'}`}>
-                      {teacher.department_name || 'No department'}
+                    <span className={`text-[9px] truncate ${deptLabel(teacher) ? 'text-slate-500' : 'text-slate-400 italic'}`}>
+                      {deptLabel(teacher) || 'No department'}
                     </span>
                     <span
                       className={`ml-auto text-[8px] font-bold px-1.5 py-0.5 rounded-full border flex-shrink-0 ${
@@ -1438,17 +1475,53 @@ const Teachers = () => {
               </ModalField>
             </div>
             {isAdminUser && (
-              <ModalField label="Department" hint="Organizational membership only — it never changes this account's role or permissions.">
-                <select
-                  value={editingTeacher.department ?? ''}
-                  onChange={(e) => setEditingTeacher({ ...editingTeacher, department: e.target.value ? Number(e.target.value) : null })}
-                  className={modalSelectCls}
-                >
-                  <option value="">No department</option>
-                  {departments.map(d => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
+              <ModalField
+                label="Departments"
+                hint="Organizational membership only — it never changes this account's role or permissions. A person may belong to several; their module access is the union of all of them."
+              >
+                <div className="border border-slate-200 rounded-xl p-3 bg-slate-50/60 max-h-44 overflow-y-auto space-y-1">
+                  {selectableDepartments.length === 0 && assignedArchived.length === 0 && (
+                    <p className="text-xs text-slate-400 italic">No departments available.</p>
+                  )}
+                  {selectableDepartments.map(d => (
+                    <label key={d.id} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedDeptIds.includes(d.id)}
+                        onChange={() => toggleDept(d.id)}
+                        className="rounded border-slate-300 text-violet-600"
+                      />
+                      <span className="font-mono text-[10px] text-slate-400 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded">
+                        {d.code}
+                      </span>
+                      <span className="truncate">{d.name}</span>
+                    </label>
                   ))}
-                </select>
+                  {assignedArchived.map(d => (
+                    <label key={d.id} className="flex items-center gap-2 text-sm text-slate-500 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked
+                        onChange={() => toggleDept(d.id)}
+                        className="rounded border-slate-300 text-violet-600"
+                      />
+                      <span className="font-mono text-[10px] text-slate-400 bg-slate-100 border border-slate-200 px-1 py-0.5 rounded">
+                        {d.code}
+                      </span>
+                      <span className="truncate">{d.name}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                        archived
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  {selectedDeptIds.length === 0
+                    ? 'No department — this account is not department-managed.'
+                    : `${selectedDeptIds.length} department${selectedDeptIds.length === 1 ? '' : 's'} selected`}
+                  {' · '}
+                  Archived departments are not offered for new assignments.
+                </p>
               </ModalField>
             )}
           </ModalBody>
