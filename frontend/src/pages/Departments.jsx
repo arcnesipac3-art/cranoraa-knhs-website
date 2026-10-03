@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 import { api } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import ConfirmationDialog from '../components/ui/ConfirmationDialog';
+import { MODULE_KEYS, groupSelected, normalizeGroups, summarizeModules } from '../constants/modules';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const statusBadge = (isActive) =>
@@ -10,10 +11,30 @@ const statusBadge = (isActive) =>
     ? 'bg-emerald-100 text-emerald-700 border-emerald-200'
     : 'bg-slate-100 text-slate-500 border-slate-200';
 
-const EMPTY_FORM = { name: '', code: '', description: '', head: '', is_active: true };
+const moduleToneBadge = (tone) =>
+  tone === 'all'
+    ? 'bg-violet-100 text-violet-700 border-violet-200'
+    : tone === 'none'
+      ? 'bg-slate-100 text-slate-500 border-slate-200'
+      : 'bg-blue-100 text-blue-700 border-blue-200';
+
+const EMPTY_FORM = { name: '', code: '', description: '', head: '', is_active: true, modules: MODULE_KEYS };
+
+/** Compact module-grant badge used in the table. */
+function ModuleCell({ modules }) {
+  const summary = summarizeModules(modules);
+  return (
+    <span
+      title={`${summary.count} of ${MODULE_KEYS.length} modules`}
+      className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap ${moduleToneBadge(summary.tone)}`}
+    >
+      {summary.text}
+    </span>
+  );
+}
 
 // ── Department Form Modal ─────────────────────────────────────────────────────
-function DepartmentModal({ isOpen, onClose, onSave, editing, eligibleHeads }) {
+function DepartmentModal({ isOpen, onClose, onSave, editing, eligibleHeads, moduleGroups }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -26,6 +47,9 @@ function DepartmentModal({ isOpen, onClose, onSave, editing, eligibleHeads }) {
         description: editing.description || '',
         head: editing.head || '',
         is_active: editing.is_active !== false,
+        // The API always returns a concrete effective list; a department that
+        // has never been configured comes back with every module.
+        modules: Array.isArray(editing.modules) ? editing.modules : MODULE_KEYS,
       });
     } else {
       setForm(EMPTY_FORM);
@@ -35,12 +59,26 @@ function DepartmentModal({ isOpen, onClose, onSave, editing, eligibleHeads }) {
 
   if (!isOpen) return null;
 
+  const toggleModule = (key) =>
+    setForm((prev) => ({
+      ...prev,
+      modules: prev.modules.includes(key)
+        ? prev.modules.filter((k) => k !== key)
+        : [...prev.modules, key],
+    }));
+
+  const allSelected = form.modules.length === MODULE_KEYS.length;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSaving(true);
     try {
       const payload = { ...form, head: form.head || null };
+      // Every module selected is stored as NULL ("not yet configured"), so a
+      // department that grants everything keeps granting newly added modules
+      // too, instead of freezing a snapshot of today's list.
+      payload.modules = allSelected ? null : form.modules;
       if (editing) {
         await api.patch(`/departments/${editing.id}/`, payload);
         toast.success('Department updated');
@@ -55,6 +93,7 @@ function DepartmentModal({ isOpen, onClose, onSave, editing, eligibleHeads }) {
       if (data?.name) setError(`Name: ${data.name[0]}`);
       else if (data?.code) setError(`Code: ${data.code[0]}`);
       else if (data?.head) setError(data.head[0]);
+      else if (data?.modules) setError(Array.isArray(data.modules) ? data.modules[0] : data.modules);
       else if (data?.error) setError(data.error);
       else setError('Failed to save. Please try again.');
     } finally {
@@ -64,7 +103,7 @@ function DepartmentModal({ isOpen, onClose, onSave, editing, eligibleHeads }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <h2 className="text-lg font-bold text-slate-900">
             {editing ? 'Edit Department' : 'Create Department'}
@@ -75,7 +114,7 @@ function DepartmentModal({ isOpen, onClose, onSave, editing, eligibleHeads }) {
             </svg>
           </button>
         </div>
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4 overflow-y-auto">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-2 rounded-lg">{error}</div>
           )}
@@ -122,6 +161,58 @@ function DepartmentModal({ isOpen, onClose, onSave, editing, eligibleHeads }) {
                 </option>
               ))}
             </select>
+          </div>
+          {/* ── Module Access ─────────────────────────────────────────────── */}
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-slate-700">Module Access</label>
+              <div className="flex items-center gap-3 text-xs font-semibold">
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, modules: MODULE_KEYS })}
+                  className="text-violet-600 hover:text-violet-800"
+                >
+                  Select all
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm({ ...form, modules: [] })}
+                  className="text-slate-500 hover:text-slate-700"
+                >
+                  Clear all
+                </button>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mb-2">
+              Modules personnel in this department may open. This only ever <em>narrows</em> what
+              their role already allows — it never grants extra access.
+            </p>
+            <div className="border border-slate-200 rounded-lg p-3 space-y-3 max-h-52 overflow-y-auto bg-slate-50/50">
+              {moduleGroups.map((group) => (
+                <div key={group.key}>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-1.5">
+                    {group.label}
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                    {group.modules.map((m) => (
+                      <label key={m.key} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={form.modules.includes(m.key)}
+                          onChange={() => toggleModule(m.key)}
+                          className="rounded border-slate-300 text-violet-600"
+                        />
+                        <span className="truncate">{m.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-slate-500 mt-1.5">
+              <span className="font-semibold text-violet-700">{form.modules.length}</span>
+              {' '}of {MODULE_KEYS.length} modules selected
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <input
@@ -230,6 +321,57 @@ function AssignModal({ isOpen, onClose, onSave, department, eligibleUsers }) {
   );
 }
 
+// ── Module access summary (detail drawer) ─────────────────────────────────────
+function ModuleAccessSummary({ modules }) {
+  const keys = Array.isArray(modules) ? modules : [];
+  const summary = summarizeModules(keys);
+
+  if (summary.tone === 'all') {
+    return (
+      <div className="rounded-xl border border-violet-200 bg-violet-50 px-3 py-2.5">
+        <p className="text-sm font-semibold text-violet-700">{summary.text}</p>
+        <p className="text-xs text-violet-600/80 mt-0.5">
+          This department does not restrict its personnel — they keep everything their role allows.
+        </p>
+      </div>
+    );
+  }
+
+  if (keys.length === 0) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+        <p className="text-sm font-semibold text-slate-600">No modules granted</p>
+        <p className="text-xs text-slate-500 mt-0.5">
+          Personnel here only reach modules granted by another department they also belong to.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2.5">
+      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${moduleToneBadge(summary.tone)}`}>
+        {summary.text}
+      </span>
+      {groupSelected(keys).map((g) => (
+        <div key={g.key}>
+          <p className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mb-1">{g.label}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {g.modules.map((m) => (
+              <span
+                key={m.key}
+                className="px-2 py-0.5 rounded-md bg-violet-50 border border-violet-200 text-violet-700 text-xs font-semibold"
+              >
+                {m.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Department Detail Drawer ──────────────────────────────────────────────────
 function DetailDrawer({ department, onClose, onEdit, onAssign, onRemoveMember, isAdmin }) {
   if (!department) return null;
@@ -279,11 +421,27 @@ function DetailDrawer({ department, onClose, onEdit, onAssign, onRemoveMember, i
             </div>
           </div>
 
+          {/* Module access */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-bold text-slate-700 tracking-wider">Module Access</p>
+              {isAdmin && (
+                <button
+                  onClick={onEdit}
+                  className="text-xs font-semibold text-violet-600 hover:text-violet-800"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+            <ModuleAccessSummary modules={department.modules} />
+          </div>
+
           {/* Members */}
           <div>
             <div className="flex items-center justify-between mb-3">
               <p className="text-xs font-bold text-slate-700 tracking-wider">Personnel</p>
-              {isAdmin && (
+              {isAdmin && department.is_active && (
                 <button
                   onClick={onAssign}
                   className="text-xs font-semibold text-violet-600 hover:text-violet-800 flex items-center gap-1"
@@ -295,6 +453,12 @@ function DetailDrawer({ department, onClose, onEdit, onAssign, onRemoveMember, i
                 </button>
               )}
             </div>
+            {isAdmin && !department.is_active && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-3">
+                This department is archived, so new personnel cannot be assigned to it.
+                Existing assignments and module access are preserved.
+              </p>
+            )}
             {(!department.members || department.members.length === 0) ? (
               <div className="text-center py-8 text-slate-400 text-sm border border-dashed border-slate-200 rounded-xl">
                 No personnel assigned yet
@@ -372,6 +536,11 @@ const Departments = () => {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [eligibleUsers, setEligibleUsers] = useState([]);
 
+  // Grouped module registry for the access editor. Prefers GET /v1/modules/
+  // (the backend's own table) and falls back to the built-in constant, so the
+  // section always renders even if that request fails.
+  const [moduleGroups, setModuleGroups] = useState(() => normalizeGroups(null));
+
   const [confirmArchive, setConfirmArchive] = useState(null);
   const [confirmRemove, setConfirmRemove] = useState(null);
 
@@ -422,6 +591,18 @@ const Departments = () => {
 
   useEffect(() => { fetchDepartments(); }, [fetchDepartments]);
   useEffect(() => { if (isAdmin) fetchEligibleUsers(); }, [fetchEligibleUsers, isAdmin]);
+
+  // Module registry is read-only metadata; a failure just leaves the local
+  // fallback in place rather than blocking the page.
+  useEffect(() => {
+    let cancelled = false;
+    api.get('/modules/')
+      .then(({ data }) => {
+        if (!cancelled) setModuleGroups(normalizeGroups(data?.groups));
+      })
+      .catch(() => { /* keep the built-in fallback */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // Refresh detail drawer when departments reload
   useEffect(() => {
@@ -545,8 +726,10 @@ const Departments = () => {
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="text-left px-5 py-3 text-xs font-bold text-slate-500 tracking-wider">Department</th>
-                <th className="text-left px-5 py-3 text-xs font-bold text-slate-500 tracking-wider hidden md:table-cell">Head</th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-slate-500 tracking-wider hidden sm:table-cell">Code</th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-slate-500 tracking-wider hidden md:table-cell">Department Head</th>
                 <th className="text-center px-5 py-3 text-xs font-bold text-slate-500 tracking-wider hidden sm:table-cell">Personnel</th>
+                <th className="text-center px-5 py-3 text-xs font-bold text-slate-500 tracking-wider hidden lg:table-cell">Modules</th>
                 <th className="text-center px-5 py-3 text-xs font-bold text-slate-500 tracking-wider">Status</th>
                 <th className="text-right px-5 py-3 text-xs font-bold text-slate-500 tracking-wider">Actions</th>
               </tr>
@@ -555,10 +738,12 @@ const Departments = () => {
               {departments.map((dept) => (
                 <tr key={dept.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-5 py-4">
-                    <div>
-                      <p className="font-semibold text-slate-900">{dept.name}</p>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">{dept.code}</p>
-                    </div>
+                    <p className="font-semibold text-slate-900">{dept.name}</p>
+                  </td>
+                  <td className="px-5 py-4 hidden sm:table-cell">
+                    <span className="font-mono text-xs text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
+                      {dept.code}
+                    </span>
                   </td>
                   <td className="px-5 py-4 text-slate-600 hidden md:table-cell">
                     {dept.head_name || <span className="text-slate-300">—</span>}
@@ -567,6 +752,9 @@ const Departments = () => {
                     <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
                       {dept.member_count || 0}
                     </span>
+                  </td>
+                  <td className="px-5 py-4 text-center hidden lg:table-cell">
+                    <ModuleCell modules={dept.modules} />
                   </td>
                   <td className="px-5 py-4 text-center">
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge(dept.is_active)}`}>
@@ -616,6 +804,7 @@ const Departments = () => {
         onSave={fetchDepartments}
         editing={editing}
         eligibleHeads={eligibleUsers}
+        moduleGroups={moduleGroups}
       />
       <AssignModal
         isOpen={assignModalOpen}
