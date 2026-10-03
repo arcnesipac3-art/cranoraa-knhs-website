@@ -68,7 +68,9 @@ const WelcomeBanner = memo(({ user, classrooms = [], data }) => {
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 <span className="inline-flex items-center gap-1 text-[11px] font-bold text-violet-200 bg-white/10 px-2 py-0.5 rounded-full">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                  {user?.department || 'Teacher'}
+                  {/* user.department is the raw FK id; department_name is the label
+                      exposed by UserSerializer on the auth responses. */}
+                  {user?.department_name || 'Teacher'}
                 </span>
                 {currentTerm && (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-violet-200 bg-white/10 px-2 py-0.5 rounded-full">
