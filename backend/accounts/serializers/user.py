@@ -182,9 +182,13 @@ class UserSerializer(serializers.ModelSerializer):
                 'Students and parents cannot be assigned to a department.'
             )
 
-        # 3. No new members for archived departments.
+        # 3. No NEW members for archived departments. A department the user is
+        #    already in may stay in the payload: keeping a historical membership
+        #    is not a new assignment, and rejecting it would make the record
+        #    un-editable (or silently drop it) the moment anyone changed an
+        #    unrelated membership alongside it.
         for dept in value:
-            if not dept.is_active:
+            if not dept.is_active and dept.id not in current_ids:
                 raise serializers.ValidationError(
                     f'Department "{dept.name}" is archived and cannot receive members.'
                 )
