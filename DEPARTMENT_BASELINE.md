@@ -436,3 +436,103 @@ department label fixed.
 3. **Staff nav is read-only:** staff see Departments but no write controls, matching
    `IsAdminOrStaff` READ / `IsAdmin` WRITE.
 4. Pre-existing issues above remain, by design.
+
+---
+
+# DEPARTMENT & MODULE ACCESS SYSTEM — IMPLEMENTATION REPORT
+
+A separate, later feature than the phases above. Six commits on `main`, all local.
+
+## Decisions taken while implementing
+
+| § | Decision |
+|---|---|
+| 11-A | Departments only ever **restrict**: `access = role_permits AND (admin OR module ∈ departments)`. The module layer can never grant. |
+| §4 | SF9/SF10 excluded (not routed). Student Records, Records Requests, Reports, School Overview, SF1/2/5 also absent from the registry — no modules were invented for them. |
+| §7 | Code-side module registry (`accounts/modules.py`) + a JSON column on `Department`, so it works on SQLite and Postgres alike. |
+| §8 | Dropping `User.department_id` deferred; it stays as a mirror of the first membership. |
+| §5 | All six phases executed. |
+
+Semantics (documented in `accounts/access.py`):
+
+* admin (`role=='admin'` / `is_admin` / `is_superuser`) → everything, mirroring `IsAdmin` so administrators cannot be locked out;
+* students/parents → everything (never department members);
+* staff with **no** departments, or only departments never configured → everything, so deploying this changes nothing for existing data;
+* otherwise the **union** of every department, deduplicated. `module_keys == []` grants nothing; `module_keys is NULL` grants everything.
+
+Enforcement composes into `APIView.check_permissions` once from `apps.ready()`
+rather than using `DEFAULT_PERMISSION_CLASSES` — ~99 views here declare their own
+`permission_classes`, which would override a DRF default and silently stay ungated.
+The original runs first, so existing auth and role error messages are unchanged.
+
+## Commits
+
+| Commit | Phase |
+|---|---|
+| `6ac3d6e` | 1 — `User.department` FK → `departments` M2M, hand-written `0159`, backfill, assign/remove, serializer |
+| `11a11e3` | 2 — 25-module registry, `Department.module_keys` + `0160`, `GET /api/v1/modules/` |
+| `6ba72fc` | 3 — `accounts/access.py`: effective access, viewset/URL maps, the request gate |
+| `21a1eb4` | 4 — Departments page columns, module-access editor, drawer, archived handling |
+| `0f10a74` | 4b — multi-department assignment in User Management |
+| `37f24dc` | 5 — `effective_modules` on `/profile/`, sidebar filtering, route guard |
+| `ada563d` | 6 — archived-membership bug fix + the 10 acceptance tests |
+
+## Verification
+
+Backend — `manage.py check` exit 0, no migration drift on my fields:
+
+| Suite | Result |
+|---|---|
+| `_t_phase1_0159.py` (migration/schema/backfill) † | 18/18 |
+| `_t_phase1_api.py` (M2M API) † | 24/24 |
+| `_t_phase2_modules.py` (registry + serializer) † | 34/34 |
+| `_t_phase3_access.py` (enforcement) † | 71/71 |
+| `verify_department_module_access.py` (the spec's 10 tests + endpoint-map integrity) | 66/66 |
+
+† Development suite, removed in cleanup along with the scratch DB it needed.
+The endpoint-map integrity checks and the access/security semantics they covered
+were folded into `verify_department_module_access.py`, which is committed and
+re-runnable against any migrated database — 213 assertions passed in total.
+
+Frontend:
+
+| Gate | Baseline | Result |
+|---|---|---|
+| `npm run build` (tsc + vite) | PASS | PASS, exit 0 |
+| eslint `--quiet` | 333 errors | **330** errors (no regression) |
+| `npm test` | 19 fail / 93 pass | 19 fail (same two files) / **115 pass** (+22 new) |
+
+The 19 failures are entirely `src/pages/Login.test.jsx` (17) and
+`src/utils/lazyImport.test.ts` (2), both pre-existing and untouched.
+
+## The spec's 10 tests → where they are covered
+
+| # | Test | Covered by |
+|---|---|---|
+| 1 | Create a department with module access | T1 (incl. NULL = unconfigured) |
+| 2 | Personnel in multiple departments | T2 (assign adds, PATCH list, FK mirror) |
+| 3 | Effective access = union, deduplicated | T3 (and `_t_phase3_access.py` during development) |
+| 4 | No access via direct URL | T4 (403 + module message, and re-opens) |
+| 5 | Remove module access | T5 (module and whole department) |
+| 6 | Change departments → change access | T6 |
+| 7 | Archive a department | T7 (history kept, no new members, not selectable) |
+| 8 | Role independence | T8 (role/is_admin/superuser; role can't ride along) |
+| 9 | Security | T9 (no escalation; students/parents excluded; writes admin-only) |
+| 10 | Regression | T10 + the four earlier suites + the frontend gates |
+
+## Bug found and fixed by test 7
+
+`validate_departments` rejected an archived department **unconditionally**, so a
+person already in an archived department could not be edited at all — keeping
+their historical membership alongside a new one was rejected. Now only archived
+departments the user is *not already in* are refused, which is what
+"archived departments not selectable for new assignments" actually means.
+
+## Temp files (removed in cleanup)
+
+`scratch_settings.py`, `db_scratch.sqlite3`, `_inspect_db.py`, `_inspect_perms.py`,
+`_probe_view.py`, `_t_phase1_0159.py`, `_t_phase1_api.py`, `_t_phase2_modules.py`,
+`_t_phase3_access.py`.
+
+`frontend/src/pages/Analytics.jsx` and `scripts/find-orphans.js` belong to the
+concurrent process and were never staged.
