@@ -520,6 +520,33 @@ The 19 failures are entirely `src/pages/Login.test.jsx` (17) and
 | 9 | Security | T9 (no escalation; students/parents excluded; writes admin-only) |
 | 10 | Regression | T10 + the four earlier suites + the frontend gates |
 
+## Why 3 modules have no staff-enforced endpoint
+
+Audited for coverage: 22 of the 25 registry modules map to at least one
+enforced backend endpoint. The other three are deliberately not gaps:
+
+| Module | Why it needs no department gate |
+|---|---|
+| `attendance-audit` | The only endpoint (`Attendance.audit_trail`) does `if role != 'admin': 403` inside the view, and its route is `roles: [Role.ADMIN]`. Only admins reach it, and admins bypass the module layer. |
+| `moderation` | Not a route at all — it is a *tab inside* `/system-admin` (`SystemAdminHub.jsx`). The tab and the hub are both `roles: [Role.ADMIN]`. |
+| `system-admin` | Route is `roles: [Role.ADMIN]`. Its data tabs (`audit-logs`, `backups`, `website-editor`, `system-health`) are each separately enforced. |
+
+Under §11-A the role layer runs first and is authoritative, so a department can
+never restrict something only admins can reach. Gating these would be dead code.
+
+Auditing the converse direction turned up the same answer from the other side:
+every path in the frontend's `ROUTE_MODULES` that a **staff** account can
+actually open maps to a module the backend enforces, so nobody is shown a nav
+entry that would 403. Unenforced viewsets (`assignment`, `material`, `ticket`,
+`transcript`, `record-request`, …) have no registry module by §4 — they stay
+role-gated exactly as before rather than having modules invented for them.
+
+`chat-report` is mapped to `messages` rather than `moderation` on purpose: only
+`Moderation.jsx` consumes it, but `ReportedMessageViewSet` is `IsAuthenticated`
+and lets any user see *their own* reports, so it belongs to the messaging
+experience; moderating other people's reports is admin-only anyway. Students
+and parents are exempt from the module layer, so filing a report never breaks.
+
 ## Bug found and fixed by test 7
 
 `validate_departments` rejected an archived department **unconditionally**, so a
