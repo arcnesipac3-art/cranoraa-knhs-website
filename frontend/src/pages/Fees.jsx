@@ -219,13 +219,14 @@ function FeeModal({ isOpen, onClose, onSave, editing, students }) {
 
 // ── Delete Confirmation ──────────────────────────────────────────────────────
 function DeleteConfirm({ isOpen, onClose, onConfirm, fee }) {
+  if (!fee) return null;
   return (
     <ConfirmationDialog
       isOpen={isOpen}
       onClose={onClose}
       onConfirm={onConfirm}
       title="Delete Fee"
-      message={`Are you sure you want to delete the ${feeTypeLabel(fee.fee_type)} for {fee.student_name || 'this student'}? This action cannot be undone.`}
+      message={`Are you sure you want to delete the ${feeTypeLabel(fee.fee_type)} for ${fee.student_name || 'this student'}? This action cannot be undone.`}
       confirmText="Delete"
       variant="danger"
     />
