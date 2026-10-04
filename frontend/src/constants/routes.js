@@ -55,6 +55,7 @@ const ClassroomHub = lazy(() => retryImport(() => import('../pages/ClassroomHub'
 const ScheduleManagement = lazy(() => retryImport(() => import('../pages/ScheduleManagement')));
 const Analytics = lazy(() => retryImport(() => import('../pages/Analytics')));
 const Fees = lazy(() => retryImport(() => import('../pages/Fees')));
+const MyFees = lazy(() => retryImport(() => import('../pages/MyFees')));
 
 // Grade Management
 const GradeManagementAdmin = lazy(() => retryImport(() => import('../pages/GradeManagementAdmin')));
@@ -135,6 +136,7 @@ export const protectedRoutes = [
   { path: 'analytics',      element: Analytics,     roles: [Role.ADMIN] },
   { path: 'my-classes', element: ClassroomHub, roles: [Role.STAFF, Role.STUDENT] },
   { path: 'my-schedule', element: MySchedule, roles: [Role.STAFF, Role.STUDENT] },
+  { path: 'my-fees', element: MyFees, roles: [Role.STUDENT, Role.PARENT] },
 
   // Grade Management Module
   { path: 'grade-management', element: GradeManagementAdmin, roles: [Role.ADMIN, Role.STAFF] },
