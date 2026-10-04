@@ -4,7 +4,8 @@
   "private": true,
   "description": "KNHS School Portal - Monorepo",
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky",
+    "audit:orphans": "node scripts/find-orphans.js"
   },
   "devDependencies": {
     "husky": "^9.1.7",
