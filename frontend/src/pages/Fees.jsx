@@ -252,8 +252,14 @@ export default function Fees() {
         api.get('/fees/'),
         api.get('/users/', { params: { role: 'student', limit: 1000 } }),
       ]);
-      // Sanitize: remove any null/undefined fee objects from API response
-      const cleanFees = (feesRes.data || []).filter(f => f && typeof f === 'object');
+      // Sanitize: remove null/undefined objects AND objects missing required fields
+      const cleanFees = (feesRes.data || []).filter(f =>
+        f &&
+        typeof f === 'object' &&
+        f.fee_type != null &&
+        f.status != null &&
+        f.amount != null
+      );
       setFees(cleanFees);
       setStudents(studentsRes.data.results || studentsRes.data);
     } catch (err) {
@@ -416,7 +422,7 @@ export default function Fees() {
         {filteredFees.length === 0 ? (
           <div className="p-12 text-center">
             <svg className="mx-auto h-12 w-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599 1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <h3 className="mt-2 text-lg font-medium text-slate-900">No fees found</h3>
             <p className="mt-1 text-slate-500">Try adjusting your filters or create a new fee.</p>
