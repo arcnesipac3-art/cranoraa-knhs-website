@@ -9,7 +9,7 @@ from .chat import (
 from .announcements import Announcement, AnnouncementAttachment, AnnouncementComment
 from .attendance import Attendance, AbsenceExcuse, AttendanceDeadline, AttendanceAuditLog, SchoolCalendar
 from .learning import LearningMaterial
-from .finance import ScratchCard, Fee
+from .finance import ScratchCard, Fee, FeeType, Payment
 from .notifications import Notification, NotificationPreference, FCMToken
 from .enrollment import (
     EnrollmentApplication, EnrollmentDocument, EnrollmentStatusHistory,

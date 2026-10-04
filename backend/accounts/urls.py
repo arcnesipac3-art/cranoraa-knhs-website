@@ -6,7 +6,7 @@ from .views import (
     admin_create_user_view, force_password_change_view, change_password_view, user_profile, student_profile,
     teacher_dashboard_stats, student_dashboard_stats, ClassroomViewSet, StudentClassEnrollmentViewSet, UserViewSet,
     AnnouncementViewSet, AttendanceViewSet, LearningMaterialViewSet, SubjectViewSet,
-    ClassroomSubjectViewSet, ScratchCardViewSet, FeeViewSet, NotificationViewSet,
+    ClassroomSubjectViewSet, ScratchCardViewSet, FeeViewSet, FeeTypeViewSet, NotificationViewSet,
     EnrollmentApplicationViewSet, AssignmentViewSet, SubmissionViewSet, WebsiteContentViewSet, GradeViewSet, GradeReportViewSet,
     ChatRoomViewSet, ChatMessageViewSet, ReportedMessageViewSet, admin_dashboard_stats, grade_distribution_stats, check_result, public_announcements_view,
     student_calendar_view, notifications_polling_view, system_metrics_view,
@@ -49,6 +49,7 @@ router.register(r'v1/subjects', SubjectViewSet, basename='subject')
 router.register(r'v1/classroom-subjects', ClassroomSubjectViewSet, basename='classroom-subject')
 router.register(r'v1/scratch-cards', ScratchCardViewSet, basename='scratch-card')
 router.register(r'v1/fees', FeeViewSet, basename='fee')
+router.register(r'v1/fee-types', FeeTypeViewSet, basename='fee-type')
 router.register(r'v1/notifications', NotificationViewSet, basename='notification')
 router.register(r'v1/enrollment-applications', EnrollmentApplicationViewSet, basename='enrollment-application')
 router.register(r'v1/assignments', AssignmentViewSet, basename='assignment')

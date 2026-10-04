@@ -30,6 +30,7 @@ from .academic import (
     ClassroomSubjectViewSet,
     ScratchCardViewSet,
     FeeViewSet,
+    FeeTypeViewSet,
 )
 
 from .grades import (

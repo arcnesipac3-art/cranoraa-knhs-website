@@ -527,7 +527,7 @@ def pending_fees(request):
         'student', 'student__profile'
     ).values(
         'id', 'student__first_name', 'student__last_name', 'student__username',
-        'student__profile__grade_level', 'amount', 'amount_paid', 'fee_type', 'due_date'
+        'student__profile__grade_level', 'amount', 'amount_paid', 'fee_type__name', 'due_date'
     )[:20]
     
     result = []
@@ -539,7 +539,7 @@ def pending_fees(request):
             'student_name': name,
             'grade_section': f['student__profile__grade_level'] or 'N/A',
             'balance': balance,
-            'fee_type': f['fee_type'],
+            'fee_type': f['fee_type__name'],
             'due_date': f['due_date'],
         })
     return Response(result)

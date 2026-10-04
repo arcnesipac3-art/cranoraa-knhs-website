@@ -14,7 +14,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from accounts.models import Fee
+from accounts.models import Fee, FeeType
 
 User = get_user_model()
 
@@ -22,6 +22,8 @@ User = get_user_model()
 class FeeBulkCreateTests(TestCase):
     def setUp(self):
         self.client = APIClient()
+        # Migration 0161 seeds the five legacy fee types.
+        self.tuition = FeeType.objects.get(code='TUITION')
         self.admin = User.objects.create_user(
             username='admin_feebulk', password='pass', role='admin', is_staff=True, is_approved=True
         )
@@ -45,9 +47,9 @@ class FeeBulkCreateTests(TestCase):
     def payload(self, **overrides):
         data = {
             'student_ids': [self.student1.id, self.student2.id, self.student3.id],
-            'fee_type': 'tuition',
+            'fee_type': self.tuition.id,
             'amount': '1500.00',
-            'amount_paid': 0,
+            'amount_paid': 0,  # read-only now: must be ignored, not rejected
             'due_date': self.due.isoformat(),
             'description': 'Final tuition',
         }
@@ -63,7 +65,7 @@ class FeeBulkCreateTests(TestCase):
         self.assertEqual(Fee.objects.count(), 3)
 
         fee = Fee.objects.get(student=self.student1)
-        self.assertEqual(fee.fee_type, 'tuition')
+        self.assertEqual(fee.fee_type_id, self.tuition.id)
         self.assertEqual(fee.amount, Decimal('1500.00'))
         self.assertEqual(fee.amount_paid, Decimal('0'))
         self.assertEqual(fee.status, 'unpaid')  # derived by Fee.save()
@@ -71,7 +73,7 @@ class FeeBulkCreateTests(TestCase):
 
     def test_re_run_skips_students_already_billed(self):
         Fee.objects.create(
-            student=self.student1, fee_type='tuition',
+            student=self.student1, fee_type=self.tuition,
             amount=Decimal('1500.00'), due_date=self.due,
         )
         self.client.force_authenticate(user=self.admin)
@@ -135,7 +137,7 @@ class FeeBulkCreateTests(TestCase):
         self.client.force_authenticate(user=self.student1)
         res = self.client.post('/api/v1/fees/', {
             'student': self.student1.id,
-            'fee_type': 'tuition',
+            'fee_type': self.tuition.id,
             'amount': '100.00',
             'due_date': self.due.isoformat(),
         }, format='json')
@@ -144,11 +146,11 @@ class FeeBulkCreateTests(TestCase):
 
     def test_student_cannot_edit_own_fee_but_can_read_it(self):
         fee = Fee.objects.create(
-            student=self.student1, fee_type='tuition',
+            student=self.student1, fee_type=self.tuition,
             amount=Decimal('500.00'), due_date=self.due,
         )
         Fee.objects.create(
-            student=self.student2, fee_type='tuition',
+            student=self.student2, fee_type=self.tuition,
             amount=Decimal('500.00'), due_date=self.due,
         )
 

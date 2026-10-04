@@ -622,3 +622,89 @@ Gates for this feature: `manage.py check` 0 issues; fee tests 10/10;
 `npm run build` PASS; `eslint src/pages/Fees.jsx` 0 problems;
 `vitest --run` 19 fail / 115 pass (baseline unchanged: `Login.test.jsx` 17 +
 `lazyImport.test.ts` 2).
+
+---
+
+# Fee Management Module Improvement (fee-type catalog + payment history)
+
+Separates the three concepts the old screen conflated — **fee type** (what the
+school charges for), **student charge** (what one student owes), and
+**payment** (money actually collected) — without redesigning the page. Purple
+identity, white cards, existing typography/spacing untouched; no new UI
+libraries, no mock data, no hard-coded amounts/grades/academic years.
+
+## Data model & migration `0161_fee_payment_models`
+
+- **`FeeType`** (new): name/code/`is_active`, surfaced at `/api/v1/fee-types/`.
+  `Fee.fee_type` converts free-text char → FK: temp FK column, backfill the 5
+  legacy strings to seeded rows, drop the char column, rename, `NOT NULL`.
+- **`Fee.academic_year`** (FK → `AcademicYear`, `SET_NULL`) + `term` — charges
+  now belong to a school year, backfilled from the active SY then the
+  SystemSetting name; reversing that step loses the mapping (accepted, noted
+  at review).
+- **`Payment`** (new): immutable ledger (no edit/delete endpoints) with
+  amount/date/method/reference/`recorded_by`; `Fee.refresh_payment_totals()`
+  recomputes `amount_paid` and `Fee.save()` derives status
+  (unpaid/partial/paid).
+- Legacy `amount_paid > 0` backfilled into one marker Payment row
+  (`recorded_by=null`, note "Migrated from legacy amount_paid
+  (pre-payment-history data).") so history is uniform — reversible by plain
+  delete. Migration verified forward **and** reverse on the dev DB.
+
+## API
+
+- `GET|POST /v1/fees/{id}/payments/` (one `charge_payments` action; POST gated
+  `IsAdminOrStaff` through method-aware `get_permissions`) and
+  `GET /v1/fees/payments/` global list role-scoped via the shared
+  `_fee_scoped_student_ids()`; filters `?academic_year` (name string),
+  `?student`, `?charge`, `?method`, `?date_from/to`, `?search` (student
+  username/name/email/reg-no, reference, fee-type name).
+- `PaymentSerializer.validate` refuses amounts above the remaining balance —
+  **the server is authoritative**; the modal's client cap is only a UX guard.
+- Destroy guards answer 400: charges with payments ("Payment history must be
+  preserved"), fee types referenced by charges ("Deactivate the type
+  instead"). Bulk create defaults `academic_year` to the active SY and
+  labels results by fee-type name; `FeeTypeViewSet` audits every write;
+  nested `payments` fetched with `Prefetch` + `select_related` (anti-N+1);
+  legacy `pending_fees` fixed to `fee_type__name`.
+
+## Frontend
+
+`Fees.jsx` is a thin orchestrator over `pages/fees/`: `ChargeModal`,
+`BulkAssignModal`, `RecordPaymentModal`, `StudentDrawer`, `PaymentsView`,
+`FeeTypesView`, `feeHelpers.js` (paged fetch, ₱0.00 formatting, status
+badges). Three tabs (Charges / Payments / Fee Types, proper `role="tab"`),
+school-year selector bound to the shared `useAcademicYear` context (changes
+app-wide, like `GradeInput`), honest stats, filters + "More filters",
+skeleton only on initial load, mobile cards, descriptive aria-labels.
+`amount_paid`/`status`/`paid_date` are read-only everywhere — the edit modal
+shows "₱500.00 collected so far via 1 payment — amount paid is derived from
+payment history and cannot be edited here." Reuses
+`EmptyState`/`Skeleton`/`ConfirmationDialog` and react-hot-toast.
+
+## Verification
+
+- **Backend**: `manage.py check` 0; fee tests **39/39** (`test_fee_bulk` 10
+  updated + `test_fee_payments` 29 new); full suite **193 → 79 pass / 29
+  fail / 85 error** = exact pre-change baseline + 29 new passes, zero
+  regressions (run twice, same result).
+- **Frontend**: `npm run build` PASS (incl. `page-fees-paymentsview` chunk);
+  eslint on every touched file 0; `vitest --run` 19 fail / 115 pass
+  (baseline unchanged).
+- **Live smoke** (Django `:8000` + Vite `:5173`, seeded admin, real browser,
+  241 requests audited): page renders with zero JS console errors; charge
+  create → 201 with SY auto-attached; over-cap payment blocked client-side
+  (red input, "Cannot exceed ₱1,500.00", submit disabled) and server-side
+  (unit tests); ₱500 GCash payment → 201, drawer flips to Partially Paid
+  with PAYMENT HISTORY (1); `GET /fees/payments/?academic_year=2026-2027`
+  → 200 (no pk collision with `fees/{id}`); fee-type delete guard → 400
+  with the server's message surfaced as a toast; charge-with-payment delete
+  → 400; both happy-path deletes → 204; activate/deactivate PATCH round-trip
+  → 200; charge edit prefilled + PATCH 200; SY selector "All school years"
+  → bare `?page=1` 200; method filter empties and restores. Only expected
+  failures: favicon 404s, the intentional 400s, one token-refresh
+  401 → refresh → retried 400 (existing axios interceptor).
+- **Left alone (pre-existing)**: `makemigrations --check` drift (Friendship,
+  badge/announcement, portal — no fee/payment/academic-year drift added),
+  `Classroom.academic_year` physical FK target from `0114`, 267 repo-wide
+  eslint errors.

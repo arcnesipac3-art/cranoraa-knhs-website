@@ -5,18 +5,20 @@ from rest_framework.response import Response
 from django.utils import timezone
 from datetime import timedelta
 import datetime
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count, F, Prefetch
 from ..serializers import (
     UserSerializer, ClassroomSerializer, StudentClassEnrollmentSerializer,
     AnnouncementSerializer, AnnouncementCommentSerializer, AttendanceSerializer,
     LearningMaterialSerializer, SubjectSerializer, ClassroomSubjectSerializer,
-    ScratchCardSerializer, FeeSerializer, EnrollmentWaitlistSerializer,
+    ScratchCardSerializer, FeeSerializer, FeeTypeSerializer,
+    PaymentSerializer, EnrollmentWaitlistSerializer,
     AbsenceExcuseSerializer, full_name,
 )
 from ..models import (
     User, Profile, Classroom, StudentClassEnrollment, Announcement, AnnouncementAttachment,
     AnnouncementComment, Attendance, LearningMaterial, Subject, ClassroomSubject, ScratchCard,
-    Fee, Notification, EnrollmentApplication, SystemSetting, Schedule, FCMToken,
+    Fee, FeeType, Payment, AcademicYear, Notification, EnrollmentApplication,
+    SystemSetting, Schedule, FCMToken,
     AbsenceExcuse, EnrollmentWaitlist, EnrollmentStatusHistory,
 )
 from ..permissions import IsAdmin, IsAdminOrStaff
@@ -2351,11 +2353,125 @@ class ScratchCardViewSet(viewsets.ModelViewSet):
         return queryset
 
 
+def _fee_scoped_student_ids(user):
+    """Student ids a role may see financial records for.
+
+    Returns ``None`` when the role is unrestricted (admin and anything else),
+    mirroring the original FeeViewSet role scoping. Used by both the charge
+    and the payment querysets so the two can never drift apart.
+    """
+    if user.role == 'student':
+        return [user.id]
+    if user.role == 'parent':
+        profile = getattr(user, 'profile', None)
+        return list(profile.linked_students.values_list('id', flat=True)) if profile else []
+    if user.role == 'staff':
+        teacher_classrooms = Classroom.objects.filter(teacher=user)
+        return list(StudentClassEnrollment.objects.filter(
+            classroom__in=teacher_classrooms
+        ).values_list('student_id', flat=True).distinct())
+    return None
+
+
+class FeeTypeViewSet(viewsets.ModelViewSet):
+    """Fee type catalog — what the school charges for (Tuition, Lab, ...).
+
+    Reads are open to any authenticated account so other modules can label
+    charges; create/update/delete require admin/staff, mirroring the
+    [ADMIN, STAFF] gate on the frontend /fees route. A type with charges
+    attached cannot be deleted (400) so historical labels never vanish —
+    deactivate it instead. PROTECT on the FK is the DB-level backstop.
+    """
+    serializer_class = FeeTypeSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name', 'code']
+
+    def get_permissions(self):
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
+            return [IsAdminOrStaff()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        qs = FeeType.objects.all().annotate(charges_count=Count('fees'))
+        active = self.request.query_params.get('active')
+        if active in ('true', 'false'):
+            qs = qs.filter(is_active=(active == 'true'))
+        return qs
+
+    def destroy(self, request, *args, **kwargs):
+        fee_type = self.get_object()
+        charges = fee_type.fees.count()
+        if charges:
+            return Response(
+                {
+                    'error': (
+                        f'Cannot delete "{fee_type.name}": {charges} charge(s) still '
+                        f'reference it. Deactivate the type instead.'
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        fee_type = serializer.save()
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='create',
+                model_name='FeeType',
+                object_id=fee_type.id,
+                object_repr=str(fee_type),
+                description=f'Created fee type "{fee_type.name}" (code {fee_type.code})',
+                request=self.request,
+            )
+        except Exception as audit_err:
+            logger.warning(f"Audit log failed on fee type create: {audit_err}")
+
+    def perform_update(self, serializer):
+        fee_type = serializer.save()
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='update',
+                model_name='FeeType',
+                object_id=fee_type.id,
+                object_repr=str(fee_type),
+                description=(
+                    f'Updated fee type "{fee_type.name}" '
+                    f'({"active" if fee_type.is_active else "inactive"})'
+                ),
+                request=self.request,
+            )
+        except Exception as audit_err:
+            logger.warning(f"Audit log failed on fee type update: {audit_err}")
+
+    def perform_destroy(self, instance):
+        name = instance.name
+        instance.delete()
+        try:
+            log_audit_action(
+                user=self.request.user,
+                action='delete',
+                model_name='FeeType',
+                object_id=None,
+                object_repr=name,
+                description=f'Deleted unused fee type "{name}"',
+                request=self.request,
+            )
+        except Exception as audit_err:
+            logger.warning(f"Audit log failed on fee type delete: {audit_err}")
+
+
 class FeeViewSet(viewsets.ModelViewSet):
     serializer_class = FeeSerializer
     permission_classes = [IsAuthenticated]
     filter_backends = [filters.SearchFilter]
-    search_fields = ['student__username']
+    search_fields = [
+        'student__username', 'student__first_name', 'student__last_name',
+        'student__email', 'student__profile__registration_number', 'fee_type__name',
+    ]
 
     def get_permissions(self):
         # Writes (single and bulk) require admin/staff — this mirrors the
@@ -2364,45 +2480,63 @@ class FeeViewSet(viewsets.ModelViewSet):
         # see their own fees, parents their linked students', staff their
         # advisory students'). Previously ANY authenticated account could
         # create/edit fees, including marking its own fees as paid.
+        # Recording a payment is a write too, but its GET side must stay
+        # readable by the charge's own student — hence the method check.
         if self.action in ('create', 'update', 'partial_update', 'destroy', 'bulk_create'):
+            return [IsAdminOrStaff()]
+        if self.action == 'charge_payments' and self.request.method != 'GET':
             return [IsAdminOrStaff()]
         return [IsAuthenticated()]
 
     def get_queryset(self):
         user = self.request.user
-        queryset = Fee.objects.select_related('student')
-        student_id = self.request.query_params.get('student')
-        status = self.request.query_params.get('status')
-        fee_type = self.request.query_params.get('fee_type')
+        # Prefetch payments WITH their charge/fee_type/student so the nested
+        # PaymentSerializer (student_name, fee_type_name) never N+1s.
+        payments_with_charge = Prefetch(
+            'payments',
+            queryset=Payment.objects.select_related('charge__student', 'charge__fee_type'),
+        )
+        queryset = Fee.objects.select_related(
+            'student', 'fee_type', 'academic_year'
+        ).prefetch_related(payments_with_charge)
 
-        if user.role == 'student':
-            queryset = queryset.filter(student=user)
-        elif user.role == 'parent':
-            profile = getattr(user, 'profile', None)
-            linked_student_ids = profile.linked_students.values_list('id', flat=True) if profile else []
-            queryset = queryset.filter(student_id__in=linked_student_ids)
-        elif user.role == 'staff':
-            teacher_classrooms = Classroom.objects.filter(teacher=user)
-            student_classroom_ids = StudentClassEnrollment.objects.filter(
-                classroom__in=teacher_classrooms
-            ).values_list('student_id', flat=True).distinct()
-            queryset = queryset.filter(student_id__in=student_classroom_ids)
+        scoped_ids = _fee_scoped_student_ids(user)
+        if scoped_ids is not None:
+            queryset = queryset.filter(student_id__in=scoped_ids)
+
+        student_id = self.request.query_params.get('student')
+        fee_status = self.request.query_params.get('status')
+        fee_type = (self.request.query_params.get('fee_type') or '').strip()
+        academic_year = (self.request.query_params.get('academic_year') or '').strip()
+        term = (self.request.query_params.get('term') or '').strip()
 
         if student_id:
             queryset = queryset.filter(student_id=student_id)
-        if status:
-            queryset = queryset.filter(status=status)
+        if fee_status:
+            queryset = queryset.filter(status=fee_status)
         if fee_type:
-            queryset = queryset.filter(fee_type=fee_type)
+            # Accepts either a FeeType id (what the UI sends) or a type
+            # name/code (keeps old bookmarks/scripts working).
+            if fee_type.isdigit():
+                queryset = queryset.filter(fee_type_id=int(fee_type))
+            else:
+                queryset = queryset.filter(
+                    Q(fee_type__name__iexact=fee_type) | Q(fee_type__code__iexact=fee_type)
+                )
+        if academic_year:
+            queryset = queryset.filter(academic_year__name=academic_year)
+        if term.isdigit():
+            queryset = queryset.filter(term=int(term))
         return queryset
 
     @action(detail=False, methods=['post'], url_path='bulk-create')
     def bulk_create(self, request):
         """Assign one fee to many students in a single request.
 
-        Payload: ``student_ids`` plus the shared fee fields (``fee_type``,
-        ``amount``, ``amount_paid``, ``status``, ``due_date``,
-        ``description``). The shared fields are validated once through
+        Payload: ``student_ids`` plus the shared fee fields (``fee_type`` as a
+        FeeType id, ``amount``, ``due_date``, ``description``, optional
+        ``academic_year``/``term`` — academic_year defaults to the active
+        school year). The shared fields are validated once through
         FeeSerializer; every target must be a student; existing
         (student, fee_type, due_date) rows are skipped so re-running the same
         assignment never double-bills. Creation happens in one transaction and
@@ -2437,12 +2571,15 @@ class FeeViewSet(viewsets.ModelViewSet):
             )
 
         # Validate the shared fee fields once, probed against a real student.
+        # academic_year defaults to the active school year so charges are
+        # always attached to an SY even if the client omits it.
+        active_year = AcademicYear.objects.filter(is_active=True).first()
         probe = {
             'student': next(iter(students)),
             'fee_type': request.data.get('fee_type'),
+            'academic_year': request.data.get('academic_year') or (active_year.pk if active_year else None),
+            'term': request.data.get('term') or None,
             'amount': request.data.get('amount'),
-            'amount_paid': request.data.get('amount_paid', 0),
-            'status': request.data.get('status', 'unpaid'),
             'due_date': request.data.get('due_date'),
             'description': request.data.get('description') or '',
         }
@@ -2473,7 +2610,7 @@ class FeeViewSet(viewsets.ModelViewSet):
                 fee.save()  # Fee.save() derives status from amount_paid
                 created_ids.append(fee.id)
 
-        fee_label = dict(Fee.FEE_TYPE_CHOICES).get(shared['fee_type'], shared['fee_type'])
+        fee_label = shared['fee_type'].name if shared.get('fee_type') else 'Fee'
         try:
             log_audit_action(
                 user=request.user,
@@ -2501,7 +2638,14 @@ class FeeViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
+        # Charges are always tied to a school year; default to the active one
+        # when the client doesn't send one.
+        if not serializer.validated_data.get('academic_year'):
+            active_year = AcademicYear.objects.filter(is_active=True).first()
+            if active_year is not None:
+                serializer.validated_data['academic_year'] = active_year
         fee = serializer.save()
+        student_username = fee.student.username if fee.student else 'unknown'
         try:
             log_audit_action(
                 user=self.request.user,
@@ -2509,7 +2653,7 @@ class FeeViewSet(viewsets.ModelViewSet):
                 model_name='Fee',
                 object_id=fee.id,
                 object_repr=str(fee),
-                description=f'Created {fee.get_fee_type_display()} fee of {fee.amount} for {fee.student.username}',
+                description=f'Created {fee.fee_type.name} fee of {fee.amount} for {student_username}',
                 request=self.request
             )
         except Exception as audit_err:
@@ -2517,6 +2661,7 @@ class FeeViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         fee = serializer.save()
+        student_username = fee.student.username if fee.student else 'unknown'
         try:
             log_audit_action(
                 user=self.request.user,
@@ -2524,16 +2669,34 @@ class FeeViewSet(viewsets.ModelViewSet):
                 model_name='Fee',
                 object_id=fee.id,
                 object_repr=str(fee),
-                description=f'Updated fee for {fee.student.username}: {fee.get_fee_type_display()} ({fee.status}, {fee.amount_paid}/{fee.amount})',
+                description=f'Updated fee for {student_username}: {fee.fee_type.name} ({fee.status}, {fee.amount_paid}/{fee.amount})',
                 request=self.request
             )
         except Exception as audit_err:
             logger.warning(f"Audit log failed on fee update: {audit_err}")
 
+    def destroy(self, request, *args, **kwargs):
+        # Payment history must stay traceable: a charge with recorded
+        # payments cannot be deleted (the API answers 400 with a clear
+        # message instead of silently cascading the history away).
+        fee = self.get_object()
+        payment_count = fee.payments.count()
+        if payment_count:
+            return Response(
+                {
+                    'error': (
+                        f'Cannot delete this charge: {payment_count} payment(s) are '
+                        f'recorded against it. Payment history must be preserved.'
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)
+
     def perform_destroy(self, instance):
         fee_repr = str(instance)
         student_username = instance.student.username if instance.student else 'unknown'
-        fee_type = instance.get_fee_type_display()
+        fee_type = instance.fee_type.name if instance.fee_type_id else 'Fee'
         fee_id = instance.id
         instance.delete()
         try:
@@ -2548,3 +2711,116 @@ class FeeViewSet(viewsets.ModelViewSet):
             )
         except Exception as audit_err:
             logger.warning(f"Audit log failed on fee delete: {audit_err}")
+
+    @action(detail=True, methods=['get', 'post'], url_path='payments')
+    def charge_payments(self, request, pk=None):
+        """List or record payments for one charge.
+
+        GET returns the charge's payment history (get_object only resolves
+        charges the caller may see). POST records a new payment — admin/staff
+        only (see get_permissions), amount validated against the remaining
+        balance, then the charge's cached totals/status are refreshed and an
+        audit entry is written. Payment rows are never edited or deleted.
+        """
+        charge = self.get_object()
+
+        if request.method == 'GET':
+            payments = charge.payments.select_related('recorded_by', 'charge__student')
+            serializer = PaymentSerializer(payments, many=True, context={'request': request})
+            return Response(serializer.data)
+
+        payload = request.data.copy() if hasattr(request.data, 'copy') else dict(request.data)
+        payload['charge'] = charge.pk
+        serializer = PaymentSerializer(
+            data=payload, context={'request': request, 'charge': charge},
+        )
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            payment = serializer.save(recorded_by=request.user)
+            charge.refresh_payment_totals()
+            charge.save()  # Fee.save() derives status from amount_paid
+
+        try:
+            log_audit_action(
+                user=request.user,
+                action='create',
+                model_name='Payment',
+                object_id=payment.id,
+                object_repr=str(payment),
+                description=(
+                    f'Recorded payment of {payment.amount} ({payment.get_method_display()}) '
+                    f'for {charge.student.username if charge.student else "unknown"}: '
+                    f'{charge.fee_type.name} — balance {charge.balance()}'
+                ),
+                request=request,
+            )
+        except Exception as audit_err:
+            logger.warning(f"Audit log failed on payment create: {audit_err}")
+
+        return Response(
+            {
+                'payment': PaymentSerializer(payment, context={'request': request}).data,
+                'charge': FeeSerializer(charge, context={'request': request}).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    @action(detail=False, methods=['get'], url_path='payments')
+    def list_payments(self, request):
+        """School-wide payment history for the Payments sub-view.
+
+        Same role scoping as charges (students their own, parents linked
+        students', staff advisory students', admin everything). Filters:
+        ``student``, ``charge``, ``method``, ``date_from``, ``date_to``,
+        ``search`` (student name/username or reference number).
+        """
+        qs = Payment.objects.select_related(
+            'charge', 'charge__student', 'charge__fee_type', 'recorded_by',
+        )
+
+        scoped_ids = _fee_scoped_student_ids(request.user)
+        if scoped_ids is not None:
+            qs = qs.filter(charge__student_id__in=scoped_ids)
+
+        student = request.query_params.get('student')
+        if student:
+            qs = qs.filter(charge__student_id=student)
+        academic_year = (request.query_params.get('academic_year') or '').strip()
+        if academic_year:
+            qs = qs.filter(charge__academic_year__name=academic_year)
+        charge_id = request.query_params.get('charge')
+        if charge_id and charge_id.isdigit():
+            qs = qs.filter(charge_id=int(charge_id))
+        method = request.query_params.get('method')
+        if method:
+            qs = qs.filter(method=method)
+        for param in ('date_from', 'date_to'):
+            value = (request.query_params.get(param) or '').strip()
+            if not value:
+                continue
+            try:
+                parsed = datetime.date.fromisoformat(value)
+            except ValueError:
+                return Response(
+                    {param: 'Expected an ISO date (YYYY-MM-DD).'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if param == 'date_from':
+                qs = qs.filter(payment_date__gte=parsed)
+            else:
+                qs = qs.filter(payment_date__lte=parsed)
+        search = (request.query_params.get('search') or '').strip()
+        if search:
+            qs = qs.filter(
+                Q(charge__student__username__icontains=search)
+                | Q(charge__student__first_name__icontains=search)
+                | Q(charge__student__last_name__icontains=search)
+                | Q(reference_number__icontains=search)
+            )
+
+        page = self.paginate_queryset(qs)
+        if page is not None:
+            serializer = PaymentSerializer(page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = PaymentSerializer(qs, many=True, context={'request': request})
+        return Response(serializer.data)
