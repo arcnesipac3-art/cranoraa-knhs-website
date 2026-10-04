@@ -412,6 +412,7 @@ class StudentClassEnrollmentViewSet(viewsets.ModelViewSet):
             'student', 'student__profile', 'classroom', 'classroom__teacher'
         )
         classroom_id = self.request.query_params.get('classroom')
+        student_id = self.request.query_params.get('student')
 
         if user.role == 'student':
             if classroom_id:
@@ -424,11 +425,21 @@ class StudentClassEnrollmentViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(student=user)
         elif user.role == 'staff':
             from django.db.models import Q
-            assigned_classrooms = ClassroomSubject.objects.filter(teacher=user).values_list('classroom_id', flat=True)
-            queryset = queryset.filter(Q(classroom__teacher=user) | Q(classroom_id__in=assigned_classrooms))
+            if getattr(user, 'staff_title', None) in ('registrar', 'guidance_counselor'):
+                # Registrar / guidance read any student's section history
+                # (student profile pages); the 'people' module gate still
+                # applies on top for staff whose department restricts it.
+                pass
+            else:
+                assigned_classrooms = ClassroomSubject.objects.filter(teacher=user).values_list('classroom_id', flat=True)
+                queryset = queryset.filter(Q(classroom__teacher=user) | Q(classroom_id__in=assigned_classrooms))
 
         if classroom_id:
             queryset = queryset.filter(classroom_id=classroom_id)
+
+        if student_id and str(student_id).isdigit():
+            # Student profile / enrollment tab: history for one student.
+            queryset = queryset.filter(student_id=student_id)
 
         return queryset
 

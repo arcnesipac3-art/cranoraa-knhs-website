@@ -59,8 +59,20 @@ class CsvImportRateThrottle(UserRateThrottle):
     """
     Limit CSV imports to prevent abuse.
     5 imports per hour per user.
+
+    Validation-only dry runs (`dry_run=1`) are exempt: the import wizard
+    re-validates on every preview/fix cycle, and a dry run writes nothing.
     """
     scope = 'csv_import'
+
+    def allow_request(self, request, view):
+        try:
+            if str(request.data.get('dry_run', '')).lower() in ('1', 'true', 'yes'):
+                return True
+        except Exception:
+            # Unreadable body — fall through and throttle normally.
+            pass
+        return super().allow_request(request, view)
 
 
 class AdminWriteRateThrottle(UserRateThrottle):

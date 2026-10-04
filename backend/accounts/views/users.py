@@ -6,6 +6,8 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from django.utils import timezone
 from django.db.models import Q
+from rest_framework.exceptions import ValidationError as DRFValidationError
+from django.utils.dateparse import parse_date
 import logging
 import re
 import csv
@@ -15,9 +17,11 @@ from django.db import transaction
 
 from ..serializers import UserSerializer
 from ..models import User, Profile, Classroom, StudentClassEnrollment, EnrollmentApplication
+from ..models import AcademicYear as AccountsAcademicYear
 from ..permissions import IsAdmin, IsAdminOrStaff
 from ..throttles import CsvImportRateThrottle
 from ..utils import log_audit_action, generate_temp_password
+from ..pagination import UserPagination
 from .enrollment import _grade_key
 
 logger = logging.getLogger(__name__)
@@ -157,8 +161,16 @@ def admin_create_user_view(request):
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['username', 'email', 'first_name', 'last_name', 'profile__employee_id']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    # Directory search covers the identifiers people actually look students up
+    # by: name, username/LRN, email, employee id and the registration number.
+    search_fields = ['username', 'email', 'first_name', 'last_name', 'profile__employee_id',
+                     'profile__lrn', 'profile__registration_number']
+    pagination_class = UserPagination
+    # Allow-list: only directory-relevant columns are sortable.
+    ordering_fields = ['username', 'first_name', 'last_name', 'profile__grade_level',
+                       'profile__enrollment_status', 'profile__sex', 'account_status',
+                       'date_joined']
 
     def get_queryset(self):
         try:
@@ -179,56 +191,142 @@ class UserViewSet(viewsets.ModelViewSet):
                 queryset = queryset.filter(is_approved=True)
 
             if role == 'admin':
-                return queryset.filter(role='admin', is_active=True)
-
-            if role == 'staff':
-                return queryset.filter(
+                queryset = queryset.filter(role='admin', is_active=True)
+            elif role == 'staff':
+                queryset = queryset.filter(
                     Q(role='staff', is_active=True) |
                     Q(role='admin', is_active=True)
                 )
-
-            if role == 'parent':
-                return queryset.filter(role='parent', is_active=True)
-
+            elif role == 'parent':
+                queryset = queryset.filter(role='parent', is_active=True)
             # For students/parents viewing teachers (directory), return all active staff
-            if role is None and user.role in ['student', 'parent']:
-                return queryset.filter(
+            elif role is None and user.role in ['student', 'parent']:
+                queryset = queryset.filter(
                     Q(role='staff', is_active=True) |
                     Q(role='admin', is_active=True)
                 )
-
-            # Admin users see everything
-            if is_user_admin:
-                return queryset
-
-            if user.role == 'student':
-                return queryset.filter(id=user.id)
-
-            if user.role == 'parent':
+            elif is_user_admin:
+                # `?role=student` must actually mean students. The admin path
+                # used to return every approved user, so each caller had to
+                # re-filter role client-side.
+                if role:
+                    queryset = queryset.filter(role=role)
+            elif user.role == 'student':
+                queryset = queryset.filter(id=user.id)
+            elif user.role == 'parent':
                 profile = getattr(user, 'profile', None)
                 if profile:
                     try:
                         linked_student_ids = profile.linked_students.values_list('id', flat=True)
-                        return queryset.filter(Q(id__in=linked_student_ids) | Q(id=user.id))
+                        queryset = queryset.filter(Q(id__in=linked_student_ids) | Q(id=user.id))
                     except Exception:
-                        pass
-                return queryset.filter(id=user.id)
+                        queryset = queryset.filter(id=user.id)
+                else:
+                    queryset = queryset.filter(id=user.id)
+            elif user.role == 'staff':
+                if user.staff_title in ('registrar', 'guidance_counselor'):
+                    # Registrar / guidance manage the whole student directory.
+                    # The department module gate (VIEWSET_MODULES 'people')
+                    # still applies on top, and teachers keep advisory scoping.
+                    if role == 'student':
+                        queryset = queryset.filter(role='student')
+                    else:
+                        queryset = (queryset.filter(role='student') | queryset.filter(id=user.id)).distinct()
+                else:
+                    advisory_students = queryset.filter(enrollments__classroom__teacher=user)
 
-            if user.role == 'staff':
-                from django.db.models import Q as DQ
-                advisory_students = queryset.filter(enrollments__classroom__teacher=user)
-
-                if role == 'student':
-                    return advisory_students.distinct()
-
-                return (advisory_students | queryset.filter(id=user.id)).distinct()
-
-            if role:
+                    if role == 'student':
+                        queryset = advisory_students.distinct()
+                    else:
+                        queryset = (advisory_students | queryset.filter(id=user.id)).distinct()
+            elif role:
                 queryset = queryset.filter(role=role)
-            return queryset
+
+            return self._apply_directory_filters(queryset)
+        except DRFValidationError:
+            # Bad query parameters must answer 400, not degrade into an
+            # accidental "only me" queryset.
+            raise
         except Exception as e:
             logger.error(f"UserViewSet queryset error: {str(e)}")
             return User.objects.filter(id=self.request.user.id) if self.request.user.is_authenticated else User.objects.none()
+
+    def _apply_directory_filters(self, queryset):
+        """Optional student-directory filters (all additive, applied last).
+
+        Runs after the role/scope branches so every caller is filtered the same
+        way *within their own scope*. Only filters backed by real model fields
+        are supported: grade, section (classroom), student status, sex, account
+        status, academic year, adviser and account-created date range.
+        """
+        params = self.request.query_params
+        used_enrollment_join = False
+
+        grade = params.get('grade')
+        if grade:
+            # profile.grade_level is the cached copy; the enrollment join also
+            # matches students whose profile row was never backfilled. Values
+            # are stored both as bare digits ("12") and with the word
+            # ("Grade 12") depending on the flow that wrote them, so a digit
+            # filter matches both spellings.
+            grade_variants = [grade]
+            if str(grade).isdigit():
+                grade_variants.append(f'Grade {grade}')
+            grade_q = Q()
+            for variant in grade_variants:
+                grade_q |= Q(profile__grade_level=variant)
+                grade_q |= Q(enrollments__classroom__grade_level=variant)
+            queryset = queryset.filter(grade_q)
+            used_enrollment_join = True
+
+        section = params.get('section')
+        if section and section.isdigit():
+            queryset = queryset.filter(enrollments__classroom_id=section)
+            used_enrollment_join = True
+
+        student_status = params.get('status')
+        if student_status:
+            queryset = queryset.filter(profile__enrollment_status=student_status)
+
+        sex = params.get('sex')
+        if sex:
+            queryset = queryset.filter(profile__sex__iexact=sex)
+
+        account_status = params.get('account_status')
+        if account_status:
+            queryset = queryset.filter(account_status=account_status)
+
+        academic_year = params.get('academic_year')
+        if academic_year and academic_year.isdigit():
+            # Students sectioned in the viewed year, plus students with no
+            # section anywhere yet (pending intake) so they stay actionable.
+            # Students known only from other years stay out of the view.
+            queryset = queryset.filter(
+                Q(enrollments__classroom__academic_year_id=academic_year) |
+                Q(enrollments__isnull=True)
+            )
+            used_enrollment_join = True
+
+        adviser = params.get('adviser')
+        if adviser and adviser.isdigit():
+            queryset = queryset.filter(enrollments__classroom__teacher_id=adviser)
+            used_enrollment_join = True
+
+        date_from = params.get('date_from')
+        if date_from:
+            if parse_date(date_from) is None:
+                raise DRFValidationError({'date_from': 'Use format YYYY-MM-DD.'})
+            queryset = queryset.filter(date_joined__date__gte=date_from)
+
+        date_to = params.get('date_to')
+        if date_to:
+            if parse_date(date_to) is None:
+                raise DRFValidationError({'date_to': 'Use format YYYY-MM-DD.'})
+            queryset = queryset.filter(date_joined__date__lte=date_to)
+
+        if used_enrollment_join:
+            queryset = queryset.distinct()
+        return queryset
 
     def perform_destroy(self, instance):
         user = self.request.user
@@ -465,6 +563,8 @@ class UserViewSet(viewsets.ModelViewSet):
         if status_val not in [s[0] for s in User.STATUS_CHOICES]:
             return Response({'error': 'Invalid status'}, status=400)
 
+        reason = (request.data.get('reason') or '').strip()
+
         user.account_status = status_val
         if status_val in ['suspended', 'inactive']:
             user.is_active = False
@@ -473,19 +573,310 @@ class UserViewSet(viewsets.ModelViewSet):
         user.save()
 
         try:
+            reason_note = f' — {reason}' if reason else ''
             log_audit_action(
                 user=request.user,
                 action='update',
                 model_name='User',
                 object_id=user.id,
                 object_repr=str(user),
-                description=f'{request.user.role.capitalize()} updated account status to {status_val} for {user.username}',
+                description=f'{request.user.role.capitalize()} updated account status to {status_val} for {user.username}{reason_note}',
                 request=request
             )
         except Exception as audit_exc:
             logger.warning(f"Audit log failed for update_status: {audit_exc}")
 
-        return Response({'status': f'User account status updated to {status_val}', 'account_status': user.account_status, 'is_active': user.is_active})
+        return Response({
+            'status': f'User account status updated to {status_val}',
+            'account_status': user.account_status,
+            'is_active': user.is_active,
+            'reason': reason
+        })
+
+    @action(detail=True, methods=['post'], url_path='update-enrollment-status')
+    def update_enrollment_status(self, request, pk=None):
+        """Change a student's record status (Profile.enrollment_status).
+
+        Kept separate from `update_status`, which changes the *account* status
+        — the two are different facts about a person (§12: student status vs
+        account status). A reason is required, matching the existing withdraw/
+        remove flows, and it lands in the audit entry.
+        """
+        if request.user.role not in ['admin', 'staff']:
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        student = self.get_object()
+        if student.role != 'student':
+            return Response({'error': 'Only students have a student status'}, status=400)
+
+        if request.user.role == 'staff' and getattr(request.user, 'staff_title', None) not in (
+            'registrar', 'guidance_counselor'
+        ):
+            is_advisory_student = StudentClassEnrollment.objects.filter(
+                student=student,
+                classroom__teacher=request.user
+            ).exists()
+            if not is_advisory_student:
+                return Response(
+                    {'error': 'You can only change status for students in your advisory classroom.'},
+                    status=403
+                )
+
+        new_status = request.data.get('status')
+        valid_statuses = [choice[0] for choice in Profile.ENROLLMENT_STATUS_CHOICES]
+        if new_status not in valid_statuses:
+            return Response({'error': 'Invalid status', 'choices': valid_statuses}, status=400)
+
+        reason = (request.data.get('reason') or '').strip()
+        if not reason:
+            return Response({'error': 'A reason is required to change a student status'}, status=400)
+
+        profile, _ = Profile.objects.get_or_create(user=student)
+        old_status = profile.enrollment_status
+        profile.enrollment_status = new_status
+        profile.enrollment_status_reason = reason
+        profile.save(update_fields=['enrollment_status', 'enrollment_status_reason'])
+
+        try:
+            log_audit_action(
+                user=request.user,
+                action='update',
+                model_name='Profile',
+                object_id=profile.id,
+                object_repr=str(student.username),
+                description=(f'{request.user.role.capitalize()} changed student status for '
+                             f'{student.username}: {old_status} -> {new_status} ({reason})'),
+                request=request
+            )
+        except Exception as audit_exc:
+            logger.warning(f"Audit log failed for update_enrollment_status: {audit_exc}")
+
+        return Response({
+            'enrollment_status': profile.enrollment_status,
+            'enrollment_status_reason': profile.enrollment_status_reason,
+            'previous_status': old_status,
+        })
+
+    @action(detail=False, methods=['get'])
+    def student_stats(self, request):
+        """Directory summary counts over the caller's own scope.
+
+        Always filtered to role=student and approved accounts so the numbers
+        match what the directory list itself shows. Pass `academic_year` to
+        scope the view (and the pending / new-this-year counts) to a school
+        year; without it, every student in scope counts.
+        """
+        qs = self.get_queryset().filter(role='student', is_approved=True)
+        total = qs.count()
+
+        # Pending = current students with no section assigned anywhere yet
+        # (retired statuses are excluded so graduates don't look "pending").
+        pending = qs.filter(enrollments__isnull=True).exclude(
+            profile__enrollment_status__in=['inactive', 'withdrawn', 'transferred', 'dropped', 'graduated']
+        ).count()
+
+        # Active = live status AND actually placed in a section. Students with
+        # a live status but no section are counted as pending above, so the
+        # three buckets are disjoint: active + pending + inactive == total.
+        active = qs.filter(
+            profile__enrollment_status__in=['active', 'enrolled']
+        ).exclude(enrollments__isnull=True).count()
+
+        # Everyone else (inactive / transferred / graduated / dropped /
+        # unknown status) counts as not active.
+        inactive = total - active - pending
+
+        # "New this year" uses the viewed academic year's start date; fall back
+        # to the active school year, then to the calendar year.
+        year_start = None
+        resolved_year = None
+        ay_param = request.query_params.get('academic_year')
+        if ay_param and str(ay_param).isdigit():
+            try:
+                from portal.models import AcademicYear as PortalAcademicYear
+                resolved_year = PortalAcademicYear.objects.filter(pk=int(ay_param)).first()
+            except Exception:
+                resolved_year = None
+            if resolved_year is None:
+                resolved_year = AccountsAcademicYear.objects.filter(pk=int(ay_param)).first()
+        if resolved_year is None:
+            try:
+                from portal.models import AcademicYear as PortalAcademicYear
+                resolved_year = PortalAcademicYear.objects.filter(is_active=True, is_archived=False).first()
+            except Exception:
+                resolved_year = None
+        if resolved_year is not None:
+            year_start = resolved_year.start_date
+        if year_start is None:
+            today = timezone.localdate()
+            year_start = today.replace(month=1, day=1)
+
+        new_this_year = qs.filter(date_joined__gte=year_start).count()
+
+        return Response({
+            'total': total,
+            'active': active,
+            'inactive': inactive,
+            'pending': pending,
+            'new_this_year': new_this_year,
+        })
+
+    @action(detail=False, methods=['post'], url_path='bulk-update-enrollment-status')
+    def bulk_update_enrollment_status(self, request):
+        """Change the student status of many students at once (with a reason)."""
+        if request.user.role != 'admin' and getattr(request.user, 'staff_title', None) != 'registrar':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        user_ids = request.data.get('user_ids', [])
+        if not user_ids:
+            return Response({'error': 'No students selected'}, status=400)
+
+        new_status = request.data.get('status')
+        valid_statuses = [choice[0] for choice in Profile.ENROLLMENT_STATUS_CHOICES]
+        if new_status not in valid_statuses:
+            return Response({'error': 'Invalid status', 'choices': valid_statuses}, status=400)
+
+        reason = (request.data.get('reason') or '').strip()
+        if not reason:
+            return Response({'error': 'A reason is required to change student statuses'}, status=400)
+
+        students = User.objects.filter(id__in=user_ids, role='student')
+        count = students.count()
+        if count == 0:
+            return Response({'error': 'No students found matching the selection'}, status=400)
+
+        with transaction.atomic():
+            # Create missing profile rows first so every selected student
+            # actually receives the new status.
+            for student in students.filter(profile__isnull=True):
+                Profile.objects.create(user=student)
+            Profile.objects.filter(user__in=students).update(
+                enrollment_status=new_status,
+                enrollment_status_reason=reason
+            )
+
+        try:
+            usernames = list(students.values_list('username', flat=True))
+            log_audit_action(
+                user=request.user,
+                action='update',
+                model_name='Profile',
+                object_id=None,
+                object_repr=f'Bulk student status -> {new_status}',
+                description=(f'{request.user.role.capitalize()} changed student status to '
+                             f'{new_status} for {count} students ({", ".join(usernames[:10])}'
+                             f'{"…" if count > 10 else ""}) — {reason}'),
+                request=request
+            )
+        except Exception as audit_exc:
+            logger.warning(f"Audit log failed for bulk status change: {audit_exc}")
+
+        return Response({'updated_count': count, 'status': new_status, 'reason': reason})
+
+    @action(detail=False, methods=['post'], url_path='bulk-assign-section')
+    def bulk_assign_section(self, request):
+        """Assign many students to one classroom/section in a single action.
+
+        Reuses the same capacity and grade checks as the single assign_section
+        action; grade mismatches are reported per student instead of failing
+        the whole batch, but insufficient seats reject the batch up front so a
+        partial over-fill can never happen.
+        """
+        if request.user.role != 'admin' and getattr(request.user, 'staff_title', None) != 'registrar':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        user_ids = request.data.get('user_ids', [])
+        if not user_ids:
+            return Response({'error': 'No students selected'}, status=400)
+
+        classroom_id = request.data.get('classroom_id')
+        if not classroom_id:
+            return Response({'error': 'classroom_id is required'}, status=400)
+
+        try:
+            classroom = Classroom.objects.get(id=classroom_id)
+        except Classroom.DoesNotExist:
+            return Response({'error': 'Classroom not found'}, status=404)
+
+        students = list(
+            User.objects.filter(id__in=user_ids, role='student').select_related('profile')
+        )
+        if not students:
+            return Response({'error': 'No students found matching the selection'}, status=400)
+
+        grade_mismatch = []
+        to_assign = []
+        already = []
+        for student in students:
+            student_grade = student.profile.grade_level if hasattr(student, 'profile') else None
+            if student_grade and _grade_key(classroom.grade_level) != _grade_key(student_grade):
+                grade_mismatch.append(student)
+                continue
+            if StudentClassEnrollment.objects.filter(student=student, classroom=classroom).exists():
+                already.append(student)
+                continue
+            to_assign.append(student)
+
+        if to_assign:
+            current_count = StudentClassEnrollment.objects.filter(classroom=classroom).count()
+            capacity = classroom.capacity or 40
+            free = capacity - current_count
+            if len(to_assign) > free:
+                return Response({
+                    'error': f'{classroom.name} does not have enough seats '
+                             f'({free} free of {capacity}, {len(to_assign)} students need one)'
+                }, status=400)
+
+        assigned = []
+        with transaction.atomic():
+            for student in to_assign:
+                enrollment = StudentClassEnrollment.objects.create(
+                    student=student,
+                    classroom=classroom,
+                    enrolled_at=timezone.now()
+                )
+                if hasattr(student, 'profile'):
+                    student.profile.grade_level = str(classroom.grade_level)
+                    student.profile.save(update_fields=['grade_level'])
+                assigned.append(student)
+
+        try:
+            log_audit_action(
+                user=request.user,
+                action='update',
+                model_name='StudentClassEnrollment',
+                object_id=None,
+                object_repr=f'Bulk assign {len(assigned)} students -> {classroom.name}',
+                description=(
+                    f'{request.user.role.capitalize()} bulk assigned {len(assigned)} students '
+                    f'to {classroom.name}'
+                    + (f' ({len(already)} already enrolled)' if already else '')
+                    + (f' ({len(grade_mismatch)} skipped: grade mismatch)' if grade_mismatch else '')
+                ),
+                request=request
+            )
+        except Exception as audit_exc:
+            logger.warning(f"Audit log failed for bulk_assign_section: {audit_exc}")
+
+        return Response({
+            'classroom': {
+                'id': classroom.id,
+                'name': classroom.name,
+                'grade_level': classroom.grade_level,
+            },
+            'assigned_count': len(assigned),
+            'assigned': [{'id': s.id, 'username': s.username} for s in assigned],
+            'already_enrolled': [{'id': s.id, 'username': s.username} for s in already],
+            'skipped': [
+                {
+                    'id': s.id,
+                    'username': s.username,
+                    'error': (f'Grade level mismatch: classroom is Grade {classroom.grade_level}, '
+                              f'student is Grade {s.profile.grade_level if hasattr(s, "profile") and s.profile.grade_level else "Unassigned"}'),
+                }
+                for s in grade_mismatch
+            ],
+        })
 
     @action(detail=True, methods=['post'], url_path='update-roles')
     def update_roles(self, request, pk=None):
@@ -583,10 +974,14 @@ class UserViewSet(viewsets.ModelViewSet):
 
         advisory_classroom = None
         if user_role == 'staff':
-            try:
-                advisory_classroom = Classroom.objects.get(teacher=request.user)
-            except Classroom.DoesNotExist:
-                return Response({'error': 'You must be an advisory teacher to import students.'}, status=403)
+            # Advisory teachers import for their own classroom; the registrar
+            # imports school-wide (mirrors directory read scope).
+            is_registrar = getattr(request.user, 'staff_title', None) == 'registrar'
+            if not is_registrar:
+                try:
+                    advisory_classroom = Classroom.objects.get(teacher=request.user)
+                except Classroom.DoesNotExist:
+                    return Response({'error': 'You must be an advisory teacher to import students.'}, status=403)
 
         file = request.FILES.get('file')
         if not file:
@@ -607,62 +1002,144 @@ class UserViewSet(viewsets.ModelViewSet):
             logger.error(f"CSV parse error: {str(e)}")
             return Response({'error': 'Failed to parse CSV file. Ensure it is UTF-8 encoded with the correct columns.'}, status=400)
 
+        # One validation pass feeds both modes: a dry run (preview) and a real
+        # import can never disagree about which rows are importable, so invalid
+        # records are never silently created.
+        dry_run = str(request.data.get('dry_run', '')).lower() in ('1', 'true', 'yes')
+
         created_count = 0
         created_users = []
-        errors = []
+        errors = []       # flat strings (legacy shape, consumed by current UI)
+        row_errors = []   # [{'row': n, 'message': ...}] for the import wizard
+        row_warnings = [] # [{'row': n, 'message': ...}] — importable but flagged
+        plan = []
 
-        for row in reader:
+        def fail(row_no, message):
+            errors.append(f'Row {row_no}: {message}')
+            row_errors.append({'row': row_no, 'message': message})
+
+        def warn(row_no, message):
+            row_warnings.append({'row': row_no, 'message': message})
+
+        rows = list(reader)
+
+        email_values = [(r.get('Email') or r.get('email') or '').strip() for r in rows]
+        email_values = [e for e in email_values if e]
+        existing_emails = set(
+            User.objects.filter(email__in=email_values).values_list('email', flat=True)
+        ) if email_values else set()
+
+        id_values = [str(r.get('Student ID') or r.get('username') or '').strip() for r in rows]
+        id_values = [v for v in id_values if v]
+        existing_usernames = set(
+            User.objects.filter(username__in=id_values).values_list('username', flat=True)
+        ) if id_values else set()
+
+        seen_ids = {}
+
+        for idx, row in enumerate(rows, start=1):
             try:
                 student_id = row.get('Student ID') or row.get('username')
                 if not student_id:
-                    errors.append("Missing Student ID for a row")
+                    fail(idx, 'Missing Student ID for a row')
+                    continue
+                student_id = str(student_id).strip()
+
+                if len(student_id) != 12 or not student_id.isdigit():
+                    fail(idx, f'Invalid LRN {student_id}: Must be exactly 12 digits')
                     continue
 
-                if len(str(student_id)) != 12 or not str(student_id).isdigit():
-                    errors.append(f"Invalid LRN {student_id}: Must be exactly 12 digits")
+                if student_id in seen_ids:
+                    fail(idx, f'Duplicate LRN {student_id} in this file '
+                              f'(first seen in row {seen_ids[student_id]})')
                     continue
+                seen_ids[student_id] = idx
 
                 email = row.get('Email') or row.get('email')
-                if email:
-                    email = email.strip()
+                email = email.strip() if email else None
                 if not email:
                     email = None
-
-                if email and User.objects.filter(email=email).exists():
-                    errors.append(f"Email {email} already exists")
+                if email and email in existing_emails:
+                    fail(idx, f'Email {email} already exists')
                     continue
 
-                first_name = row.get('First Name') or ''
-                last_name = row.get('Last Name') or ''
-                grade_level = row.get('Grade Level') or ''
+                first_name = (row.get('First Name') or '').strip()
+                last_name = (row.get('Last Name') or '').strip()
+                if not first_name and not last_name:
+                    fail(idx, 'First Name or Last Name is required')
+                    continue
 
+                grade_level = (row.get('Grade Level') or '').strip()
                 if advisory_classroom and not grade_level:
                     grade_level = advisory_classroom.grade_level or ''
+                if not grade_level:
+                    warn(idx, 'Missing grade level')
 
                 sex = row.get('Sex') or row.get('sex') or ''
-
                 if sex:
                     sex = sex.lower().strip()
                     if sex not in ['male', 'female']:
+                        warn(idx, f'Unrecognized sex "{sex}" — left blank')
                         sex = None
                 else:
                     sex = None
 
-                if User.objects.filter(username=student_id).exists():
-                    errors.append(f"Student ID {student_id} already exists")
+                if student_id in existing_usernames:
+                    fail(idx, f'Student ID {student_id} already exists')
                     continue
 
+                plan.append({
+                    'row': idx,
+                    'student_id': student_id,
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'grade_level': grade_level,
+                    'sex': sex,
+                })
+            except Exception as e:
+                fail(idx, f'Error importing {row.get("Student ID")}: {str(e)}')
+
+        if dry_run:
+            # Preview only: nothing is written and no audit entry is made.
+            return Response({
+                'status': 'success',
+                'dry_run': True,
+                'created_count': 0,
+                'created_users': [],
+                'valid_count': len(plan),
+                'errors': errors,
+                'row_errors': row_errors,
+                'row_warnings': row_warnings,
+                'preview': [
+                    {
+                        'row': p['row'],
+                        'student_id': p['student_id'],
+                        'first_name': p['first_name'],
+                        'last_name': p['last_name'],
+                        'email': p['email'],
+                        'grade_level': p['grade_level'],
+                        'sex': p['sex'],
+                        'has_warnings': any(w['row'] == p['row'] for w in row_warnings),
+                    }
+                    for p in plan
+                ],
+            })
+
+        for entry in plan:
+            try:
+                student_id = entry['student_id']
                 temp_password = generate_temp_password()
 
                 with transaction.atomic():
                     user = User(
                         username=student_id,
-                        email=email,
-                        first_name=first_name,
-                        last_name=last_name,
+                        email=entry['email'],
+                        first_name=entry['first_name'],
+                        last_name=entry['last_name'],
                         role='student',
                         is_approved=True,
-                        is_verified=True if email else False,
+                        is_verified=True if entry['email'] else False,
                         must_change_password=True,
                         account_status='active'
                     )
@@ -673,8 +1150,8 @@ class UserViewSet(viewsets.ModelViewSet):
                         user=user,
                         defaults={
                             'lrn': student_id,
-                            'grade_level': grade_level,
-                            'sex': sex
+                            'grade_level': entry['grade_level'],
+                            'sex': entry['sex']
                         }
                     )
 
@@ -700,10 +1177,10 @@ class UserViewSet(viewsets.ModelViewSet):
                 created_users.append({
                     'username': student_id,
                     'password': temp_password,
-                    'name': f"{first_name} {last_name}".strip()
+                    'name': f"{entry['first_name']} {entry['last_name']}".strip()
                 })
             except Exception as e:
-                errors.append(f"Error importing {row.get('Student ID')}: {str(e)}")
+                fail(entry['row'], f"Error importing {entry['student_id']}: {str(e)}")
 
         try:
             log_audit_action(
@@ -720,9 +1197,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
         return Response({
             'status': 'success',
+            'dry_run': False,
             'created_count': created_count,
             'created_users': created_users,
-            'errors': errors
+            'valid_count': len(plan),
+            'errors': errors,
+            'row_errors': row_errors,
+            'row_warnings': row_warnings
         })
 
     @action(detail=False, methods=['post'], throttle_classes=[CsvImportRateThrottle])

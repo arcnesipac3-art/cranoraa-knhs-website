@@ -1,11 +1,6 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useParallelFetch } from '../hooks/useFetch';
+import { useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import api from '../utils/api';
-import toast from 'react-hot-toast';
-import Swal from 'sweetalert2';
-import { EmptyState } from '../components/ui';
 import Teachers from './Teachers';
 import StudentManagement from './StudentManagement';
 import ParentManagement from './ParentManagement';
@@ -50,17 +45,23 @@ const ALL_TABS = [
 
 export default function PeopleHub() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('teachers');
+  // Deep-linkable tabs: /people?tab=students — invalid/absent values fall back
+  // to the first tab the current role may see.
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs = useMemo(() =>
     ALL_TABS.filter(t => t.roles.includes(user?.role)),
     [user?.role]
   );
 
-  // Auto-switch if current tab is hidden
-  if (!tabs.find(t => t.id === activeTab) && tabs.length > 0) {
-    setActiveTab(tabs[0].id);
-  }
+  const urlTab = searchParams.get('tab');
+  const activeTab = tabs.find(t => t.id === urlTab)?.id || tabs[0]?.id || '';
+
+  const selectTab = useCallback((id) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', id);
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="page-bottom-safe bg-slate-50 min-h-screen">
@@ -71,7 +72,7 @@ export default function PeopleHub() {
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => selectTab(tab.id)}
               className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-violet-600 text-white'

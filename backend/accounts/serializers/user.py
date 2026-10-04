@@ -33,9 +33,14 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['id', 'title', 'grade_level', 'classroom_name', 'employee_id', 'phone_number', 'address',
-                  'date_of_birth', 'registration_number', 'sex', 'state',
+                  'date_of_birth', 'registration_number', 'lrn', 'sex', 'state',
                   'nationality', 'middle_name', 'father_name', 'mother_name', 'contact_information',
-                  'linked_students', 'profile_picture', 'mute_until', 'is_muted', 'is_suspended']
+                  'linked_students', 'profile_picture', 'mute_until', 'is_muted', 'is_suspended',
+                  'enrollment_status', 'enrollment_status_reason']
+        # Directory display only: LRN comes from creation/import flows, and the
+        # student status only changes through update_enrollment_status, which
+        # requires a reason and writes the audit entry.
+        read_only_fields = ['lrn', 'enrollment_status', 'enrollment_status_reason']
 
     def get_is_muted(self, obj):
         return obj.mute_until is not None and obj.mute_until > timezone.now()
@@ -72,9 +77,15 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'username', 'first_name', 'last_name', 'full_name',
                   'role', 'staff_title', 'additional_roles', 'is_verified', 'is_approved', 'is_online', 'profile',
-                  'must_change_password', 'account_status', 'department', 'department_name',
+                  'must_change_password', 'account_status', 'is_active', 'date_joined',
+                  'department', 'department_name',
                   'departments', 'department_names', 'effective_modules',
                   'is_adviser', 'is_admin']
+        # is_active / date_joined are surfaced for the student directory but
+        # stay immutable here: account state only changes through the dedicated
+        # toggle/status actions (which audit), and date_joined is a record of
+        # when the account was created.
+        read_only_fields = ['is_active', 'date_joined']
 
     def get_full_name(self, obj):
         return full_name(obj)
