@@ -18,20 +18,29 @@ def sync_portal_to_accounts(apps, schema_editor):
         )
 
     PortalSem = apps.get_model('portal', 'Semester')
-    AccountsSem = apps.get_model('accounts', 'Semester')
+    try:
+        AccountsSem = apps.get_model('accounts', 'Semester')
+    except LookupError:
+        # accounts.Semester is created by 0114_academicyear_curriculumstandard_...
+        # which sits in a parallel branch of the migration graph — a fresh
+        # database can reach this data migration before that CreateModel runs.
+        # Fresh databases have no portal rows to sync at this point anyway
+        # (the copy loops below would be no-ops), so skipping is safe.
+        AccountsSem = None
 
-    for portal_sem in PortalSem.objects.all():
-        AccountsSem.objects.update_or_create(
-            id=portal_sem.id,
-            defaults={
-                'academic_year_id': portal_sem.academic_year_id,
-                'name': portal_sem.name,
-                'semester_type': portal_sem.semester_type,
-                'start_date': portal_sem.start_date,
-                'end_date': portal_sem.end_date,
-                'is_active': portal_sem.is_active,
-            }
-        )
+    if AccountsSem is not None:
+        for portal_sem in PortalSem.objects.all():
+            AccountsSem.objects.update_or_create(
+                id=portal_sem.id,
+                defaults={
+                    'academic_year_id': portal_sem.academic_year_id,
+                    'name': portal_sem.name,
+                    'semester_type': portal_sem.semester_type,
+                    'start_date': portal_sem.start_date,
+                    'end_date': portal_sem.end_date,
+                    'is_active': portal_sem.is_active,
+                }
+            )
 
 
 class Migration(migrations.Migration):

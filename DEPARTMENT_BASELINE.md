@@ -563,3 +563,62 @@ departments the user is *not already in* are refused, which is what
 
 `frontend/src/pages/Analytics.jsx` and `scripts/find-orphans.js` belong to the
 concurrent process and were never staged.
+
+---
+
+# Bulk Fee Assignment (follow-up feature)
+
+`POST /api/v1/fees/bulk-create/` — one fee definition applied to many students
+in a single request: `{student_ids, fee_type, amount, amount_paid, status,
+due_date, description}`. Shared fields are validated once through
+`FeeSerializer`; non-student targets are reported via `invalid_student_ids`
+and skipped; `(student, fee_type, due_date)` rows that already exist are
+skipped so re-running the same assignment never double-bills; creation happens
+in one `transaction.atomic()`; a single summary `log_audit_action` replaces
+per-row audit noise.
+
+While adding it, `FeeViewSet` writes were gated: `create`, `update`,
+`partial_update`, `destroy` and `bulk_create` now require `IsAdminOrStaff`
+(previously ANY authenticated account — including a student — could create
+fees or PATCH its own fee to `paid`). Reads keep the existing per-role
+queryset scoping untouched.
+
+Frontend: `Fees.jsx` gained a **Bulk Assign** modal (search, grade filter,
+select-all-shown, "already billed" indicators, live total preview,
+`z-[130]`). The student picker previously requested `/users/?limit=1000`,
+which `PageNumberPagination` silently ignores (`PAGE_SIZE=50`, no
+`page_size_query_param`) — only the first 50 users ever loaded; it now pages
+explicitly (MAX_PAGES=40, same pattern as `Departments.jsx`) and filters
+`role === 'student'` client-side, because an admin's `?role=student` returns
+every approved user before the role filter.
+
+Tests: `backend/accounts/tests/test_fee_bulk.py` — 10 tests, all passing.
+
+## Backend suite unblocked (pre-existing — the suite had never once run)
+
+The GitHub Actions workflow has **0 runs** (Actions disabled), and locally the
+test database could not even be created, so `manage.py test accounts` had
+never completed. Fixed:
+
+| Blocker | Fix |
+|---|---|
+| `0101` raw `ALTER TABLE … ADD CONSTRAINT` (Postgres-only) crashed SQLite test DB creation | vendor-guarded `RunPython` — identical SQL on PostgreSQL, no-op elsewhere |
+| `0111` raw `ALTER COLUMN … DROP NOT NULL` (Postgres-only) crashed SQLite | vendor-guarded `RunPython`; the `component` column is physically created on SQLite later by `0113`'s `AddField` |
+| `0115` `apps.get_model('accounts', 'Semester')` — that model is created in a parallel migration branch (`0114_academicyear_…`), so fresh replay reaches `0115` first | guarded with `LookupError`; fresh databases have no portal rows to sync at that point anyway (the copy loops are no-ops) |
+| `create_user()` normalizes a missing email to `''`, but `email` is `unique=True, null=True` — the **second** account without an email died on `UNIQUE constraint failed: accounts_user.email`, breaking every test `setUp` | `User.save()` stores `NULL` for falsy emails, matching the field's declared intent; falsy checks elsewhere treat `''` and `None` identically |
+
+First full-suite result: **164 tests — 50 pass / 29 fail / 85 error**. All 114
+failures are pre-existing test rot with concrete causes and zero fee-related
+cases: stale URLs (`/api/login/` no longer exists → 404s),
+`Classroom.objects.create(…, school_year=…)` (field removed from the model),
+and `ModuleNotFoundError: no module named 'hypothesis'`. No baseline existed
+to preserve (nothing had ever run); this is the new reference point.
+
+`makemigrations --check` reports pre-existing model/Meta drift (Friendship
+model vs. `0107`, badge/announcement field tweaks, portal Meta options) —
+none of it touched by this work.
+
+Gates for this feature: `manage.py check` 0 issues; fee tests 10/10;
+`npm run build` PASS; `eslint src/pages/Fees.jsx` 0 problems;
+`vitest --run` 19 fail / 115 pass (baseline unchanged: `Login.test.jsx` 17 +
+`lazyImport.test.ts` 2).

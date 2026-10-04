@@ -19,7 +19,7 @@ from ..models import (
     Fee, Notification, EnrollmentApplication, SystemSetting, Schedule, FCMToken,
     AbsenceExcuse, EnrollmentWaitlist, EnrollmentStatusHistory,
 )
-from ..permissions import IsAdmin
+from ..permissions import IsAdmin, IsAdminOrStaff
 from ..throttles import CsvImportRateThrottle
 from ..utils import log_audit_action, generate_temp_password
 import logging
@@ -2357,6 +2357,17 @@ class FeeViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['student__username']
 
+    def get_permissions(self):
+        # Writes (single and bulk) require admin/staff — this mirrors the
+        # [ADMIN, STAFF] gate on the frontend /fees route. Reads stay open to
+        # IsAuthenticated because get_queryset scopes them per role (students
+        # see their own fees, parents their linked students', staff their
+        # advisory students'). Previously ANY authenticated account could
+        # create/edit fees, including marking its own fees as paid.
+        if self.action in ('create', 'update', 'partial_update', 'destroy', 'bulk_create'):
+            return [IsAdminOrStaff()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
         user = self.request.user
         queryset = Fee.objects.select_related('student')
@@ -2384,6 +2395,110 @@ class FeeViewSet(viewsets.ModelViewSet):
         if fee_type:
             queryset = queryset.filter(fee_type=fee_type)
         return queryset
+
+    @action(detail=False, methods=['post'], url_path='bulk-create')
+    def bulk_create(self, request):
+        """Assign one fee to many students in a single request.
+
+        Payload: ``student_ids`` plus the shared fee fields (``fee_type``,
+        ``amount``, ``amount_paid``, ``status``, ``due_date``,
+        ``description``). The shared fields are validated once through
+        FeeSerializer; every target must be a student; existing
+        (student, fee_type, due_date) rows are skipped so re-running the same
+        assignment never double-bills. Creation happens in one transaction and
+        is summarized by a single audit entry instead of one per row.
+        """
+        raw_ids = request.data.get('student_ids')
+        if not isinstance(raw_ids, (list, tuple)) or not raw_ids:
+            return Response(
+                {'error': 'Expected a non-empty "student_ids" array.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if len(raw_ids) > 2000:
+            return Response(
+                {'error': 'Bulk assignment is limited to 2000 students per request.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            student_ids = list(dict.fromkeys(int(sid) for sid in raw_ids))
+        except (TypeError, ValueError):
+            return Response(
+                {'error': 'student_ids must be integers.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        students = {u.id: u for u in User.objects.filter(id__in=student_ids, role='student')}
+        invalid_ids = [sid for sid in student_ids if sid not in students]
+        if not students:
+            return Response(
+                {'error': 'None of the selected ids belong to a student.',
+                 'invalid_student_ids': invalid_ids},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate the shared fee fields once, probed against a real student.
+        probe = {
+            'student': next(iter(students)),
+            'fee_type': request.data.get('fee_type'),
+            'amount': request.data.get('amount'),
+            'amount_paid': request.data.get('amount_paid', 0),
+            'status': request.data.get('status', 'unpaid'),
+            'due_date': request.data.get('due_date'),
+            'description': request.data.get('description') or '',
+        }
+        serializer = self.get_serializer(data=probe)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        shared = {k: v for k, v in serializer.validated_data.items() if k != 'student'}
+
+        # Never double-bill: skip students that already carry this exact fee.
+        already_billed = set(
+            Fee.objects.filter(
+                student_id__in=students,
+                fee_type=shared['fee_type'],
+                due_date=shared['due_date'],
+            ).values_list('student_id', flat=True)
+        )
+
+        created_ids = []
+        skipped = 0
+        with transaction.atomic():
+            for sid in student_ids:
+                if sid not in students:
+                    continue
+                if sid in already_billed:
+                    skipped += 1
+                    continue
+                fee = Fee(student=students[sid], **shared)
+                fee.save()  # Fee.save() derives status from amount_paid
+                created_ids.append(fee.id)
+
+        fee_label = dict(Fee.FEE_TYPE_CHOICES).get(shared['fee_type'], shared['fee_type'])
+        try:
+            log_audit_action(
+                user=request.user,
+                action='create',
+                model_name='Fee',
+                object_id=None,
+                object_repr=f'{len(created_ids)} fees',
+                description=(
+                    f'Bulk created {len(created_ids)} x {fee_label} fee(s) of {shared["amount"]} '
+                    f'due {shared["due_date"]}'
+                    + (f'; skipped {skipped} duplicate(s)' if skipped else '')
+                ),
+                request=request,
+            )
+        except Exception as audit_err:
+            logger.warning(f"Audit log failed on fee bulk create: {audit_err}")
+
+        return Response(
+            {
+                'created': len(created_ids),
+                'skipped': skipped,
+                'invalid_student_ids': invalid_ids,
+            },
+            status=status.HTTP_201_CREATED if created_ids else status.HTTP_200_OK,
+        )
 
     def perform_create(self, serializer):
         fee = serializer.save()

@@ -92,6 +92,16 @@ class User(AbstractUser):
         verbose_name='user permissions',
     )
 
+    def save(self, *args, **kwargs):
+        # email is `unique=True, null=True`, but Django's create_user normalizes
+        # a missing email to '' — which is NOT NULL, so the second account
+        # created without an email failed the unique constraint (this is what
+        # broke every backend test setUp). Store NULL instead; falsy checks
+        # elsewhere treat '' and None identically.
+        if not self.email:
+            self.email = None
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.username} ({self.role})"
 
