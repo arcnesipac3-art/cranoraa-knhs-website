@@ -47,3 +47,10 @@ backend/.env.*
 .vercel
 
 .github/workflows/
+
+# Generated test/load-test output
+load-tests/step_results/
+tests/.pytest_cache/
+frontend/coverage/
+coverage/
+*.log
