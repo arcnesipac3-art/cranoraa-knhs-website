@@ -48,7 +48,7 @@ const PATH_LABEL_MAP = {
   'schedule-management': 'Schedule Management',
   
   // People Features
-  'teachers': 'Teachers',
+  'staff': 'Staff',
   'students': 'Students',
   'parents': 'Parents',
   'student-management': 'Student Management',

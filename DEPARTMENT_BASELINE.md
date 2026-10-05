@@ -708,3 +708,151 @@ payment history and cannot be edited here." Reuses
   badge/announcement, portal — no fee/payment/academic-year drift added),
   `Classroom.academic_year` physical FK target from `0114`, 267 repo-wide
   eslint errors.
+
+---
+
+# People — Student Records (major improvement)
+
+## Backend (additive; `accounts/`)
+
+- `pagination.py` (new): `UserPagination` — `page_size` ≤ 500, sane defaults.
+- `views/users.py`: directory filters (`grade/section/status/sex/account_status/
+  academic_year/date_from/date_to`; grade matches both `12` and `Grade 12`
+  spellings), LRN/registration search, `OrderingFilter` allowlist;
+  `GET /users/student_stats/` (disjoint active+pending+inactive == total;
+  pending = never-sectioned non-retired; new_this_year via AY start with
+  portal→accounts→calendar fallback); `POST /users/{id}/update-enrollment-status/`
+  (reason REQUIRED, audited); `POST /users/bulk-update-enrollment-status/` +
+  `POST /users/bulk-assign-section/` (admin+registrar only, capacity pre-check,
+  grade mismatch skipped per-row); `import_csv` rewritten around a single
+  validation pass — `dry_run` returns row-indexed errors/warnings + preview,
+  writes nothing, is exempt from the `csv_import` throttle (5/hour); registrar
+  import gate; admin `?role=student` now filters `role=role` (was returning
+  all approved users); registrar + guidance_counselor staff see all students
+  (teachers stay advisory).
+- `views/academic.py`: `GET /enrollments/?student=` + registrar/guidance
+  unscoped read.
+- `serializers/user.py`: `lrn`, `enrollment_status`,
+  `enrollment_status_reason` (Profile, read-only), `is_active`, `date_joined`
+  (User, read-only).
+- `throttles.py`: `CsvImportRateThrottle` skips `dry_run` payloads.
+- `tests/test_student_directory.py` (new): 34 tests — filters, search,
+  ordering, pagination, stats disjointness, status change + reason required,
+  bulk status/section, import dry-run + real import, role scoping.
+
+## Frontend
+
+`PeopleHub.jsx` is now URL-driven (`?tab=`, `?student=` forces Students).
+`StudentManagement.jsx` is a thin orchestrator (add student, badge, assign,
+reset, chat, delete, profile switch) over `pages/students/`:
+`useStudentDirectory.js` (URL state for q/grade/section/status/sex/account/
+dates/page/size/ordering/group/student; debounced 300 ms search; server-side
+everything; abort-on-change; selection; bulk actions; `fetchAllMatching()`
+for exports), `StudentDirectory.jsx` (5 summary cards from real stats,
+filter bar + More filters, group-by Grade & Section / Sex / None, column
+customization persisted, sortable headers, bulk bar, status dialog with
+required reason, export dialog page/selected/all × Excel/PDF/CSV, distinct
+loading/empty/no-results/error states, mobile cards, aria labels),
+`StudentProfileView.jsx` (`?student=ID&ptab=…` — 8 deep-linkable tabs:
+Overview/Academic/Attendance/Enrollment/Family/Documents/Account/Activity;
+403/404 → clean state; status change + reason on Account),
+`ImportWizard.jsx` (5 steps: Upload → Validate (server dry run) → Review
+(row-numbered errors/warnings, error-report CSV, preview) → Confirm → Result
+(credentials CSV); invalid rows can never be imported),
+`exportDirectory.js` (scope-aware Excel/PDF/CSV + import template),
+`directoryHelpers.js` (status maps, grouping, columns, sorters, debounce).
+Teachers/Parents tabs untouched and compatible with the new shell.
+
+## Verification
+
+- **Backend**: `manage.py check` 0; directory tests **34/34**; full suite
+  227 tests — failing-name diff vs the 193-test baseline worktree: **zero new
+  failures**, 24 baseline failures fixed by the concurrent attendance work
+  (not this change).
+- **Frontend**: `npm run build` PASS; eslint on every touched file 0
+  (repo-wide 257 problems < 267 baseline); `vitest --run` 19 fail / 115 pass
+  (baseline unchanged).
+- **Left alone (pre-existing)**: `makemigrations --check` drift, 267→257
+  repo-wide eslint errors (concurrent process's deletions), attendance test
+  rot, `components/people/*` dead code.
+
+---
+
+# People — Staff & Parents directories (Phase 5)
+
+The "Teachers" tab is now **Staff**. Both remaining directories were rebuilt on
+the same URL-driven, server-queried foundation as Students; the Students
+behaviour itself is untouched.
+
+## Backend (additive; `accounts/views/users.py`)
+
+- `GET /users/staff_stats/` — `total / active / suspended / inactive /
+  pending_reset / new_this_year` plus `by_title`, counted over the exact
+  `role=staff` scope the directory list uses (staff **or** admin, approved), so
+  no card can disagree with the table.
+- `GET /users/parent_stats/` — same buckets plus `with_children`, counted over
+  the `role=parent` scope.
+- `_year_start(request)` — the portal→accounts→calendar academic-year
+  resolution is now shared by all three stats endpoints, so "new this year"
+  means the same thing in every directory.
+- `_apply_directory_filters` gained staff filters `department` (M2M id),
+  `staff_title` and `additional_role` (substring over the comma-separated
+  field), and the parent filter `has_children=true|false`
+  (`Profile.linked_students` M2M). Each block is gated on the requested `role`
+  param, so they can never leak into the student directory.
+- **`include_inactive=1`** on `?role=staff` / `?role=parent` relaxes the
+  `is_active` gate, so an admin can still see, filter and *un*-suspend a
+  deactivated account. It is admin-only and opt-in: teachers, students,
+  parents and the eight faculty/parent pickers that share these query strings
+  keep the previous active-only behaviour byte for byte.
+- `import_teachers_csv` rewritten around the same single validation pass as
+  students: `dry_run` returns `valid_count` + row-indexed errors/warnings +
+  preview (email, name, staff title, `has_warnings`), writes nothing and is
+  exempt from the `csv_import` throttle (5/hour). Unknown staff titles warn and
+  fall back to `teacher`; unrecognised sex warns and stays blank; a repeated
+  email is rejected both against the DB *and* earlier in the same file.
+- `POST /users/import_parents_csv/` (new, admin-only, `dry_run` supported) —
+  `Email, First Name, Last Name, Password` (password optional → temporary one
+  generated, `must_change_password=True`). Imported parents start with no
+  children linked; `Link Children` does that afterwards.
+- `bulk-update-status` now accepts an optional `reason` and records it in its
+  audit line (single-record `update_status` already did).
+- `ordering_fields` allow-list extended with `staff_title` and `email`.
+- `tests/test_staff_parent_directory.py` (new): **27 tests** — stats scope and
+  bucket disjointness, staff/parent filters, `include_inactive` honoured for
+  admins and ignored for everyone else, staff + parent import dry-run / real
+  import / throttle exemption / role gate, bulk-status reason audit.
+
+## Frontend
+
+`PeopleHub.jsx`: tab id and label `teachers` → `staff` (`?tab=staff`; the
+command-palette entry in `Layout.jsx` and the shortcut in `SystemAdminHub.jsx`
+follow, `HelpCenter.jsx` copy updated). `StaffManagement.jsx` (new) and
+`ParentManagement.jsx` (rewritten) are thin orchestrators over `pages/staff/`
+and `pages/parents/`, mirroring `StudentManagement.jsx`:
+
+- `staff/useStaffDirectory.js`, `parents/useParentDirectory.js` — URL state
+  (q, filters, page, size, ordering, group, plus `staff=` / `parent=` for the
+  open profile), 300 ms debounced search, abort-on-change, selection, bulk
+  helpers, `fetchAllMatching()` for export scopes.
+- `staff/StaffDirectory.jsx`, `parents/ParentDirectory.jsx` — 5 summary cards
+  from real stats, filter bar + More filters, group-by (Department / Staff role
+  / Sex; Linked children / Account status), persisted column customization,
+  sortable server-side headers, bulk bar, account-status dialog with a required
+  reason, export dialog (page / selected / all-filtered × Excel / PDF / CSV,
+  PDF honors grouping), portaled row menu, distinct loading / empty /
+  no-results / error states and a mobile card layout.
+- `staff/staffHelpers.js` (the `resolvePhoto` + faculty-portrait fallback moved
+  out of the deleted `Teachers.jsx`, staff-title map, columns/sorters/groups),
+  `staff/exportStaff.js`, `parents/parentHelpers.js`, `parents/exportParents.js`.
+- Profiles deep-link as `?staff=ID` / `?parent=ID` and open the existing
+  `TeacherProfileDrawer` / `ParentProfileDrawer`; a link that points at a row
+  filtered off the current page is fetched directly instead of failing, and
+  resolves to a clean "not found / back" state when it truly is gone.
+- `students/ImportWizard.jsx` is now parameterized (`endpoint`, `title`,
+  `noun`, `nounPlural`, `idLabel`, `expectedColumns`, `previewColumns`,
+  `onDownloadTemplate`), so Staff and Parents reuse the same 5-step flow
+  (Upload → Validate → Review → Confirm → Result) with Students' defaults
+  unchanged.
+- `pages/Teachers.jsx` deleted (1,160 lines); `TeacherProfileDrawer` now
+  imports `resolvePhoto` from `staff/staffHelpers`.

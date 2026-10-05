@@ -554,7 +554,7 @@ const Layout = () => {
         { label: 'Fee Management', path: '/fees', category: 'Management', description: 'Charges, payments, and fee types' },
         { label: 'Class Sections', path: '/classes', category: 'Management', description: 'Manage class sections' },
         { label: 'Subject Assignments', path: '/subjects?tab=assignments', category: 'Management', description: 'Assign subjects to sections' },
-        { label: 'Teachers', path: '/people?tab=teachers', category: 'Directory', description: 'Teacher directory' },
+        { label: 'Staff', path: '/people?tab=staff', category: 'Directory', description: 'Staff directory' },
         { label: 'Students', path: '/people?tab=students', category: 'Directory', description: 'Student directory' },
         { label: 'Parents', path: '/people?tab=parents', category: 'Directory', description: 'Parent directory' },
         { label: 'Departments', path: '/departments', category: 'Directory', description: 'Manage departments and their members' },

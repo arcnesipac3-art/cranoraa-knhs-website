@@ -1,5 +1,5 @@
 /**
- * ImportWizard — guided 5-step CSV import for student accounts (§17–§19).
+ * ImportWizard — guided 5-step CSV import (§17–§19).
  *
  *  1 Upload → 2 Validate (server dry run) → 3 Review (row-numbered errors +
  *  warnings, error-report download) → 4 Confirm → 5 Result (credentials).
@@ -7,6 +7,10 @@
  * The backend validates in a single pass: a dry run and the real import can
  * never disagree, invalid rows are never written, and the dry run is exempt
  * from the import rate limit (only real imports count toward it).
+ *
+ * Configurable per directory so Students, Staff and Parents share one flow:
+ * pass `endpoint`, `noun`, `expectedColumns`, `previewColumns` and
+ * `onDownloadTemplate`.
  */
 import { useState, useRef } from 'react';
 import {
@@ -15,6 +19,13 @@ import {
 } from '../../components/ui';
 import api from '../../utils/api';
 import { downloadTemplate } from './exportDirectory';
+
+const STUDENT_PREVIEW_COLUMNS = [
+  { key: 'student_id', label: 'Student ID' },
+  { key: 'name', label: 'Name' },
+  { key: 'grade_level', label: 'Grade' },
+  { key: 'sex', label: 'Sex' },
+];
 
 const STEPS = [
   { id: 'upload', label: 'Upload' },
@@ -83,7 +94,22 @@ function StepChips({ current }) {
   );
 }
 
-export default function ImportWizard({ isOpen, onClose, onImported }) {
+export default function ImportWizard({
+  isOpen,
+  onClose,
+  onImported,
+  // Per-directory configuration — Students is the default.
+  endpoint = '/users/import_csv/',
+  title = 'Import Students',
+  noun = 'student',
+  nounPlural = 'students',
+  idLabel = 'Student ID',
+  expectedColumns = (
+    <p><code className="font-mono">Student ID</code> (12-digit LRN) · <code className="font-mono">Email</code> · <code className="font-mono">First Name</code> · <code className="font-mono">Last Name</code> · <code className="font-mono">Grade Level</code> · <code className="font-mono">Sex</code></p>
+  ),
+  previewColumns = STUDENT_PREVIEW_COLUMNS,
+  onDownloadTemplate = downloadTemplate,
+}) {
   const [step, setStep] = useState('upload');
   const [file, setFile] = useState(null);
   const [dragging, setDragging] = useState(false);
@@ -117,7 +143,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
       const fd = new FormData();
       fd.append('file', csvFile);
       fd.append('dry_run', '1');
-      const res = await api.post('/users/import_csv/', fd, {
+      const res = await api.post(endpoint, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setPreview(res.data);
@@ -128,7 +154,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
         status === 429
           ? 'Import limit reached — the account can import 5 files per hour. Try again later.'
           : status === 403
-            ? 'You do not have permission to import student accounts.'
+            ? `You do not have permission to import ${nounPlural} accounts.`
             : err.response?.data?.error || 'Could not validate the file. Check the column format and encoding (UTF-8).',
       );
       setStep('upload');
@@ -158,7 +184,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await api.post('/users/import_csv/', fd, {
+      const res = await api.post(endpoint, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       setResult(res.data);
@@ -191,16 +217,16 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
 
   const downloadCredentials = () => {
     downloadCsv(
-      'knhs_import_credentials.csv',
-      ['Name', 'Student ID', 'Temporary Password'],
-      (result?.created_users || []).map(u => [u.name, u.username, u.password]),
+      `knhs_${nounPlural}_import_credentials.csv`,
+      ['Name', idLabel, 'Temporary Password'],
+      (result?.created_users || []).map((u) => [u.name, u.username, u.password]),
     );
   };
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="xl" closeOnOverlayClick={false}>
       <ModalHeader onClose={handleClose}>
-        <ModalTitle title="Import Students" subtitle="Guided CSV import with validation preview" />
+        <ModalTitle title={title} subtitle="Guided CSV import with validation preview" />
       </ModalHeader>
 
       <ModalBody className="space-y-4">
@@ -246,7 +272,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
                 >
                   {busy ? 'Reading file…' : 'Select file'}
                 </button>
-                <button type="button" onClick={downloadTemplate} className={`${btnBase} bg-white border border-slate-200 text-slate-600 hover:border-slate-300`}>
+                <button type="button" onClick={onDownloadTemplate} className={`${btnBase} bg-white border border-slate-200 text-slate-600 hover:border-slate-300`}>
                   Download template
                 </button>
               </div>
@@ -254,7 +280,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
 
             <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 text-[11px] text-slate-600 space-y-1">
               <p className="font-bold text-slate-700">Expected columns</p>
-              <p><code className="font-mono">Student ID</code> (12-digit LRN) · <code className="font-mono">Email</code> · <code className="font-mono">First Name</code> · <code className="font-mono">Last Name</code> · <code className="font-mono">Grade Level</code> · <code className="font-mono">Sex</code></p>
+              {expectedColumns}
               <p>Nothing is imported until you review the validation results and confirm. Invalid rows are reported with their row number and are never created.</p>
             </div>
           </div>
@@ -329,23 +355,26 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
                     <thead className="bg-white border-b border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">
                       <tr>
                         <th scope="col" className="px-3 py-2">Row</th>
-                        <th scope="col" className="px-3 py-2">Student ID</th>
-                        <th scope="col" className="px-3 py-2">Name</th>
-                        <th scope="col" className="px-3 py-2">Grade</th>
-                        <th scope="col" className="px-3 py-2">Sex</th>
+                        {previewColumns.map((c) => (
+                          <th key={c.key} scope="col" className="px-3 py-2">{c.label}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {preview.preview.slice(0, 8).map(p => (
+                      {preview.preview.slice(0, 8).map((p) => (
                         <tr key={p.row}>
                           <td className="px-3 py-1.5 font-mono text-slate-400">{p.row}</td>
-                          <td className="px-3 py-1.5 font-mono">{p.student_id}</td>
-                          <td className="px-3 py-1.5 font-semibold text-slate-700">
-                            {p.first_name} {p.last_name}
-                            {p.has_warnings && <span className="ml-1.5 text-[9px] font-bold text-amber-500">⚠</span>}
-                          </td>
-                          <td className="px-3 py-1.5 text-slate-500">{p.grade_level || '—'}</td>
-                          <td className="px-3 py-1.5 text-slate-500 capitalize">{p.sex || '—'}</td>
+                          {previewColumns.map((c) => (
+                            <td
+                              key={c.key}
+                              className={`px-3 py-1.5 ${c.key === 'name' ? 'font-semibold text-slate-700' : 'text-slate-500'} ${c.key === 'student_id' ? 'font-mono' : ''} ${c.key === 'sex' ? 'capitalize' : ''}`}
+                            >
+                              {String(p[c.key] ?? '—')}
+                              {c.key === 'name' && p.has_warnings && (
+                                <span className="ml-1.5 text-[9px] font-bold text-amber-500">⚠</span>
+                              )}
+                            </td>
+                          ))}
                         </tr>
                       ))}
                     </tbody>
@@ -361,7 +390,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
           <div className="space-y-4">
             <div className="px-4 py-3 bg-violet-50 border border-violet-200 rounded-lg">
               <p className="text-sm font-bold text-violet-800">
-                Import {validCount} student account{validCount === 1 ? '' : 's'}?
+                Import {validCount} {noun} account{validCount === 1 ? '' : 's'}?
               </p>
               <p className="text-xs text-violet-600 mt-1">
                 {errorCount > 0
@@ -383,7 +412,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
             <div className="px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-emerald-700">
-                  {result.created_count} student{result.created_count === 1 ? '' : 's'} imported
+                  {result.created_count} {noun}{result.created_count === 1 ? '' : 's'} imported
                 </p>
                 {result.row_errors?.length > 0 && (
                   <p className="text-xs text-rose-600 mt-0.5">
@@ -403,7 +432,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
                     <thead className="bg-slate-50 border-b border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">
                       <tr>
                         <th scope="col" className="px-3 py-2">Name</th>
-                        <th scope="col" className="px-3 py-2">Student ID</th>
+                        <th scope="col" className="px-3 py-2">{idLabel}</th>
                         <th scope="col" className="px-3 py-2">Temporary password</th>
                       </tr>
                     </thead>
@@ -422,7 +451,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
             )}
 
             <p className="text-[11px] text-slate-400">
-              Give each student their temporary password — they must change it on first login.
+              Give each {noun} their temporary password — they must change it on first login.
               Save the credentials file somewhere secure; it is not stored by the system.
             </p>
           </div>
@@ -451,7 +480,7 @@ export default function ImportWizard({ isOpen, onClose, onImported }) {
           <>
             <ModalBtnSecondary onClick={() => setStep('review')} disabled={busy}>Back</ModalBtnSecondary>
             <ModalBtnPrimary onClick={runImport} loading={busy} disabled={busy}>
-              {busy ? 'Importing…' : `Import ${validCount} student${validCount === 1 ? '' : 's'}`}
+              {busy ? 'Importing…' : `Import ${validCount} ${noun}${validCount === 1 ? '' : 's'}`}
             </ModalBtnPrimary>
           </>
         )}

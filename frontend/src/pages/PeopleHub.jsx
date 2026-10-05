@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import Teachers from './Teachers';
+import StaffManagement from './StaffManagement';
 import StudentManagement from './StudentManagement';
 import ParentManagement from './ParentManagement';
 
@@ -9,8 +9,8 @@ import ParentManagement from './ParentManagement';
 
 const ALL_TABS = [
   {
-    id: 'teachers',
-    label: 'Teachers',
+    id: 'staff',
+    label: 'Staff',
     roles: ['admin', 'staff', 'student', 'parent'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@ export default function PeopleHub() {
       </div>
 
       {/* ── Tab content ── */}
-      {activeTab === 'teachers' && <Teachers />}
+      {activeTab === 'staff' && <StaffManagement />}
       {activeTab === 'students' && <StudentManagement />}
       {activeTab === 'parents'  && <ParentManagement />}
     </div>

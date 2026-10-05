@@ -350,7 +350,7 @@ function DashboardOverview() {
           <StatCard
             label="Faculty" value={stats?.total_teachers} sub="Verified"
             icon={<BookOpen className="w-5 h-5 md:w-6 md:h-6" />}
-            color="emerald" onClick={() => navigate('/people?tab=teachers')}
+            color="emerald" onClick={() => navigate('/people?tab=staff')}
           />
           <StatCard
             label="Classrooms" value={stats?.total_classes} sub="Sections"

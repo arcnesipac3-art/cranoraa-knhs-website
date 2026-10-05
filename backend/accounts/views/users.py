@@ -170,7 +170,7 @@ class UserViewSet(viewsets.ModelViewSet):
     # Allow-list: only directory-relevant columns are sortable.
     ordering_fields = ['username', 'first_name', 'last_name', 'profile__grade_level',
                        'profile__enrollment_status', 'profile__sex', 'account_status',
-                       'date_joined']
+                       'staff_title', 'email', 'date_joined']
 
     def get_queryset(self):
         try:
@@ -190,15 +190,29 @@ class UserViewSet(viewsets.ModelViewSet):
             if role in ['student', 'staff']:
                 queryset = queryset.filter(is_approved=True)
 
+            # `include_inactive=1` relaxes the is_active gate so the People
+            # directories can still show (and un-suspend) suspended or
+            # disabled accounts. Admin-only: staff/student/parent callers — and
+            # the faculty and parent pickers that share these params — keep the
+            # old, active-only behaviour.
+            include_inactive = (
+                is_user_admin
+                and str(self.request.query_params.get('include_inactive', '')).lower()
+                in ('1', 'true', 'yes')
+            )
+
             if role == 'admin':
                 queryset = queryset.filter(role='admin', is_active=True)
             elif role == 'staff':
-                queryset = queryset.filter(
-                    Q(role='staff', is_active=True) |
-                    Q(role='admin', is_active=True)
-                )
+                scope = Q(role='staff') | Q(role='admin')
+                if not include_inactive:
+                    scope &= Q(is_active=True)
+                queryset = queryset.filter(scope)
             elif role == 'parent':
-                queryset = queryset.filter(role='parent', is_active=True)
+                scope = Q(role='parent')
+                if not include_inactive:
+                    scope &= Q(is_active=True)
+                queryset = queryset.filter(scope)
             # For students/parents viewing teachers (directory), return all active staff
             elif role is None and user.role in ['student', 'parent']:
                 queryset = queryset.filter(
@@ -260,6 +274,7 @@ class UserViewSet(viewsets.ModelViewSet):
         status, academic year, adviser and account-created date range.
         """
         params = self.request.query_params
+        role = params.get('role')
         used_enrollment_join = False
 
         grade = params.get('grade')
@@ -326,6 +341,29 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if used_enrollment_join:
             queryset = queryset.distinct()
+
+        # Staff-specific filters (only meaningful when the view is scoped to staff)
+        if role in ('staff', 'admin'):
+            department = params.get('department')
+            if department and department.isdigit():
+                queryset = queryset.filter(departments__id=department).distinct()
+
+            staff_title = params.get('staff_title')
+            if staff_title:
+                queryset = queryset.filter(staff_title=staff_title)
+
+            additional_role = params.get('additional_role')
+            if additional_role:
+                queryset = queryset.filter(additional_roles__icontains=additional_role)
+
+        # Parent-specific filters
+        if role == 'parent':
+            has_children = params.get('has_children')
+            if has_children == 'true':
+                queryset = queryset.filter(profile__linked_students__isnull=False).distinct()
+            elif has_children == 'false':
+                queryset = queryset.filter(profile__linked_students__isnull=True)
+
         return queryset
 
     def perform_destroy(self, instance):
@@ -455,23 +493,26 @@ class UserViewSet(viewsets.ModelViewSet):
         queryset = User.objects.filter(id__in=user_ids)
         count = queryset.count()
 
+        reason = (request.data.get('reason') or '').strip()
+
         is_active = new_status not in ['suspended', 'inactive']
         queryset.update(account_status=new_status, is_active=is_active)
 
         try:
+            reason_note = f' — {reason}' if reason else ''
             log_audit_action(
                 user=request.user,
                 action='update',
                 model_name='User',
                 object_id=None,
                 object_repr=f'Bulk status update to {new_status}',
-                description=f'{request.user.role.capitalize()} changed status to {new_status} for {count} users',
+                description=f'{request.user.role.capitalize()} changed status to {new_status} for {count} users{reason_note}',
                 request=request
             )
         except Exception:
             pass
 
-        return Response({'status': f'Updated {count} users to {new_status}'})
+        return Response({'status': f'Updated {count} users to {new_status}', 'reason': reason})
 
     @action(detail=True, methods=['post'])
     def assign_section(self, request, pk=None):
@@ -657,6 +698,33 @@ class UserViewSet(viewsets.ModelViewSet):
             'previous_status': old_status,
         })
 
+    def _year_start(self, request):
+        """Start date of the requested academic year (viewed → active → calendar).
+
+        Shared by the student/staff/parent stats endpoints so "new this year"
+        means the same thing in every directory.
+        """
+        resolved_year = None
+        ay_param = request.query_params.get('academic_year')
+        if ay_param and str(ay_param).isdigit():
+            try:
+                from portal.models import AcademicYear as PortalAcademicYear
+                resolved_year = PortalAcademicYear.objects.filter(pk=int(ay_param)).first()
+            except Exception:
+                resolved_year = None
+            if resolved_year is None:
+                resolved_year = AccountsAcademicYear.objects.filter(pk=int(ay_param)).first()
+        if resolved_year is None:
+            try:
+                from portal.models import AcademicYear as PortalAcademicYear
+                resolved_year = PortalAcademicYear.objects.filter(is_active=True, is_archived=False).first()
+            except Exception:
+                resolved_year = None
+        if resolved_year is not None and getattr(resolved_year, 'start_date', None):
+            return resolved_year.start_date
+        today = timezone.localdate()
+        return today.replace(month=1, day=1)
+
     @action(detail=False, methods=['get'])
     def student_stats(self, request):
         """Directory summary counts over the caller's own scope.
@@ -688,28 +756,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         # "New this year" uses the viewed academic year's start date; fall back
         # to the active school year, then to the calendar year.
-        year_start = None
-        resolved_year = None
-        ay_param = request.query_params.get('academic_year')
-        if ay_param and str(ay_param).isdigit():
-            try:
-                from portal.models import AcademicYear as PortalAcademicYear
-                resolved_year = PortalAcademicYear.objects.filter(pk=int(ay_param)).first()
-            except Exception:
-                resolved_year = None
-            if resolved_year is None:
-                resolved_year = AccountsAcademicYear.objects.filter(pk=int(ay_param)).first()
-        if resolved_year is None:
-            try:
-                from portal.models import AcademicYear as PortalAcademicYear
-                resolved_year = PortalAcademicYear.objects.filter(is_active=True, is_archived=False).first()
-            except Exception:
-                resolved_year = None
-        if resolved_year is not None:
-            year_start = resolved_year.start_date
-        if year_start is None:
-            today = timezone.localdate()
-            year_start = today.replace(month=1, day=1)
+        year_start = self._year_start(request)
 
         new_this_year = qs.filter(date_joined__gte=year_start).count()
 
@@ -718,6 +765,87 @@ class UserViewSet(viewsets.ModelViewSet):
             'active': active,
             'inactive': inactive,
             'pending': pending,
+            'new_this_year': new_this_year,
+        })
+
+    @action(detail=False, methods=['get'])
+    def staff_stats(self, request):
+        """Directory summary counts for staff within the caller's scope.
+
+        Defaults to the same `role=staff&include_inactive=1` scope the Staff
+        directory list uses, so every card matches what the table shows.
+        Callers that omit those params get the equivalent staff-only scope.
+        """
+        qs = self.get_queryset()
+        if request.query_params.get('role') != 'staff':
+            qs = qs.filter(is_approved=True).filter(
+                Q(role='staff', is_active=True) | Q(role='admin', is_active=True)
+            )
+        total = qs.count()
+        active = qs.filter(account_status='active').count()
+        suspended = qs.filter(account_status='suspended').count()
+        inactive = qs.filter(account_status='inactive').count()
+        pending = qs.filter(account_status='pending_reset').count()
+
+        # By staff title
+        title_counts = {}
+        for key, label in User.STAFF_TITLE_CHOICES:
+            title_counts[key] = qs.filter(staff_title=key).count()
+
+        # "New this year" — same academic year logic as students
+        year_start = self._year_start(request)
+
+        new_this_year = qs.filter(date_joined__gte=year_start).count()
+
+        return Response({
+            'total': total,
+            'active': active,
+            'suspended': suspended,
+            'inactive': inactive,
+            'pending_reset': pending,
+            'new_this_year': new_this_year,
+            'by_title': title_counts,
+        })
+
+    @action(detail=False, methods=['get'])
+    def parent_stats(self, request):
+        """Directory summary counts for parents within the caller's scope.
+
+        Mirrors the `role=parent` list scope so the cards always agree with
+        the table.
+        """
+        qs = self.get_queryset()
+        if request.query_params.get('role') != 'parent':
+            qs = qs.filter(role='parent')
+            include_inactive = (
+                request.user.role == 'admin'
+                and str(request.query_params.get('include_inactive', '')).lower()
+                in ('1', 'true', 'yes')
+            )
+            if not include_inactive:
+                qs = qs.filter(is_active=True)
+        total = qs.count()
+
+        active = qs.filter(account_status='active').count()
+        suspended = qs.filter(account_status='suspended').count()
+        inactive = qs.filter(account_status='inactive').count()
+        pending = qs.filter(account_status='pending_reset').count()
+
+        # Parents with linked children
+        with_children = qs.filter(profile__linked_students__isnull=False).distinct().count()
+
+        # "New this year" — same academic year logic
+        year_start = self._year_start(request)
+
+        new_this_year = qs.filter(date_joined__gte=year_start).count()
+
+        return Response({
+            'total': total,
+            'active': active,
+            'suspended': suspended,
+            'inactive': inactive,
+            'pending_reset': pending,
+            'with_children': with_children,
             'new_this_year': new_this_year,
         })
 
@@ -1117,6 +1245,7 @@ class UserViewSet(viewsets.ModelViewSet):
                         'student_id': p['student_id'],
                         'first_name': p['first_name'],
                         'last_name': p['last_name'],
+                        'name': f"{p['first_name']} {p['last_name']}".strip(),
                         'email': p['email'],
                         'grade_level': p['grade_level'],
                         'sex': p['sex'],
@@ -1208,6 +1337,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], throttle_classes=[CsvImportRateThrottle])
     def import_teachers_csv(self, request):
+        """Import staff accounts (teachers, admin, etc.) from CSV.
+
+        Supports `dry_run` for preview: validates all rows, returns row-indexed
+        errors/warnings and a preview of valid rows. Writes nothing in dry run.
+        """
         if request.user.role != 'admin':
             return Response({'error': 'Unauthorized'}, status=403)
 
@@ -1222,6 +1356,8 @@ class UserViewSet(viewsets.ModelViewSet):
         if not file.name.endswith('.csv'):
             return Response({'error': 'Invalid file type. Only CSV files are allowed.'}, status=400)
 
+        dry_run = str(request.data.get('dry_run', '')).lower() in ('1', 'true', 'yes')
+
         try:
             decoded_file = file.read().decode('utf-8')
             io_string = io.StringIO(decoded_file)
@@ -1233,41 +1369,111 @@ class UserViewSet(viewsets.ModelViewSet):
         created_count = 0
         created_users = []
         errors = []
+        row_errors = []
+        row_warnings = []
+        plan = []
 
-        for row in reader:
+        def fail(row_no, message):
+            errors.append(f'Row {row_no}: {message}')
+            row_errors.append({'row': row_no, 'message': message})
+
+        def warn(row_no, message):
+            row_warnings.append({'row': row_no, 'message': message})
+
+        rows = list(reader)
+
+        email_values = [(r.get('Email') or r.get('email') or '').strip() for r in rows]
+        email_values = [e for e in email_values if e]
+        existing_emails = set(
+            User.objects.filter(email__in=email_values).values_list('email', flat=True)
+        ) if email_values else set()
+        seen_emails = {}
+
+        for idx, row in enumerate(rows, start=1):
             try:
                 email = row.get('Email') or row.get('email')
                 if not email:
-                    errors.append("Missing Email for a row")
+                    fail(idx, 'Missing Email for a row')
                     continue
-
                 email = email.strip()
-                if User.objects.filter(username=email).exists() or User.objects.filter(email=email).exists():
-                    errors.append(f"Email {email} already exists")
+                if email in existing_emails:
+                    fail(idx, f'Email {email} already exists')
+                    continue
+                if email in seen_emails:
+                    fail(idx, f'Duplicate Email {email} in this file '
+                              f'(first seen in row {seen_emails[email]})')
+                    continue
+                seen_emails[email] = idx
+
+                title = (row.get('Title') or '').strip()
+                first_name = (row.get('First Name') or '').strip()
+                last_name = (row.get('Last Name') or '').strip()
+                if not first_name and not last_name:
+                    fail(idx, 'First Name or Last Name is required')
                     continue
 
-                title = row.get('Title') or ''
-                first_name = row.get('First Name') or ''
-                last_name = row.get('Last Name') or ''
                 sex = row.get('Sex') or row.get('sex') or ''
-
                 if sex:
                     sex = sex.lower().strip()
                     if sex not in ['male', 'female']:
+                        warn(idx, f'Unrecognized sex "{sex}" — left blank')
                         sex = None
                 else:
                     sex = None
 
+                staff_title = (row.get('Staff Title') or 'teacher').strip().lower()
+                valid_titles = [t[0] for t in User.STAFF_TITLE_CHOICES]
+                if staff_title not in valid_titles:
+                    warn(idx, f'Unrecognized staff title "{staff_title}" — defaulting to teacher')
+                    staff_title = 'teacher'
+
+                plan.append({
+                    'row': idx,
+                    'email': email,
+                    'title': title,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'sex': sex,
+                    'staff_title': staff_title,
+                })
+            except Exception as e:
+                fail(idx, f'Error preparing row: {str(e)}')
+
+        if dry_run:
+            # Preview only: nothing is written and no audit entry is made.
+            return Response({
+                'status': 'success',
+                'dry_run': True,
+                'created_count': 0,
+                'created_users': [],
+                'valid_count': len(plan),
+                'errors': errors,
+                'row_errors': row_errors,
+                'row_warnings': row_warnings,
+                'preview': [
+                    {
+                        'row': p['row'],
+                        'email': p['email'],
+                        'name': f"{p['title']} {p['first_name']} {p['last_name']}".strip(),
+                        'staff_title': p['staff_title'],
+                        'has_warnings': any(w['row'] == p['row'] for w in row_warnings),
+                    }
+                    for p in plan
+                ],
+            })
+
+        for entry in plan:
+            try:
                 temp_password = generate_temp_password()
 
                 with transaction.atomic():
                     user = User(
-                        username=email,
-                        email=email,
-                        first_name=first_name,
-                        last_name=last_name,
+                        username=entry['email'],
+                        email=entry['email'],
+                        first_name=entry['first_name'],
+                        last_name=entry['last_name'],
                         role='staff',
-                        staff_title='teacher',
+                        staff_title=entry['staff_title'],
                         is_approved=True,
                         is_verified=False,
                         must_change_password=True,
@@ -1279,19 +1485,19 @@ class UserViewSet(viewsets.ModelViewSet):
                     Profile.objects.update_or_create(
                         user=user,
                         defaults={
-                            'title': title,
-                            'sex': sex
+                            'title': entry['title'],
+                            'sex': entry['sex']
                         }
                     )
 
                 created_count += 1
                 created_users.append({
-                    'username': email,
+                    'username': entry['email'],
                     'password': temp_password,
-                    'name': f"{title} {first_name} {last_name}".strip()
+                    'name': f"{entry['title']} {entry['first_name']} {entry['last_name']}".strip()
                 })
             except Exception as e:
-                errors.append(f"Error importing {row.get('Email')}: {str(e)}")
+                fail(entry['row'], f"Error importing {entry['email']}: {str(e)}")
 
         try:
             log_audit_action(
@@ -1299,18 +1505,183 @@ class UserViewSet(viewsets.ModelViewSet):
                 action='create',
                 model_name='User',
                 object_id=None,
-                object_repr=f'CSV import {created_count} teachers',
-                description=f'Admin imported {created_count} teachers via CSV with {len(errors)} errors',
+                object_repr=f'CSV import {created_count} staff',
+                description=f'{request.user.role.capitalize()} imported {created_count} staff via CSV with {len(errors)} errors',
                 request=request
             )
         except Exception as audit_exc:
-            logger.warning(f"Audit log failed for teacher CSV import: {audit_exc}")
+            logger.warning(f"Audit log failed for staff CSV import: {audit_exc}")
 
         return Response({
             'status': 'success',
+            'dry_run': False,
             'created_count': created_count,
             'created_users': created_users,
-            'errors': errors
+            'valid_count': len(plan),
+            'errors': errors,
+            'row_errors': row_errors,
+            'row_warnings': row_warnings
+        })
+
+    @action(detail=False, methods=['post'], throttle_classes=[CsvImportRateThrottle])
+    def import_parents_csv(self, request):
+        """Import parent accounts from CSV.
+
+        Supports `dry_run` for preview: validates all rows, returns row-indexed
+        errors/warnings and a preview of valid rows. Writes nothing in dry run.
+        """
+        if request.user.role != 'admin':
+            return Response({'error': 'Unauthorized'}, status=403)
+
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No file provided'}, status=400)
+
+        max_file_size = 5 * 1024 * 1024
+        if file.size > max_file_size:
+            return Response({'error': 'File too large. Maximum size is 5MB.'}, status=400)
+
+        if not file.name.endswith('.csv'):
+            return Response({'error': 'Invalid file type. Only CSV files are allowed.'}, status=400)
+
+        dry_run = str(request.data.get('dry_run', '')).lower() in ('1', 'true', 'yes')
+
+        try:
+            decoded_file = file.read().decode('utf-8')
+            io_string = io.StringIO(decoded_file)
+            reader = csv.DictReader(io_string)
+        except Exception as e:
+            logger.error(f"CSV parse error: {str(e)}")
+            return Response({'error': 'Failed to parse CSV file. Ensure it is UTF-8 encoded with the correct columns.'}, status=400)
+
+        created_count = 0
+        created_users = []
+        errors = []
+        row_errors = []
+        row_warnings = []
+        plan = []
+
+        def fail(row_no, message):
+            errors.append(f'Row {row_no}: {message}')
+            row_errors.append({'row': row_no, 'message': message})
+
+        def warn(row_no, message):
+            row_warnings.append({'row': row_no, 'message': message})
+
+        rows = list(reader)
+
+        email_values = [(r.get('Email') or r.get('email') or '').strip() for r in rows]
+        email_values = [e for e in email_values if e]
+        existing_emails = set(
+            User.objects.filter(email__in=email_values).values_list('email', flat=True)
+        ) if email_values else set()
+        seen_emails = {}
+
+        for idx, row in enumerate(rows, start=1):
+            try:
+                email = row.get('Email') or row.get('email')
+                if not email:
+                    fail(idx, 'Missing Email for a row')
+                    continue
+                email = email.strip()
+                if email in existing_emails:
+                    fail(idx, f'Email {email} already exists')
+                    continue
+                if email in seen_emails:
+                    fail(idx, f'Duplicate Email {email} in this file '
+                              f'(first seen in row {seen_emails[email]})')
+                    continue
+                seen_emails[email] = idx
+
+                first_name = (row.get('First Name') or '').strip()
+                last_name = (row.get('Last Name') or '').strip()
+                if not first_name and not last_name:
+                    fail(idx, 'First Name or Last Name is required')
+                    continue
+
+                password = row.get('Password') or None
+
+                plan.append({
+                    'row': idx,
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'password': password,
+                })
+            except Exception as e:
+                fail(idx, f'Error preparing row: {str(e)}')
+
+        if dry_run:
+            return Response({
+                'status': 'success',
+                'dry_run': True,
+                'created_count': 0,
+                'created_users': [],
+                'valid_count': len(plan),
+                'errors': errors,
+                'row_errors': row_errors,
+                'row_warnings': row_warnings,
+                'preview': [
+                    {
+                        'row': p['row'],
+                        'email': p['email'],
+                        'name': f"{p['first_name']} {p['last_name']}".strip(),
+                        'has_warnings': False,
+                    }
+                    for p in plan
+                ],
+            })
+
+        for entry in plan:
+            try:
+                temp_password = entry['password'] or generate_temp_password()
+
+                with transaction.atomic():
+                    user = User(
+                        username=entry['email'],
+                        email=entry['email'],
+                        first_name=entry['first_name'],
+                        last_name=entry['last_name'],
+                        role='parent',
+                        is_approved=True,
+                        is_verified=False,
+                        must_change_password=True,
+                        account_status='active'
+                    )
+                    user.set_password(temp_password)
+                    user.save()
+
+                created_count += 1
+                created_users.append({
+                    'username': entry['email'],
+                    'password': temp_password,
+                    'name': f"{entry['first_name']} {entry['last_name']}".strip()
+                })
+            except Exception as e:
+                fail(entry['row'], f"Error importing {entry['email']}: {str(e)}")
+
+        try:
+            log_audit_action(
+                user=request.user,
+                action='create',
+                model_name='User',
+                object_id=None,
+                object_repr=f'CSV import {created_count} parents',
+                description=f'{request.user.role.capitalize()} imported {created_count} parents via CSV with {len(errors)} errors',
+                request=request
+            )
+        except Exception as audit_exc:
+            logger.warning(f"Audit log failed for parent CSV import: {audit_exc}")
+
+        return Response({
+            'status': 'success',
+            'dry_run': False,
+            'created_count': created_count,
+            'created_users': created_users,
+            'valid_count': len(plan),
+            'errors': errors,
+            'row_errors': row_errors,
+            'row_warnings': row_warnings
         })
 
     @action(detail=True, methods=['post'])

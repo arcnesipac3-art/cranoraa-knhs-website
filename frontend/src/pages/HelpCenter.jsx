@@ -144,7 +144,7 @@ const FAQ_SECTION = [
     items: [
       {
         q: 'How do I grant admin privileges to a teacher?',
-        a: 'Go to People Directory > Teachers tab. Click the action menu (three dots) next to the teacher\'s name and select "Make Admin." The teacher will then have access to both admin and teacher portals via the portal switcher in the sidebar.'
+        a: 'Go to People Directory > Staff tab. Click the action menu (three dots) next to the staff member\'s name and select "Make Admin." They will then have access to both admin and teacher portals via the portal switcher in the sidebar.'
       },
       {
         q: 'How do I reset a user\'s password?',

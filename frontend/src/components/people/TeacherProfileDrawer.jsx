@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../utils/api';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
-import { resolvePhoto } from '../../pages/Teachers';
+import { resolvePhoto } from '../../pages/staff/staffHelpers';
 
 const STAFF_TITLES = [
   { value: 'teacher_i', label: 'Teacher I' },
